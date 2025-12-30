@@ -1,4 +1,4 @@
-# Slide Layout Editor (杂志排版编辑器) 🎨
+# Slide Layout Editor (Slide排版编辑器) 🎨
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
