@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  font-family: 'Inter', sans-serif;
+  @apply antialiased select-none overflow-hidden bg-[#f3f4f6];
+}
+
+.magazine-serif-en {
+  font-family: 'Crimson Pro', serif;
+}
+
+.magazine-serif-zh {
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* 核心排版优化 */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* 隐藏滚动条 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 几何背景系统 */
+.bg-grid-subtle {
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+}
+
+.bg-dots-subtle {
+  background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.bg-diagonal-subtle {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(0, 0, 0, 0.02) 20px,
+    rgba(0, 0, 0, 0.02) 21px
+  );
+}
+
+.bg-cross-subtle {
+  background-size: 40px 40px;
+  background-image:
+    radial-gradient(circle, rgba(0,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0,0,0,0.01) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.01) 1px, transparent 1px);
+}
+
+/* 镂空文字特效 (用于破界封面) */
+.text-outline-brand {
+  -webkit-text-stroke: 1.5px #264376;
+  color: transparent !important;
+}
+
+.text-outline-black {
+  -webkit-text-stroke: 1.5px #0F172A;
+  color: transparent !important;
+}
+
+/* KaTeX 样式微调 */
+.katex {
+  font-size: 1.1em !important;
+}

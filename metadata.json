@@ -1,0 +1,7 @@
+{
+  "name": "Magazine Layout Editor",
+  "description": "A professional magazine-style image generator with bilingual support, cover and article page layouts, and PNG export capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
