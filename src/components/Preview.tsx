@@ -13,6 +13,7 @@ import BigStatement from './templates/BigStatement';
 import StepTimeline from './templates/StepTimeline';
 import GalleryCapsule from './templates/GalleryCapsule';
 import EditorialSplit from './templates/EditorialSplit';
+import BackCoverMovie from './templates/BackCoverMovie';
 
 interface PreviewProps {
   page: PageData;
@@ -105,6 +106,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'step-timeline': return <StepTimeline page={page} />;
       case 'gallery-capsule': return <GalleryCapsule page={page} />;
       case 'editorial-split': return <EditorialSplit page={page} />;
+      case 'back-cover-movie': return <BackCoverMovie page={page} />;
       default: 
         return <ModernFeature page={page} />;
     }
@@ -136,14 +138,20 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
 
       {/* 改进后的全局页码/页脚组件 */}
       <div className="absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none">
-        <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500">
+        <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500 whitespace-pre-line">
            {page.footer}
         </div>
         
-        {page.pageNumber !== false && (
+        {page.pageNumber !== false ? (
           <div className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-widest flex items-center gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50">
              {renderCounter()}
           </div>
+        ) : (
+          page.pageNumberText && (
+            <div className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-[0.3em] flex items-center animate-in fade-in">
+               {page.pageNumberText}
+            </div>
+          )
         )}
       </div>
     </div>

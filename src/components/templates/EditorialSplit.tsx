@@ -13,7 +13,7 @@ export default function EditorialSplit({ page }: { page: PageData }) {
   // 获取样式覆盖
   const footerStyle = (page.styleOverrides as any)?.footer || {};
   const bulletsStyle = (page.styleOverrides as any)?.bullets || {};
-  const subtitleStyle = (page.styleOverrides as any)?.subtitle || {}; // 核心修复：添加 subtitle 样式支持
+  const subtitleStyle = (page.styleOverrides as any)?.subtitle || {};
   const imageLabelStyle = (page.styleOverrides as any)?.imageLabel || {};
   const imageSubLabelStyle = (page.styleOverrides as any)?.imageSubLabel || {};
 

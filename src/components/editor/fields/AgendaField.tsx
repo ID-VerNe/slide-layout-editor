@@ -12,6 +12,15 @@ interface FieldProps {
 export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   const isVisible = page.visibility?.agenda !== false;
 
+  // Auto-generate IDs for legacy data
+  React.useEffect(() => {
+    const agenda = page.agenda || [];
+    if (agenda.some(item => !item.id)) {
+      const migrated = agenda.map(item => item.id ? item : { ...item, id: `agenda-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      onUpdate({ ...page, agenda: migrated });
+    }
+  }, [page.agenda, onUpdate, page]);
+
   const toggle = () => {
     onUpdate({
       ...page,
@@ -31,6 +40,7 @@ export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
     onUpdate({
       ...page,
       agenda: [...current, { 
+        id: `agenda-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: 'New Section', 
         desc: 'Section overview', 
         number: `0${current.length + 1}`, 
@@ -60,11 +70,13 @@ export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
       </div>
 
       <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-        {(page.agenda || []).map((section, idx) => (
-          <div key={idx} className={`relative group p-5 rounded-[2rem] space-y-4 border-2 transition-all shadow-sm ${page.activeIndex === idx ? 'bg-[#264376]/5 border-[#264376]/20' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}>
-            <button onClick={() => removeSection(idx)} className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10">
-              <X size={14} />
-            </button>
+        {(page.agenda || []).map((section, idx) => {
+          const key = section.id || idx;
+          return (
+            <div key={key} className={`relative group p-5 rounded-[2rem] space-y-4 border-2 transition-all shadow-sm ${page.activeIndex === idx ? 'bg-[#264376]/5 border-[#264376]/20' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}>
+              <button onClick={() => removeSection(idx)} className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10">
+                <X size={14} />
+              </button>
 
             {/* 设置为当前活动章节 */}
             <button 
@@ -107,10 +119,10 @@ export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
                 className="text-[10px] leading-relaxed"
               />
             </div>
-          </div>
-        ))}
-
-        <button 
+                      </div>
+                    );
+                  })}
+                  <button 
           onClick={addSection}
           disabled={(page.agenda?.length || 0) >= 12}
           className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95"

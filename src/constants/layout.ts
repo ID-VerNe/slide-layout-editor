@@ -1,0 +1,9 @@
+export const LAYOUT = {
+  SIDEBAR_WIDTH: 96, // w-24 = 6rem = 96px
+  SIDEBAR_OFFSET: -80, // for motion entrance
+  EDITOR_PANEL_WIDTH: 400,
+  EDITOR_PANEL_WIDTH_EXPANDED: 400,
+  EDITOR_PANEL_WIDTH_COLLAPSED: 0,
+  NAV_HEIGHT: 64, // h-16 = 4rem = 64px
+  PREVIEW_PADDING: 24, // px-6
+};

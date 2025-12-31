@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageData, FeatureData, CustomFont } from '../../../types';
-import { Eye, EyeOff, Layout, Plus, X, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { Eye, EyeOff, Layout, Plus, X, SlidersHorizontal, RotateCcw, HelpCircle } from 'lucide-react';
+import { LUCIDE_ICON_MAP } from '../../../constants/icons';
 import { Label, Input, TextArea, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 import { FieldToolbar } from './FieldToolbar';
@@ -15,6 +15,15 @@ interface FieldProps {
 export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
   const isVisible = page.visibility?.features !== false;
+
+  // Auto-generate IDs for legacy data
+  React.useEffect(() => {
+    const features = page.features || [];
+    if (features.some(f => !f.id)) {
+      const migrated = features.map(f => f.id ? f : { ...f, id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      onUpdate({ ...page, features: migrated });
+    }
+  }, [page.features, onUpdate, page]);
 
   const toggle = () => {
     onUpdate({
@@ -44,7 +53,12 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     if (currentFeatures.length >= 8) return;
     onUpdate({
       ...page,
-      features: [...currentFeatures, { title: 'New Feature', desc: 'Feature description goes here.', icon: 'Globe' }]
+      features: [...currentFeatures, { 
+        id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: 'New Feature', 
+        desc: 'Feature description goes here.', 
+        icon: 'Globe' 
+      }]
     });
   };
 
@@ -90,13 +104,10 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     if (isImg) return <img src={val} className="w-full h-full object-cover rounded-md" />;
     const isMaterial = val.includes('_') || /^[a-z]/.test(val);
     if (isMaterial) return <span className="material-symbols-outlined notranslate text-[20px]" style={{ textTransform: 'none' }}>{val.toLowerCase()}</span>;
-    try {
-      const PascalName = val.charAt(0).toUpperCase() + val.slice(1);
-      const Icon = (LucideIcons as any)[PascalName] || (LucideIcons as any)[val] || LucideIcons.HelpCircle;
-      return <Icon size={20} strokeWidth={2.5} />;
-    } catch (e) {
-      return <LucideIcons.HelpCircle size={20} />;
-    }
+    
+    const PascalName = val.charAt(0).toUpperCase() + val.slice(1);
+    const Icon = LUCIDE_ICON_MAP[PascalName] || LUCIDE_ICON_MAP[val] || HelpCircle;
+    return <Icon size={20} strokeWidth={2.5} />;
   };
 
   return (
@@ -115,9 +126,10 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
         {(page.features || []).map((f, idx) => {
           const isImg = f.icon?.startsWith('data:image') || f.icon?.includes('http');
           const isAdjusting = activeAdjustIdx === idx;
+          const key = f.id || idx; // Fallback to idx while migration runs
 
           return (
-            <div key={idx} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
+            <div key={key} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
               <button 
                 onClick={() => removeFeature(idx)}
                 className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"

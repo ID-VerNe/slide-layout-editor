@@ -13,6 +13,7 @@ interface TopNavProps {
   isAutoFit: boolean;
   onToggleAutoFit: () => void;
   onExportPng: (all: boolean) => void;
+  onSave?: () => void;
   isExporting: boolean;
   showExportMenu: boolean;
   setShowExportMenu: (show: boolean) => void;
@@ -32,6 +33,7 @@ const TopNav: React.FC<TopNavProps> = ({
   isAutoFit,
   onToggleAutoFit,
   onExportPng,
+  onSave,
   isExporting,
   showExportMenu,
   setShowExportMenu,
@@ -102,6 +104,15 @@ const TopNav: React.FC<TopNavProps> = ({
             title={showEditor ? "Collapse Editor" : "Expand Editor"}
           >
             <Maximize size={20} />
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={onSave}
+            className="flex items-center gap-2 bg-slate-50 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition-all active:scale-95 border border-slate-200"
+            title="Save changes and update thumbnail"
+          >
+            <span className="text-sm font-bold tracking-tight">Save</span>
           </button>
 
           <div className="relative ml-2" ref={exportMenuRef}>

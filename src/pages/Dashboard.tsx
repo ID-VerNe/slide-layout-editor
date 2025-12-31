@@ -27,6 +27,71 @@ const TEMPLATES = [
 
 const RECENT_PROJECTS_KEY = 'magazine_recent_projects';
 
+interface ProjectCardProps {
+  project: any;
+  onNavigate: (id: string) => void;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  onDuplicate: (id: string, e: React.MouseEvent) => void;
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onNavigate, onDelete, onDuplicate }) => {
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadThumbnail() {
+      // Try to load thumbnail from IndexedDB if not in the local object
+      if (project.thumbnail) {
+        setThumbnail(project.thumbnail);
+      } else {
+        const data = await getProject(project.id);
+        if (data?.thumbnail) {
+          setThumbnail(data.thumbnail);
+        }
+      }
+    }
+    loadThumbnail();
+  }, [project.id, project.thumbnail]);
+
+  return (
+    <motion.div 
+      layout 
+      initial={{ opacity: 0, scale: 0.95 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      exit={{ opacity: 0, scale: 0.95 }} 
+      key={project.id} 
+      onClick={() => onNavigate(project.id)}
+      className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 cursor-pointer flex flex-col h-[400px]"
+    >
+      <div className="h-[300px] bg-slate-50 relative border-b border-slate-50 flex items-center justify-center overflow-hidden">
+        <div className="relative w-44 h-[248px] bg-white rounded-sm shadow-2xl overflow-hidden transform rotate-[-1deg] group-hover:rotate-0 group-hover:scale-105 transition-all duration-700 border border-slate-100/50">
+          {thumbnail ? (
+            <img src={thumbnail} className="w-full h-full object-cover object-top opacity-95 group-hover:opacity-100 transition-all" alt={project.title} />
+          ) : (
+            <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200">
+              <FileText size={48} />
+            </div>
+          )}
+        </div>
+        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all z-30">
+          <button onClick={(e) => onDelete(project.id, e)} className="p-2 bg-white/90 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-xl shadow-lg"><Trash2 size={16} /></button>
+          <button onClick={(e) => onDuplicate(project.id, e)} className="p-2 bg-white/90 backdrop-blur-md text-slate-400 hover:text-[#264376] rounded-xl shadow-lg"><Copy size={16} /></button>
+        </div>
+        <div className="absolute inset-0 bg-[#264376]/0 group-hover:bg-[#264376]/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <span className="bg-[#264376] text-white px-5 py-2 rounded-full shadow-xl text-[10px] font-black uppercase tracking-widest scale-90 group-hover:scale-100 transition-transform">Resume</span>
+        </div>
+      </div>
+      <div className="p-5 flex-1 flex flex-col justify-center">
+        <h3 className="font-black text-xs uppercase tracking-tight text-slate-900 line-clamp-1 mb-1">{project.title}</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{project.date}</span>
+          <span className="text-[8px] font-black text-[#264376] uppercase px-1.5 py-0.5 bg-[#264376]/5 rounded-md">{project.type}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+
 // Custom hook to detect current grid column count based on Tailwind breakpoints
 function useGridColumns() {
   const [columns, setColumns] = useState(6);
@@ -109,7 +174,13 @@ export default function Dashboard() {
     const newId = `proj-${Date.now()}`;
     const newProject = { ...original, id: newId, title: `${original.title || 'Untitled'} (Copy)`, lastEdited: new Date().toISOString() };
     await saveProject(newId, newProject);
-    const projectSummary = { id: newId, title: newProject.title, date: new Date().toLocaleDateString(), type: original.pages?.[0]?.layoutId || original.pages?.[0]?.type || 'Custom', thumbnail: original.thumbnail || null };
+    const projectSummary = { 
+      id: newId, 
+      title: newProject.title, 
+      date: new Date().toLocaleDateString(), 
+      type: original.pages?.[0]?.layoutId || original.pages?.[0]?.type || 'Custom' 
+      // No thumbnail here
+    };
     const updated = [projectSummary, ...recentProjects];
     setRecentProjects(updated);
     localStorage.setItem(RECENT_PROJECTS_KEY, JSON.stringify(updated.slice(0, 12)));
@@ -153,29 +224,13 @@ export default function Dashboard() {
               <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 pb-4">
                 <AnimatePresence mode='popLayout'>
                   {recentProjects.map((project) => (
-                    <motion.div layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} key={project.id} onClick={() => navigate(`/editor/${project.id}`)}
-                      className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 cursor-pointer flex flex-col h-[400px]"
-                    >
-                      <div className="h-[300px] bg-slate-50 relative border-b border-slate-50 flex items-center justify-center overflow-hidden">
-                        <div className="relative w-44 h-[248px] bg-white rounded-sm shadow-2xl overflow-hidden transform rotate-[-1deg] group-hover:rotate-0 group-hover:scale-105 transition-all duration-700 border border-slate-100/50">
-                          {project.thumbnail ? <img src={project.thumbnail} className="w-full h-full object-cover object-top opacity-95 group-hover:opacity-100 transition-all" alt={project.title} /> : <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200"><FileText size={48} /></div>}
-                        </div>
-                        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all z-30">
-                          <button onClick={(e) => { e.stopPropagation(); deleteProject(project.id, e); }} className="p-2 bg-white/90 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-xl shadow-lg"><Trash2 size={16} /></button>
-                          <button onClick={(e) => { e.stopPropagation(); duplicateProject(project.id, e); }} className="p-2 bg-white/90 backdrop-blur-md text-slate-400 hover:text-[#264376] rounded-xl shadow-lg"><Copy size={16} /></button>
-                        </div>
-                        <div className="absolute inset-0 bg-[#264376]/0 group-hover:bg-[#264376]/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <span className="bg-[#264376] text-white px-5 py-2 rounded-full shadow-xl text-[10px] font-black uppercase tracking-widest scale-90 group-hover:scale-100 transition-transform">Resume</span>
-                        </div>
-                      </div>
-                      <div className="p-5 flex-1 flex flex-col justify-center">
-                        <h3 className="font-black text-xs uppercase tracking-tight text-slate-900 line-clamp-1 mb-1">{project.title}</h3>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{project.date}</span>
-                          <span className="text-[8px] font-black text-[#264376] uppercase px-1.5 py-0.5 bg-[#264376]/5 rounded-md">{project.type}</span>
-                        </div>
-                      </div>
-                    </motion.div>
+                    <ProjectCard 
+                      key={project.id} 
+                      project={project} 
+                      onNavigate={(id) => navigate(`/editor/${id}`)}
+                      onDelete={deleteProject}
+                      onDuplicate={duplicateProject}
+                    />
                   ))}
                 </AnimatePresence>
               </motion.div>

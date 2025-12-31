@@ -1,14 +1,13 @@
 import React from 'react';
 import { PageData } from '../../../types';
-import { Eye, EyeOff, ImageIcon } from 'lucide-react';
-import { Label } from '../../ui/Base';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
 }
 
-export const LogoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const LogoField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const isVisible = page.visibility?.logo !== false;
 
   const toggle = () => {
@@ -31,4 +30,9 @@ export const LogoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
       </div>
     </div>
   );
-};
+}, (prev, next) => {
+  return (
+    prev.page.visibility?.logo === next.page.visibility?.logo &&
+    prev.onUpdate === next.onUpdate
+  );
+});

@@ -24,12 +24,14 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   style = {}
 }) => {
   const [fontSize, setFontSize] = useState(maxSize);
+  const [range, setRange] = useState({ min: minSize, max: maxSize });
   const [debouncedText, setDebouncedText] = useState(text);
   const [isCalculating, setIsCalculating] = useState(true);
+  const [retryCount, setRetryCount] = useState(0); 
   const [version, setVersion] = useState(0);
   const ref = useRef<HTMLHeadingElement>(null);
 
-  // 防抖处理：只有停止输入 300ms 后才更新用于计算的文本
+  // 防抖处理
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedText(text);
@@ -39,28 +41,47 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
 
   useLayoutEffect(() => {
     setIsCalculating(true);
+    setRetryCount(0);
+    setRange({ min: minSize, max: maxSize });
     setFontSize(maxSize);
-  }, [debouncedText, maxSize, fontFamily, maxLines, style.fontWeight, style.fontStyle]);
+  }, [debouncedText, maxSize, fontFamily, maxLines, style.fontWeight, style.fontStyle, minSize]);
 
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !isCalculating) return;
 
-    const checkAndScale = () => {
-      const maxHeight = fontSize * lineHeight * maxLines; 
-      if (el.scrollHeight > maxHeight + 1 && fontSize > minSize) {
-        const ratio = maxHeight / el.scrollHeight;
-        if (ratio < 0.95) {
-          setFontSize(prev => Math.max(minSize, Math.floor(prev * ratio)));
-        } else {
-          setFontSize(prev => prev - 1);
-        }
-      } else {
+    const maxHeight = fontSize * lineHeight * maxLines;
+    const isOverflowing = el.scrollHeight > maxHeight + 2;
+
+    if (retryCount > 20) { // 二分法通常 7-10 次即可完成，20 次足够安全
+      setIsCalculating(false);
+      return;
+    }
+
+    if (isOverflowing) {
+      // 溢出，缩小范围
+      const newMax = fontSize - 1;
+      if (newMax < range.min) {
         setIsCalculating(false);
+      } else {
+        const nextSize = Math.floor((range.min + newMax) / 2);
+        setRange(prev => ({ ...prev, max: newMax }));
+        setFontSize(nextSize);
+        setRetryCount(prev => prev + 1);
       }
-    };
-    checkAndScale();
-  }, [debouncedText, fontSize, lineHeight, maxLines, minSize, version]);
+    } else {
+      // 不溢出，尝试增大以寻找边界
+      const newMin = fontSize + 1;
+      if (newMin > range.max) {
+        setIsCalculating(false);
+      } else {
+        const nextSize = Math.ceil((newMin + range.max) / 2);
+        setRange(prev => ({ ...prev, min: newMin }));
+        setFontSize(nextSize);
+        setRetryCount(prev => prev + 1);
+      }
+    }
+  }, [debouncedText, fontSize, isCalculating, range, retryCount, lineHeight, maxLines]);
 
   useEffect(() => {
     if (document.fonts) document.fonts.ready.then(() => setVersion(v => v + 1));

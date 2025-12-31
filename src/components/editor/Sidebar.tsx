@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, FolderOpen, Save, Settings, Eraser, Layout, Trash2 } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
+import { LAYOUT } from '../../constants/layout';
 
 interface SidebarProps {
   pages: PageData[];
@@ -49,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <motion.div 
-      initial={{ x: -80 }}
+      initial={{ x: LAYOUT.SIDEBAR_OFFSET }}
       animate={{ x: 0 }}
       className="w-24 bg-white border-r border-neutral-200 flex flex-col items-center z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
     >

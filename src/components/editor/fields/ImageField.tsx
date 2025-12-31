@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageData } from '../../../types';
-import { Eye, EyeOff, Image as ImageIcon, X, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, Image as ImageIcon, X, SlidersHorizontal, RotateCcw, Monitor } from 'lucide-react';
 import { Label, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 
@@ -12,6 +12,7 @@ interface FieldProps {
 export const ImageField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   const [showAdjust, setShowAdjust] = useState(false);
   const isVisible = page.visibility?.image !== false;
+  const isBackCover = page.layoutId === 'back-cover-movie';
 
   const toggleVisibility = () => {
     onUpdate({
@@ -31,6 +32,7 @@ export const ImageField: React.FC<FieldProps> = ({ page, onUpdate }) => {
 
   const resetAdjustments = () => {
     handleChange('imageConfig', { scale: 1, x: 0, y: 0 });
+    if (isBackCover) handleChange('logoSize', 55); // 重置封底视口高度
   };
 
   return (
@@ -63,12 +65,12 @@ export const ImageField: React.FC<FieldProps> = ({ page, onUpdate }) => {
         </div>
       </div>
       
-      {/* 核心修复：使用统一的 IconPicker (仅显示上传/URL标签页) */}
-      <div className={`${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+      {/* Upload Section */}
+      <div className={`flex items-center gap-2 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
         <IconPicker 
           value={page.image || ''} 
           onChange={(val) => handleChange('image', val)}
-          allowedTabs={['upload']} // 仅开放图片上传和URL模式
+          allowedTabs={['upload']}
           className="w-full"
           trigger={
             <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:border-[#264376] transition-all shadow-sm group">
@@ -94,6 +96,25 @@ export const ImageField: React.FC<FieldProps> = ({ page, onUpdate }) => {
       {/* Adjustments Panel */}
       {page.image && isVisible && showAdjust && (
         <div className="mt-4 p-4 bg-slate-50 rounded-2xl space-y-5 border border-slate-100 animate-in fade-in slide-in-from-top-2">
+          
+          {/* 特殊逻辑：如果是封底模板，展示 Viewport Height 调节 */}
+          {isBackCover && (
+            <div className="space-y-4 pb-4 border-b border-slate-200">
+              <div className="flex items-center gap-2">
+                <Monitor size={12} className="text-[#264376]" />
+                <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Layout Scaling</span>
+              </div>
+              <Slider 
+                label="Viewport Height" 
+                value={page.logoSize || 55} 
+                min={30} 
+                max={80} 
+                step={1} 
+                onChange={(v) => handleChange('logoSize', v)} 
+              />
+            </div>
+          )}
+
           <div className="flex justify-between items-center mb-1">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Manual Positioning</span>
             <button onClick={resetAdjustments} className="text-[9px] font-black text-slate-400 hover:text-[#264376] uppercase flex items-center gap-1">

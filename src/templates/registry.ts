@@ -8,11 +8,12 @@ import BigStatement from '../components/templates/BigStatement';
 import StepTimeline from '../components/templates/StepTimeline';
 import GalleryCapsule from '../components/templates/GalleryCapsule';
 import EditorialSplit from '../components/templates/EditorialSplit';
+import BackCoverMovie from '../components/templates/BackCoverMovie';
 
 export type EditorFieldType = 
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'image' | 'imageLabel' 
   | 'features' | 'mosaic' | 'metrics' | 'partnersTitle' | 'partners' 
-  | 'testimonials' | 'agenda' | 'gallery' | 'variant';
+  | 'testimonials' | 'agenda' | 'gallery' | 'variant' | 'footer' | 'bullets' | 'backgroundColor' | 'pageNumber';
 
 export interface TemplateConfig {
   id: string;
@@ -24,8 +25,22 @@ export interface TemplateConfig {
   fields: EditorFieldType[];
 }
 
+// 辅助函数：为模板添加标准的基础控制字段（背景、页码）
+const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
+  return ['backgroundColor', 'pageNumber', ...fields];
+};
+
 export const TEMPLATES: TemplateConfig[] = [
   // Gallery Category
+  {
+    id: 'back-cover-movie',
+    name: 'Back Cover Movie',
+    category: 'Gallery',
+    desc: 'Cinematic movie credits style back cover',
+    tags: ['Gallery', 'Back Cover', 'Cinematic', 'Minimalist'],
+    component: BackCoverMovie,
+    fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle'])
+  },
   {
     id: 'editorial-split',
     name: 'Editorial Split',
@@ -33,7 +48,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Japanese style minimalist split layout with vertical typography',
     tags: ['Gallery', 'Minimalist', 'Editorial', 'Typography', 'Japan', 'Swap'],
     component: EditorialSplit,
-    fields: ['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets']
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets'])
   },
   {
     id: 'gallery-capsule',
@@ -42,7 +57,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Stylish vertical capsule gallery with staggered layout and overlapping text',
     tags: ['Gallery', 'Creative', 'Portrait', 'Modern', 'Layering'],
     component: GalleryCapsule,
-    fields: ['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel', 'footer']
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel'])
   },
   // Product Category
   {
@@ -52,7 +67,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Bold text with large visual placeholder',
     tags: ['Bold', 'Minimalist'],
     component: ModernFeature,
-    fields: ['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel']
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel'])
   },
   {
     id: 'component-mosaic',
@@ -61,7 +76,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Text with scattered icon grid',
     tags: ['Showcase', 'Mosaic'],
     component: ComponentMosaic,
-    fields: ['title', 'subtitle', 'actionText', 'mosaic']
+    fields: withBaseFields(['title', 'subtitle', 'actionText', 'mosaic'])
   },
   // Marketing Category
   {
@@ -71,7 +86,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Centered hero with feature grid',
     tags: ['Branding', 'Grid'],
     component: PlatformHero,
-    fields: ['logo', 'title', 'subtitle', 'actionText', 'features']
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'features'])
   },
   {
     id: 'testimonial-card',
@@ -80,7 +95,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Profile with quote and data points',
     tags: ['Review', 'Card', 'Data'],
     component: TestimonialCard,
-    fields: ['image', 'imageLabel', 'title', 'subtitle', 'metrics']
+    fields: withBaseFields(['image', 'imageLabel', 'title', 'subtitle', 'metrics'])
   },
   {
     id: 'community-hub',
@@ -89,7 +104,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Call to action with testimonials and partners',
     tags: ['Community', 'Feedback', 'Social'],
     component: CommunityHub,
-    fields: ['title', 'subtitle', 'actionText', 'partnersTitle', 'partners', 'testimonials']
+    fields: withBaseFields(['title', 'subtitle', 'actionText', 'partnersTitle', 'partners', 'testimonials'])
   },
   // General Category
   {
@@ -99,7 +114,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Pure centered minimalist slogan',
     tags: ['Impact', 'Slogan', 'Clean'],
     component: BigStatement,
-    fields: ['title', 'subtitle']
+    fields: withBaseFields(['title', 'subtitle'])
   },
   {
     id: 'step-timeline',
@@ -108,7 +123,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Vertical process flow with timeline and feature cards',
     tags: ['Process', 'Workflow', 'Steps'],
     component: StepTimeline,
-    fields: ['title', 'subtitle', 'features']
+    fields: withBaseFields(['title', 'subtitle', 'features'])
   },
   {
     id: 'table-of-contents',
@@ -117,7 +132,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Professional agenda with card-based section overview',
     tags: ['Agenda', 'Navigation', 'Minimalist'],
     component: TableOfContents,
-    fields: ['logo', 'title', 'subtitle', 'agenda']
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda'])
   }
 ];
 

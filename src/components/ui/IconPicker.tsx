@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import * as LucideIcons from 'lucide-react';
-import { Search, X, HelpCircle, LayoutGrid, Upload, Image as ImageIcon, History, Trash2, Globe } from 'lucide-react';
+import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Upload, Globe, ImageIcon } from '../../constants/icons';
 import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
+import { compressImage } from '../../utils/db';
 
 export type AssetTab = 'icons' | 'upload';
 
@@ -45,7 +45,8 @@ export default function IconPicker({
   }, [isOpen]);
 
   const saveToRecent = (asset: string) => {
-    if (!asset || asset.includes('example_pic')) return;
+    // 修复：不要将巨大的 Base64 字符串存入 LocalStorage，防止 QuotaExceededError
+    if (!asset || asset.includes('example_pic') || asset.startsWith('data:')) return;
     const newRecent = [asset, ...recentAssets.filter(a => a !== asset)].slice(0, 18);
     setRecentAssets(newRecent);
     localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(newRecent));
@@ -67,7 +68,7 @@ export default function IconPicker({
     if (type === 'material') {
       return <span className="material-symbols-outlined shrink-0 notranslate" style={{ fontSize: `${size}px`, textTransform: 'none !important' as any, fontStyle: 'normal' }}>{name.toLowerCase()}</span>;
     }
-    const Icon = (LucideIcons as any)[name] || (LucideIcons as any)[name.charAt(0).toUpperCase() + name.slice(1)] || HelpCircle;
+    const Icon = LUCIDE_ICON_MAP[name] || LUCIDE_ICON_MAP[name.charAt(0).toUpperCase() + name.slice(1)] || HelpCircle;
     return <Icon size={size} strokeWidth={2.5} className="shrink-0" />;
   };
 
@@ -191,9 +192,13 @@ export default function IconPicker({
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => { 
                         const file = e.target.files?.[0]; 
                         if (file) { 
-                          const reader = new FileReader(); 
-                          reader.onloadend = () => handleSelect(reader.result as string); 
-                          reader.readAsDataURL(file); 
+                          compressImage(file).then(handleSelect).catch(err => {
+                            console.error("Compression failed", err);
+                            // Fallback if compression fails
+                            const reader = new FileReader(); 
+                            reader.onloadend = () => handleSelect(reader.result as string); 
+                            reader.readAsDataURL(file);
+                          });
                         } 
                       }} />
                     </label>

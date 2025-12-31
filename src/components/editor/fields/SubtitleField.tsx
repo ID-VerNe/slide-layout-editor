@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '../../ui/Base';
+import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
@@ -10,7 +10,7 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-export const SubtitleField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = page.visibility?.subtitle !== false;
 
   const toggle = () => {
@@ -63,9 +63,9 @@ export const SubtitleField: React.FC<FieldProps> = ({ page, onUpdate, customFont
             currentFont={page.bodyFont}
             onFontChange={handleFontChange}
         />
-        <Input 
+        <DebouncedInput 
             value={page.subtitle || ''} 
-            onChange={(e) => handleChange(e.target.value)} 
+            onChange={handleChange} 
             placeholder="Subtitle..." 
             className={!isVisible ? 'opacity-50 grayscale' : ''} 
             style={{ fontFamily: page.bodyFont }} 
@@ -73,4 +73,14 @@ export const SubtitleField: React.FC<FieldProps> = ({ page, onUpdate, customFont
       </div>
     </div>
   );
-};
+}, (prev, next) => {
+  return (
+    prev.page.layoutId === next.page.layoutId && // 关键修复：确保布局切换时刷新组件，防止闭包过时
+    prev.page.subtitle === next.page.subtitle &&
+    prev.page.bodyFont === next.page.bodyFont &&
+    prev.page.visibility?.subtitle === next.page.visibility?.subtitle &&
+    prev.page.styleOverrides?.subtitle?.fontSize === next.page.styleOverrides?.subtitle?.fontSize &&
+    prev.customFonts === next.customFonts &&
+    prev.onUpdate === next.onUpdate
+  );
+});

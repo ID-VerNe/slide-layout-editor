@@ -61,6 +61,7 @@ export const SlideImage: React.FC<SlideImageProps> = ({
     <div className={`relative flex items-center justify-center ${className}`} style={containerStyle}>
       <img 
         src={src} 
+        crossOrigin="anonymous"
         className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName}`}
         style={{
           // 核心：基于焦点的缩放

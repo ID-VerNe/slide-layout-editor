@@ -80,7 +80,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
             pixelRatio: 0.15,
             quality: 0.4,
             filter: (node) => {
-              // 过滤掉可能导致跨域安全错误的远程样式表
               if (node.tagName === 'LINK' && (node as HTMLLinkElement).rel === 'stylesheet') {
                 const href = (node as HTMLLinkElement).href;
                 return href.includes(window.location.origin) || href.startsWith('data:');
@@ -129,43 +128,46 @@ export function useProject(projectId: string | undefined, templateId: string | n
       const originalPage = prev.find(p => p.id === updatedPage.id);
       if (!originalPage) return prev;
 
+      // 核心修复：更严谨的全局字段同步逻辑
       const globalFields: Array<keyof PageData> = [
         'counterStyle',
-        'backgroundColor',
         'backgroundPattern',
         'footer',
         'titleFont',
         'bodyFont',
         'logo',
         'logoSize',
-        'agenda'      // 目录内容全局同步
+        'agenda'
       ];
 
-      const changedGlobalFields = globalFields.filter(field => originalPage[field] !== updatedPage[field]);
+      // 找出变动的全局字段
+      const changedGlobalFields: Partial<PageData> = {};
+      globalFields.forEach(field => {
+        if (updatedPage[field] !== originalPage[field]) {
+          // @ts-ignore
+          changedGlobalFields[field] = updatedPage[field];
+        }
+      });
 
-      if (changedGlobalFields.length > 0) {
-        return prev.map(page => {
-          const newPage = { ...page };
-          if (page.id === updatedPage.id) {
-            Object.assign(newPage, updatedPage);
-          }
-          changedGlobalFields.forEach(field => {
-            // @ts-ignore
-            newPage[field] = updatedPage[field];
-          });
-          return newPage;
-        });
-      }
+      return prev.map(page => {
+        // 如果是当前页，应用所有更改
+        if (page.id === updatedPage.id) {
+          return updatedPage;
+        }
+        
+        // 如果不是当前页，但有全局字段变动，则同步这些字段
+        if (Object.keys(changedGlobalFields).length > 0) {
+          return { ...page, ...changedGlobalFields };
+        }
 
-      return prev.map(p => p.id === updatedPage.id ? updatedPage : p);
+        return page;
+      });
     });
   };
 
   const addPage = () => {
     const firstPage = pages[0];
     const defaultLayoutId = 'modern-feature';
-    
-    // 查找已有的目录数据以实现自动同步
     const existingTOC = pages.find(p => p.layoutId === 'table-of-contents');
 
     const newPage: PageData = {
@@ -174,17 +176,16 @@ export function useProject(projectId: string | undefined, templateId: string | n
       layoutId: defaultLayoutId,
       title: 'New Slide',
       bullets: ['Point 1', 'Point 2'],
-      backgroundColor: firstPage.backgroundColor || '#ffffff',
+      backgroundColor: '#ffffff', // 保持默认白
       backgroundPattern: firstPage.backgroundPattern || 'none',
       counterStyle: firstPage.counterStyle || 'number',
       footer: firstPage.footer || '',
       titleFont: firstPage.titleFont,
       bodyFont: firstPage.bodyFont,
-      // 核心：新建页面时自动继承已有的目录内容
       agenda: existingTOC?.agenda || [],
       activeIndex: existingTOC?.activeIndex ?? 0,
       visibility: {
-        logo: defaultLayoutId === 'component-mosaic' ? false : true
+        logo: true
       }
     };
     setPages(prev => [...prev, newPage]);
@@ -243,17 +244,12 @@ export function useProject(projectId: string | undefined, templateId: string | n
     reader.onload = (event) => {
       try {
         const project: ProjectData = JSON.parse(event.target?.result as string);
-        
         project.customFonts.forEach(font => {
-          if (font.dataUrl) {
-            registerFontInDOM(font.family, font.dataUrl);
-          }
+          if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
         });
-        
         setCustomFonts(project.customFonts || []);
         setPages(project.pages || DEFAULT_PAGES);
         setCurrentPageIndex(0);
-        
         alert("Import Success", "Project loaded.");
       } catch (err) {
         console.error("Import failed:", err);

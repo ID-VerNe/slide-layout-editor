@@ -22,6 +22,8 @@ import { AgendaField } from './editor/fields/AgendaField';
 import { GalleryField } from './editor/fields/GalleryField';
 import { VariantField } from './editor/fields/VariantField';
 import { BulletsField } from './editor/fields/BulletsField';
+import { ColorField } from './editor/fields/ColorField';
+import { PageNumberField } from './editor/fields/PageNumberField';
 
 interface EditorProps {
   page: PageData;
@@ -29,33 +31,39 @@ interface EditorProps {
   customFonts: CustomFont[];
 }
 
+// 字段组件映射配置
+const FIELD_COMPONENTS: Record<EditorFieldType, React.FC<any>> = {
+  logo: LogoField,
+  title: TitleField,
+  subtitle: SubtitleField,
+  actionText: ActionTextField,
+  image: ImageField,
+  imageLabel: ImageLabelField,
+  features: FeaturesField,
+  mosaic: MosaicField,
+  metrics: MetricsField,
+  partnersTitle: PartnersTitleField,
+  partners: PartnersField,
+  testimonials: TestimonialsField,
+  agenda: AgendaField,
+  gallery: GalleryField,
+  variant: VariantField,
+  bullets: BulletsField,
+  backgroundColor: ColorField,
+  pageNumber: PageNumberField,
+};
+
 const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const [showLayoutModal, setShowLayoutModal] = useState(false);
 
   const template = getTemplateById(page.layoutId);
   const categories = Array.from(new Set(TEMPLATES.map(t => t.category)));
 
-  // 映射配置到组件
+  // 渲染字段逻辑
   const renderField = (type: EditorFieldType) => {
-    switch (type) {
-      case 'logo': return <LogoField key={type} page={page} onUpdate={onUpdate} />;
-      case 'title': return <TitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'subtitle': return <SubtitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'actionText': return <ActionTextField key={type} page={page} onUpdate={onUpdate} />;
-      case 'image': return <ImageField key={type} page={page} onUpdate={onUpdate} />;
-      case 'imageLabel': return <ImageLabelField key={type} page={page} onUpdate={onUpdate} />;
-      case 'features': return <FeaturesField key={type} page={page} onUpdate={onUpdate} />;
-      case 'mosaic': return <MosaicField key={type} page={page} onUpdate={onUpdate} />;
-      case 'metrics': return <MetricsField key={type} page={page} onUpdate={onUpdate} />;
-      case 'partnersTitle': return <PartnersTitleField key={type} page={page} onUpdate={onUpdate} />;
-      case 'partners': return <PartnersField key={type} page={page} onUpdate={onUpdate} />;
-      case 'testimonials': return <TestimonialsField key={type} page={page} onUpdate={onUpdate} />;
-      case 'agenda': return <AgendaField key={type} page={page} onUpdate={onUpdate} />;
-      case 'gallery': return <GalleryField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'variant': return <VariantField key={type} page={page} onUpdate={onUpdate} />;
-      case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      default: return null;
-    }
+    const Component = FIELD_COMPONENTS[type];
+    if (!Component) return null;
+    return <Component key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
   };
 
   return (

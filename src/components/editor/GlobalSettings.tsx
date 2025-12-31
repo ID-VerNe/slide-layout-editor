@@ -1,6 +1,6 @@
 import React from 'react';
-import { PageData, CustomFont, BackgroundPatternType, CounterStyle } from '../../types';
-import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Grid3X3, Palette } from 'lucide-react';
+import { PageData, CustomFont, CounterStyle } from '../../types';
+import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import FontManager from '../FontManager';
 
@@ -20,29 +20,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({ page, onUpdate, customF
     return page.visibility?.[key] !== false;
   };
 
-  const toggleVisibility = (key: keyof NonNullable<PageData['visibility']>) => {
-    const currentVisibility = page.visibility || {};
-    const newValue = currentVisibility[key] === false ? true : false;
-    onUpdate({
-      ...page,
-      visibility: { ...currentVisibility, [key]: newValue }
-    });
-  };
-
   return (
     <div className="space-y-10 pb-10">
-      {/* 1. Appearance Section */}
+      {/* 1. Global Appearance - Only Patterns now */}
       <Section>
-        <Label icon={Palette}>Global Appearance</Label>
+        <Label icon={Settings}>Global Visual Style</Label>
         <div className="space-y-6">
-            {/* Background Color */}
-            <div className="flex gap-3 items-center">
-                <div className="relative overflow-hidden w-10 h-10 rounded-lg shadow-sm ring-1 ring-slate-200">
-                    <input type="color" className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer p-0 border-0" value={page.backgroundColor || '#ffffff'} onChange={(e) => handleChange('backgroundColor', e.target.value)} />
-                </div>
-                <Input type="text" className="font-mono text-[10px] uppercase" value={page.backgroundColor || '#ffffff'} onChange={(e) => handleChange('backgroundColor', e.target.value)} />
-            </div>
-
             {/* Background Pattern */}
             <div className="space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Background Pattern</p>
@@ -88,29 +71,24 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({ page, onUpdate, customF
 
       {/* 4. Page Metadata Section */}
       <Section className="pt-6 border-t border-slate-100">
-        <Label icon={Settings}>Page Metadata</Label>
+        <Label icon={Settings}>Global Metadata Style</Label>
         <div className="space-y-6">
             <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <input type="checkbox" id="pageNumber" checked={page.pageNumber !== false} onChange={(e) => handleChange('pageNumber', e.target.checked)} />
-                    <label htmlFor="pageNumber" className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Show Counter</label>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style (Global)</p>
+                <div className="grid grid-cols-4 gap-2">
+                    {[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: Type }, { id: 'dots', icon: CircleDot } ].map(s => (
+                        <button key={s.id} onClick={() => handleChange('counterStyle', s.id as CounterStyle)}
+                            className={`p-2 flex items-center justify-center rounded-lg border transition-all ${(page.counterStyle || 'number') === s.id ? 'bg-[#264376] border-[#264376] text-white shadow-md shadow-#264376/20' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
+                            title={s.id.toUpperCase()}
+                        >
+                            <s.icon size={14} />
+                        </button>
+                    ))}
                 </div>
-                {page.pageNumber !== false && (
-                    <div className="grid grid-cols-4 gap-2">
-                        {[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: Type }, { id: 'dots', icon: CircleDot } ].map(s => (
-                            <button key={s.id} onClick={() => handleChange('counterStyle', s.id as CounterStyle)}
-                                className={`p-2 flex items-center justify-center rounded-lg border transition-all ${(page.counterStyle || 'number') === s.id ? 'bg-[#264376] border-[#264376] text-white shadow-md shadow-#264376/20' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
-                                title={s.id.toUpperCase()}
-                            >
-                                <s.icon size={14} />
-                            </button>
-                        ))}
-                    </div>
-                )}
             </div>
             
             <div className="space-y-2">
-               <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 block">Footer Metadata</span>
+               <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 block">Footer Metadata (Global)</span>
                <Input type="text" className="text-[10px]" placeholder="Confidential / Project Title" value={page.footer || ''} onChange={(e) => handleChange('footer', e.target.value)} />
             </div>
         </div>

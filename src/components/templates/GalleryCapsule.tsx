@@ -6,9 +6,24 @@ import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 
 /**
  * GalleryCapsule - 胶囊马赛克图库
- * 极致对齐版：强化左上角可见性，实现右下角物理右对齐
+ * 最终修复版：确保数据流 100% 实时同步，解决 Minimal 模式下的显示滞后问题。
  */
 export default function GalleryCapsule({ page }: { page: PageData }) {
+  // 1. 严格的数据提取，确保不依赖旧有的默认值
+  const title = page.title || 'COLLECTION';
+  const subtitle = page.subtitle || '2025 SERIES';
+  const imageLabel = page.imageLabel || 'PHOTOGRAPHY';
+  const imageSubLabel = page.imageSubLabel || 'PORTFOLIO';
+
+  // 构造一个纯净的显示对象传递给子组件
+  const displayPage = {
+    ...page,
+    title,
+    subtitle,
+    imageLabel,
+    imageSubLabel
+  };
+
   const gallery = page.gallery || [];
   const variant = page.layoutVariant || 'under'; 
   
@@ -23,11 +38,9 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
   const isTextOver = variant === 'over';
   const isTextUnder = variant === 'under' || !variant;
 
-  const titleStyle = (page.styleOverrides as any)?.title || {};
-  const subtitleStyle = (page.styleOverrides as any)?.subtitle || {};
-
   return (
     <div 
+      key={page.id + page.layoutVariant + title + subtitle} // 核心修复：增加 key 强制数据变动时重绘
       className={`w-full h-full flex items-center justify-center overflow-hidden relative transition-all duration-1000 
         ${isMinimal ? 'gap-12 px-40' : 'gap-8 px-24'}`}
       style={{ backgroundColor: page.backgroundColor || '#ffffff' }}
@@ -38,10 +51,10 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
       {/* --- 方案 A: Text Behind --- */}
       {isTextUnder && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-0 pointer-events-none px-20">
-          <SlideSubHeadline page={page} className="mb-4 opacity-20 uppercase tracking-[1em] text-[10px]" />
+          <SlideSubHeadline page={displayPage} className="mb-4 opacity-20 uppercase tracking-[1em] text-[10px]" />
           <div className="flex flex-col items-center leading-[0.75]">
             <SlideHeadline 
-              page={page} 
+              page={displayPage} 
               maxSize={320} 
               minSize={100} 
               className="text-black/[0.04] !font-[1000] !tracking-tighter text-center leading-[0.8]"
@@ -50,21 +63,21 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
         </div>
       )}
 
-      {/* --- 方案 C: Minimal (左上角修正) --- */}
+      {/* --- 方案 C: Minimal (左上角内容) --- */}
       {isMinimal && (
         <div className="absolute top-24 left-32 z-20 text-left pointer-events-none animate-in fade-in slide-in-from-left-8 duration-1000">
           <p className="text-[10px] font-black tracking-[0.5em] text-slate-300 uppercase mb-1 drop-shadow-none">
-            {page.imageSubLabel || 'Portfolio'}
+            {imageSubLabel}
           </p>
           <div className="relative">
+            {/* 确保这里渲染的是最新的 subtitle */}
             <SlideSubHeadline 
-                page={page}
-                // 核心修复：加深颜色至 slate-400，并稍微加重字重
+                page={displayPage}
                 color="#94a3b8" 
                 className="text-5xl font-[800] tracking-tight"
+                size="3.5rem"
                 style={{ 
                     fontFamily: page.bodyFont || "'Crimson Pro', serif",
-                    fontSize: subtitleStyle.fontSize ? `${subtitleStyle.fontSize * 1.5}px` : '3.5rem'
                 }}
             />
           </div>
@@ -106,9 +119,9 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
       {/* --- 方案 B: Text Front --- */}
       {isTextOver && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none px-20">
-          <SlideSubHeadline page={page} className="mb-4 text-slate-900 opacity-60 uppercase tracking-[0.5em] text-xs" />
+          <SlideSubHeadline page={displayPage} className="mb-4 text-slate-900 opacity-60 uppercase tracking-[0.5em] text-xs" />
           <SlideHeadline 
-            page={page} 
+            page={displayPage} 
             maxSize={320} 
             minSize={100} 
             className="text-[#264376] !font-[1000] !tracking-tighter text-center leading-[0.8] drop-shadow-2xl"
@@ -116,22 +129,20 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
         </div>
       )}
 
-      {/* --- 方案 C: Minimal (右下角物理右对齐) --- */}
+      {/* --- 方案 C: Minimal (右下角内容) --- */}
       {isMinimal && (
         <div className="absolute bottom-24 right-32 z-30 text-right pointer-events-none animate-in fade-in slide-in-from-right-8 duration-1000 delay-300">
           <div className="flex flex-col items-end gap-6">
-            {/* 1. Label: 使用负 margin 抵消 tracking 带来的右侧空白，确保绝对冲齐 */}
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none m-0 mr-[-0.3em]">
-                {page.imageLabel || "PHOTOGRAPHY REVIEW"}
+                {imageLabel}
             </p>
 
-            {/* 2. Line: 保持右对齐 */}
             <div className="w-12 h-0.5 bg-slate-900/80 m-0" />
             
-            {/* 3. Headline: 物理边缘对齐 */}
             <div className="relative">
+                {/* 确保这里渲染的是最新的 title */}
                 <SlideHeadline 
-                    page={page} 
+                    page={displayPage} 
                     maxSize={160} 
                     minSize={80}
                     weight={900}

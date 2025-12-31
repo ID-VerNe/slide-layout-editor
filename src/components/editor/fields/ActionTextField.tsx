@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '../../ui/Base';
+import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
@@ -9,7 +9,7 @@ interface FieldProps {
   onUpdate: (page: PageData) => void;
 }
 
-export const ActionTextField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const ActionTextField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const isVisible = page.visibility?.actionText !== false;
 
   const toggle = () => {
@@ -54,13 +54,20 @@ export const ActionTextField: React.FC<FieldProps> = ({ page, onUpdate }) => {
             onIncrease={() => updateFontSize(1)} 
             onDecrease={() => updateFontSize(-1)} 
         />
-        <Input 
+        <DebouncedInput 
             value={page.actionText || ''} 
-            onChange={(e) => handleChange(e.target.value)} 
+            onChange={handleChange} 
             placeholder="Label text..." 
             className={!isVisible ? 'opacity-50 grayscale' : ''} 
         />
       </div>
     </div>
   );
-};
+}, (prev, next) => {
+  return (
+    prev.page.actionText === next.page.actionText &&
+    prev.page.visibility?.actionText === next.page.visibility?.actionText &&
+    prev.page.styleOverrides?.actionText?.fontSize === next.page.styleOverrides?.actionText?.fontSize &&
+    prev.onUpdate === next.onUpdate
+  );
+});

@@ -14,13 +14,25 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
   const gallery = page.gallery || [];
 
+  // Auto-generate IDs for legacy data
+  React.useEffect(() => {
+    if (gallery.some(item => !item.id)) {
+      const migrated = gallery.map(item => item.id ? item : { ...item, id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      onUpdate({ ...page, gallery: migrated });
+    }
+  }, [page.gallery, onUpdate, page]);
+
   const updateGallery = (newGallery: any[]) => {
     onUpdate({ ...page, gallery: newGallery });
   };
 
   const addImage = () => {
     if (gallery.length >= 6) return;
-    updateGallery([...gallery, { url: '', config: { scale: 1, x: 0, y: 0 } }]);
+    updateGallery([...gallery, { 
+      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      url: '', 
+      config: { scale: 1, x: 0, y: 0 } 
+    }]);
   };
 
   const removeImage = (idx: number) => {
@@ -50,7 +62,7 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
 
       <div className="space-y-6">
         {gallery.map((item, idx) => (
-          <div key={idx} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
+          <div key={item.id || idx} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
             {/* Remove Button */}
             <button 
               onClick={() => removeImage(idx)}

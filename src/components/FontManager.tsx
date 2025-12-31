@@ -10,19 +10,27 @@ interface FontManagerProps {
 }
 
 const FontManager: React.FC<FontManagerProps> = ({ fonts, onFontsChange }) => {
-  const registerFont = useCallback((name: string, dataUrl: string) => {
+  const registerFont = useCallback(async (name: string, dataUrl: string) => {
     const family = `custom-${Date.now()}-${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
-    const style = document.createElement('style');
-    style.id = `style-${family}`;
-    style.innerHTML = `
-      @font-face {
-        font-family: '${family}';
-        src: url('${dataUrl}');
-        font-weight: normal;
-        font-style: normal;
-      }
-    `;
-    document.head.appendChild(style);
+    
+    try {
+      const font = new FontFace(family, `url(${dataUrl})`);
+      const loadedFont = await font.load();
+      document.fonts.add(loadedFont);
+    } catch (e) {
+      console.error("FontFace failed, using style fallback", e);
+      const style = document.createElement('style');
+      style.id = `style-${family}`;
+      style.innerHTML = `
+        @font-face {
+          font-family: '${family}';
+          src: url('${dataUrl}');
+          font-weight: normal;
+          font-style: normal;
+        }
+      `;
+      document.head.appendChild(style);
+    }
     return family;
   }, []);
 
@@ -32,9 +40,9 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts, onFontsChange }) => {
 
     Array.from(files).forEach((file: File) => {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const dataUrl = event.target?.result as string;
-        const family = registerFont(file.name, dataUrl);
+        const family = await registerFont(file.name, dataUrl);
         onFontsChange(prev => [...prev, { name: file.name, family, dataUrl }]);
       };
       reader.readAsDataURL(file);
@@ -42,6 +50,11 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts, onFontsChange }) => {
   };
 
   const removeFont = (family: string) => {
+    // Try to remove from document.fonts
+    const fonts = Array.from(document.fonts.values());
+    const font = fonts.find(f => f.family === family);
+    if (font) document.fonts.delete(font);
+
     const styleEl = document.getElementById(`style-${family}`);
     if (styleEl) styleEl.remove();
     onFontsChange(prev => prev.filter(f => f.family !== family));

@@ -5,8 +5,7 @@ import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideImageLabel } from '../ui/slide/SlideImageLabel';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
+import { SlideMetric } from '../ui/slide/SlideMetric';
 
 export default function TestimonialCard({ page }: { page: PageData }) {
   const isVisible = (key: keyof NonNullable<PageData['visibility']>) => page.visibility?.[key] !== false;
@@ -64,31 +63,7 @@ export default function TestimonialCard({ page }: { page: PageData }) {
               'grid-cols-3'
             }`}>
               {metrics.map((m, idx) => (
-                <div key={idx} className="flex flex-col gap-2">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-7xl font-[1000] text-slate-900 tracking-[-0.05em]">
-                      {m.value}
-                    </span>
-                    {m.unit && (
-                      <span 
-                        className="text-2xl font-bold text-slate-400"
-                        dangerouslySetInnerHTML={{ 
-                          __html: katex.renderToString(m.unit, { throwOnError: false }) 
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-black text-slate-900 uppercase tracking-tight">
-                      {m.label}
-                    </p>
-                    {m.subLabel && (
-                      <p className="text-[13px] font-medium text-slate-400">
-                        {m.subLabel}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                <SlideMetric key={m.id || idx} data={m} />
               ))}
             </div>
           )}

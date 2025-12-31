@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { TextArea } from '../../ui/Base';
+import { DebouncedTextArea } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
@@ -10,7 +10,7 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-export const TitleField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = page.visibility?.title !== false;
 
   const toggle = () => {
@@ -63,10 +63,10 @@ export const TitleField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }
             currentFont={page.titleFont}
             onFontChange={handleFontChange}
         />
-        <TextArea 
+        <DebouncedTextArea 
             rows={2} 
             value={page.title} 
-            onChange={(e) => handleChange(e.target.value)} 
+            onChange={handleChange} 
             placeholder="Title..." 
             className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
             style={{ fontFamily: page.titleFont }} 
@@ -74,4 +74,14 @@ export const TitleField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }
       </div>
     </div>
   );
-};
+}, (prev, next) => {
+  return (
+    prev.page.layoutId === next.page.layoutId && // 关键修复：确保布局切换时刷新组件
+    prev.page.title === next.page.title &&
+    prev.page.titleFont === next.page.titleFont &&
+    prev.page.visibility?.title === next.page.visibility?.title &&
+    prev.page.styleOverrides?.title?.fontSize === next.page.styleOverrides?.title?.fontSize &&
+    prev.customFonts === next.customFonts &&
+    prev.onUpdate === next.onUpdate
+  );
+});

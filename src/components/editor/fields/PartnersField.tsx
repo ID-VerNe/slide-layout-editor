@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData, PartnerData } from '../../../types';
-import { Eye, EyeOff, Briefcase, Plus, X } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { Eye, EyeOff, Briefcase, Plus, X, HelpCircle } from 'lucide-react';
+import { LUCIDE_ICON_MAP } from '../../../constants/icons';
 import { Label, Input } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 
@@ -12,6 +12,15 @@ interface FieldProps {
 
 export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   const isVisible = page.visibility?.partners !== false;
+
+  // Auto-generate IDs for legacy data
+  React.useEffect(() => {
+    const partners = page.partners || [];
+    if (partners.some(p => !p.id)) {
+      const migrated = partners.map(p => p.id ? p : { ...p, id: `partner-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      onUpdate({ ...page, partners: migrated });
+    }
+  }, [page.partners, onUpdate, page]);
 
   const toggle = () => {
     onUpdate({
@@ -31,7 +40,11 @@ export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
     if (currentPartners.length >= 8) return;
     onUpdate({
       ...page,
-      partners: [...currentPartners, { name: 'New Partner', logo: 'Globe' }]
+      partners: [...currentPartners, { 
+        id: `partner-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: 'New Partner', 
+        logo: 'Globe' 
+      }]
     });
   };
 
@@ -63,10 +76,10 @@ export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
     // 3. Lucide 处理
     try {
       const PascalName = val.charAt(0).toUpperCase() + val.slice(1);
-      const Icon = (LucideIcons as any)[PascalName] || (LucideIcons as any)[val] || LucideIcons.HelpCircle;
+      const Icon = LUCIDE_ICON_MAP[PascalName] || LUCIDE_ICON_MAP[val] || HelpCircle;
       return <Icon size={18} strokeWidth={2.5} />;
     } catch (e) {
-      return <LucideIcons.HelpCircle size={18} />;
+      return <HelpCircle size={18} />;
     }
   };
 
@@ -84,7 +97,7 @@ export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
       <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
         <div className="space-y-3">
           {(page.partners || []).map((p, idx) => (
-            <div key={idx} className="relative group p-3 bg-slate-50 rounded-xl flex items-center gap-3 border border-transparent hover:border-slate-200 transition-all">
+            <div key={p.id || idx} className="relative group p-3 bg-slate-50 rounded-xl flex items-center gap-3 border border-transparent hover:border-slate-200 transition-all">
               <button onClick={() => removePartner(idx)} className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-100 shadow-sm rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10">
                 <X size={12} />
               </button>

@@ -27,7 +27,7 @@ export const SlideLogo: React.FC<SlideLogoProps> = ({ page, className = "", styl
         ...style 
       }}
     >
-      <img src={page.logo} className="w-full h-full object-contain" alt="Logo" />
+      <img src={page.logo} crossOrigin="anonymous" className="w-full h-full object-contain" alt="Logo" />
     </div>
   );
 };

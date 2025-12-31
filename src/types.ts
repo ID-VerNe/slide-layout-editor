@@ -5,6 +5,7 @@ export type SlideLayoutType =
   | 'big-statement'   // 强调：极简金句
   | 'step-timeline'   // 步骤：纵向时间轴
   | 'gallery-capsule' // 图库：胶囊马赛克
+  | 'back-cover-movie' // 封底：电影谢幕
   | 'code-snippet'    // 代码：代码演示
   | 'data-grid';       // 数据：网格展示
 
@@ -18,16 +19,18 @@ export interface CustomFont {
 }
 
 export interface MetricData {
+  id?: string;
   label: string;
   value: string;
   unit?: string;
-  subLabel?: string; // 新增：指标下方的补充说明
+  subLabel?: string; 
 }
 
 export interface FeatureData {
+  id?: string;
   title: string;
   desc: string;
-  icon?: string; // 存储 Lucide 图标名称或 Base64 图片
+  icon?: string; 
   imageConfig?: {
     scale: number;
     x: number;
@@ -36,22 +39,36 @@ export interface FeatureData {
 }
 
 export interface PartnerData {
+  id?: string;
   name: string;
   logo: string;
 }
 
 export interface TestimonialData {
+  id?: string;
   name: string;
   quote: string;
   avatar: string;
 }
 
 export interface AgendaData {
+  id?: string;
   title: string;
   desc: string;
   icon?: string;
-  number?: string; // 章节编号，如 "01"
-  items?: string[]; // 章节下的子要点
+  number?: string; 
+  items?: string[]; 
+}
+
+export interface GalleryItem {
+  id?: string;
+  url: string;
+  caption?: string; // Add caption support for gallery
+  config?: {
+    scale: number;
+    x: number;
+    y: number;
+  };
 }
 
 export interface PageData {
@@ -62,39 +79,32 @@ export interface PageData {
   // 核心内容
   title: string;
   subtitle?: string;
-  bullets?: string[]; 
-  actionText?: string; // 用于色块内的文字
-  imageLabel?: string; // 图片下方的标签
-  imageSubLabel?: string; // 图片下方的子标签
+  bullets?: string[]; // 暂保持 string[] 兼容，建议组件层处理 ID
+  actionText?: string; 
+  imageLabel?: string; 
+  imageSubLabel?: string; 
   
   // 扩展内容
-    code?: string;      // 用于 code-snippet
-    language?: string;  // 代码语言
-      metrics?: MetricData[]; // 用于 data-grid
-        features?: FeatureData[]; // 用于 platform-hero 网格
-        mosaicIcons?: string[]; // 已废弃，保留兼容
+    code?: string;      
+    language?: string;  
+      metrics?: MetricData[]; 
+        features?: FeatureData[]; 
+        mosaicIcons?: string[]; 
           mosaicConfig?: {
             rows: number;
             cols: number;
             stagger: boolean;
-            tileColor?: string; // 方块底色
-            icons: Record<string, string>; // 坐标映射 "row-col": "IconName"
+            tileColor?: string; 
+            icons: Record<string, string>; 
           };
-    partners?: PartnerData[]; // 用于 community-hub
-    testimonials?: TestimonialData[]; // 用于 community-hub
-    agenda?: AgendaData[]; // 新增：用于目录页
-    activeIndex?: number; // 新增：用于突出显示当前章节
-    partnersTitle?: string; // 新增：合作伙伴部分的标题
+    partners?: PartnerData[]; 
+    testimonials?: TestimonialData[]; 
+    agenda?: AgendaData[]; 
+    activeIndex?: number; 
+    partnersTitle?: string; 
     
     // 图库数据
-    gallery?: Array<{
-      url: string;
-      config?: {
-        scale: number;
-        x: number;
-        y: number;
-      };
-    }>;
+    gallery?: GalleryItem[];
     
     // 视觉元素        logo?: string;      // 自定义 Logo
     
@@ -118,6 +128,7 @@ export interface PageData {
   // 页脚信息
   footer?: string;
   pageNumber?: boolean;
+  pageNumberText?: string; // 新增：页码关闭时的替代文本
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
 

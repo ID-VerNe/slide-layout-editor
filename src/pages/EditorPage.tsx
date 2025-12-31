@@ -13,6 +13,7 @@ import PreviewArea from '../components/editor/PreviewArea';
 import EditorPanel from '../components/editor/EditorPanel';
 import GlobalSettings from '../components/editor/GlobalSettings';
 import Modal from '../components/Modal';
+import { LAYOUT } from '../constants/layout';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -62,7 +63,9 @@ export default function EditorPage() {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (projectId && isLoaded) {
-      timeout = setTimeout(() => saveToDB(previewRef), 1000);
+      // 自动保存不生成缩略图以保证输入流畅度
+      // 增加到 3000ms 防抖，减少 IndexedDB 写入频率
+      timeout = setTimeout(() => saveToDB(previewRef, false), 3000);
     }
     return () => clearTimeout(timeout);
   }, [pages, customFonts, projectId, isLoaded, saveToDB, previewRef]);
@@ -92,13 +95,17 @@ export default function EditorPage() {
       const prevZoom = previewZoom;
       const prevPageIndex = currentPageIndex;
       setPreviewZoom(1);
-      await new Promise(r => setTimeout(r, 500));
+      
+      // 等待字体加载
+      await document.fonts.ready;
+      // 等待一帧以确保样式应用
+      await new Promise(r => requestAnimationFrame(r));
+      
       const pagesToExportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
       
       const exportOptions = {
         pixelRatio: 2,
         filter: (node: HTMLElement) => {
-          // 过滤掉可能导致跨域安全错误的远程样式表
           if (node.tagName === 'LINK' && (node as HTMLLinkElement).rel === 'stylesheet') {
             const href = (node as HTMLLinkElement).href;
             return href.includes(window.location.origin) || href.startsWith('data:');
@@ -112,8 +119,21 @@ export default function EditorPage() {
         for (let i = 0; i < pagesToExportIndices.length; i++) {
           const idx = pagesToExportIndices[i];
           setCurrentPageIndex(idx);
-          // 增加到 1000ms 等待图片加载和动画完成
-          await new Promise(r => setTimeout(r, 1000));
+          
+          // 等待 DOM 渲染和图片加载
+          await new Promise(async (resolve) => {
+             // 至少等待一帧让 React 渲染
+             await new Promise(r => requestAnimationFrame(r));
+             // 简单的图片加载检查
+             const checkImages = () => {
+                const images = Array.from(previewRef.current?.querySelectorAll('img') || []);
+                const allLoaded = images.every(img => img.complete && img.naturalHeight !== 0);
+                if (allLoaded) setTimeout(resolve, 100); // 额外缓冲
+                else setTimeout(checkImages, 100);
+             };
+             checkImages();
+          });
+
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           if (!el) throw new Error(`Slide element ${idx + 1} not found`);
           const dataUrl = await toPng(el, { ...exportOptions, quality: 0.95 });
@@ -125,8 +145,18 @@ export default function EditorPage() {
         for (let i = 0; i < pagesToExportIndices.length; i++) {
           const idx = pagesToExportIndices[i];
           setCurrentPageIndex(idx);
-          // 增加到 1000ms 等待图片加载和动画完成
-          await new Promise(r => setTimeout(r, 1000));
+          
+          await new Promise(async (resolve) => {
+             await new Promise(r => requestAnimationFrame(r));
+             const checkImages = () => {
+                const images = Array.from(previewRef.current?.querySelectorAll('img') || []);
+                const allLoaded = images.every(img => img.complete && img.naturalHeight !== 0);
+                if (allLoaded) setTimeout(resolve, 100);
+                else setTimeout(checkImages, 100);
+             };
+             checkImages();
+          });
+
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           if (!el) throw new Error(`Slide element ${idx + 1} not found`);
           const dataUrl = await toPng(el, { ...exportOptions, quality: 1, backgroundColor: '#ffffff' });
@@ -184,6 +214,7 @@ export default function EditorPage() {
             isAutoFit={isAutoFit}
             onToggleAutoFit={toggleFit}
             onExportPng={(all) => initiateExport(all ? 'all' : 'current')}
+            onSave={() => saveToDB(previewRef, true)}
             isExporting={isExporting}
             showExportMenu={showExportMenu}
             setShowExportMenu={setShowExportMenu}
@@ -198,7 +229,7 @@ export default function EditorPage() {
         <motion.div
           initial={false}
           animate={{ 
-            width: showEditor ? 400 : 0,
+            width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0,
             opacity: showEditor ? 1 : 0
           }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}

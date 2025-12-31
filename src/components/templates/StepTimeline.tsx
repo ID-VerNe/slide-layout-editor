@@ -1,9 +1,9 @@
 import React from 'react';
-import { PageData, FeatureData } from '../../types';
+import { PageData } from '../../types';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 import { SlideImage } from '../ui/slide/SlideImage';
-import * as LucideIcons from 'lucide-react';
+import { SlideIcon } from '../ui/slide/SlideIcon';
 
 export default function StepTimeline({ page }: { page: PageData }) {
   const allFeatures = page.features || [
@@ -19,26 +19,6 @@ export default function StepTimeline({ page }: { page: PageData }) {
     iconSize: count >= 5 ? 32 : count === 4 ? 48 : 64,
     descLines: count >= 5 ? 'line-clamp-1' : count === 4 ? 'line-clamp-2' : 'line-clamp-3',
     headerMargin: count >= 4 ? 'mb-10' : 'mb-20'
-  };
-
-  const renderIcon = (name: string) => {
-    const isMaterial = name.includes('_') || /^[a-z]/.test(name);
-    if (isMaterial) {
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-[#F1F3F5]">
-          <span className="material-symbols-outlined notranslate" style={{ fontSize: `${config.iconSize}px`, color: '#0F172A' }}>{name.toLowerCase()}</span>
-        </div>
-      );
-    }
-    try {
-      const PascalName = name.charAt(0).toUpperCase() + name.slice(1);
-      const Icon = (LucideIcons as any)[PascalName] || (LucideIcons as any)[name] || LucideIcons.Box;
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-[#F1F3F5]">
-          <Icon size={config.iconSize} strokeWidth={1.5} className="text-slate-900" />
-        </div>
-      );
-    } catch (e) { return null; }
   };
 
   const titleStyle = (page.styleOverrides as any)?.featureTitle || {};
@@ -61,7 +41,7 @@ export default function StepTimeline({ page }: { page: PageData }) {
           {allFeatures.slice(0, 5).map((step, idx) => {
             const isImg = step.icon?.startsWith('data:image') || step.icon?.includes('http');
             return (
-              <div key={idx} className="flex items-center gap-16 relative z-10 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
+              <div key={step.id || idx} className="flex items-center gap-16 relative z-10 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 100}ms` }}>
                 <div className="w-16 h-16 rounded-full bg-white border border-slate-100 shadow-sm flex items-center justify-center shrink-0 relative z-20">
                   <span className="text-xs font-black text-slate-300 tracking-tighter">{idx + 1}</span>
                 </div>
@@ -71,10 +51,6 @@ export default function StepTimeline({ page }: { page: PageData }) {
                   <p className={`text-xs text-slate-400 leading-relaxed max-w-sm ${config.descLines}`} style={{ fontSize: descStyle.fontSize ? `${descStyle.fontSize}px` : undefined, fontFamily: descStyle.fontFamily }}>{step.desc}</p>
                 </div>
 
-                {/* 
-                  统一使用 SlideImage 原子组件
-                  自动继承 X 和 Y 轴的安全平移算法
-                */}
                 <div 
                   className="w-[480px] rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white hover:-translate-y-1 transition-all duration-500 overflow-hidden shrink-0"
                   style={{ height: config.cardHeight }}
@@ -86,7 +62,11 @@ export default function StepTimeline({ page }: { page: PageData }) {
                       config={step.imageConfig} 
                       className="w-full h-full"
                     />
-                  ) : renderIcon(step.icon || 'Box')}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[#F1F3F5]">
+                      <SlideIcon name={step.icon || 'Box'} size={config.iconSize} strokeWidth={1.5} className="text-slate-900" />
+                    </div>
+                  )}
                 </div>
               </div>
             );

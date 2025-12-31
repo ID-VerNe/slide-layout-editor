@@ -1,4 +1,36 @@
-import { Cpu, Rocket, BarChart3, Globe, ShieldCheck } from 'lucide-react';
+import {
+  Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
+  Search, X, LayoutGrid, Upload, Image as ImageIcon, History, Trash2, Globe as GlobeIcon,
+  Code, Layers, HardDrive, GitBranch, GitCommit, GitPullRequest, Binary, Bot, Boxes,
+  CircuitBoard, Container, Database, FileCode, Microchip,
+  Dna, FlaskConical, Atom, Microscope, Beaker, TestTube, FlaskRound, Radiation, Biohazard,
+  Brain, HeartPulse, Thermometer, Bone, Droplet, Waves, Stethoscope, Pill, Activity,
+  BarChart, Target, PieChart, TrendingUp, Briefcase, Calculator, Coins, Gem, Landmark,
+  Wallet, Trophy, Medal, CreditCard,
+  Users, Mail, MessageSquare, Share2, Smartphone, MapPin, Airplay, Globe2, Satellite,
+  Wifi, Map, MessageCircle, Phone,
+  Shield, Lock, Settings, Zap, Bell, Check, PlusCircle, Info, ShieldAlert, Key,
+  Fingerprint, Wrench, Menu
+} from 'lucide-react';
+
+export const LUCIDE_ICON_MAP: Record<string, any> = {
+  Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
+  Search, X, LayoutGrid, Upload, ImageIcon, History, Trash2, GlobeIcon,
+  Code, Layers, HardDrive, GitBranch, GitCommit, GitPullRequest, Binary, Bot, Boxes,
+  CircuitBoard, Container, Database, FileCode, Microchip,
+  Dna, FlaskConical, Atom, Microscope, Beaker, TestTube, FlaskRound, Radiation, Biohazard,
+  Brain, HeartPulse, Thermometer, Bone, Droplet, Waves, Stethoscope, Pill, Activity,
+  BarChart, Target, PieChart, TrendingUp, Briefcase, Calculator, Coins, Gem, Landmark,
+  Wallet, Trophy, Medal, CreditCard,
+  Users, Mail, MessageSquare, Share2, Smartphone, MapPin, Airplay, Globe2, Satellite,
+  Wifi, Map, MessageCircle, Phone,
+  Shield, Lock, Settings, Zap, Bell, Check, PlusCircle, Info, ShieldAlert, Key,
+  Fingerprint, Wrench, Menu
+};
+export {
+  Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
+  Search, X, LayoutGrid, Upload, ImageIcon, History, Trash2, GlobeIcon
+};
 
 export const CATEGORIZED_ICONS = [
   {
@@ -127,7 +159,7 @@ export const CATEGORIZED_ICONS = [
       { name: 'Zap', type: 'lucide' }, { name: 'Bell', type: 'lucide' }, { name: 'Check', type: 'lucide' }, { name: 'X', type: 'lucide' },
       { name: 'Trash2', type: 'lucide' }, { name: 'PlusCircle', type: 'lucide' }, { name: 'Info', type: 'lucide' },
       { name: 'ShieldAlert', type: 'lucide' }, { name: 'Key', type: 'lucide' }, { name: 'Fingerprint', type: 'lucide' },
-      { name: 'Tool', type: 'lucide' }, { name: 'Wrench', type: 'lucide' }, { name: 'Menu', type: 'lucide' }
+      { name: 'Wrench', type: 'lucide' }, { name: 'Menu', type: 'lucide' }
     ]
   }
 ];

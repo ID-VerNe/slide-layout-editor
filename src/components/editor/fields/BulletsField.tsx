@@ -1,7 +1,8 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Eye, EyeOff, List, Plus, X } from 'lucide-react';
-import { Label, Input } from '../../ui/Base';
+import { Label } from '../../ui/Base';
+import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
@@ -10,7 +11,7 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-export const BulletsField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = (page.visibility as any)?.bullets !== false;
   const bullets = page.bullets || [];
 
@@ -84,9 +85,9 @@ export const BulletsField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
               currentFont={(page.styleOverrides as any)?.bullets?.fontFamily}
               onFontChange={handleFontChange}
             />
-            <Input 
+            <DebouncedInput 
               value={bullet} 
-              onChange={(e) => handleBulletChange(idx, e.target.value)} 
+              onChange={(val) => handleBulletChange(idx, val)} 
               placeholder="Item text..."
               className="text-[10px]"
               style={{ fontFamily: (page.styleOverrides as any)?.bullets?.fontFamily }}
@@ -105,4 +106,14 @@ export const BulletsField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
       </div>
     </div>
   );
-};
+}, (prev, next) => {
+  return (
+    prev.page.layoutId === next.page.layoutId && // 关键修复：确保布局切换时刷新组件
+    JSON.stringify(prev.page.bullets) === JSON.stringify(next.page.bullets) &&
+    (prev.page.visibility as any)?.bullets === (next.page.visibility as any)?.bullets &&
+    (prev.page.styleOverrides as any)?.bullets?.fontSize === (next.page.styleOverrides as any)?.bullets?.fontSize &&
+    (prev.page.styleOverrides as any)?.bullets?.fontFamily === (next.page.styleOverrides as any)?.bullets?.fontFamily &&
+    prev.customFonts === next.customFonts &&
+    prev.onUpdate === next.onUpdate
+  );
+});
