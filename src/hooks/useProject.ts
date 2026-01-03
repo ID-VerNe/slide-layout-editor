@@ -3,6 +3,7 @@ import { PageData, CustomFont, ProjectData } from '../types';
 import { getProject, saveProject } from '../utils/db';
 import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
+import { getTemplateById } from '../templates/registry';
 
 const DEFAULT_PAGES: PageData[] = [
   {
@@ -16,6 +17,17 @@ const DEFAULT_PAGES: PageData[] = [
     backgroundColor: '#ffffff',
     counterStyle: 'number'
   }
+];
+
+const GLOBAL_FIELDS: Array<keyof PageData> = [
+  'counterStyle',
+  'backgroundPattern',
+  'footer',
+  'titleFont',
+  'bodyFont',
+  'logo',
+  'logoSize',
+  'agenda'
 ];
 
 export const registerFontInDOM = (family: string, dataUrl: string) => {
@@ -34,9 +46,11 @@ export const registerFontInDOM = (family: string, dataUrl: string) => {
 };
 
 export function useProject(projectId: string | undefined, templateId: string | null) {
-  const { alert, confirm } = useUI();
+  const { alert: uiAlert, confirm } = useUI();
   const [pages, setPages] = useState<PageData[]>(DEFAULT_PAGES);
+  const [projectTitle, setProjectTitle] = useState<string>(''); 
   const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
+  const [imageQuality, setImageQuality] = useState<number>(0.95); 
   const [enforceA4, setEnforceA4] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -48,7 +62,9 @@ export function useProject(projectId: string | undefined, templateId: string | n
         const savedData = await getProject(projectId);
         if (savedData) {
           setPages(savedData.pages || DEFAULT_PAGES);
+          setProjectTitle(savedData.title || '');
           setCustomFonts(savedData.customFonts || []);
+          setImageQuality(savedData.imageQuality ?? 0.95);
           
           savedData.customFonts?.forEach((font: CustomFont) => {
             if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
@@ -68,11 +84,11 @@ export function useProject(projectId: string | undefined, templateId: string | n
   }, [projectId, templateId]);
 
   // Persist to DB
-  const saveToDB = useCallback(async (previewRef: React.RefObject<HTMLDivElement | null>) => {
+  const saveToDB = useCallback(async (previewRef: React.RefObject<HTMLDivElement | null>, forceThumbnail: boolean = true) => {
     if (!projectId || !isLoaded) return;
 
     let thumbnail = null;
-    if (previewRef.current) {
+    if (forceThumbnail && previewRef.current) {
       try {
         const pageEl = previewRef.current.querySelector('.magazine-page') as HTMLElement;
         if (pageEl) {
@@ -93,11 +109,14 @@ export function useProject(projectId: string | undefined, templateId: string | n
       }
     }
 
+    const finalTitle = projectTitle.trim() || pages[0]?.title || 'Untitled Presentation';
+
     const projectState: ProjectData = {
       version: "2.0",
-      title: pages[0]?.title || 'Untitled Presentation',
+      title: finalTitle,
       pages,
       customFonts,
+      imageQuality,
     };
     
     await saveProject(projectId, projectState);
@@ -106,13 +125,17 @@ export function useProject(projectId: string | undefined, templateId: string | n
     let index = indexSaved ? JSON.parse(indexSaved) : [];
     
     const existingIdx = index.findIndex((p: any) => p.id === projectId);
-    const projectSummary = {
+    const projectSummary: any = {
       id: projectId,
-      title: projectState.title,
+      title: finalTitle,
       date: new Date().toLocaleDateString(),
-      type: 'slide',
-      thumbnail
+      type: pages[currentPageIndex]?.layoutId || 'slide',
     };
+
+    if (thumbnail) projectSummary.thumbnail = thumbnail;
+    else if (existingIdx > -1 && index[existingIdx].thumbnail) {
+      projectSummary.thumbnail = index[existingIdx].thumbnail;
+    }
 
     if (existingIdx > -1) {
       index[existingIdx] = projectSummary;
@@ -120,29 +143,19 @@ export function useProject(projectId: string | undefined, templateId: string | n
       index.unshift(projectSummary);
     }
     
-    localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 12)));
-  }, [pages, customFonts, projectId, isLoaded]);
+    localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
+  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality]);
 
-  const updatePage = (updatedPage: PageData) => {
+  const updatePage = useCallback((updatedPage: PageData) => {
     setPages(prev => {
       const originalPage = prev.find(p => p.id === updatedPage.id);
       if (!originalPage) return prev;
 
-      // 核心修复：更严谨的全局字段同步逻辑
-      const globalFields: Array<keyof PageData> = [
-        'counterStyle',
-        'backgroundPattern',
-        'footer',
-        'titleFont',
-        'bodyFont',
-        'logo',
-        'logoSize',
-        'agenda'
-      ];
+      const layoutChanged = updatedPage.layoutId !== originalPage.layoutId;
 
-      // 找出变动的全局字段
       const changedGlobalFields: Partial<PageData> = {};
-      globalFields.forEach(field => {
+      GLOBAL_FIELDS.forEach(field => {
+        // @ts-ignore
         if (updatedPage[field] !== originalPage[field]) {
           // @ts-ignore
           changedGlobalFields[field] = updatedPage[field];
@@ -150,12 +163,46 @@ export function useProject(projectId: string | undefined, templateId: string | n
       });
 
       return prev.map(page => {
-        // 如果是当前页，应用所有更改
         if (page.id === updatedPage.id) {
-          return updatedPage;
+          if (!layoutChanged) return updatedPage;
+
+          const template = getTemplateById(updatedPage.layoutId);
+          const allowedFields = template.fields;
+
+          const cleanedPage: any = {
+            id: page.id,
+            type: page.type,
+            layoutId: updatedPage.layoutId,
+            title: updatedPage.title,
+            subtitle: updatedPage.subtitle,
+            logo: updatedPage.logo,
+            logoSize: updatedPage.logoSize,
+            image: updatedPage.image,
+            imageConfig: updatedPage.imageConfig,
+            backgroundColor: updatedPage.backgroundColor,
+            titleFont: updatedPage.titleFont,
+            bodyFont: updatedPage.bodyFont,
+            backgroundPattern: updatedPage.backgroundPattern,
+            footer: updatedPage.footer,
+            pageNumber: updatedPage.pageNumber,
+            pageNumberText: updatedPage.pageNumberText,
+            counterStyle: updatedPage.counterStyle,
+            styleOverrides: updatedPage.styleOverrides,
+            visibility: updatedPage.visibility
+          };
+
+          if (allowedFields.includes('actionText')) cleanedPage.actionText = (updatedPage as any).actionText;
+          if (allowedFields.includes('imageLabel')) cleanedPage.imageLabel = (updatedPage as any).imageLabel;
+          if (allowedFields.includes('imageSubLabel')) cleanedPage.imageSubLabel = (updatedPage as any).imageSubLabel;
+          if (allowedFields.includes('features')) cleanedPage.features = (updatedPage as any).features;
+          if (allowedFields.includes('metrics')) cleanedPage.metrics = (updatedPage as any).metrics;
+          if (allowedFields.includes('gallery')) cleanedPage.gallery = (updatedPage as any).gallery;
+          if (allowedFields.includes('bullets')) cleanedPage.bullets = (updatedPage as any).bullets;
+          if (allowedFields.includes('variant')) cleanedPage.layoutVariant = updatedPage.layoutVariant;
+
+          return cleanedPage as PageData;
         }
         
-        // 如果不是当前页，但有全局字段变动，则同步这些字段
         if (Object.keys(changedGlobalFields).length > 0) {
           return { ...page, ...changedGlobalFields };
         }
@@ -163,7 +210,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         return page;
       });
     });
-  };
+  }, []);
 
   const addPage = () => {
     const firstPage = pages[0];
@@ -176,7 +223,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       layoutId: defaultLayoutId,
       title: 'New Slide',
       bullets: ['Point 1', 'Point 2'],
-      backgroundColor: '#ffffff', // 保持默认白
+      backgroundColor: '#ffffff',
       backgroundPattern: firstPage.backgroundPattern || 'none',
       counterStyle: firstPage.counterStyle || 'number',
       footer: firstPage.footer || '',
@@ -194,7 +241,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
   const removePage = (id: string) => {
     if (pages.length <= 1) {
-      alert("Cannot Delete", "You must have at least one slide.");
+      uiAlert("Cannot Delete", "You must have at least one slide.");
       return;
     }
     
@@ -217,24 +264,32 @@ export function useProject(projectId: string | undefined, templateId: string | n
       "Are you sure you want to clear all slides?",
       () => {
         setPages(DEFAULT_PAGES);
+        setProjectTitle('');
         setCurrentPageIndex(0);
       }
     );
   };
 
+  /**
+   * 导出项目文件 (.slgrid)
+   */
   const handleExportProject = () => {
+    const finalTitle = projectTitle.trim() || pages[0]?.title || 'Untitled';
     const project: ProjectData = {
       version: "2.0",
-      title: pages[0]?.title || 'Untitled',
+      title: finalTitle,
       pages,
-      customFonts
+      customFonts,
+      imageQuality,
     };
     
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+    // 使用 application/octet-stream 以减少浏览器对内容的拦截
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `presentation-${new Date().toISOString().slice(0, 10)}.wdzmaga`;
+    // 更改后缀名为 .slgrid
+    link.download = `${finalTitle}.slgrid`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -243,24 +298,41 @@ export function useProject(projectId: string | undefined, templateId: string | n
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const project: ProjectData = JSON.parse(event.target?.result as string);
-        project.customFonts.forEach(font => {
+        const content = event.target?.result as string;
+        if (!content) throw new Error("File is empty");
+
+        const project: ProjectData = JSON.parse(content);
+        
+        if (!project.pages || !Array.isArray(project.pages)) {
+          throw new Error("Invalid project: 'pages' is missing");
+        }
+
+        project.customFonts?.forEach(font => {
           if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
         });
+        
         setCustomFonts(project.customFonts || []);
-        setPages(project.pages || DEFAULT_PAGES);
+        setPages(project.pages);
+        setProjectTitle(project.title || '');
+        setImageQuality(project.imageQuality ?? 0.95);
         setCurrentPageIndex(0);
-        alert("Import Success", "Project loaded.");
-      } catch (err) {
-        console.error("Import failed:", err);
-        alert("Import Error", "Failed to import project.");
+        
+        uiAlert("Import Success", "Project loaded successfully.");
+      } catch (err: any) {
+        console.error("FATAL IMPORT ERROR:", err);
+        window.alert("Import Failed: " + err.message);
       }
     };
+    reader.onerror = () => window.alert("File reading failed.");
     reader.readAsText(file);
   };
 
   return {
     pages,
+    projectTitle,
+    setProjectTitle,
+    imageQuality,
+    setImageQuality,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage: pages[currentPageIndex],

@@ -9,9 +9,14 @@ interface AutoFitHeadlineProps {
   maxLines: number;
   minSize?: number;
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p';
-  style?: React.CSSProperties; // 支持样式透传
+  style?: React.CSSProperties; 
+  children?: React.ReactNode; 
 }
 
+/**
+ * AutoFitHeadline
+ * 稳定版：修复因观察自身导致的死循环，解决空心字消失/淡化问题。
+ */
 const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({ 
   text, 
   maxSize, 
@@ -21,47 +26,41 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   maxLines, 
   minSize = 8,
   as: Tag = 'h1',
-  style = {}
+  style = {},
+  children
 }) => {
   const [fontSize, setFontSize] = useState(maxSize);
   const [range, setRange] = useState({ min: minSize, max: maxSize });
-  const [debouncedText, setDebouncedText] = useState(text);
   const [isCalculating, setIsCalculating] = useState(true);
   const [retryCount, setRetryCount] = useState(0); 
-  const [version, setVersion] = useState(0);
+  const [parentVersion, setParentVersion] = useState(0); // 仅观察父容器
   const ref = useRef<HTMLHeadingElement>(null);
 
-  // 防抖处理
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedText(text);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [text]);
-
+  // 1. 只有在关键属性改变时才重置计算
   useLayoutEffect(() => {
     setIsCalculating(true);
     setRetryCount(0);
     setRange({ min: minSize, max: maxSize });
     setFontSize(maxSize);
-  }, [debouncedText, maxSize, fontFamily, maxLines, style.fontWeight, style.fontStyle, minSize]);
+  }, [text, maxSize, fontFamily, maxLines, minSize, parentVersion]);
 
+  // 2. 递归缩放算法
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !isCalculating) return;
 
-    const maxHeight = fontSize * lineHeight * maxLines;
-    const isOverflowing = el.scrollHeight > maxHeight + 2;
+    // 增加高度余量，防止浮点误差
+    const maxHeight = Math.floor(fontSize * lineHeight * maxLines) + 4;
+    const isOverflowing = el.scrollHeight > maxHeight;
 
-    if (retryCount > 20) { // 二分法通常 7-10 次即可完成，20 次足够安全
+    if (retryCount > 15) { 
       setIsCalculating(false);
       return;
     }
 
     if (isOverflowing) {
-      // 溢出，缩小范围
       const newMax = fontSize - 1;
-      if (newMax < range.min) {
+      if (newMax <= range.min) {
         setIsCalculating(false);
       } else {
         const nextSize = Math.floor((range.min + newMax) / 2);
@@ -70,45 +69,60 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         setRetryCount(prev => prev + 1);
       }
     } else {
-      // 不溢出，尝试增大以寻找边界
       const newMin = fontSize + 1;
       if (newMin > range.max) {
         setIsCalculating(false);
       } else {
         const nextSize = Math.ceil((newMin + range.max) / 2);
+        if (nextSize === fontSize) {
+          setIsCalculating(false);
+          return;
+        }
         setRange(prev => ({ ...prev, min: newMin }));
         setFontSize(nextSize);
         setRetryCount(prev => prev + 1);
       }
     }
-  }, [debouncedText, fontSize, isCalculating, range, retryCount, lineHeight, maxLines]);
+  }, [fontSize, isCalculating, range, retryCount, lineHeight, maxLines, text]);
 
+  // 3. 核心修复：观察父容器而非自身，防止死循环
   useEffect(() => {
-    if (document.fonts) document.fonts.ready.then(() => setVersion(v => v + 1));
-    const observer = new ResizeObserver(() => setVersion(v => v + 1));
-    if (ref.current) observer.observe(ref.current);
-    const timeout = setTimeout(() => setVersion(v => v + 1), 500);
-    return () => { observer.disconnect(); clearTimeout(timeout); };
-  }, [text]);
+    if (document.fonts) {
+      document.fonts.ready.then(() => setParentVersion(v => v + 1));
+    }
+    
+    const parent = ref.current?.parentElement;
+    if (!parent) return;
+
+    const observer = new ResizeObserver(() => {
+      // 只有父容器宽度变化才重置
+      setParentVersion(v => v + 1);
+    });
+    
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <Tag 
       ref={ref}
       className={className}
-      style={{ 
-        ...style,
+      style={{
+        display: 'block',
+        overflowWrap: 'break-word',
+        wordBreak: 'break-all',
+        whiteSpace: 'pre-line',
+        textWrap: text.includes('\n') ? 'unset' : 'balance',
+        ...style, // 外部传入的 style (包含描边) 必须放在后面以防被覆盖
         fontFamily,
         fontSize: `${fontSize}px`,
         lineHeight: lineHeight,
-        display: 'block',
-        overflowWrap: 'break-word',
-        wordBreak: 'normal',
-        whiteSpace: 'pre-line', // 核心修复：支持手动回车换行
-        textWrap: text.includes('\n') ? 'unset' : 'balance', // 如果有手动换行，则不启用智能平衡
-        visibility: isCalculating && text ? 'hidden' : 'visible'
+        // 计算中给极低不透明度，计算完立即恢复
+        opacity: isCalculating ? 0.01 : 1,
+        transition: 'opacity 0.2s ease-out'
       }}
     >
-      {text}
+      {children || text}
     </Tag>
   );
 };

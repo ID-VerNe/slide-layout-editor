@@ -3,6 +3,8 @@ import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Uploa
 import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
 import { compressImage } from '../../utils/db';
+import { useProject } from '../../hooks/useProject';
+import { useParams } from 'react-router-dom';
 
 export type AssetTab = 'icons' | 'upload';
 
@@ -17,8 +19,8 @@ interface IconPickerProps {
 const RECENT_STORAGE_KEY = 'magazine_editor_recent_assets';
 
 /**
- * IconPicker 组件 (原 AssetPicker)
- * 统一处理图标库选择和本地图片上传/URL加载。
+ * IconPicker 组件
+ * 增强版：支持读取全局 imageQuality 参数进行本地压缩。
  */
 export default function IconPicker({ 
   value, 
@@ -31,8 +33,11 @@ export default function IconPicker({
   const [activeTab, setActiveTab] = useState<AssetTab>(allowedTabs[0]);
   const [search, setSearch] = useState('');
   const [recentAssets, setRecentAssets] = useState<string[]>([]);
+  
+  // 核心：获取全局压缩质量设置
+  const { projectId } = useParams();
+  const { imageQuality } = useProject(projectId, null);
 
-  // Load recent assets from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(RECENT_STORAGE_KEY);
     if (saved) {
@@ -45,7 +50,6 @@ export default function IconPicker({
   }, [isOpen]);
 
   const saveToRecent = (asset: string) => {
-    // 修复：不要将巨大的 Base64 字符串存入 LocalStorage，防止 QuotaExceededError
     if (!asset || asset.includes('example_pic') || asset.startsWith('data:')) return;
     const newRecent = [asset, ...recentAssets.filter(a => a !== asset)].slice(0, 18);
     setRecentAssets(newRecent);
@@ -106,7 +110,6 @@ export default function IconPicker({
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Modern Asset Library" type="custom" maxWidth="max-w-[90vw]">
         <div className="flex flex-col h-[80vh]">
-          {/* Tabs Navigation */}
           <div className="flex justify-between items-center mb-6 border-b border-slate-100 shrink-0">
             <div className="flex gap-6">
               {allowedTabs.includes('icons') && (
@@ -123,14 +126,12 @@ export default function IconPicker({
           </div>
 
           <div className="flex-1 overflow-hidden flex flex-col gap-6">
-            {/* Search Bar (Only for Icons) */}
             {activeTab === 'icons' && (
               <div className="relative shrink-0"><Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input type="text" placeholder="Search across 500+ curated icons..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-base focus:ring-2 focus:ring-[#264376]/20 transition-all outline-none" autoFocus /></div>
             )}
 
             <div className="flex-1 overflow-y-auto no-scrollbar pr-2 space-y-10">
               
-              {/* Recent Assets Section (Always show if not empty) */}
               {recentAssets.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
@@ -192,9 +193,9 @@ export default function IconPicker({
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => { 
                         const file = e.target.files?.[0]; 
                         if (file) { 
-                          compressImage(file).then(handleSelect).catch(err => {
+                          // 传入最新的质量参数
+                          compressImage(file, imageQuality).then(handleSelect).catch(err => {
                             console.error("Compression failed", err);
-                            // Fallback if compression fails
                             const reader = new FileReader(); 
                             reader.onloadend = () => handleSelect(reader.result as string); 
                             reader.readAsDataURL(file);

@@ -1,14 +1,20 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, CustomFont } from '../../../types';
 import { Layout, AlignLeft, AlignRight, Layers, ArrowUp, ArrowDown, Wind } from 'lucide-react';
-import { Label } from '../../ui/Base';
+import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  customFonts?: CustomFont[];
 }
 
-export const VariantField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+/**
+ * VariantField
+ * 修复版：移除所有危险的自定义 memo 比较逻辑。
+ * 确保在切换视觉方案(Visual Scheme)时，不会因为持有旧的 page 引用而覆盖掉刚才改好的文字或背景。
+ */
+export const VariantField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const current = page.layoutVariant;
   const isCapsule = page.layoutId === 'gallery-capsule';
 
@@ -20,8 +26,7 @@ export const VariantField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   if (isCapsule) {
     const safeCurrent = current || 'under';
     return (
-      <div className="space-y-4">
-        <Label icon={Layers}>Visual Scheme</Label>
+      <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="variant" label="Visual Scheme" icon={Layers}>
         <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-2xl">
           <button
             onClick={() => setVariant('under')}
@@ -45,15 +50,14 @@ export const VariantField: React.FC<FieldProps> = ({ page, onUpdate }) => {
             <Wind size={14} /> Minimal
           </button>
         </div>
-      </div>
+      </FieldWrapper>
     );
   }
 
-  // 默认的左右对齐模式 (适用于 Editorial Split)
+  // 默认的左右对齐模式
   const safeCurrent = current === 'left' ? 'left' : 'right';
   return (
-    <div className="space-y-4">
-      <Label icon={Layout}>Layout Orientation</Label>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="variant" label="Layout Orientation" icon={Layout}>
       <div className="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-2xl">
         <button
           onClick={() => setVariant('right')}
@@ -70,6 +74,6 @@ export const VariantField: React.FC<FieldProps> = ({ page, onUpdate }) => {
           <AlignLeft size={16} /> Image Left
         </button>
       </div>
-    </div>
+    </FieldWrapper>
   );
-};
+});

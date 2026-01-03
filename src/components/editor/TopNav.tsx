@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ZoomOut, ZoomIn, Maximize, Minimize2, Download, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomOut, ZoomIn, Maximize, Minimize2, Download, ChevronDown, Edit3 } from 'lucide-react';
 
 interface TopNavProps {
+  projectTitle: string;
+  setProjectTitle: (title: string) => void;
+  fallbackTitle: string;
   currentPageIndex: number;
   totalPages: number;
   onPageChange: (index: number) => void;
@@ -23,6 +26,9 @@ interface TopNavProps {
 }
 
 const TopNav: React.FC<TopNavProps> = ({
+  projectTitle,
+  setProjectTitle,
+  fallbackTitle,
   currentPageIndex,
   totalPages,
   onPageChange,
@@ -43,14 +49,30 @@ const TopNav: React.FC<TopNavProps> = ({
 }) => {
   return (
     <div className="h-16 px-6 bg-white border-b border-neutral-200 flex justify-between items-center z-10">
-      <div className="flex items-center gap-3">
-        <span className="font-bold text-slate-800 tracking-tight">Preview</span>
-        <div className="h-4 w-[1px] bg-slate-200" />
-        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-bold uppercase tracking-wider">Slide {currentPageIndex + 1}</span>
+      {/* 1. Left Section: Project Title Editor */}
+      <div className="flex items-center gap-4 flex-1 mr-4 overflow-hidden">
+        <div className="flex items-center gap-2 group min-w-0 max-w-[300px]">
+          <div className="p-2 bg-slate-50 rounded-lg text-[#264376] shrink-0">
+            <Edit3 size={16} />
+          </div>
+          <input 
+            type="text"
+            value={projectTitle}
+            onChange={(e) => setProjectTitle(e.target.value)}
+            placeholder={fallbackTitle || 'Project Title...'}
+            className="bg-transparent border-none focus:ring-0 text-sm font-black uppercase tracking-widest text-slate-900 placeholder:text-slate-300 w-full truncate"
+            title="Edit Project Title"
+          />
+        </div>
+        
+        <div className="h-4 w-[1px] bg-slate-200 shrink-0" />
+        
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-bold uppercase tracking-wider">Slide {currentPageIndex + 1}</span>
+        </div>
       </div>
       
       <div className="flex items-center gap-6">
-        {/* ... (Zoom logic stays) */}
         <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm">
           <button onClick={() => onZoomChange(Math.max(0.2, previewZoom - 0.1))} className="p-1 text-slate-400 hover:text-slate-600 transition-colors">
             <ZoomOut size={14} />
@@ -79,7 +101,6 @@ const TopNav: React.FC<TopNavProps> = ({
         </div>
 
         <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
-          {/* ... (Page Navigation logic stays) */}
           <button
             onClick={() => onPageChange(Math.max(0, currentPageIndex - 1))}
             disabled={currentPageIndex === 0}
@@ -97,7 +118,6 @@ const TopNav: React.FC<TopNavProps> = ({
 
           <div className="w-px h-6 bg-slate-100 mx-2" />
 
-          {/* Toggle Editor Button */}
           <button
             onClick={onToggleEditor}
             className={`p-2 rounded-lg transition-all ${!showEditor ? 'bg-[#264376] text-white shadow-lg' : 'hover:bg-slate-100 text-slate-400'}`}
@@ -106,7 +126,6 @@ const TopNav: React.FC<TopNavProps> = ({
             <Maximize size={20} />
           </button>
 
-          {/* Save Button */}
           <button
             onClick={onSave}
             className="flex items-center gap-2 bg-slate-50 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-100 transition-all active:scale-95 border border-slate-200"

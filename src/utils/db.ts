@@ -41,7 +41,7 @@ export const getProject = async (id: string) => {
   });
 };
 
-export const deleteProjectData = async (id: string) => {
+export const deleteProject = async (id: string) => {
   const db = await openDB();
   return new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
@@ -53,10 +53,10 @@ export const deleteProjectData = async (id: string) => {
 };
 
 /**
- * 强力压缩图片并转为 JPEG Base64
- * 限制最大宽度为 1280px，质量为 0.6
+ * 强力压缩图片并转为 JPEG/WebP Base64
+ * 限制最大宽度为 1280px，支持动态质量参数
  */
-export const compressImage = (file: File): Promise<string> => {
+export const compressImage = (file: File, quality: number = 0.95): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -87,7 +87,6 @@ export const compressImage = (file: File): Promise<string> => {
         // 检测是否需要保留透明度 (PNG/WebP/GIF)
         const isTransparent = file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/gif';
         const outputType = isTransparent ? 'image/webp' : 'image/jpeg';
-        const quality = 0.7; // WebP 0.7 质量通常优于 JPEG 0.6 且保留透明度
 
         const dataUrl = canvas.toDataURL(outputType, quality);
         resolve(dataUrl);

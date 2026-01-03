@@ -10,6 +10,10 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
+/**
+ * SubtitleField
+ * 修复版：移除危险的自定义 memo 比较逻辑，彻底根治字段冲突。
+ */
 export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = page.visibility?.subtitle !== false;
 
@@ -54,7 +58,6 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
         <span className="text-[10px] text-slate-400 font-bold uppercase">Sub-description</span>
       </div>
       
-      {/* 使用 group/field 命名组隔离 */}
       <div className="relative group/field">
         <FieldToolbar 
             onIncrease={() => updateFontSize(2)} 
@@ -72,15 +75,5 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
         />
       </div>
     </div>
-  );
-}, (prev, next) => {
-  return (
-    prev.page.layoutId === next.page.layoutId && // 关键修复：确保布局切换时刷新组件，防止闭包过时
-    prev.page.subtitle === next.page.subtitle &&
-    prev.page.bodyFont === next.page.bodyFont &&
-    prev.page.visibility?.subtitle === next.page.visibility?.subtitle &&
-    prev.page.styleOverrides?.subtitle?.fontSize === next.page.styleOverrides?.subtitle?.fontSize &&
-    prev.customFonts === next.customFonts &&
-    prev.onUpdate === next.onUpdate
   );
 });

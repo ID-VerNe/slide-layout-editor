@@ -9,6 +9,7 @@ import StepTimeline from '../components/templates/StepTimeline';
 import GalleryCapsule from '../components/templates/GalleryCapsule';
 import EditorialSplit from '../components/templates/EditorialSplit';
 import BackCoverMovie from '../components/templates/BackCoverMovie';
+import FutureFocus from '../components/templates/FutureFocus';
 
 export type EditorFieldType = 
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'image' | 'imageLabel' 
@@ -32,6 +33,15 @@ const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
 
 export const TEMPLATES: TemplateConfig[] = [
   // Gallery Category
+  {
+    id: 'future-focus',
+    name: 'Future Focus',
+    category: 'Gallery',
+    desc: 'Cinematic three-image layout inspired by New Year posters',
+    tags: ['Gallery', 'New Year', 'Cinematic', 'Impact'],
+    component: FutureFocus,
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel'])
+  },
   {
     id: 'back-cover-movie',
     name: 'Back Cover Movie',

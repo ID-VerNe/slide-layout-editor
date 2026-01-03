@@ -23,6 +23,10 @@ export default function EditorPage() {
 
   const {
     pages,
+    projectTitle,
+    setProjectTitle,
+    imageQuality,
+    setImageQuality,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage,
@@ -59,16 +63,16 @@ export default function EditorPage() {
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fallbackTitle = pages[0]?.title || 'Untitled Project';
+
   // Auto-save logic
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (projectId && isLoaded) {
-      // 自动保存不生成缩略图以保证输入流畅度
-      // 增加到 3000ms 防抖，减少 IndexedDB 写入频率
       timeout = setTimeout(() => saveToDB(previewRef, false), 3000);
     }
     return () => clearTimeout(timeout);
-  }, [pages, customFonts, projectId, isLoaded, saveToDB, previewRef]);
+  }, [pages, customFonts, projectId, isLoaded, saveToDB, previewRef, projectTitle, imageQuality]);
 
   // Outside click logic
   useEffect(() => {
@@ -96,9 +100,7 @@ export default function EditorPage() {
       const prevPageIndex = currentPageIndex;
       setPreviewZoom(1);
       
-      // 等待字体加载
       await document.fonts.ready;
-      // 等待一帧以确保样式应用
       await new Promise(r => requestAnimationFrame(r));
       
       const pagesToExportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
@@ -120,15 +122,12 @@ export default function EditorPage() {
           const idx = pagesToExportIndices[i];
           setCurrentPageIndex(idx);
           
-          // 等待 DOM 渲染和图片加载
           await new Promise(async (resolve) => {
-             // 至少等待一帧让 React 渲染
              await new Promise(r => requestAnimationFrame(r));
-             // 简单的图片加载检查
              const checkImages = () => {
                 const images = Array.from(previewRef.current?.querySelectorAll('img') || []);
                 const allLoaded = images.every(img => img.complete && img.naturalHeight !== 0);
-                if (allLoaded) setTimeout(resolve, 100); // 额外缓冲
+                if (allLoaded) setTimeout(resolve, 100); 
                 else setTimeout(checkImages, 100);
              };
              checkImages();
@@ -140,7 +139,7 @@ export default function EditorPage() {
           if (i > 0) doc.addPage();
           doc.addImage(dataUrl, 'PNG', 0, 0, 1920, 1080);
         }
-        doc.save(`presentation-${Date.now()}.pdf`);
+        doc.save(`${projectTitle || fallbackTitle}.pdf`);
       } else {
         for (let i = 0; i < pagesToExportIndices.length; i++) {
           const idx = pagesToExportIndices[i];
@@ -161,7 +160,7 @@ export default function EditorPage() {
           if (!el) throw new Error(`Slide element ${idx + 1} not found`);
           const dataUrl = await toPng(el, { ...exportOptions, quality: 1, backgroundColor: '#ffffff' });
           const link = document.createElement('a');
-          link.download = `slide-${idx + 1}.png`;
+          link.download = `${projectTitle || fallbackTitle}-${idx + 1}.png`;
           link.href = dataUrl;
           link.click();
         }
@@ -190,20 +189,22 @@ export default function EditorPage() {
         onNavigateHome={() => navigate('/')}
       />
 
-      <input ref={fileInputRef} type="file" className="hidden" accept=".wdzmaga" onChange={(e) => {
+      <input ref={fileInputRef} type="file" className="hidden" accept=".slgrid,.wdzmaga" onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleImportProject(file);
           if (fileInputRef.current) fileInputRef.current.value = '';
       }} />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* 左侧预览区：通过 flex-1 自动填充剩余空间 */}
         <motion.div 
           initial={false}
           animate={{ flex: 1 }} 
           className="bg-neutral-200/50 flex flex-col overflow-hidden relative"
         >
           <TopNav 
+            projectTitle={projectTitle}
+            setProjectTitle={setProjectTitle}
+            fallbackTitle={fallbackTitle}
             currentPageIndex={currentPageIndex}
             totalPages={pages.length}
             onPageChange={setCurrentPageIndex}
@@ -225,7 +226,6 @@ export default function EditorPage() {
           <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} onOverflowChange={handleOverflowChange} />
         </motion.div>
 
-        {/* 右侧编辑器容器：实现宽度动画 */}
         <motion.div
           initial={false}
           animate={{ 
@@ -246,7 +246,14 @@ export default function EditorPage() {
 
       <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Presentation Settings" type="custom" maxWidth="max-w-2xl">
         <div className="max-h-[70vh] overflow-y-auto no-scrollbar pr-2">
-          <GlobalSettings page={currentPage} onUpdate={updatePage} customFonts={customFonts} setCustomFonts={setCustomFonts} />
+          <GlobalSettings 
+            page={currentPage} 
+            onUpdate={updatePage} 
+            customFonts={customFonts} 
+            setCustomFonts={setCustomFonts} 
+            imageQuality={imageQuality}
+            setImageQuality={setImageQuality}
+          />
         </div>
       </Modal>
 

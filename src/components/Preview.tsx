@@ -14,6 +14,7 @@ import StepTimeline from './templates/StepTimeline';
 import GalleryCapsule from './templates/GalleryCapsule';
 import EditorialSplit from './templates/EditorialSplit';
 import BackCoverMovie from './templates/BackCoverMovie';
+import FutureFocus from './templates/FutureFocus';
 
 interface PreviewProps {
   page: PageData;
@@ -107,6 +108,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'gallery-capsule': return <GalleryCapsule page={page} />;
       case 'editorial-split': return <EditorialSplit page={page} />;
       case 'back-cover-movie': return <BackCoverMovie page={page} />;
+      case 'future-focus': return <FutureFocus page={page} />;
       default: 
         return <ModernFeature page={page} />;
     }

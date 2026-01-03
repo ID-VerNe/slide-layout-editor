@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, FolderOpen, Save, Settings, Eraser, Layout, Trash2 } from 'lucide-react';
+import { Plus, FolderOpen, Save, Settings, Eraser, Layout, Trash2, Download } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT } from '../../constants/layout';
@@ -124,8 +124,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Bottom Actions */}
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
-        <ActionButton onClick={onImport} icon={FolderOpen} title="Import" />
-        <ActionButton onClick={onExport} icon={Save} title="Save" />
+        <ActionButton onClick={onImport} icon={FolderOpen} title="Import Project" />
+        <ActionButton onClick={onExport} icon={Download} title="Download (.slgrid)" />
         <div className="h-px w-8 bg-slate-100 my-1" />
         <ActionButton onClick={() => onRemovePage(currentPageId)} icon={Trash2} title="Delete Slide" danger />
         <ActionButton onClick={onClearAll} icon={Eraser} title="Reset Project" danger />

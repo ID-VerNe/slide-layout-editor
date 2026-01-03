@@ -1,9 +1,9 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
-import { Eye, EyeOff, List, Plus, X } from 'lucide-react';
-import { Label } from '../../ui/Base';
+import { List, Plus, X } from 'lucide-react';
 import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
+import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
@@ -11,16 +11,13 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
+/**
+ * BulletsField
+ * 修复版：移除危险的自定义 memo 比较逻辑。
+ */
 export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = (page.visibility as any)?.bullets !== false;
   const bullets = page.bullets || [];
-
-  const toggle = () => {
-    onUpdate({
-      ...page,
-      visibility: { ...(page.visibility || {}), bullets: !isVisible } as any
-    });
-  };
 
   const handleBulletChange = (idx: number, val: string) => {
     const next = [...bullets];
@@ -64,18 +61,8 @@ export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-1">
-        <button 
-          onClick={toggle}
-          className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}
-        >
-          {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <Label icon={List} className="mb-0">List Items</Label>
-      </div>
-
-      <div className={`space-y-3 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="bullets" label="List Items" icon={List}>
+      <div className="space-y-3">
         {bullets.map((bullet, idx) => (
           <div key={idx} className="relative group/field flex items-center gap-2">
             <FieldToolbar 
@@ -104,16 +91,6 @@ export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
           <Plus size={12} /> Add Item
         </button>
       </div>
-    </div>
-  );
-}, (prev, next) => {
-  return (
-    prev.page.layoutId === next.page.layoutId && // 关键修复：确保布局切换时刷新组件
-    JSON.stringify(prev.page.bullets) === JSON.stringify(next.page.bullets) &&
-    (prev.page.visibility as any)?.bullets === (next.page.visibility as any)?.bullets &&
-    (prev.page.styleOverrides as any)?.bullets?.fontSize === (next.page.styleOverrides as any)?.bullets?.fontSize &&
-    (prev.page.styleOverrides as any)?.bullets?.fontFamily === (next.page.styleOverrides as any)?.bullets?.fontFamily &&
-    prev.customFonts === next.customFonts &&
-    prev.onUpdate === next.onUpdate
+    </FieldWrapper>
   );
 });

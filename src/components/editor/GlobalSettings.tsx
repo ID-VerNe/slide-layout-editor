@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageData, CustomFont, CounterStyle } from '../../types';
-import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot } from 'lucide-react';
+import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import FontManager from '../FontManager';
 
@@ -9,9 +9,18 @@ interface GlobalSettingsProps {
   onUpdate: (page: PageData) => void;
   customFonts: CustomFont[];
   setCustomFonts: (fonts: CustomFont[]) => void;
+  imageQuality: number;
+  setImageQuality: (q: number) => void;
 }
 
-const GlobalSettings: React.FC<GlobalSettingsProps> = ({ page, onUpdate, customFonts, setCustomFonts }) => {
+const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
+  page, 
+  onUpdate, 
+  customFonts, 
+  setCustomFonts,
+  imageQuality,
+  setImageQuality 
+}) => {
   const handleChange = (field: keyof PageData, value: any) => {
     onUpdate({ ...page, [field]: value });
   };
@@ -22,10 +31,10 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({ page, onUpdate, customF
 
   return (
     <div className="space-y-10 pb-10">
-      {/* 1. Global Appearance - Only Patterns now */}
+      {/* 1. Global Appearance - Patterns & Compression */}
       <Section>
         <Label icon={Settings}>Global Visual Style</Label>
-        <div className="space-y-6">
+        <div className="space-y-8">
             {/* Background Pattern */}
             <div className="space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Background Pattern</p>
@@ -34,6 +43,30 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({ page, onUpdate, customF
                         <button key={p.id} onClick={() => handleChange('backgroundPattern', p.id)} className={`px-1 py-2 flex flex-col items-center justify-center rounded-lg border transition-all ${(page.backgroundPattern || 'none') === p.id ? 'bg-[#264376] border-[#264376] text-white shadow-md shadow-#264376/20' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}><span className="text-[8px] font-black uppercase tracking-tighter">{p.label}</span></button>
                     ))}
                 </div>
+            </div>
+
+            {/* Image Compression Settings */}
+            <div className="space-y-4 pt-4 border-t border-slate-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <ImageControl size={12} className="text-[#264376]" />
+                    <span className="text-[9px] font-black uppercase tracking-widest">Image Compression</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-[#264376] bg-[#264376]/5 px-2 py-0.5 rounded">
+                    JPEG {Math.round(imageQuality * 100)}%
+                  </span>
+                </div>
+                <Slider 
+                  label="Quality Level" 
+                  value={imageQuality} 
+                  min={0.1} 
+                  max={1.0} 
+                  step={0.01} 
+                  onChange={setImageQuality} 
+                />
+                <p className="text-[8px] text-slate-400 italic">
+                  Higher quality increases file size. 95% is recommended for HD exports.
+                </p>
             </div>
         </div>
       </Section>

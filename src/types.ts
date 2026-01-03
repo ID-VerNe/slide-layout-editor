@@ -15,7 +15,7 @@ export type BackgroundPatternType = 'none' | 'grid' | 'dots' | 'diagonal' | 'cro
 export interface CustomFont {
   name: string;
   family: string;
-  dataUrl?: string; 
+  dataUrl?: string;
 }
 
 export interface MetricData {
@@ -23,14 +23,14 @@ export interface MetricData {
   label: string;
   value: string;
   unit?: string;
-  subLabel?: string; 
+  subLabel?: string;
 }
 
 export interface FeatureData {
   id?: string;
   title: string;
   desc: string;
-  icon?: string; 
+  icon?: string;
   imageConfig?: {
     scale: number;
     x: number;
@@ -56,8 +56,8 @@ export interface AgendaData {
   title: string;
   desc: string;
   icon?: string;
-  number?: string; 
-  items?: string[]; 
+  number?: string;
+  items?: string[];
 }
 
 export interface GalleryItem {
@@ -80,43 +80,43 @@ export interface PageData {
   title: string;
   subtitle?: string;
   bullets?: string[]; // 暂保持 string[] 兼容，建议组件层处理 ID
-  actionText?: string; 
-  imageLabel?: string; 
-  imageSubLabel?: string; 
-  
+  actionText?: string;
+  imageLabel?: string;
+  imageSubLabel?: string;
+
   // 扩展内容
-    code?: string;      
-    language?: string;  
-      metrics?: MetricData[]; 
-        features?: FeatureData[]; 
-        mosaicIcons?: string[]; 
-          mosaicConfig?: {
-            rows: number;
-            cols: number;
-            stagger: boolean;
-            tileColor?: string; 
-            icons: Record<string, string>; 
-          };
-    partners?: PartnerData[]; 
-    testimonials?: TestimonialData[]; 
-    agenda?: AgendaData[]; 
-    activeIndex?: number; 
-    partnersTitle?: string; 
-    
-    // 图库数据
-    gallery?: GalleryItem[];
-    
-    // 视觉元素        logo?: string;      // 自定义 Logo
-    
-        logoSize?: number;  // Logo 大小
-    
-        image?: string;
-    
-    imageConfig?: {
-      scale: number;
-      x: number;
-      y: number;
-    };
+  code?: string;
+  language?: string;
+  metrics?: MetricData[];
+  features?: FeatureData[];
+  mosaicIcons?: string[];
+  mosaicConfig?: {
+    rows: number;
+    cols: number;
+    stagger: boolean;
+    tileColor?: string;
+    icons: Record<string, string>;
+  };
+  partners?: PartnerData[];
+  testimonials?: TestimonialData[];
+  agenda?: AgendaData[];
+  activeIndex?: number;
+  partnersTitle?: string;
+
+  // 图库数据
+  gallery?: GalleryItem[];
+
+  // 视觉元素        logo?: string;      // 自定义 Logo
+
+  logoSize?: number;  // Logo 大小
+
+  image?: string;
+
+  imageConfig?: {
+    scale: number;
+    x: number;
+    y: number;
+  };
   backgroundColor?: string;
   themeColor?: string; // 主题色
   layoutVariant?: string; // 用于存储布局变体，如 'left' | 'right'
@@ -137,6 +137,7 @@ export interface PageData {
     fontSize?: number;
     lineHeight?: number;
     letterSpacing?: number;
+    color?: string;
   }>;
 
   // 显隐控制
@@ -161,4 +162,5 @@ export interface ProjectData {
   title: string;
   pages: PageData[];
   customFonts: CustomFont[];
+  imageQuality?: number; // 新增：全局图片质量控制 (0.1 - 1.0)
 }

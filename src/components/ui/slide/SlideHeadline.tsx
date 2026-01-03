@@ -12,8 +12,13 @@ interface SlideHeadlineProps {
   italic?: boolean;
   color?: string;
   style?: React.CSSProperties;
+  children?: React.ReactNode;
 }
 
+/**
+ * SlideHeadline
+ * 修复版：完美支持 style 透传，包括 WebkitTextStroke 等高级属性。
+ */
 export const SlideHeadline: React.FC<SlideHeadlineProps> = ({ 
   page, 
   maxSize = 84, 
@@ -23,7 +28,8 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
   weight,
   italic,
   color,
-  style
+  style,
+  children
 }) => {
   const isVisible = page.visibility?.title !== false;
   if (!isVisible || !page.title) return null;
@@ -36,9 +42,9 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
     color: color || 'inherit',
     overflowWrap: 'break-word',
     wordBreak: 'normal',
-    textWrap: 'balance', // 智能平衡每行字数
+    textWrap: 'balance',
     hyphens: 'none',
-    ...style
+    ...style // 确保外部传入的 style (如空心效果) 优先级最高
   };
 
   return (
@@ -51,6 +57,8 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
       fontFamily={page.titleFont || 'Inter'}
       className={`tracking-tighter uppercase ${className}`}
       style={combinedStyle}
-    />
+    >
+      {children}
+    </AutoFitHeadline>
   );
 };
