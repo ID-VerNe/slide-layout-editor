@@ -13,6 +13,8 @@ interface GlobalSettingsProps {
   setImageQuality: (q: number) => void;
   minimalCounter: boolean;
   setMinimalCounter: (m: boolean) => void;
+  counterColor: string;
+  setCounterColor: (c: string) => void;
 }
 
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
@@ -23,19 +25,17 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   imageQuality,
   setImageQuality,
   minimalCounter,
-  setMinimalCounter
+  setMinimalCounter,
+  counterColor,
+  setCounterColor
 }) => {
   const handleChange = (field: keyof PageData, value: any) => {
     onUpdate({ ...page, [field]: value });
   };
 
-  const isVisible = (key: keyof NonNullable<PageData['visibility']>) => {
-    return page.visibility?.[key] !== false;
-  };
-
   return (
     <div className="space-y-10 pb-10">
-      {/* 1. Global Appearance - Patterns & Compression */}
+      {/* 1. Global Appearance */}
       <Section>
         <Label icon={Settings}>Global Visual Style</Label>
         <div className="space-y-8">
@@ -49,7 +49,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                 </div>
             </div>
 
-            {/* Image Compression Settings */}
+            {/* Image Compression */}
             <div className="space-y-4 pt-4 border-t border-slate-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-900">
@@ -60,14 +60,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                     JPEG {Math.round(imageQuality * 100)}%
                   </span>
                 </div>
-                <Slider 
-                  label="Quality Level" 
-                  value={imageQuality} 
-                  min={0.1} 
-                  max={1.0} 
-                  step={0.01} 
-                  onChange={setImageQuality} 
-                />
+                <Slider label="Quality Level" value={imageQuality} min={0.1} max={1.0} step={0.01} onChange={setImageQuality} />
             </div>
         </div>
       </Section>
@@ -76,7 +69,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
       <Section className="pt-6 border-t border-slate-100">
         <Label icon={ImageIcon}>Global Branding</Label>
         <div className="space-y-4">
-            <div className={`flex items-center gap-2 ${isVisible('logo') ? '' : 'opacity-50'}`}>
+            <div className="flex items-center gap-2">
                 <Input type="text" placeholder="Logo URL..." value={page.logo || ''} onChange={(e) => handleChange('logo', e.target.value)} />
                 <label className="cursor-pointer bg-slate-50 p-2.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
                 <ImageIcon size={18} />
@@ -109,13 +102,10 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         <div className="space-y-6">
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style</p>
-                  
-                  {/* 新增：极简页码开关 */}
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style & Color</p>
                   <button 
                     onClick={() => {
-                      setMinimalCounter(!minimalCounter);
-                      // 同时同步到当前页以触发全局联动
+                      // 核心修复：直接通过 handleChange 修改 page 对象，从而触发 useProject 的全局同步
                       handleChange('minimalCounter', !minimalCounter);
                     }}
                     className={`flex items-center gap-2 px-2 py-1 rounded-md transition-all ${minimalCounter ? 'bg-[#264376] text-white' : 'bg-slate-100 text-slate-400 hover:text-slate-600'}`}
@@ -134,6 +124,24 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                             <s.icon size={14} />
                         </button>
                     ))}
+                </div>
+
+                {/* 
+                  核心修复：颜色选择器绑定 page.counterColor 
+                  这样它能真实反映当前页面的状态，也能通过 handleChange 同步到全局
+                */}
+                <div className="flex gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-100 mt-2">
+                  <div className="relative overflow-hidden w-8 h-8 rounded-lg shadow-sm ring-1 ring-slate-200 shrink-0">
+                    <input 
+                      type="color" 
+                      className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer p-0 border-0" 
+                      value={page.counterColor || '#64748b'} 
+                      onChange={(e) => handleChange('counterColor', e.target.value)} 
+                    />
+                  </div>
+                  <div className="flex-1 text-[10px] font-mono font-bold text-slate-500 uppercase">
+                    {page.counterColor || '#64748b'}
+                  </div>
                 </div>
             </div>
             

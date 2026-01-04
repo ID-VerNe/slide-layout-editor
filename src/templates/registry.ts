@@ -16,6 +16,9 @@ import EditorialBackCover from '../components/templates/EditorialBackCover';
 import KinfolkFeature from '../components/templates/KinfolkFeature';
 import KinfolkEssay from '../components/templates/KinfolkEssay';
 import KinfolkMontage from '../components/templates/KinfolkMontage';
+import MicroAnchor from '../components/templates/MicroAnchor';
+import TypographyHero from '../components/templates/TypographyHero';
+import FilmDiptych from '../components/templates/FilmDiptych';
 import { AspectRatioType } from '../constants/layout';
 
 export type EditorFieldType = 
@@ -47,7 +50,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Kinfolk style classic magazine cover with hard-edge image',
     tags: ['Magazine', 'Minimalist', 'Kinfolk'],
     component: EditorialClassic,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
   },
   {
@@ -64,12 +67,13 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'editorial-back-cover',
     name: 'Editorial Back',
     category: 'Cover',
-    desc: 'Minimalist magazine back cover with centered title and bottom subtitle',
+    desc: 'Minimalist magazine back cover with centered title',
     tags: ['Magazine', 'Minimalist', 'Back Cover'],
     component: EditorialBackCover,
     fields: withBaseFields(['title', 'subtitle']),
     supportedRatios: ['2:3']
   },
+
   // --- Gallery Category (2:3 Optimized) ---
   {
     id: 'kinfolk-feature',
@@ -91,6 +95,26 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['gallery', 'imageLabel']),
     supportedRatios: ['2:3']
   },
+  {
+    id: 'film-diptych',
+    name: 'Film Diptych',
+    category: 'Gallery',
+    desc: 'Dual vertical images side-by-side with minimal sequence label',
+    tags: ['Diptych', 'Sequence', 'Comparison'],
+    component: FilmDiptych,
+    fields: withBaseFields(['gallery', 'imageLabel']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'micro-anchor',
+    name: 'Micro Anchor',
+    category: 'Gallery',
+    desc: 'Extreme negative space with a tiny atmospheric anchor image',
+    tags: ['Atmospheric', 'Whitespace', 'Minimalist'],
+    component: MicroAnchor,
+    fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
+    supportedRatios: ['2:3']
+  },
 
   // --- General Category (2:3 Optimized) ---
   {
@@ -103,6 +127,16 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
     supportedRatios: ['2:3']
   },
+  {
+    id: 'typography-hero',
+    name: 'Typography Hero',
+    category: 'General',
+    desc: 'Typography-focused section divider with horizontal lines',
+    tags: ['Typography', 'Divider', 'Slogan'],
+    component: TypographyHero,
+    fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
+    supportedRatios: ['2:3']
+  },
 
   // --- Legacy / Landscape Templates (16:9 Only) ---
   {
@@ -113,7 +147,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Gallery', 'Impact', 'Dynamic'],
     component: FutureFocus,
     fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']),
-    supportedRatios: ['16:9'] // 移除 2:3 支持
+    supportedRatios: ['16:9']
   },
   {
     id: 'back-cover-movie',
@@ -123,7 +157,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Gallery', 'Back Cover', 'Cinematic'],
     component: BackCoverMovie,
     fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle']),
-    supportedRatios: ['16:9'] // 移除 2:3 支持
+    supportedRatios: ['16:9']
   },
   {
     id: 'gallery-capsule',
@@ -133,7 +167,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Gallery', 'Portrait', 'Modern'],
     component: GalleryCapsule,
     fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel']),
-    supportedRatios: ['16:9'] // 移除 2:3 支持
+    supportedRatios: ['16:9']
   },
   {
     id: 'editorial-split',
@@ -203,7 +237,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Impact', 'Slogan', 'Clean'],
     component: BigStatement,
     fields: withBaseFields(['title', 'subtitle']),
-    supportedRatios: ['16:9'] // 移除 2:3 支持
+    supportedRatios: ['16:9']
   },
   {
     id: 'step-timeline',

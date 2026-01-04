@@ -22,6 +22,9 @@ import EditorialBackCover from './templates/EditorialBackCover';
 import KinfolkFeature from './templates/KinfolkFeature';
 import KinfolkEssay from './templates/KinfolkEssay';
 import KinfolkMontage from './templates/KinfolkMontage';
+import MicroAnchor from './templates/MicroAnchor';
+import TypographyHero from './templates/TypographyHero';
+import FilmDiptych from './templates/FilmDiptych';
 
 interface PreviewProps {
   page: PageData;
@@ -30,7 +33,8 @@ interface PreviewProps {
 }
 
 const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages }) => {
-  
+  const customCounterColor = page.counterColor || '#64748b';
+
   const renderCounter = () => {
     const style = page.counterStyle || 'number';
     const current = pageIndex + 1;
@@ -47,9 +51,9 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         const ones = current % 5;
         return (
           <div className="flex gap-2 items-center">
-            {Array.from({ length: tens }).map((_, i) => <div key={`t-${i}`} className="w-2 h-2 bg-[#264376] rounded-[1px]" />)}
-            {Array.from({ length: fives }).map((_, i) => <div key={`f-${i}`} className="w-0.5 h-3 bg-[#264376] rounded-full mx-0.5" />)}
-            {Array.from({ length: ones }).map((_, i) => <div key={`o-${i}`} className="w-1.5 h-1.5 bg-[#264376] rounded-full" />)}
+            {Array.from({ length: tens }).map((_, i) => <div key={`t-${i}`} className="w-2 h-2 rounded-[1px]" style={{ backgroundColor: customCounterColor }} />)}
+            {Array.from({ length: fives }).map((_, i) => <div key={`f-${i}`} className="w-0.5 h-3 rounded-full mx-0.5" style={{ backgroundColor: customCounterColor }} />)}
+            {Array.from({ length: ones }).map((_, i) => <div key={`o-${i}`} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: customCounterColor }} />)}
           </div>
         );
       default:
@@ -119,6 +123,9 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'kinfolk-feature': return <KinfolkFeature page={page} />;
       case 'kinfolk-essay': return <KinfolkEssay page={page} />;
       case 'kinfolk-montage': return <KinfolkMontage page={page} />;
+      case 'micro-anchor': return <MicroAnchor page={page} />;
+      case 'typography-hero': return <TypographyHero page={page} />;
+      case 'film-diptych': return <FilmDiptych page={page} />;
       default: 
         return <ModernFeature page={page} />;
     }
@@ -151,18 +158,31 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       </AnimatePresence>
 
       <div className={`absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none ${page.layoutVariant === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
-        <div className={`text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500 whitespace-pre-line ${page.layoutVariant === 'right' ? 'text-right' : 'text-left'}`}>
+        <div 
+          className={`text-[10px] font-black uppercase tracking-[0.2em] whitespace-pre-line transition-all duration-500 ${page.layoutVariant === 'right' ? 'text-right' : 'text-left'}`} 
+          style={{ color: customCounterColor, opacity: 0.4 }} // 元数据保持低透明度
+        >
            {page.footer}
         </div>
         
         {page.pageNumber !== false ? (
-          <div className={`text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center transition-all duration-500
-            ${isMinimal ? 'opacity-20' : 'opacity-40 gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50 shadow-sm'}`}>
+          <div 
+            className={`text-[10px] font-black uppercase tracking-widest flex items-center transition-all duration-500
+              ${isMinimal ? '' : 'gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50 shadow-sm'}`}
+            style={{ 
+              color: customCounterColor,
+              // 核心修复：如果是 Minimal 模式，给 0.4 的透明度；如果是正常模式，全显 (1.0)
+              opacity: isMinimal ? 0.4 : 1.0 
+            }}
+          >
              {renderCounter()}
           </div>
         ) : (
           page.pageNumberText && (
-            <div className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-[0.3em] flex items-center animate-in fade-in">
+            <div 
+              className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center animate-in fade-in"
+              style={{ color: customCounterColor, opacity: 0.6 }}
+            >
                {page.pageNumberText}
             </div>
           )

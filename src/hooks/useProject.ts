@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PageData, CustomFont, ProjectData } from '../types';
+import { PageData, CustomFont, ProjectData, AspectRatioType } from '../types';
 import { getProject, saveProject } from '../utils/db';
 import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
@@ -29,7 +29,8 @@ const GLOBAL_FIELDS: Array<keyof PageData> = [
   'logo',
   'logoSize',
   'agenda',
-  'minimalCounter' // 新增：全局同步极简页码状态
+  'minimalCounter',
+  'counterColor' 
 ];
 
 export const registerFontInDOM = (family: string, dataUrl: string) => {
@@ -53,7 +54,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const [projectTitle, setProjectTitle] = useState<string>(''); 
   const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
   const [imageQuality, setImageQuality] = useState<number>(0.95); 
-  const [minimalCounter, setMinimalCounter] = useState<boolean>(false); // 新增：全局状态
+  const [minimalCounter, setMinimalCounter] = useState<boolean>(false); 
+  const [counterColor, setCounterColor] = useState<string>('#64748b'); 
   const [enforceA4, setEnforceA4] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -68,7 +70,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
           setProjectTitle(savedData.title || '');
           setCustomFonts(savedData.customFonts || []);
           setImageQuality(savedData.imageQuality ?? 0.95);
-          setMinimalCounter(savedData.minimalCounter ?? false); // 加载全局极简状态
+          setMinimalCounter(savedData.minimalCounter ?? false);
+          setCounterColor(savedData.counterColor ?? '#64748b'); 
           
           savedData.customFonts?.forEach((font: CustomFont) => {
             if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
@@ -121,7 +124,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
       pages,
       customFonts,
       imageQuality,
-      minimalCounter, // 保存全局状态
+      minimalCounter,
+      counterColor, 
     };
     
     await saveProject(projectId, projectState);
@@ -149,7 +153,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
     
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
-  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter]);
+  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter, counterColor]);
 
   const updatePage = useCallback((updatedPage: PageData) => {
     setPages(prev => {
@@ -158,6 +162,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
       const layoutChanged = updatedPage.layoutId !== originalPage.layoutId;
 
+      // 找出变动的全局字段
       const changedGlobalFields: Partial<PageData> = {};
       GLOBAL_FIELDS.forEach(field => {
         // @ts-ignore
@@ -165,10 +170,9 @@ export function useProject(projectId: string | undefined, templateId: string | n
           // @ts-ignore
           changedGlobalFields[field] = updatedPage[field];
           
-          // 如果是极简页码状态变更，同步到主状态
-          if (field === 'minimalCounter') {
-            setMinimalCounter(updatedPage.minimalCounter ?? false);
-          }
+          // 核心修复：同步到全局状态
+          if (field === 'minimalCounter') setMinimalCounter(updatedPage.minimalCounter ?? false);
+          if (field === 'counterColor') setCounterColor(updatedPage.counterColor || '#64748b');
         }
       });
 
@@ -197,6 +201,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
             footer: updatedPage.footer,
             pageNumber: updatedPage.pageNumber,
             minimalCounter: updatedPage.minimalCounter,
+            counterColor: updatedPage.counterColor,
             pageNumberText: updatedPage.pageNumberText,
             counterStyle: updatedPage.counterStyle,
             styleOverrides: updatedPage.styleOverrides,
@@ -238,7 +243,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
       backgroundColor: '#ffffff',
       backgroundPattern: firstPage?.backgroundPattern || 'none',
       counterStyle: firstPage?.counterStyle || 'number',
-      minimalCounter: minimalCounter, // 继承全局设置
+      minimalCounter: minimalCounter, 
+      counterColor: counterColor,
       footer: firstPage?.footer || '',
       titleFont: firstPage?.titleFont,
       bodyFont: firstPage?.bodyFont,
@@ -279,19 +285,15 @@ export function useProject(projectId: string | undefined, templateId: string | n
         setPages(DEFAULT_PAGES);
         setProjectTitle('');
         setMinimalCounter(false);
+        setCounterColor('#64748b');
         setCurrentPageIndex(0);
       }
     );
   };
 
-  /**
-   * 重新排序页面
-   */
   const reorderPages = (newPages: PageData[]) => {
     const currentPageId = pages[currentPageIndex]?.id;
     setPages(newPages);
-    
-    // 保持当前选中页面的索引同步
     if (currentPageId) {
       const newIndex = newPages.findIndex(p => p.id === currentPageId);
       if (newIndex !== -1) {
@@ -300,9 +302,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
   };
 
-  /**
-   * 导出项目文件 (.slgrid)
-   */
   const handleExportProject = () => {
     const finalTitle = projectTitle.trim() || pages[0]?.title || 'Untitled';
     const project: ProjectData = {
@@ -312,6 +311,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       customFonts,
       imageQuality,
       minimalCounter,
+      counterColor,
     };
     
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/octet-stream' });
@@ -345,6 +345,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         setProjectTitle(project.title || '');
         setImageQuality(project.imageQuality ?? 0.95);
         setMinimalCounter(project.minimalCounter ?? false);
+        setCounterColor(project.counterColor ?? '#64748b');
         setCurrentPageIndex(0);
         
         uiAlert("Import Success", "Project loaded successfully.");
@@ -365,6 +366,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
     setImageQuality,
     minimalCounter,
     setMinimalCounter,
+    counterColor,
+    setCounterColor,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage: pages[currentPageIndex],
@@ -376,7 +379,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     updatePage,
     addPage,
     removePage,
-    reorderPages, // 导出新函数
+    reorderPages, 
     handleClearAll,
     handleExportProject,
     handleImportProject,

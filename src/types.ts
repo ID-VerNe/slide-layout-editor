@@ -135,6 +135,7 @@ export interface PageData {
   footer?: string;
   pageNumber?: boolean;
   minimalCounter?: boolean; // 新增：极简页码模式（移除背景和边框）
+  counterColor?: string; // 新增：全局页码颜色
   pageNumberText?: string; // 新增：页码关闭时的替代文本
   signature?: string; // 新增：本人签名内容 (文字或 Base64 图片)
   signatureType?: 'text' | 'image'; // 新增：签名类型
@@ -173,4 +174,5 @@ export interface ProjectData {
   customFonts: CustomFont[];
   imageQuality?: number; // 新增：全局图片质量控制 (0.1 - 1.0)
   minimalCounter?: boolean; // 新增：全局极简页码开关
+  counterColor?: string; // 新增：全局页码颜色
 }
