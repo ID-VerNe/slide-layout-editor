@@ -9,6 +9,8 @@ import { LogoField } from './editor/fields/LogoField';
 import { TitleField } from './editor/fields/TitleField';
 import { SubtitleField } from './editor/fields/SubtitleField';
 import { ActionTextField } from './editor/fields/ActionTextField';
+import { ParagraphField } from './editor/fields/ParagraphField';
+import { SignatureField } from './editor/fields/SignatureField';
 import { ImageField } from './editor/fields/ImageField';
 import { ImageLabelField } from './editor/fields/ImageLabelField';
 import { FeaturesField } from './editor/fields/FeaturesField';
@@ -22,6 +24,7 @@ import { GalleryField } from './editor/fields/GalleryField';
 import { VariantField } from './editor/fields/VariantField';
 import { BulletsField } from './editor/fields/BulletsField';
 import { ColorField } from './editor/fields/ColorField';
+import { FooterField } from './editor/fields/FooterField';
 import { PageNumberField } from './editor/fields/PageNumberField';
 
 interface EditorProps {
@@ -46,6 +49,8 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
       case 'title': return <TitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'subtitle': return <SubtitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'actionText': return <ActionTextField key={type} page={page} onUpdate={onUpdate} />;
+      case 'paragraph': return <ParagraphField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
+      case 'signature': return <SignatureField key={type} page={page} onUpdate={onUpdate} />;
       case 'image': return <ImageField key={type} page={page} onUpdate={onUpdate} />;
       case 'imageLabel': return <ImageLabelField key={type} page={page} onUpdate={onUpdate} />;
       case 'features': return <FeaturesField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
@@ -59,6 +64,7 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
       case 'variant': return <VariantField key={type} page={page} onUpdate={onUpdate} />;
       case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'backgroundColor': return <ColorField key={type} page={page} onUpdate={onUpdate} />;
+      case 'footer': return <FooterField key={type} page={page} onUpdate={onUpdate} />;
       case 'pageNumber': return <PageNumberField key={type} page={page} onUpdate={onUpdate} />;
       default: return null;
     }

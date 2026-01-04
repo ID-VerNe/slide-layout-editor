@@ -85,6 +85,7 @@ export interface PageData {
   subtitle?: string;
   bullets?: string[]; // 暂保持 string[] 兼容，建议组件层处理 ID
   actionText?: string;
+  paragraph?: string; // 新增：长文段落内容
   imageLabel?: string;
   imageSubLabel?: string;
 
@@ -135,6 +136,8 @@ export interface PageData {
   pageNumber?: boolean;
   minimalCounter?: boolean; // 新增：极简页码模式（移除背景和边框）
   pageNumberText?: string; // 新增：页码关闭时的替代文本
+  signature?: string; // 新增：本人签名内容 (文字或 Base64 图片)
+  signatureType?: 'text' | 'image'; // 新增：签名类型
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
 

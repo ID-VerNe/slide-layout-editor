@@ -18,6 +18,7 @@ import BackCoverMovie from './templates/BackCoverMovie';
 import FutureFocus from './templates/FutureFocus';
 import EditorialClassic from './templates/EditorialClassic';
 import CinematicFullBleed from './templates/CinematicFullBleed';
+import EditorialBackCover from './templates/EditorialBackCover';
 import KinfolkFeature from './templates/KinfolkFeature';
 import KinfolkEssay from './templates/KinfolkEssay';
 import KinfolkMontage from './templates/KinfolkMontage';
@@ -114,6 +115,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'future-focus': return <FutureFocus page={page} />;
       case 'editorial-classic': return <EditorialClassic page={page} />;
       case 'cinematic-full-bleed': return <CinematicFullBleed page={page} />;
+      case 'editorial-back-cover': return <EditorialBackCover page={page} />;
       case 'kinfolk-feature': return <KinfolkFeature page={page} />;
       case 'kinfolk-essay': return <KinfolkEssay page={page} />;
       case 'kinfolk-montage': return <KinfolkMontage page={page} />;
@@ -148,8 +150,8 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none">
-        <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500 whitespace-pre-line">
+      <div className={`absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none ${page.layoutVariant === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500 whitespace-pre-line ${page.layoutVariant === 'right' ? 'text-right' : 'text-left'}`}>
            {page.footer}
         </div>
         

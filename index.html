@@ -1,32 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SlideGrid Studio</title>
-    <link rel="icon" type="image/svg+xml" sizes="any" href="/logo.svg">
-	<script type="text/javascript">
-    (function () {
-        const intervalTime = 10;
-
-        function checkAndRemoveLink() {
-            const links = document.querySelectorAll('a');
-            let isRemoved = false;
-            links.forEach(link => {
-                if (link.href === "http://host.coms.su/" && link.innerText.includes("Host Provided By ShanHuYun Free Hosting")) {
-                    link.parentNode.removeChild(link);
-                    isRemoved = true;
-                }
-            });
-            if (isRemoved) {
-                clearInterval(intervalId);
-            }
-        }
-        let intervalId = setInterval(checkAndRemoveLink, intervalTime);
-    })();
-</script>
-    <link href="./fonts/fonts.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/magazine/logo.svg">
+    <link href="/magazine/fonts/fonts.css" rel="stylesheet">
 
 </head>
 <body>

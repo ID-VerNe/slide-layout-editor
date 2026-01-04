@@ -86,6 +86,40 @@
   src: url('./noto-serif-sc/NotoSerifSC-Black.woff2') format('woff2');
 }
 
+/* Playfair Display - Local */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./playfair-display/playfair-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./playfair-display/playfair-italic.ttf') format('truetype');
+}
+
+/* Lora - Local */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./lora/lora-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./lora/lora-italic.ttf') format('truetype');
+}
+
 /* Material Symbols Outlined - Local */
 @font-face {
   font-family: 'Material Symbols Outlined';

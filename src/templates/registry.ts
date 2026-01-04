@@ -12,13 +12,14 @@ import BackCoverMovie from '../components/templates/BackCoverMovie';
 import FutureFocus from '../components/templates/FutureFocus';
 import EditorialClassic from '../components/templates/EditorialClassic';
 import CinematicFullBleed from '../components/templates/CinematicFullBleed';
+import EditorialBackCover from '../components/templates/EditorialBackCover';
 import KinfolkFeature from '../components/templates/KinfolkFeature';
 import KinfolkEssay from '../components/templates/KinfolkEssay';
 import KinfolkMontage from '../components/templates/KinfolkMontage';
 import { AspectRatioType } from '../constants/layout';
 
 export type EditorFieldType = 
-  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'image' | 'imageLabel' 
+  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' | 'signature' | 'image' | 'imageLabel' 
   | 'features' | 'mosaic' | 'metrics' | 'partnersTitle' | 'partners' 
   | 'testimonials' | 'agenda' | 'gallery' | 'variant' | 'footer' | 'bullets' | 'backgroundColor' | 'pageNumber';
 
@@ -59,7 +60,16 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'image']),
     supportedRatios: ['2:3']
   },
-
+  {
+    id: 'editorial-back-cover',
+    name: 'Editorial Back',
+    category: 'Cover',
+    desc: 'Minimalist magazine back cover with centered title and bottom subtitle',
+    tags: ['Magazine', 'Minimalist', 'Back Cover'],
+    component: EditorialBackCover,
+    fields: withBaseFields(['title', 'subtitle']),
+    supportedRatios: ['2:3']
+  },
   // --- Gallery Category (2:3 Optimized) ---
   {
     id: 'kinfolk-feature',
@@ -68,7 +78,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Impactful vertical typography with hard-edge imagery',
     tags: ['Kinfolk', 'Portrait', 'Minimalist'],
     component: KinfolkFeature,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
   },
   {
@@ -90,7 +100,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Text-heavy narrative layout with drop cap and technical grid',
     tags: ['Narrative', 'Text', 'Specs'],
     component: KinfolkEssay,
-    fields: withBaseFields(['title', 'subtitle', 'actionText', 'metrics']),
+    fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
     supportedRatios: ['2:3']
   },
 

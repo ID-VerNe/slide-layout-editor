@@ -10,10 +10,6 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-/**
- * TitleField
- * 修复版：移除危险的自定义 memo 比较逻辑，确保组件永远同步最新的页面状态。
- */
 export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = page.visibility?.title !== false;
 
@@ -29,7 +25,18 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
   };
 
   const handleFontChange = (val: string) => {
-    onUpdate({ ...page, titleFont: val });
+    // 同时更新 titleFont 和清理 styleOverrides 里的冲突
+    onUpdate({ 
+      ...page, 
+      titleFont: val,
+      styleOverrides: {
+        ...(page.styleOverrides || {}),
+        title: {
+          ...(page.styleOverrides?.title || {}),
+          fontFamily: val
+        }
+      }
+    });
   };
 
   const updateFontSize = (delta: number) => {
@@ -72,7 +79,6 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
           <span className="text-[10px] text-slate-400 font-bold uppercase">Headline</span>
         </div>
 
-        {/* 颜色选择器 */}
         <div className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
           <div className="w-4 h-4 rounded-full border border-slate-200 relative overflow-hidden shadow-sm">
             <input
@@ -93,16 +99,16 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
           onIncrease={() => updateFontSize(4)}
           onDecrease={() => updateFontSize(-4)}
           customFonts={customFonts}
-          currentFont={page.titleFont}
+          currentFont={page.styleOverrides?.title?.fontFamily || page.titleFont}
           onFontChange={handleFontChange}
         />
-        <DebouncedTextArea
-          rows={2}
-          value={page.title || ''}
-          onChange={handleChange}
-          placeholder="Title..."
-          className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`}
-          style={{ fontFamily: page.titleFont }}
+        <DebouncedTextArea 
+            rows={2} 
+            value={page.title || ''} 
+            onChange={handleChange} 
+            placeholder="Title..." 
+            className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
+            style={{ fontFamily: page.styleOverrides?.title?.fontFamily || page.titleFont }} 
         />
       </div>
     </div>
