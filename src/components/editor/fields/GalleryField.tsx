@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Images, Plus, X, SlidersHorizontal, RotateCcw, Image as ImageIcon } from 'lucide-react';
-import { Label, Slider } from '../../ui/Base';
+import { Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
+import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
-  customFonts: CustomFont[];
+  customFonts?: CustomFont[];
 }
 
-export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+/**
+ * GalleryField
+ * 修复版：重新引入 FieldWrapper 以支持显隐切换（小眼睛功能）。
+ */
+export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
   const gallery = page.gallery || [];
-
-  // Auto-generate IDs for legacy data
-  React.useEffect(() => {
-    if (gallery.some(item => !item.id)) {
-      const migrated = gallery.map(item => item.id ? item : { ...item, id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
-      onUpdate({ ...page, gallery: migrated });
-    }
-  }, [page.gallery, onUpdate, page]);
 
   const updateGallery = (newGallery: any[]) => {
     onUpdate({ ...page, gallery: newGallery });
@@ -28,8 +25,9 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
 
   const addImage = () => {
     if (gallery.length >= 6) return;
+    const newId = `img-${Math.random().toString(36).substr(2, 9)}`;
     updateGallery([...gallery, { 
-      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: newId,
       url: '', 
       config: { scale: 1, x: 0, y: 0 } 
     }]);
@@ -43,27 +41,40 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
 
   const handleImageChange = (idx: number, url: string) => {
     const next = [...gallery];
-    next[idx] = { ...next[idx], url };
+    const currentItem = next[idx];
+    if (!currentItem) return;
+
+    next[idx] = { 
+      ...currentItem,
+      url 
+    };
     updateGallery(next);
   };
 
   const handleConfigChange = (idx: number, field: 'scale' | 'x' | 'y', val: number) => {
     const next = [...gallery];
-    const currentConfig = next[idx].config || { scale: 1, x: 0, y: 0 };
-    next[idx] = { ...next[idx], config: { ...currentConfig, [field]: val } };
+    const currentItem = next[idx];
+    if (!currentItem) return;
+    
+    const currentConfig = currentItem.config || { scale: 1, x: 0, y: 0 };
+    next[idx] = { 
+      ...currentItem, 
+      config: { ...currentConfig, [field]: val } 
+    };
     updateGallery(next);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-        <Label icon={Images} className="mb-0">Gallery Assets</Label>
-      </div>
-
+    <FieldWrapper 
+      page={page} 
+      onUpdate={onUpdate} 
+      fieldKey="gallery" 
+      label="Gallery Assets"
+      icon={Images}
+    >
       <div className="space-y-6">
         {gallery.map((item, idx) => (
-          <div key={item.id || idx} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
-            {/* Remove Button */}
+          <div key={item.id || `gallery-item-${idx}`} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
             <button 
               onClick={() => removeImage(idx)}
               className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"
@@ -71,7 +82,6 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
               <X size={14} />
             </button>
 
-            {/* Header with Adjust Trigger */}
             <div className="flex justify-between items-center border-b border-white pb-3">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Image Slot {idx + 1}</span>
               {item.url && (
@@ -84,7 +94,6 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
               )}
             </div>
 
-            {/* 核心修复：使用统一的 IconPicker 选择器 */}
             <div className="w-full">
               <IconPicker 
                 value={item.url} 
@@ -100,7 +109,7 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
                       <div className="text-left min-w-0">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Gallery Visual</p>
                         <p className="text-xs font-bold text-slate-700 truncate">
-                          {item.url ? 'Change Asset' : 'Browse Uploads or URL'}
+                          {item.url ? 'Change Asset' : 'Browse Uploads'}
                         </p>
                       </div>
                     </div>
@@ -112,7 +121,6 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
               />
             </div>
 
-            {/* Adjustment Panel for this slot */}
             {activeAdjustIdx === idx && item.url && (
               <div className="p-4 bg-white rounded-2xl space-y-4 border border-slate-100 animate-in fade-in slide-in-from-top-2">
                 <div className="flex justify-between items-center mb-1">
@@ -133,16 +141,15 @@ export const GalleryField: React.FC<FieldProps> = ({ page, onUpdate, customFonts
           </div>
         ))}
 
-        {/* Add Button */}
         <button 
           onClick={addImage}
           disabled={gallery.length >= 6}
-          className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95"
+          className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-90"
         >
           <Plus size={16} strokeWidth={3} />
           Add Gallery Slot
         </button>
       </div>
-    </div>
+    </FieldWrapper>
   );
-};
+});

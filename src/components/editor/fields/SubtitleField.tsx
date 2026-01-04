@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { DebouncedInput } from '../../ui/DebouncedBase';
+import { DebouncedTextArea } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
@@ -12,7 +12,7 @@ interface FieldProps {
 
 /**
  * SubtitleField
- * 修复版：移除危险的自定义 memo 比较逻辑，彻底根治字段冲突。
+ * 升级版：将 Input 替换为 TextArea，支持通过回车进行手动换行。
  */
 export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const isVisible = page.visibility?.subtitle !== false;
@@ -66,11 +66,13 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
             currentFont={page.bodyFont}
             onFontChange={handleFontChange}
         />
-        <DebouncedInput 
+        {/* 核心改动：使用 TextArea 支持多行输入 */}
+        <DebouncedTextArea 
             value={page.subtitle || ''} 
             onChange={handleChange} 
             placeholder="Subtitle..." 
-            className={!isVisible ? 'opacity-50 grayscale' : ''} 
+            rows={3}
+            className={`text-xs ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
             style={{ fontFamily: page.bodyFont }} 
         />
       </div>

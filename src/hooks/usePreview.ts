@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { LAYOUT_CONFIG } from '../constants/layout';
 
 interface UsePreviewOptions {
   pages: any[];
@@ -14,7 +15,7 @@ export function usePreview({ pages, currentPageIndex }: UsePreviewOptions) {
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const calculateFitZoom = useCallback(() => {
-    if (!previewContainerRef.current) return 0.5;
+    if (!previewContainerRef.current || !pages[currentPageIndex]) return 0.5;
     
     const rect = previewContainerRef.current.getBoundingClientRect();
     const containerWidth = rect.width;
@@ -22,18 +23,20 @@ export function usePreview({ pages, currentPageIndex }: UsePreviewOptions) {
     
     if (containerHeight <= 0 || containerWidth <= 0) return 0.5;
 
-    const padding = 64; // Horizontal & Vertical total padding
+    const padding = 120; // 增加边距以获得更好的呼吸感
     const availableWidth = containerWidth - padding;
     const availableHeight = containerHeight - padding;
 
-    // Slide base dimensions
-    const targetWidth = 1920;
-    const targetHeight = 1080;
+    // 核心：根据当前页面的比例获取物理尺寸
+    const currentPage = pages[currentPageIndex];
+    const dimensions = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
+    
+    const targetWidth = dimensions.width;
+    const targetHeight = dimensions.height;
 
     const scaleX = availableWidth / targetWidth;
     const scaleY = availableHeight / targetHeight;
 
-    // Use the smaller scale to fit the entire slide within the container
     return Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1.5);
   }, [pages, currentPageIndex]);
 

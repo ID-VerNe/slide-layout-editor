@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, FolderOpen, Save, Settings, Eraser, Layout, Trash2, Download } from 'lucide-react';
+import { Plus, FolderOpen, Settings, Eraser, Layout, Trash2, Download } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
-import { LAYOUT } from '../../constants/layout';
+import { LAYOUT_CONFIG } from '../../constants/layout';
 
 interface SidebarProps {
   pages: PageData[];
@@ -37,7 +37,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const currentPageId = pages[currentPageIndex]?.id;
 
-  // 核心功能：自动聚焦滚动
   useEffect(() => {
     if (activeBtnRef.current && scrollRef.current) {
       activeBtnRef.current.scrollIntoView({
@@ -50,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <motion.div 
-      initial={{ x: LAYOUT.SIDEBAR_OFFSET }}
+      initial={{ x: -80 }}
       animate={{ x: 0 }}
       className="w-24 bg-white border-r border-neutral-200 flex flex-col items-center z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
     >
@@ -68,14 +67,16 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Pages List */}
       <div 
         ref={scrollRef}
-        className="flex-1 w-full flex flex-col items-center gap-4 overflow-y-auto no-scrollbar pt-6 pb-6"
+        className="flex-1 w-full flex flex-col items-center gap-6 overflow-y-auto no-scrollbar pt-6 pb-6"
       >
         <AnimatePresence initial={false}>
           {pages.map((p, idx) => {
             const isActive = idx === currentPageIndex;
+            const dims = LAYOUT_CONFIG[p.aspectRatio || '16:9'];
+            const isPortrait = dims.height > dims.width;
+
             return (
               <div key={p.id} className="relative px-3 w-full group">
-                {/* Active Indicator Bar */}
                 {isActive && (
                   <motion.div 
                     layoutId="active-bar"
@@ -86,17 +87,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   ref={isActive ? activeBtnRef : null}
                   onClick={() => onPageSelect(idx)}
-                  className={`w-full aspect-[16/10] rounded-lg transition-all flex flex-col items-center justify-center relative overflow-hidden border-2
+                  className={`w-full transition-all flex flex-col items-center justify-center relative overflow-hidden border-2 rounded-xl
                     ${isActive 
                       ? 'border-[#264376] bg-white shadow-xl shadow-[#264376]/10' 
-                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}`}
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}
+                    ${isPortrait ? 'aspect-[2/3]' : 'aspect-[16/10]'}`}
                 >
                   {/* Thumbnail Placeholder */}
                   <div className="flex flex-col items-center gap-1 opacity-60">
                     <span className={`text-[10px] font-black ${isActive ? 'text-[#264376]' : 'text-slate-400'}`}>
                       {idx + 1}
                     </span>
-                    <Layout size={10} className={isActive ? 'text-[#264376]' : 'text-slate-300'} />
+                    <Layout size={isPortrait ? 14 : 10} className={isActive ? 'text-[#264376]' : 'text-slate-300'} />
                   </div>
 
                   {/* Layout Type Name (Hover only) */}
@@ -117,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="w-12 h-12 shrink-0 rounded-2xl border-2 border-dashed border-slate-200 text-slate-300 hover:border-[#264376] hover:text-[#264376] hover:bg-[#264376]/10 flex items-center justify-center transition-all mt-2 active:scale-90"
           title="Add New Slide"
         >
-          <Plus size={24} strokeWidth={2.5} />
+          <Plus size={24} strokeWidth={3} />
         </button>
       </div>
 

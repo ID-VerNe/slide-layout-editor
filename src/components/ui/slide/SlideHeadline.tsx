@@ -16,8 +16,8 @@ interface SlideHeadlineProps {
 }
 
 /**
- * SlideHeadline
- * 修复版：完美支持 style 透传，包括 WebkitTextStroke 等高级属性。
+ * SlideHeadline - 主标题原子组件
+ * 修复版：深度支持 styleOverrides (字号、颜色)，确保编辑器控件生效。
  */
 export const SlideHeadline: React.FC<SlideHeadlineProps> = ({ 
   page, 
@@ -34,22 +34,27 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
   const isVisible = page.visibility?.title !== false;
   if (!isVisible || !page.title) return null;
 
+  // 1. 从 styleOverrides 提取用户自定义属性
   const customFontSize = page.styleOverrides?.title?.fontSize;
+  const customColor = page.styleOverrides?.title?.color;
 
+  // 2. 构造最终样式
   const combinedStyle: React.CSSProperties = {
     fontWeight: weight || 900,
     fontStyle: italic ? 'italic' : 'normal',
-    color: color || 'inherit',
+    // 优先级：编辑器选择的颜色 > 组件传入的颜色参数 > 继承色
+    color: customColor || color || 'inherit',
     overflowWrap: 'break-word',
     wordBreak: 'normal',
     textWrap: 'balance',
     hyphens: 'none',
-    ...style // 确保外部传入的 style (如空心效果) 优先级最高
+    ...style
   };
 
   return (
     <AutoFitHeadline
       text={page.title}
+      // 如果编辑器设置了字号，则锁定为该字号，否则使用 AutoFit 自动缩放范围
       maxSize={customFontSize || maxSize}
       minSize={customFontSize || minSize}
       lineHeight={1.05}

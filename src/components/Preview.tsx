@@ -1,8 +1,9 @@
 import React from 'react';
 import { PageData } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
+import { LAYOUT_CONFIG } from '../constants/layout';
 
-// 引入重构后的新模板
+// 引入模板
 import ModernFeature from './templates/ModernFeature';
 import PlatformHero from './templates/PlatformHero';
 import ComponentMosaic from './templates/ComponentMosaic';
@@ -15,6 +16,11 @@ import GalleryCapsule from './templates/GalleryCapsule';
 import EditorialSplit from './templates/EditorialSplit';
 import BackCoverMovie from './templates/BackCoverMovie';
 import FutureFocus from './templates/FutureFocus';
+import EditorialClassic from './templates/EditorialClassic';
+import CinematicFullBleed from './templates/CinematicFullBleed';
+import KinfolkFeature from './templates/KinfolkFeature';
+import KinfolkEssay from './templates/KinfolkEssay';
+import KinfolkMontage from './templates/KinfolkMontage';
 
 interface PreviewProps {
   page: PageData;
@@ -24,7 +30,6 @@ interface PreviewProps {
 
 const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages }) => {
   
-  // 页码转换逻辑
   const renderCounter = () => {
     const style = page.counterStyle || 'number';
     const current = pageIndex + 1;
@@ -33,7 +38,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'alpha':
         return String.fromCharCode(64 + current).toUpperCase();
       case 'roman':
-        const romanMap: Record<number, string> = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
+        const romanMap: Record<number, string> = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X' };
         return romanMap[current] || current.toString();
       case 'dots':
         const tens = Math.floor(current / 10);
@@ -51,7 +56,6 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
     }
   };
 
-  // 背景纹路渲染
   const renderBackgroundPattern = () => {
     const pattern = page.backgroundPattern || 'none';
     if (pattern === 'none') return null;
@@ -94,7 +98,6 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
     );
   };
 
-  // 路由分发模板
   const renderTemplate = () => {
     switch (page.layoutId) {
       case 'modern-feature': return <ModernFeature page={page} />;
@@ -109,21 +112,28 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'editorial-split': return <EditorialSplit page={page} />;
       case 'back-cover-movie': return <BackCoverMovie page={page} />;
       case 'future-focus': return <FutureFocus page={page} />;
+      case 'editorial-classic': return <EditorialClassic page={page} />;
+      case 'cinematic-full-bleed': return <CinematicFullBleed page={page} />;
+      case 'kinfolk-feature': return <KinfolkFeature page={page} />;
+      case 'kinfolk-essay': return <KinfolkEssay page={page} />;
+      case 'kinfolk-montage': return <KinfolkMontage page={page} />;
       default: 
         return <ModernFeature page={page} />;
     }
   };
 
+  const dimensions = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
+  const isMinimal = page.minimalCounter === true;
+
   return (
     <div
       className="magazine-page relative shadow-2xl mx-auto overflow-hidden shrink-0"
       style={{
-        width: '1920px',
-        height: '1080px',
+        width: `${dimensions.width}px`,
+        height: `${dimensions.height}px`,
         backgroundColor: page.backgroundColor || '#ffffff',
       }}
     >
-      {/* 渲染全局背景纹路 */}
       {renderBackgroundPattern()}
 
       <AnimatePresence mode="wait">
@@ -138,14 +148,14 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         </motion.div>
       </AnimatePresence>
 
-      {/* 改进后的全局页码/页脚组件 */}
       <div className="absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none">
         <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] text-slate-500 whitespace-pre-line">
            {page.footer}
         </div>
         
         {page.pageNumber !== false ? (
-          <div className="text-[10px] font-black text-slate-500 opacity-40 uppercase tracking-widest flex items-center gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50">
+          <div className={`text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center transition-all duration-500
+            ${isMinimal ? 'opacity-20' : 'opacity-40 gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50 shadow-sm'}`}>
              {renderCounter()}
           </div>
         ) : (

@@ -11,8 +11,7 @@ interface FieldProps {
 
 /**
  * VariantField
- * 修复版：移除所有危险的自定义 memo 比较逻辑。
- * 确保在切换视觉方案(Visual Scheme)时，不会因为持有旧的 page 引用而覆盖掉刚才改好的文字或背景。
+ * 修复版：对调按钮顺序，左侧为 Image Left，右侧为 Image Right。
  */
 export const VariantField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const current = page.layoutVariant;
@@ -22,7 +21,6 @@ export const VariantField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     onUpdate({ ...page, layoutVariant: val });
   };
 
-  // 针对胶囊马赛克模板提供三种视觉方案切换
   if (isCapsule) {
     const safeCurrent = current || 'under';
     return (
@@ -54,24 +52,27 @@ export const VariantField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     );
   }
 
-  // 默认的左右对齐模式
-  const safeCurrent = current === 'left' ? 'left' : 'right';
+  // 默认的左右对齐模式 (如 Editorial Feature / Editorial Split)
+  const safeCurrent = current === 'right' ? 'right' : 'left';
   return (
     <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="variant" label="Layout Orientation" icon={Layout}>
       <div className="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-2xl">
-        <button
-          onClick={() => setVariant('right')}
-          className={`flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest
-            ${safeCurrent === 'right' ? 'bg-white text-[#264376] shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
-        >
-          <AlignRight size={16} /> Image Right
-        </button>
+        {/* 核心修正：左侧按钮对应 Image Left */}
         <button
           onClick={() => setVariant('left')}
           className={`flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest
             ${safeCurrent === 'left' ? 'bg-white text-[#264376] shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
         >
           <AlignLeft size={16} /> Image Left
+        </button>
+        
+        {/* 核心修正：右侧按钮对应 Image Right */}
+        <button
+          onClick={() => setVariant('right')}
+          className={`flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest
+            ${safeCurrent === 'right' ? 'bg-white text-[#264376] shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          <AlignRight size={16} /> Image Right
         </button>
       </div>
     </FieldWrapper>

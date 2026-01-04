@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageData, CustomFont, CounterStyle } from '../../types';
-import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl } from 'lucide-react';
+import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import FontManager from '../FontManager';
 
@@ -11,6 +11,8 @@ interface GlobalSettingsProps {
   setCustomFonts: (fonts: CustomFont[]) => void;
   imageQuality: number;
   setImageQuality: (q: number) => void;
+  minimalCounter: boolean;
+  setMinimalCounter: (m: boolean) => void;
 }
 
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
@@ -19,7 +21,9 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   customFonts, 
   setCustomFonts,
   imageQuality,
-  setImageQuality 
+  setImageQuality,
+  minimalCounter,
+  setMinimalCounter
 }) => {
   const handleChange = (field: keyof PageData, value: any) => {
     onUpdate({ ...page, [field]: value });
@@ -64,9 +68,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                   step={0.01} 
                   onChange={setImageQuality} 
                 />
-                <p className="text-[8px] text-slate-400 italic">
-                  Higher quality increases file size. 95% is recommended for HD exports.
-                </p>
             </div>
         </div>
       </Section>
@@ -107,7 +108,23 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         <Label icon={Settings}>Global Metadata Style</Label>
         <div className="space-y-6">
             <div className="space-y-4">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style (Global)</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style</p>
+                  
+                  {/* 新增：极简页码开关 */}
+                  <button 
+                    onClick={() => {
+                      setMinimalCounter(!minimalCounter);
+                      // 同时同步到当前页以触发全局联动
+                      handleChange('minimalCounter', !minimalCounter);
+                    }}
+                    className={`flex items-center gap-2 px-2 py-1 rounded-md transition-all ${minimalCounter ? 'bg-[#264376] text-white' : 'bg-slate-100 text-slate-400 hover:text-slate-600'}`}
+                  >
+                    {minimalCounter ? <EyeOff size={10} /> : <Eye size={10} />}
+                    <span className="text-[8px] font-black uppercase tracking-tighter">Minimal UI</span>
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-4 gap-2">
                     {[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: Type }, { id: 'dots', icon: CircleDot } ].map(s => (
                         <button key={s.id} onClick={() => handleChange('counterStyle', s.id as CounterStyle)}

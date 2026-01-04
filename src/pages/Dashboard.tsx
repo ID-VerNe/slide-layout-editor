@@ -60,8 +60,8 @@ export default function Dashboard() {
 
   const handleCreateNew = () => {
     const id = `proj-${Date.now()}`;
-    // 默认使用第一个模板
-    navigate(`/editor/${id}?template=future-focus`);
+    // 改为通过 new=true 标记，让编辑器触发初始选择流程
+    navigate(`/editor/${id}?new=true`);
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {

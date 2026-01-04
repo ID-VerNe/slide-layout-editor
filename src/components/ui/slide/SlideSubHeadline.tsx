@@ -11,6 +11,10 @@ interface SlideSubHeadlineProps {
   style?: React.CSSProperties;
 }
 
+/**
+ * SlideSubHeadline - 副标题原子组件
+ * 恢复为标准版本，去除局部模板特定的字距微调。
+ */
 export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({ 
   page, 
   className = "",
@@ -30,7 +34,7 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
     fontStyle: italic ? 'italic' : 'normal',
     color: color || '#64748b',
     fontSize: customFontSize ? `${customFontSize}px` : (size || '1.25rem'),
-    overflowWrap: 'anywhere', // 强制长词换行
+    overflowWrap: 'anywhere', 
     wordBreak: 'break-word',
     ...style
   };
@@ -39,7 +43,7 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
     <p 
       className={`leading-relaxed ${className}`}
       style={{ 
-        fontFamily: page.bodyFont,
+        fontFamily: page.bodyFont || 'Inter, sans-serif',
         ...combinedStyle
       }}
     >

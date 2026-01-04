@@ -10,6 +10,7 @@ const DEFAULT_PAGES: PageData[] = [
     id: 'slide-1',
     type: 'slide',
     layoutId: 'modern-feature',
+    aspectRatio: '16:9',
     title: 'Modern Presentation',
     subtitle: 'High Impact Visuals',
     bullets: [],
@@ -27,7 +28,8 @@ const GLOBAL_FIELDS: Array<keyof PageData> = [
   'bodyFont',
   'logo',
   'logoSize',
-  'agenda'
+  'agenda',
+  'minimalCounter' // 新增：全局同步极简页码状态
 ];
 
 export const registerFontInDOM = (family: string, dataUrl: string) => {
@@ -51,6 +53,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const [projectTitle, setProjectTitle] = useState<string>(''); 
   const [customFonts, setCustomFonts] = useState<CustomFont[]>([]);
   const [imageQuality, setImageQuality] = useState<number>(0.95); 
+  const [minimalCounter, setMinimalCounter] = useState<boolean>(false); // 新增：全局状态
   const [enforceA4, setEnforceA4] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -65,6 +68,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
           setProjectTitle(savedData.title || '');
           setCustomFonts(savedData.customFonts || []);
           setImageQuality(savedData.imageQuality ?? 0.95);
+          setMinimalCounter(savedData.minimalCounter ?? false); // 加载全局极简状态
           
           savedData.customFonts?.forEach((font: CustomFont) => {
             if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
@@ -117,6 +121,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       pages,
       customFonts,
       imageQuality,
+      minimalCounter, // 保存全局状态
     };
     
     await saveProject(projectId, projectState);
@@ -144,7 +149,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
     
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
-  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality]);
+  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter]);
 
   const updatePage = useCallback((updatedPage: PageData) => {
     setPages(prev => {
@@ -159,6 +164,11 @@ export function useProject(projectId: string | undefined, templateId: string | n
         if (updatedPage[field] !== originalPage[field]) {
           // @ts-ignore
           changedGlobalFields[field] = updatedPage[field];
+          
+          // 如果是极简页码状态变更，同步到主状态
+          if (field === 'minimalCounter') {
+            setMinimalCounter(updatedPage.minimalCounter ?? false);
+          }
         }
       });
 
@@ -173,6 +183,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
             id: page.id,
             type: page.type,
             layoutId: updatedPage.layoutId,
+            aspectRatio: updatedPage.aspectRatio || '16:9',
             title: updatedPage.title,
             subtitle: updatedPage.subtitle,
             logo: updatedPage.logo,
@@ -185,6 +196,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
             backgroundPattern: updatedPage.backgroundPattern,
             footer: updatedPage.footer,
             pageNumber: updatedPage.pageNumber,
+            minimalCounter: updatedPage.minimalCounter,
             pageNumberText: updatedPage.pageNumberText,
             counterStyle: updatedPage.counterStyle,
             styleOverrides: updatedPage.styleOverrides,
@@ -212,23 +224,24 @@ export function useProject(projectId: string | undefined, templateId: string | n
     });
   }, []);
 
-  const addPage = () => {
+  const addPage = (ratio: AspectRatioType = '16:9', layoutId: string = 'modern-feature') => {
     const firstPage = pages[0];
-    const defaultLayoutId = 'modern-feature';
     const existingTOC = pages.find(p => p.layoutId === 'table-of-contents');
 
     const newPage: PageData = {
       id: `slide-${Date.now()}`,
       type: 'slide',
-      layoutId: defaultLayoutId,
+      layoutId: layoutId as any,
+      aspectRatio: ratio,
       title: 'New Slide',
       bullets: ['Point 1', 'Point 2'],
       backgroundColor: '#ffffff',
-      backgroundPattern: firstPage.backgroundPattern || 'none',
-      counterStyle: firstPage.counterStyle || 'number',
-      footer: firstPage.footer || '',
-      titleFont: firstPage.titleFont,
-      bodyFont: firstPage.bodyFont,
+      backgroundPattern: firstPage?.backgroundPattern || 'none',
+      counterStyle: firstPage?.counterStyle || 'number',
+      minimalCounter: minimalCounter, // 继承全局设置
+      footer: firstPage?.footer || '',
+      titleFont: firstPage?.titleFont,
+      bodyFont: firstPage?.bodyFont,
       agenda: existingTOC?.agenda || [],
       activeIndex: existingTOC?.activeIndex ?? 0,
       visibility: {
@@ -265,6 +278,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       () => {
         setPages(DEFAULT_PAGES);
         setProjectTitle('');
+        setMinimalCounter(false);
         setCurrentPageIndex(0);
       }
     );
@@ -281,14 +295,13 @@ export function useProject(projectId: string | undefined, templateId: string | n
       pages,
       customFonts,
       imageQuality,
+      minimalCounter,
     };
     
-    // 使用 application/octet-stream 以减少浏览器对内容的拦截
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    // 更改后缀名为 .slgrid
     link.download = `${finalTitle}.slgrid`;
     link.click();
     URL.revokeObjectURL(url);
@@ -315,6 +328,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         setPages(project.pages);
         setProjectTitle(project.title || '');
         setImageQuality(project.imageQuality ?? 0.95);
+        setMinimalCounter(project.minimalCounter ?? false);
         setCurrentPageIndex(0);
         
         uiAlert("Import Success", "Project loaded successfully.");
@@ -333,6 +347,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
     setProjectTitle,
     imageQuality,
     setImageQuality,
+    minimalCounter,
+    setMinimalCounter,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage: pages[currentPageIndex],

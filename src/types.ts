@@ -71,10 +71,14 @@ export interface GalleryItem {
   };
 }
 
+export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+
 export interface PageData {
   id: string;
   type: 'slide';
-  layoutId: SlideLayoutType;
+  layoutId: TemplateId;
+  aspectRatio: AspectRatioType; // 新增：单页比例定义
+  layoutVariant?: string;
 
   // 核心内容
   title: string;
@@ -118,6 +122,7 @@ export interface PageData {
     y: number;
   };
   backgroundColor?: string;
+  accentColor?: string; // 新增：模板强调色 (用于装饰线、高亮文字等)
   themeColor?: string; // 主题色
   layoutVariant?: string; // 用于存储布局变体，如 'left' | 'right'
 
@@ -128,6 +133,7 @@ export interface PageData {
   // 页脚信息
   footer?: string;
   pageNumber?: boolean;
+  minimalCounter?: boolean; // 新增：极简页码模式（移除背景和边框）
   pageNumberText?: string; // 新增：页码关闭时的替代文本
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
@@ -163,4 +169,5 @@ export interface ProjectData {
   pages: PageData[];
   customFonts: CustomFont[];
   imageQuality?: number; // 新增：全局图片质量控制 (0.1 - 1.0)
+  minimalCounter?: boolean; // 新增：全局极简页码开关
 }

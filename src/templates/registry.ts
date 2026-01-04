@@ -10,6 +10,12 @@ import GalleryCapsule from '../components/templates/GalleryCapsule';
 import EditorialSplit from '../components/templates/EditorialSplit';
 import BackCoverMovie from '../components/templates/BackCoverMovie';
 import FutureFocus from '../components/templates/FutureFocus';
+import EditorialClassic from '../components/templates/EditorialClassic';
+import CinematicFullBleed from '../components/templates/CinematicFullBleed';
+import KinfolkFeature from '../components/templates/KinfolkFeature';
+import KinfolkEssay from '../components/templates/KinfolkEssay';
+import KinfolkMontage from '../components/templates/KinfolkMontage';
+import { AspectRatioType } from '../constants/layout';
 
 export type EditorFieldType = 
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'image' | 'imageLabel' 
@@ -24,52 +30,107 @@ export interface TemplateConfig {
   tags: string[];
   component: React.FC<{ page: any }>;
   fields: EditorFieldType[];
+  supportedRatios: AspectRatioType[];
 }
 
-// 辅助函数：为模板添加标准的基础控制字段（背景、页码）
 const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
   return ['backgroundColor', 'pageNumber', ...fields];
 };
 
 export const TEMPLATES: TemplateConfig[] = [
+  // Cover Category
+  {
+    id: 'editorial-classic',
+    name: 'Editorial Classic',
+    category: 'Cover',
+    desc: 'Kinfolk style classic magazine cover with hard-edge image',
+    tags: ['Magazine', 'Minimalist', 'Kinfolk'],
+    component: EditorialClassic,
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'cinematic-full-bleed',
+    name: 'Cinematic Bleed',
+    category: 'Cover',
+    desc: 'Full-screen cinematic cover with floating serif typography',
+    tags: ['Full Screen', 'Cinematic', 'Impact'],
+    component: CinematicFullBleed,
+    fields: withBaseFields(['title', 'subtitle', 'image']),
+    supportedRatios: ['2:3']
+  },
   // Gallery Category
   {
     id: 'future-focus',
     name: 'Future Focus',
     category: 'Gallery',
-    desc: 'Cinematic three-image layout inspired by New Year posters',
-    tags: ['Gallery', 'New Year', 'Cinematic', 'Impact'],
+    desc: 'Cinematic layout with gold accents and background numbers',
+    tags: ['Gallery', 'Impact', 'Dynamic'],
     component: FutureFocus,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel'])
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']),
+    supportedRatios: ['16:9', '2:3']
+  },
+  {
+    id: 'kinfolk-feature',
+    name: 'Editorial Feature',
+    category: 'Gallery',
+    desc: 'Impactful vertical typography with hard-edge imagery',
+    tags: ['Kinfolk', 'Portrait', 'Minimalist'],
+    component: KinfolkFeature,
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'kinfolk-montage',
+    name: 'Art Montage',
+    category: 'Gallery',
+    desc: 'Staggered dual-image collage with vertical metadata',
+    tags: ['Montage', 'Collage', 'Details'],
+    component: KinfolkMontage,
+    fields: withBaseFields(['gallery', 'imageLabel']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'kinfolk-essay',
+    name: 'Editorial Essay',
+    category: 'General',
+    desc: 'Text-heavy narrative layout with drop cap and technical grid',
+    tags: ['Narrative', 'Text', 'Specs'],
+    component: KinfolkEssay,
+    fields: withBaseFields(['title', 'subtitle', 'actionText', 'metrics']),
+    supportedRatios: ['2:3']
   },
   {
     id: 'back-cover-movie',
     name: 'Back Cover Movie',
     category: 'Gallery',
     desc: 'Cinematic movie credits style back cover',
-    tags: ['Gallery', 'Back Cover', 'Cinematic', 'Minimalist'],
+    tags: ['Gallery', 'Back Cover', 'Cinematic'],
     component: BackCoverMovie,
-    fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle'])
-  },
-  {
-    id: 'editorial-split',
-    name: 'Editorial Split',
-    category: 'Gallery',
-    desc: 'Japanese style minimalist split layout with vertical typography',
-    tags: ['Gallery', 'Minimalist', 'Editorial', 'Typography', 'Japan', 'Swap'],
-    component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets'])
+    fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle']),
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'gallery-capsule',
     name: 'Capsule Mosaic',
     category: 'Gallery',
-    desc: 'Stylish vertical capsule gallery with staggered layout and overlapping text',
-    tags: ['Gallery', 'Creative', 'Portrait', 'Modern', 'Layering'],
+    desc: 'Stylish vertical capsule gallery with staggered layout',
+    tags: ['Gallery', 'Portrait', 'Modern'],
     component: GalleryCapsule,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel'])
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel']),
+    supportedRatios: ['16:9', '2:3']
   },
-  // Product Category
+  {
+    id: 'editorial-split',
+    name: 'Editorial Split',
+    category: 'Gallery',
+    desc: 'Japanese style minimalist split layout',
+    tags: ['Gallery', 'Minimalist', 'Editorial'],
+    component: EditorialSplit,
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets']),
+    supportedRatios: ['16:9']
+  },
+  // Product & Other Categories (Kept 16:9 only)
   {
     id: 'modern-feature',
     name: 'Modern Feature',
@@ -77,7 +138,8 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Bold text with large visual placeholder',
     tags: ['Bold', 'Minimalist'],
     component: ModernFeature,
-    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel'])
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel']),
+    supportedRatios: ['16:9']
   },
   {
     id: 'component-mosaic',
@@ -86,9 +148,9 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Text with scattered icon grid',
     tags: ['Showcase', 'Mosaic'],
     component: ComponentMosaic,
-    fields: withBaseFields(['title', 'subtitle', 'actionText', 'mosaic'])
+    fields: withBaseFields(['title', 'subtitle', 'actionText', 'mosaic']),
+    supportedRatios: ['16:9']
   },
-  // Marketing Category
   {
     id: 'platform-hero',
     name: 'Platform Hero',
@@ -96,7 +158,8 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Centered hero with feature grid',
     tags: ['Branding', 'Grid'],
     component: PlatformHero,
-    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'features'])
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'features']),
+    supportedRatios: ['16:9']
   },
   {
     id: 'testimonial-card',
@@ -105,7 +168,8 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Profile with quote and data points',
     tags: ['Review', 'Card', 'Data'],
     component: TestimonialCard,
-    fields: withBaseFields(['image', 'imageLabel', 'title', 'subtitle', 'metrics'])
+    fields: withBaseFields(['image', 'imageLabel', 'title', 'subtitle', 'metrics']),
+    supportedRatios: ['16:9']
   },
   {
     id: 'community-hub',
@@ -114,9 +178,9 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Call to action with testimonials and partners',
     tags: ['Community', 'Feedback', 'Social'],
     component: CommunityHub,
-    fields: withBaseFields(['title', 'subtitle', 'actionText', 'partnersTitle', 'partners', 'testimonials'])
+    fields: withBaseFields(['title', 'subtitle', 'actionText', 'partnersTitle', 'partners', 'testimonials']),
+    supportedRatios: ['16:9']
   },
-  // General Category
   {
     id: 'big-statement',
     name: 'Big Statement',
@@ -124,16 +188,18 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Pure centered minimalist slogan',
     tags: ['Impact', 'Slogan', 'Clean'],
     component: BigStatement,
-    fields: withBaseFields(['title', 'subtitle'])
+    fields: withBaseFields(['title', 'subtitle']),
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'step-timeline',
     name: 'Step Timeline',
     category: 'General',
-    desc: 'Vertical process flow with timeline and feature cards',
+    desc: 'Vertical process flow with timeline',
     tags: ['Process', 'Workflow', 'Steps'],
     component: StepTimeline,
-    fields: withBaseFields(['title', 'subtitle', 'features'])
+    fields: withBaseFields(['title', 'subtitle', 'features']),
+    supportedRatios: ['16:9']
   },
   {
     id: 'table-of-contents',
@@ -142,7 +208,8 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Professional agenda with card-based section overview',
     tags: ['Agenda', 'Navigation', 'Minimalist'],
     component: TableOfContents,
-    fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda'])
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda']),
+    supportedRatios: ['16:9']
   }
 ];
 
