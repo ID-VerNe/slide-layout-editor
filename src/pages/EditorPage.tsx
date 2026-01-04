@@ -40,6 +40,7 @@ export default function EditorPage() {
     updatePage,
     addPage,
     removePage,
+    reorderPages,
     handleClearAll,
     handleExportProject,
     handleImportProject,
@@ -50,6 +51,7 @@ export default function EditorPage() {
     previewZoom,
     setPreviewZoom,
     isAutoFit,
+    setIsAutoFit,
     previewRef,
     previewContainerRef,
     handleManualZoom,
@@ -75,6 +77,11 @@ export default function EditorPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fallbackTitle = pages[0]?.title || 'Untitled Project';
+
+  // 动态更新网页标题
+  useEffect(() => {
+    document.title = `${projectTitle || fallbackTitle} | SlideGrid Studio`;
+  }, [projectTitle, fallbackTitle]);
 
   // 1. 全局监听布局浏览器打开事件
   useEffect(() => {
@@ -254,6 +261,7 @@ export default function EditorPage() {
         onPageSelect={setCurrentPageIndex}
         onAddPage={() => window.dispatchEvent(new CustomEvent('open-layout-browser', { detail: { mode: 'create' } }))}
         onRemovePage={removePage}
+        onReorderPages={reorderPages}
         onClearAll={handleClearAll}
         onImport={() => fileInputRef.current?.click()}
         onExport={handleExportProject}
@@ -296,7 +304,17 @@ export default function EditorPage() {
             showEditor={showEditor}
             onToggleEditor={() => setShowEditor(!showEditor)}
           />
-          <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} onOverflowChange={handleOverflowChange} />
+          <PreviewArea 
+            pages={pages} 
+            currentPageIndex={currentPageIndex} 
+            previewZoom={previewZoom} 
+            previewRef={previewRef} 
+            previewContainerRef={previewContainerRef} 
+            enforceA4={false} 
+            isAutoFit={isAutoFit} 
+            setIsAutoFit={setIsAutoFit}
+            onOverflowChange={handleOverflowChange} 
+          />
         </motion.div>
 
         <motion.div

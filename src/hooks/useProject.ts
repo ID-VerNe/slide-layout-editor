@@ -285,6 +285,22 @@ export function useProject(projectId: string | undefined, templateId: string | n
   };
 
   /**
+   * 重新排序页面
+   */
+  const reorderPages = (newPages: PageData[]) => {
+    const currentPageId = pages[currentPageIndex]?.id;
+    setPages(newPages);
+    
+    // 保持当前选中页面的索引同步
+    if (currentPageId) {
+      const newIndex = newPages.findIndex(p => p.id === currentPageId);
+      if (newIndex !== -1) {
+        setCurrentPageIndex(newIndex);
+      }
+    }
+  };
+
+  /**
    * 导出项目文件 (.slgrid)
    */
   const handleExportProject = () => {
@@ -360,6 +376,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     updatePage,
     addPage,
     removePage,
+    reorderPages, // 导出新函数
     handleClearAll,
     handleExportProject,
     handleImportProject,

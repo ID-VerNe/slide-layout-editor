@@ -38,7 +38,7 @@ const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
 };
 
 export const TEMPLATES: TemplateConfig[] = [
-  // Cover Category
+  // --- Cover Category (2:3 Optimized) ---
   {
     id: 'editorial-classic',
     name: 'Editorial Classic',
@@ -59,17 +59,8 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'image']),
     supportedRatios: ['2:3']
   },
-  // Gallery Category
-  {
-    id: 'future-focus',
-    name: 'Future Focus',
-    category: 'Gallery',
-    desc: 'Cinematic layout with gold accents and background numbers',
-    tags: ['Gallery', 'Impact', 'Dynamic'],
-    component: FutureFocus,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']),
-    supportedRatios: ['16:9', '2:3']
-  },
+
+  // --- Gallery Category (2:3 Optimized) ---
   {
     id: 'kinfolk-feature',
     name: 'Editorial Feature',
@@ -77,7 +68,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Impactful vertical typography with hard-edge imagery',
     tags: ['Kinfolk', 'Portrait', 'Minimalist'],
     component: KinfolkFeature,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
   },
   {
@@ -90,6 +81,8 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['gallery', 'imageLabel']),
     supportedRatios: ['2:3']
   },
+
+  // --- General Category (2:3 Optimized) ---
   {
     id: 'kinfolk-essay',
     name: 'Editorial Essay',
@@ -100,6 +93,18 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'actionText', 'metrics']),
     supportedRatios: ['2:3']
   },
+
+  // --- Legacy / Landscape Templates (16:9 Only) ---
+  {
+    id: 'future-focus',
+    name: 'Future Focus',
+    category: 'Gallery',
+    desc: 'Cinematic layout with gold accents and background numbers',
+    tags: ['Gallery', 'Impact', 'Dynamic'],
+    component: FutureFocus,
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']),
+    supportedRatios: ['16:9'] // 移除 2:3 支持
+  },
   {
     id: 'back-cover-movie',
     name: 'Back Cover Movie',
@@ -108,7 +113,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Gallery', 'Back Cover', 'Cinematic'],
     component: BackCoverMovie,
     fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle']),
-    supportedRatios: ['16:9', '2:3']
+    supportedRatios: ['16:9'] // 移除 2:3 支持
   },
   {
     id: 'gallery-capsule',
@@ -118,7 +123,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Gallery', 'Portrait', 'Modern'],
     component: GalleryCapsule,
     fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel']),
-    supportedRatios: ['16:9', '2:3']
+    supportedRatios: ['16:9'] // 移除 2:3 支持
   },
   {
     id: 'editorial-split',
@@ -130,7 +135,6 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets']),
     supportedRatios: ['16:9']
   },
-  // Product & Other Categories (Kept 16:9 only)
   {
     id: 'modern-feature',
     name: 'Modern Feature',
@@ -189,7 +193,7 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Impact', 'Slogan', 'Clean'],
     component: BigStatement,
     fields: withBaseFields(['title', 'subtitle']),
-    supportedRatios: ['16:9', '2:3']
+    supportedRatios: ['16:9'] // 移除 2:3 支持
   },
   {
     id: 'step-timeline',
