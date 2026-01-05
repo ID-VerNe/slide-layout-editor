@@ -31,6 +31,10 @@ export default function EditorPage() {
     setImageQuality,
     minimalCounter,
     setMinimalCounter,
+    counterColor,
+    setCounterColor,
+    printSettings,
+    setPrintSettings,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage,
@@ -57,7 +61,7 @@ export default function EditorPage() {
     handleManualZoom,
     toggleFit,
     handleOverflowChange
-  } = usePreview({ pages, currentPageIndex });
+  } = usePreview({ pages, currentPageIndex, printSettings });
 
   const [isExporting, setIsExporting] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -66,7 +70,6 @@ export default function EditorPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportScope, setExportScope] = useState<'current' | 'all'>('current');
   
-  // 核心状态：布局与比例浏览器
   const [showLayoutModal, setShowLayoutModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'change'>('create');
   const [creationStage, setCreationStage] = useState<'orientation' | 'ratio' | 'template'>('orientation');
@@ -78,12 +81,10 @@ export default function EditorPage() {
 
   const fallbackTitle = pages[0]?.title || 'Untitled Project';
 
-  // 动态更新网页标题
   useEffect(() => {
     document.title = `${projectTitle || fallbackTitle} | SlideGrid Studio`;
   }, [projectTitle, fallbackTitle]);
 
-  // 1. 全局监听布局浏览器打开事件
   useEffect(() => {
     const handleOpenBrowser = (e: any) => {
       const mode = e.detail?.mode || 'change';
@@ -102,7 +103,6 @@ export default function EditorPage() {
     return () => window.removeEventListener('open-layout-browser', handleOpenBrowser);
   }, [currentPage]);
 
-  // 2. 初始新工程弹出逻辑
   useEffect(() => {
     if (isNewProject && isLoaded && pages.length === 1 && pages[0].id === 'slide-1') {
       setModalMode('create');
@@ -113,16 +113,14 @@ export default function EditorPage() {
     }
   }, [isNewProject, isLoaded, pages, searchParams, setSearchParams]);
 
-  // 3. 自动保存逻辑
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (projectId && isLoaded) {
       timeout = setTimeout(() => saveToDB(previewRef, false), 3000);
     }
     return () => clearTimeout(timeout);
-  }, [pages, customFonts, projectId, isLoaded, saveToDB, previewRef, projectTitle, imageQuality, minimalCounter]);
+  }, [pages, customFonts, projectId, isLoaded, saveToDB, previewRef, projectTitle, imageQuality, minimalCounter, counterColor, printSettings]);
 
-  // 4. 点击外部关闭菜单逻辑
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
@@ -313,6 +311,7 @@ export default function EditorPage() {
             enforceA4={false} 
             isAutoFit={isAutoFit} 
             setIsAutoFit={setIsAutoFit}
+            printSettings={printSettings}
             onOverflowChange={handleOverflowChange} 
           />
         </motion.div>
@@ -346,6 +345,10 @@ export default function EditorPage() {
             setImageQuality={setImageQuality}
             minimalCounter={minimalCounter}
             setMinimalCounter={setMinimalCounter}
+            counterColor={counterColor}
+            setCounterColor={setCounterColor}
+            printSettings={printSettings}
+            setPrintSettings={setPrintSettings}
           />
         </div>
       </Modal>

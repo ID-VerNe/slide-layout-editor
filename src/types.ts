@@ -73,6 +73,8 @@ export interface GalleryItem {
 
 export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
 
+import { TemplateId } from './templates/registry';
+
 export interface PageData {
   id: string;
   type: 'slide';
@@ -90,38 +92,38 @@ export interface PageData {
   imageSubLabel?: string;
 
   // 扩展内容
-  code?: string;
-  language?: string;
-  metrics?: MetricData[];
-  features?: FeatureData[];
-  mosaicIcons?: string[];
-  mosaicConfig?: {
-    rows: number;
-    cols: number;
-    stagger: boolean;
-    tileColor?: string;
-    icons: Record<string, string>;
-  };
-  partners?: PartnerData[];
-  testimonials?: TestimonialData[];
-  agenda?: AgendaData[];
-  activeIndex?: number;
-  partnersTitle?: string;
+    code?: string;
+    language?: string;
+    metrics?: MetricData[];
+    features?: FeatureData[];
+    mosaicIcons?: string[];
+    mosaicConfig?: {
+      rows: number;
+      cols: number;
+      stagger: boolean;
+      tileColor?: string;
+      icons: Record<string, string>;
+    };
+    partners?: PartnerData[];
+    testimonials?: TestimonialData[];
+    agenda?: AgendaData[];
+    activeIndex?: number;
+    partnersTitle?: string;
 
-  // 图库数据
-  gallery?: GalleryItem[];
+    // 图库数据
+    gallery?: GalleryItem[];
 
-  // 视觉元素        logo?: string;      // 自定义 Logo
+    // 视觉元素        logo?: string;      // 自定义 Logo
 
-  logoSize?: number;  // Logo 大小
+    logoSize?: number;  // Logo 大小
 
-  image?: string;
+    image?: string;
 
-  imageConfig?: {
-    scale: number;
-    x: number;
-    y: number;
-  };
+    imageConfig?: {
+      scale: number;
+      x: number;
+      y: number;
+    };
   backgroundColor?: string;
   accentColor?: string; // 新增：模板强调色 (用于装饰线、高亮文字等)
   themeColor?: string; // 主题色
@@ -167,6 +169,19 @@ export interface PageData {
   };
 }
 
+export interface PrintSettings {
+  enabled: boolean;
+  widthMm: number;
+  heightMm: number;
+  gutterMm: number;
+  // 为每种方向存储独立的装订配置
+  configs: {
+    landscape: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
+    portrait: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
+    square: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
+  }
+}
+
 export interface ProjectData {
   version: string;
   title: string;
@@ -175,4 +190,5 @@ export interface ProjectData {
   imageQuality?: number; // 新增：全局图片质量控制 (0.1 - 1.0)
   minimalCounter?: boolean; // 新增：全局极简页码开关
   counterColor?: string; // 新增：全局页码颜色
+  printSettings?: PrintSettings; // 新增：全局打印/装订设置
 }

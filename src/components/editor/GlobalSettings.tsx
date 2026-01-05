@@ -1,6 +1,6 @@
 import React from 'react';
-import { PageData, CustomFont, CounterStyle } from '../../types';
-import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff } from 'lucide-react';
+import { PageData, CustomFont, CounterStyle, PrintSettings, OrientationType } from '../../types';
+import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff, Printer, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import FontManager from '../FontManager';
 
@@ -15,6 +15,8 @@ interface GlobalSettingsProps {
   setMinimalCounter: (m: boolean) => void;
   counterColor: string;
   setCounterColor: (c: string) => void;
+  printSettings: PrintSettings;
+  setPrintSettings: (s: PrintSettings) => void;
 }
 
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
@@ -27,19 +29,135 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
   minimalCounter,
   setMinimalCounter,
   counterColor,
-  setCounterColor
+  setCounterColor,
+  printSettings,
+  setPrintSettings
 }) => {
   const handleChange = (field: keyof PageData, value: any) => {
     onUpdate({ ...page, [field]: value });
   };
 
+  const updatePrintSetting = (field: keyof PrintSettings, value: any) => {
+    setPrintSettings({ ...printSettings, [field]: value });
+  };
+
+  const updateOrientationConfig = (ori: OrientationType, field: 'bindingSide' | 'trimSide', value: any) => {
+    // 核心修复：确保 configs 即使在旧数据中不存在也能正确初始化
+    const currentConfigs = printSettings.configs || {
+      landscape: { bindingSide: 'bottom', trimSide: 'right' },
+      portrait: { bindingSide: 'left', trimSide: 'bottom' },
+      square: { bindingSide: 'left', trimSide: 'bottom' }
+    };
+    const newConfigs = { ...currentConfigs };
+    newConfigs[ori] = { ...newConfigs[ori], [field]: value };
+    setPrintSettings({ ...printSettings, configs: newConfigs });
+  };
+
+  const SideButton = ({ ori, side, type, active, icon: Icon }: any) => (
+    <button 
+      onClick={() => updateOrientationConfig(ori, type, side)}
+      className={`p-2 rounded-lg border transition-all ${active ? 'bg-[#264376] border-[#264376] text-white shadow-md' : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
+      title={`${side.toUpperCase()} ${type === 'bindingSide' ? 'Binding' : 'Trim'}`}
+    >
+      <Icon size={12} />
+    </button>
+  );
+
+  const orientations: { id: OrientationType; label: string }[] = [
+    { id: 'landscape', label: 'Landscape (16:9)' },
+    { id: 'portrait', label: 'Portrait (2:3)' },
+    { id: 'square', label: 'Square (1:1)' }
+  ];
+
+  const sides = [
+    { id: 'left', icon: ArrowLeft },
+    { id: 'right', icon: ArrowRight },
+    { id: 'top', icon: ArrowUp },
+    { id: 'bottom', icon: ArrowDown }
+  ];
+
   return (
     <div className="space-y-10 pb-10">
-      {/* 1. Global Appearance */}
+      {/* 1. Print & Binding - Advanced Configuration */}
       <Section>
+        <div className="flex items-center justify-between mb-6">
+          <Label icon={Printer} className="mb-0">Print & Binding Engine</Label>
+          <button 
+            onClick={() => updatePrintSetting('enabled', !printSettings.enabled)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${printSettings.enabled ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-100 text-slate-400'}`}
+          >
+            {printSettings.enabled ? <Eye size={12} /> : <EyeOff size={12} />}
+            <span className="text-[9px] font-black uppercase tracking-widest">{printSettings.enabled ? 'System Active' : 'Disabled'}</span>
+          </button>
+        </div>
+
+        <div className={`space-y-8 transition-all duration-500 ${printSettings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale'}`}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Paper Width (mm)</span>
+              <Input type="number" value={printSettings.widthMm} onChange={(e) => updatePrintSetting('widthMm', parseFloat(e.target.value))} className="font-mono text-xs" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Paper Height (mm)</span>
+              <Input type="number" value={printSettings.heightMm} onChange={(e) => updatePrintSetting('heightMm', parseFloat(e.target.value))} className="font-mono text-xs" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-1">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Binding Gutter (mm)</span>
+              <Input type="number" value={printSettings.gutterMm} onChange={(e) => updatePrintSetting('gutterMm', parseFloat(e.target.value))} className="font-mono text-xs text-amber-600 font-bold" />
+            </div>
+          </div>
+
+          {/* Per-Orientation Config */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-2">Binding & Trim Strategy</p>
+            
+            <div className="grid grid-cols-1 gap-4">
+              {orientations.map(ori => {
+                // 核心修复：增加对 configs 的存在性检查，防止在旧数据上崩溃
+                const config = (printSettings.configs && printSettings.configs[ori.id]) 
+                  || { bindingSide: 'left', trimSide: 'bottom' };
+                return (
+                  <div key={ori.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-slate-700">{ori.label}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Binding Side Selector */}
+                      <div className="space-y-2">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter block">Binding Edge (Spine)</span>
+                        <div className="flex gap-1.5">
+                          {sides.map(s => (
+                            <SideButton key={s.id} ori={ori.id} side={s.id} type="bindingSide" icon={s.icon} active={config.bindingSide === s.id} />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Trim Side Selector */}
+                      <div className="space-y-2">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter block">Primary Trim Edge</span>
+                        <div className="flex gap-1.5">
+                          {sides.map(s => (
+                            <SideButton key={s.id} ori={ori.id} side={s.id} type="trimSide" icon={s.icon} active={config.trimSide === s.id} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* 2. Global Visual Style */}
+      <Section className="pt-6 border-t border-slate-100">
         <Label icon={Settings}>Global Visual Style</Label>
         <div className="space-y-8">
-            {/* Background Pattern */}
             <div className="space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Background Pattern</p>
                 <div className="grid grid-cols-5 gap-2">
@@ -49,7 +167,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                 </div>
             </div>
 
-            {/* Image Compression */}
             <div className="space-y-4 pt-4 border-t border-slate-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-900">
@@ -65,7 +182,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         </div>
       </Section>
 
-      {/* 2. Global Brand Section */}
+      {/* 3. Global Brand Section */}
       <Section className="pt-6 border-t border-slate-100">
         <Label icon={ImageIcon}>Global Branding</Label>
         <div className="space-y-4">
@@ -90,13 +207,13 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
         </div>
       </Section>
 
-      {/* 3. Typography Manager */}
+      {/* 4. Typography Manager */}
       <Section className="pt-6 border-t border-slate-100">
         <Label icon={Type}>Typography (Fonts)</Label>
         <FontManager fonts={customFonts} onFontsChange={setCustomFonts} />
       </Section>
 
-      {/* 4. Page Metadata Section */}
+      {/* 5. Page Metadata Section */}
       <Section className="pt-6 border-t border-slate-100">
         <Label icon={Settings}>Global Metadata Style</Label>
         <div className="space-y-6">
@@ -105,7 +222,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Counter Style & Color</p>
                   <button 
                     onClick={() => {
-                      // 核心修复：直接通过 handleChange 修改 page 对象，从而触发 useProject 的全局同步
                       handleChange('minimalCounter', !minimalCounter);
                     }}
                     className={`flex items-center gap-2 px-2 py-1 rounded-md transition-all ${minimalCounter ? 'bg-[#264376] text-white' : 'bg-slate-100 text-slate-400 hover:text-slate-600'}`}
@@ -126,10 +242,6 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                     ))}
                 </div>
 
-                {/* 
-                  核心修复：颜色选择器绑定 page.counterColor 
-                  这样它能真实反映当前页面的状态，也能通过 handleChange 同步到全局
-                */}
                 <div className="flex gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-100 mt-2">
                   <div className="relative overflow-hidden w-8 h-8 rounded-lg shadow-sm ring-1 ring-slate-200 shrink-0">
                     <input 

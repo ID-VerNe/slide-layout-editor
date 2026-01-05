@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PageData, CustomFont, ProjectData, AspectRatioType } from '../types';
+import { PageData, CustomFont, ProjectData, AspectRatioType, PrintSettings } from '../types';
 import { getProject, saveProject } from '../utils/db';
 import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
@@ -19,6 +19,18 @@ const DEFAULT_PAGES: PageData[] = [
     counterStyle: 'number'
   }
 ];
+
+const DEFAULT_PRINT_SETTINGS: PrintSettings = {
+  enabled: false,
+  widthMm: 100,
+  heightMm: 145,
+  gutterMm: 10,
+  configs: {
+    landscape: { bindingSide: 'bottom', trimSide: 'right' }, // 横屏：底装订，右裁剪
+    portrait: { bindingSide: 'left', trimSide: 'bottom' },   // 竖屏：左装订，底裁剪
+    square: { bindingSide: 'left', trimSide: 'bottom' }
+  }
+};
 
 const GLOBAL_FIELDS: Array<keyof PageData> = [
   'counterStyle',
@@ -56,6 +68,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const [imageQuality, setImageQuality] = useState<number>(0.95); 
   const [minimalCounter, setMinimalCounter] = useState<boolean>(false); 
   const [counterColor, setCounterColor] = useState<string>('#64748b'); 
+  const [printSettings, setPrintSettings] = useState<PrintSettings>(DEFAULT_PRINT_SETTINGS);
   const [enforceA4, setEnforceA4] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -72,6 +85,13 @@ export function useProject(projectId: string | undefined, templateId: string | n
           setImageQuality(savedData.imageQuality ?? 0.95);
           setMinimalCounter(savedData.minimalCounter ?? false);
           setCounterColor(savedData.counterColor ?? '#64748b'); 
+          
+          // 核心修复：迁移旧版打印设置，确保 configs 始终存在
+          const loadedPrintSettings = savedData.printSettings || DEFAULT_PRINT_SETTINGS;
+          if (!loadedPrintSettings.configs) {
+            loadedPrintSettings.configs = DEFAULT_PRINT_SETTINGS.configs;
+          }
+          setPrintSettings(loadedPrintSettings);
           
           savedData.customFonts?.forEach((font: CustomFont) => {
             if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
@@ -125,7 +145,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
       customFonts,
       imageQuality,
       minimalCounter,
-      counterColor, 
+      counterColor,
+      printSettings,
     };
     
     await saveProject(projectId, projectState);
@@ -153,7 +174,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
     
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
-  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter, counterColor]);
+  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter, counterColor, printSettings]);
 
   const updatePage = useCallback((updatedPage: PageData) => {
     setPages(prev => {
@@ -162,7 +183,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
       const layoutChanged = updatedPage.layoutId !== originalPage.layoutId;
 
-      // 找出变动的全局字段
       const changedGlobalFields: Partial<PageData> = {};
       GLOBAL_FIELDS.forEach(field => {
         // @ts-ignore
@@ -170,7 +190,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
           // @ts-ignore
           changedGlobalFields[field] = updatedPage[field];
           
-          // 核心修复：同步到全局状态
           if (field === 'minimalCounter') setMinimalCounter(updatedPage.minimalCounter ?? false);
           if (field === 'counterColor') setCounterColor(updatedPage.counterColor || '#64748b');
         }
@@ -286,6 +305,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         setProjectTitle('');
         setMinimalCounter(false);
         setCounterColor('#64748b');
+        setPrintSettings(DEFAULT_PRINT_SETTINGS);
         setCurrentPageIndex(0);
       }
     );
@@ -312,6 +332,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       imageQuality,
       minimalCounter,
       counterColor,
+      printSettings,
     };
     
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/octet-stream' });
@@ -346,6 +367,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         setImageQuality(project.imageQuality ?? 0.95);
         setMinimalCounter(project.minimalCounter ?? false);
         setCounterColor(project.counterColor ?? '#64748b');
+        setPrintSettings(project.printSettings || DEFAULT_PRINT_SETTINGS);
         setCurrentPageIndex(0);
         
         uiAlert("Import Success", "Project loaded successfully.");
@@ -368,6 +390,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
     setMinimalCounter,
     counterColor,
     setCounterColor,
+    printSettings,
+    setPrintSettings,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage: pages[currentPageIndex],

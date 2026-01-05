@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { LAYOUT_CONFIG } from '../constants/layout';
+import { PrintSettings } from '../types';
 
 interface UsePreviewOptions {
   pages: any[];
   currentPageIndex: number;
+  printSettings: PrintSettings; // 传入打印设置
 }
 
-export function usePreview({ pages, currentPageIndex }: UsePreviewOptions) {
+export function usePreview({ pages, currentPageIndex, printSettings }: UsePreviewOptions) {
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [isAutoFit, setIsAutoFit] = useState(true);
   const [pagesOverflow, setPagesOverflow] = useState<Record<string, boolean>>({});
@@ -23,22 +25,31 @@ export function usePreview({ pages, currentPageIndex }: UsePreviewOptions) {
     
     if (containerHeight <= 0 || containerWidth <= 0) return 0.5;
 
-    const padding = 120; // 增加边距以获得更好的呼吸感
+    const padding = 120; 
     const availableWidth = containerWidth - padding;
     const availableHeight = containerHeight - padding;
 
-    // 核心：根据当前页面的比例获取物理尺寸
     const currentPage = pages[currentPageIndex];
-    const dimensions = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
+    const designDims = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
     
-    const targetWidth = dimensions.width;
-    const targetHeight = dimensions.height;
+    let targetWidth, targetHeight;
+
+    // 核心修复：如果开启了打印模式，则以纸张的物理比例计算缩放
+    if (printSettings?.enabled) {
+      // 我们以设计稿的宽度作为基准像素，换算纸张的像素尺寸
+      const ppi = designDims.width / (printSettings.widthMm - (designDims.orientation === 'portrait' ? printSettings.gutterMm : 0));
+      targetWidth = printSettings.widthMm * ppi;
+      targetHeight = printSettings.heightMm * ppi;
+    } else {
+      targetWidth = designDims.width;
+      targetHeight = designDims.height;
+    }
 
     const scaleX = availableWidth / targetWidth;
     const scaleY = availableHeight / targetHeight;
 
     return Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1.5);
-  }, [pages, currentPageIndex]);
+  }, [pages, currentPageIndex, printSettings]);
 
   useEffect(() => {
     if (!previewContainerRef.current) return;

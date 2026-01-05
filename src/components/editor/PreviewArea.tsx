@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Preview from '../Preview';
-import { PageData } from '../../types';
+import { PageData, PrintSettings } from '../../types';
 
 interface PreviewAreaProps {
   pages: PageData[];
@@ -10,13 +10,14 @@ interface PreviewAreaProps {
   previewContainerRef: React.RefObject<HTMLDivElement | null>;
   enforceA4: boolean;
   isAutoFit: boolean; 
-  setIsAutoFit: (val: boolean) => void; // 新增：接收控制函数
+  setIsAutoFit: (val: boolean) => void;
+  printSettings: PrintSettings; // 新增：打印设置
   onOverflowChange: (pageId: string, isOverflowing: boolean) => void;
 }
 
 /**
  * PreviewArea - 画布预览容器
- * 智能联动版：手动拖拽或滚动时自动解除 FIT 状态。
+ * 增强版：支持打印装订位预览适配。
  */
 const PreviewArea: React.FC<PreviewAreaProps> = ({
   pages,
@@ -25,13 +26,13 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   previewRef,
   previewContainerRef,
   isAutoFit,
-  setIsAutoFit
+  setIsAutoFit,
+  printSettings
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
-  // 核心逻辑：当开启 AutoFit 或 切换页面时，强制重置位移回中心 (0, 0)
   useEffect(() => {
     if (isAutoFit) {
       setDragOffset({ x: 0, y: 0 });
@@ -43,7 +44,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       return;
     }
 
-    // 核心修复：滚轮操作解除 FIT
     if (isAutoFit) setIsAutoFit(false);
 
     setDragOffset(prev => ({
@@ -53,9 +53,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   }, [isAutoFit, setIsAutoFit]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // 核心修复：拖拽操作解除 FIT
     if (isAutoFit) setIsAutoFit(false);
-
     setIsDragging(true);
     setLastPos({ x: e.clientX, y: e.clientY });
   };
@@ -101,7 +99,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
           transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(${previewZoom})`,
           transformOrigin: 'center center',
           willChange: 'transform',
-          // 在 FIT 模式下开启过渡动画，增强归位的视觉反馈
           transition: isAutoFit && !isDragging ? 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none'
         }}
       >
@@ -115,6 +112,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
               page={pages[currentPageIndex]} 
               pageIndex={currentPageIndex}
               totalPages={pages.length}
+              printSettings={printSettings} // 传递打印设置
             />
           </div>
         )}
