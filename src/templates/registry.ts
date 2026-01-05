@@ -99,10 +99,10 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'film-diptych',
     name: 'Film Diptych',
     category: 'Gallery',
-    desc: 'Dual vertical images side-by-side with minimal sequence label',
-    tags: ['Diptych', 'Sequence', 'Comparison'],
+    desc: 'Dual images side-by-side or stacked with zero distractions',
+    tags: ['Diptych', 'Sequence', 'Comparison', 'Pure'],
     component: FilmDiptych,
-    fields: withBaseFields(['gallery', 'imageLabel']),
+    fields: withBaseFields(['variant', 'gallery', 'imageLabel']),
     supportedRatios: ['2:3']
   },
   {
