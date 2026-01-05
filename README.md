@@ -1,6 +1,51 @@
-# Slide Layout Editor (Slide排版编辑器) 🎨
+# SlideGrid Studio 🎨
+### 专业级多比例杂志排版与幻灯片编辑器
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+SlideGrid Studio 是一款专为摄影师、设计师和内容创作者打造的高级排版工具。它融合了现代 Web 技术的灵活性与传统纸媒杂志（如 *Kinfolk*, *Vogue*）的严谨美学，支持横竖比例混排及工业级打印预处理。
+
+---
+
+## 🌟 核心特性
+
+### 1. 混排比例系统 (Mixed-Ratio Architecture)
+*   **比例原子化**：支持在同一个工程内自由混合 **16:9 (横屏)**、**2:3 (竖屏)**、**A4** 及 **1:1** 页面。
+*   **三级新建流**：通过“方向 -> 比例 -> 模板”的受控流程，确保每一页都完美适配其物理属性。
+*   **动态预览**：画布根据当前页面比例实时变形，并具备高度自适应（Auto-fit）与平滑吸附动画。
+
+### 2. Kinfolk 风格模板群
+*   **Editorial 系列**：专为 2:3 竖屏设计的内页模板，包含“垂直大标题”、“首字下沉叙事”、“艺术错位拼贴”等。
+*   **视觉对齐逻辑**：内置严谨的网格对齐系统，支持物理基准线校对（如文字底边与页码点绝对冲齐）。
+*   **强调色系统**：支持全页面强调色（Accent Color）一键自定义，联动装饰线与高亮文字。
+
+### 3. 工业级打印与装订引擎 (Print & Binding)
+*   **物理缩放**：输入纸张 mm 尺寸，自动计算“最大化排布”缩放系数。
+*   **装订位预留**：支持竖屏左装订、横屏底装订等多种物理构图逻辑。
+*   **可视化裁剪**：在预览中实时显示“装订区”与“裁剪区”遮罩，并提供 0.5px 精确切割参考线。
+
+### 4. 极致交互体验
+*   **自由漫游画布**：支持鼠标抓取平移（Panning）和滚轮无限漫游，体验接近 Figma。
+*   **原子化编辑器**：基于字段驱动的编辑面板，支持多行文本回车、实时字号/行高调节。
+*   **页面管理**：侧边栏支持物理感十足的拖拽排序（Drag & Drop Reordering）。
+
+---
+
+## 🛠️ 技术栈
+
+*   **框架**: React + TypeScript + Vite
+*   **样式**: Tailwind CSS (包含复合 Mask 遮罩与混合模式应用)
+*   **动画**: Framer Motion (用于页面排序与平滑缩放)
+*   **存储**: IndexedDB (本地工程持久化) + `.slgrid` 文件导出
+*   **字体**: 本地化字体库 (Playfair Display, Lora, Crimson Pro, Inter)
+*   **导出**: html-to-image (2x 高清采样) + jsPDF (多比例混排生成)
+
+---
+
+## 🚀 快速开始
+
+1.  **新建工程**：从首页点击 "New Project" 进入，系统将自动引导您选择首页的比例与模板。
+2.  **内容创作**：在侧边栏上传高清素材，通过 "Adjust" 模块微调图片的焦点与缩放。
+3.  **打印准备**：如果需要实体出书，请在全局设置中开启 "Print & Binding"，输入您的纸张尺寸。
+4.  **导出分享**：一键导出为高清 PNG 序列或可直接交付印刷的 PDF 文件。
 
 ---
 
@@ -8,16 +53,4 @@
 
 本项目基于 **MIT License** 协议开源。详情请参阅 [LICENSE](LICENSE) 文件。
 
-© 2025 **ID-VerNe**. 最后更新日期：2025年12月30日。
-
----
-
-## 🤝 贡献与反馈
-
-如果你有任何想法或建议，欢迎提交 Issue 或 Pull Request！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启一个 Pull Request
+© 2026 **SlideGrid Studio**. 由 **ID-VerNe** 驱动。
