@@ -1,13 +1,15 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideParagraph } from '../ui/slide/SlideParagraph';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
+import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
+import { SlideMetric } from '../ui/slide/SlideMetric';
 
 /**
  * KinfolkEssay - 叙事内页布局
- * 像素级微调版：日期对齐基准线，首字比例优化，签名距离拉近。
+ * 修复版：全面接入原子组件，感应全局字体。
  */
-export default function KinfolkEssay({ page }: { page: PageData }) {
+export default function KinfolkEssay({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const subtitle = page.subtitle || 'SHENZHEN / 2026';
   const metrics = page.metrics || [
     { label: 'CAMERA', value: 'Sony A7R5' },
@@ -24,14 +26,12 @@ export default function KinfolkEssay({ page }: { page: PageData }) {
       style={{ backgroundColor }}
     >
       
-      {/* 
-        顶部：标题区域
-        对齐核心：让右侧日期的基线坐落在底部的装饰线上
-      */}
+      {/* 顶部标题区域 */}
       <div className="border-b-[1.5px] border-slate-900 pb-8 flex justify-between items-baseline relative">
         <div className="flex-1 mr-8">
           <SlideHeadline 
             page={page} 
+            typography={typography}
             maxSize={48} 
             minSize={24}
             weight={300}
@@ -40,29 +40,26 @@ export default function KinfolkEssay({ page }: { page: PageData }) {
             style={{ textAlign: 'left' }}
           />
         </div>
-        {/* 
-          日期对齐：
-          使用 mb-[-1.5px] 强制文字基线与父容器的 border-b 冲齐
-        */}
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] shrink-0 mb-[-1.5px]">
-          {subtitle}
-        </span>
+        
+        {/* 日期：接入 SlideSubHeadline */}
+        <SlideSubHeadline 
+          page={{...page, subtitle}} 
+          typography={typography}
+          className="!text-[10px] !font-black !uppercase !tracking-[0.3em] !opacity-40 mb-[-1.5px] shrink-0"
+        />
       </div>
 
-      {/* 中部：正文叙事 */}
+      {/* 中部正文 */}
       <div className="flex-1 py-12 flex flex-col items-center">
         <div className="w-full max-w-[90%] relative flex flex-col items-start">
           <SlideParagraph 
             page={page} 
+            typography={typography}
             dropCap={true} 
             size="14px"
             className="text-slate-700"
           />
           
-          {/* 
-            本人签名区域：
-            优化：将 mt-8 缩小至 mt-2，形成紧凑的“结语”感
-          */}
           {page.signature && (
             <div className="mt-2 self-end flex justify-end animate-in fade-in slide-in-from-right-4 duration-1000">
               <img 
@@ -76,18 +73,18 @@ export default function KinfolkEssay({ page }: { page: PageData }) {
         </div>
       </div>
 
-      {/* 底部：参数网格 */}
+      {/* 底部参数网格 - 核心修正：接入 SlideMetric 原子组件 */}
       <div className="border-t border-slate-100 pt-10">
         <div className="grid grid-cols-2 gap-y-10 gap-x-16">
           {metrics.slice(0, 4).map((m, idx) => (
-            <div key={m.id || idx} className="space-y-2 flex flex-col items-start">
-              <h4 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] leading-none m-0">
-                {m.label}
-              </h4>
-              <p className="text-xs font-bold text-slate-800 uppercase tracking-tight leading-none m-0">
-                {m.value}
-              </p>
-            </div>
+            <SlideMetric 
+              key={idx}
+              data={m}
+              page={page}
+              typography={typography}
+              valueClassName="!text-xs !font-bold !tracking-tight !text-slate-800"
+              labelClassName="!text-[9px] !font-black !text-slate-300 !tracking-[0.4em]"
+            />
           ))}
         </div>
       </div>

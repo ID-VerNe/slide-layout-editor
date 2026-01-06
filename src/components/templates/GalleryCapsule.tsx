@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
@@ -7,20 +7,18 @@ import { OutlineText } from '../ui/slide/OutlineText';
 
 /**
  * GalleryCapsule - 胶囊马赛克图库
- * 混排适配版：支持 16:9 和 2:3 动态比例。
+ * 修复版：彻底移除硬编码字体，接入全局字体感应。
  */
-export default function GalleryCapsule({ page }: { page: PageData }) {
+export default function GalleryCapsule({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const isPortrait = page.aspectRatio === '2:3';
   
   const title = page.title || 'COLLECTION';
-  const subtitle = page.subtitle || '2025 SERIES';
   const imageLabel = page.imageLabel || 'PHOTOGRAPHY';
   const imageSubLabel = page.imageSubLabel || 'PORTFOLIO';
 
   const gallery = page.gallery || [];
   const variant = page.layoutVariant || 'under';
 
-  // 针对不同比例调整槽位高度和位移
   const slots = isPortrait 
     ? [
         { y: '40px', h: '45%', delay: 0 },
@@ -39,10 +37,13 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
   const isTextOver = variant === 'over';
   const isTextUnder = variant === 'under' || !variant;
 
+  // 获取全局字体
+  const titleFont = typography?.fieldOverrides?.['title'] || `${typography?.defaultLatin}, ${typography?.defaultCJK}`;
+
   return (
     <div
       key={page.id + variant + page.aspectRatio}
-      className={`w-full h-full flex items-center justify-center overflow-hidden relative transition-all duration-1000 
+      className={`w-full h-full flex items-center justify-center overflow-hidden relative transition-all duration-1000 isolate
         ${isMinimal ? (isPortrait ? 'gap-6 px-16' : 'gap-12 px-40') : (isPortrait ? 'gap-4 px-10' : 'gap-8 px-24')}`}
       style={{ backgroundColor: page.backgroundColor || '#ffffff' }}
     >
@@ -52,13 +53,14 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
       {/* --- 方案 A: Text Behind --- */}
       {isTextUnder && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-0 pointer-events-none px-20">
-          <SlideSubHeadline page={page} className="mb-4 opacity-20 uppercase tracking-[1em] text-[10px]" />
+          <SlideSubHeadline page={page} typography={typography} className="mb-4 !opacity-20 uppercase !tracking-[1em] !text-[10px]" />
           <div className="flex flex-col items-center leading-[0.75]">
             <SlideHeadline
               page={page}
+              typography={typography}
               maxSize={isPortrait ? 200 : 320}
               minSize={80}
-              className="text-black/[0.04] !font-[1000] !tracking-tighter text-center leading-[0.8]"
+              className="!text-black/[0.04] !font-[1000] !tracking-tighter text-center leading-[0.8]"
             />
           </div>
         </div>
@@ -74,10 +76,10 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
           <div className="relative">
             <SlideSubHeadline
               page={page}
+              typography={typography}
               color="#94a3b8"
-              className="font-[800] tracking-tight !break-words"
+              className="!font-black !tracking-tight !break-words"
               size={isPortrait ? "2.5rem" : "3.5rem"}
-              style={{ fontFamily: page.bodyFont || "'Crimson Pro', serif" }}
             />
           </div>
         </div>
@@ -119,12 +121,13 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
       {/* --- 方案 B: Text Front --- */}
       {isTextOver && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none px-20">
-          <SlideSubHeadline page={page} className="mb-4 text-slate-900 opacity-60 uppercase tracking-[0.5em] text-xs" />
+          <SlideSubHeadline page={page} typography={typography} className="mb-4 !text-slate-900 !opacity-60 uppercase !tracking-[0.5em] !text-xs" />
           <SlideHeadline
             page={page}
+            typography={typography}
             maxSize={isPortrait ? 200 : 320}
             minSize={80}
-            className="text-[#264376] !font-[1000] !tracking-tighter text-center leading-[0.8] drop-shadow-2xl"
+            className="!text-[#264376] !font-[1000] !tracking-tighter text-center leading-[0.8] drop-shadow-2xl"
           />
         </div>
       )}
@@ -147,7 +150,7 @@ export default function GalleryCapsule({ page }: { page: PageData }) {
                 fontSize={isPortrait ? (page.styleOverrides?.title?.fontSize ? page.styleOverrides.title.fontSize * 0.7 : 90) : (page.styleOverrides?.title?.fontSize || 140)}
                 strokeColor={page.styleOverrides?.title?.color || "#0F172A"}
                 strokeWidth={isPortrait ? 1.5 : 2.5}
-                fontFamily={page.titleFont || 'Inter, sans-serif'}
+                fontFamily={titleFont}
                 fontWeight={900}
                 textAlign="right"
                 lineHeight={0.9}

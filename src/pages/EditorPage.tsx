@@ -35,6 +35,8 @@ export default function EditorPage() {
     setCounterColor,
     printSettings,
     setPrintSettings,
+    typography,
+    setTypography,
     currentPageIndex,
     setCurrentPageIndex,
     currentPage,
@@ -334,8 +336,8 @@ export default function EditorPage() {
         </motion.div>
       </div>
 
-      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Presentation Settings" type="custom" maxWidth="max-w-2xl">
-        <div className="max-h-[70vh] overflow-y-auto no-scrollbar pr-2">
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Presentation Settings" type="custom" maxWidth="max-w-[85vw]">
+        <div className="max-h-[85vh] overflow-y-auto no-scrollbar pr-2">
           <GlobalSettings 
             page={currentPage} 
             onUpdate={updatePage} 
@@ -349,6 +351,8 @@ export default function EditorPage() {
             setCounterColor={setCounterColor}
             printSettings={printSettings}
             setPrintSettings={setPrintSettings}
+            typography={typography}
+            setTypography={setTypography}
           />
         </div>
       </Modal>

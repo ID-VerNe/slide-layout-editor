@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageData } from '../../../types';
-import { Copyright } from 'lucide-react';
+import { Type } from 'lucide-react';
 import { Input } from '../../ui/Base';
 import { FieldWrapper } from './FieldWrapper';
 import { FieldToolbar } from './FieldToolbar';
@@ -10,19 +10,23 @@ interface FieldProps {
   onUpdate: (page: PageData) => void;
 }
 
-export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+/**
+ * ImageSubLabelField - 二级标注编辑器
+ * 专门用于 Editorial Classic 的刊号等辅助信息控制。
+ */
+export const ImageSubLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const handleChange = (val: string) => {
-    onUpdate({ ...page, footer: val });
+    onUpdate({ ...page, imageSubLabel: val });
   };
 
   const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.footer?.fontSize;
+    const currentSize = page.styleOverrides?.imageSubLabel?.fontSize;
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
-        footer: {
-          ...(page.styleOverrides?.footer || {}),
+        imageSubLabel: {
+          ...(page.styleOverrides?.imageSubLabel || {}),
           fontSize: Math.max(6, (currentSize || 10) + delta)
         }
       }
@@ -30,14 +34,13 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate })
   };
 
   return (
-    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="footer" label="Footer Metadata" icon={Copyright}>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="imageSubLabel" label="Secondary Caption / Vol." icon={Type}>
       <div className="relative group/field">
         <FieldToolbar onIncrease={() => updateFontSize(1)} onDecrease={() => updateFontSize(-1)} />
         <Input 
-          value={page.footer || ''} 
+          value={page.imageSubLabel || ''} 
           onChange={(e) => handleChange(e.target.value)} 
-          placeholder="e.g. All Rights Reserved // 2026"
-          className="text-[10px] uppercase font-bold bg-white/50"
+          placeholder="e.g. VOL. 01" 
         />
       </div>
     </FieldWrapper>

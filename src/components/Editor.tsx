@@ -13,6 +13,7 @@ import { ParagraphField } from './editor/fields/ParagraphField';
 import { SignatureField } from './editor/fields/SignatureField';
 import { ImageField } from './editor/fields/ImageField';
 import { ImageLabelField } from './editor/fields/ImageLabelField';
+import { ImageSubLabelField } from './editor/fields/ImageSubLabelField';
 import { FeaturesField } from './editor/fields/FeaturesField';
 import { MosaicField } from './editor/fields/MosaicField';
 import { MetricsField } from './editor/fields/MetricsField';
@@ -25,6 +26,7 @@ import { VariantField } from './editor/fields/VariantField';
 import { BulletsField } from './editor/fields/BulletsField';
 import { ColorField } from './editor/fields/ColorField';
 import { FooterField } from './editor/fields/FooterField';
+import { BentoField } from './editor/fields/BentoField';
 import { PageNumberField } from './editor/fields/PageNumberField';
 
 interface EditorProps {
@@ -36,7 +38,6 @@ interface EditorProps {
 const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts }) => {
   const template = getTemplateById(page.layoutId);
 
-  // 核心：不再持有 local 模态窗状态，而是触发全局 Layout Browser
   const handleOpenBrowser = () => {
     window.dispatchEvent(new CustomEvent('open-layout-browser', { 
       detail: { mode: 'change' } 
@@ -46,13 +47,14 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
   const renderField = (type: EditorFieldType) => {
     switch (type) {
       case 'logo': return <LogoField key={type} page={page} onUpdate={onUpdate} />;
-      case 'title': return <TitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'subtitle': return <SubtitleField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
+      case 'title': return <TitleField key={type} page={page} onUpdate={onUpdate} />;
+      case 'subtitle': return <SubtitleField key={type} page={page} onUpdate={onUpdate} />;
       case 'actionText': return <ActionTextField key={type} page={page} onUpdate={onUpdate} />;
-      case 'paragraph': return <ParagraphField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
+      case 'paragraph': return <ParagraphField key={type} page={page} onUpdate={onUpdate} />;
       case 'signature': return <SignatureField key={type} page={page} onUpdate={onUpdate} />;
       case 'image': return <ImageField key={type} page={page} onUpdate={onUpdate} />;
       case 'imageLabel': return <ImageLabelField key={type} page={page} onUpdate={onUpdate} />;
+      case 'imageSubLabel': return <ImageSubLabelField key={type} page={page} onUpdate={onUpdate} />;
       case 'features': return <FeaturesField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'mosaic': return <MosaicField key={type} page={page} onUpdate={onUpdate} />;
       case 'metrics': return <MetricsField key={type} page={page} onUpdate={onUpdate} />;
@@ -60,7 +62,8 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
       case 'partners': return <PartnersField key={type} page={page} onUpdate={onUpdate} />;
       case 'testimonials': return <TestimonialsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'agenda': return <AgendaField key={type} page={page} onUpdate={onUpdate} />;
-      case 'gallery': return <GalleryField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
+      case 'bentoItems': return <BentoField key={type} page={page} onUpdate={onUpdate} />;
+      case 'gallery': return <GalleryField key={type} page={page} onUpdate={onUpdate} />;
       case 'variant': return <VariantField key={type} page={page} onUpdate={onUpdate} />;
       case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
       case 'backgroundColor': return <ColorField key={type} page={page} onUpdate={onUpdate} />;

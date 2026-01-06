@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PageData, CustomFont, ProjectData, AspectRatioType, PrintSettings } from '../types';
+import { PageData, CustomFont, ProjectData, AspectRatioType, PrintSettings, TypographySettings } from '../types';
 import { getProject, saveProject } from '../utils/db';
 import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
@@ -25,19 +25,26 @@ const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   widthMm: 100,
   heightMm: 145,
   gutterMm: 10,
+  showGutterShadow: true,
+  showTrimShadow: true,
+  showContentFrame: true,
   configs: {
-    landscape: { bindingSide: 'bottom', trimSide: 'right' }, // 横屏：底装订，右裁剪
-    portrait: { bindingSide: 'left', trimSide: 'bottom' },   // 竖屏：左装订，底裁剪
+    landscape: { bindingSide: 'bottom', trimSide: 'right' },
+    portrait: { bindingSide: 'left', trimSide: 'bottom' },
     square: { bindingSide: 'left', trimSide: 'bottom' }
   }
+};
+
+const DEFAULT_TYPOGRAPHY: TypographySettings = {
+  defaultLatin: "'Playfair Display', serif",
+  defaultCJK: "'Noto Serif SC', serif",
+  fieldOverrides: {}
 };
 
 const GLOBAL_FIELDS: Array<keyof PageData> = [
   'counterStyle',
   'backgroundPattern',
   'footer',
-  'titleFont',
-  'bodyFont',
   'logo',
   'logoSize',
   'agenda',
@@ -69,6 +76,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const [minimalCounter, setMinimalCounter] = useState<boolean>(false); 
   const [counterColor, setCounterColor] = useState<string>('#64748b'); 
   const [printSettings, setPrintSettings] = useState<PrintSettings>(DEFAULT_PRINT_SETTINGS);
+  const [typography, setTypography] = useState<TypographySettings>(DEFAULT_TYPOGRAPHY);
+  
   const [enforceA4, setEnforceA4] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
@@ -85,12 +94,13 @@ export function useProject(projectId: string | undefined, templateId: string | n
           setImageQuality(savedData.imageQuality ?? 0.95);
           setMinimalCounter(savedData.minimalCounter ?? false);
           setCounterColor(savedData.counterColor ?? '#64748b'); 
+          setTypography(savedData.typography || DEFAULT_TYPOGRAPHY);
           
-          // 核心修复：迁移旧版打印设置，确保 configs 始终存在
           const loadedPrintSettings = savedData.printSettings || DEFAULT_PRINT_SETTINGS;
-          if (!loadedPrintSettings.configs) {
-            loadedPrintSettings.configs = DEFAULT_PRINT_SETTINGS.configs;
-          }
+          if (!loadedPrintSettings.configs) loadedPrintSettings.configs = DEFAULT_PRINT_SETTINGS.configs;
+          if (loadedPrintSettings.showGutterShadow === undefined) loadedPrintSettings.showGutterShadow = true;
+          if (loadedPrintSettings.showTrimShadow === undefined) loadedPrintSettings.showTrimShadow = true;
+          if (loadedPrintSettings.showContentFrame === undefined) loadedPrintSettings.showContentFrame = true;
           setPrintSettings(loadedPrintSettings);
           
           savedData.customFonts?.forEach((font: CustomFont) => {
@@ -147,6 +157,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       minimalCounter,
       counterColor,
       printSettings,
+      typography
     };
     
     await saveProject(projectId, projectState);
@@ -174,14 +185,12 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
     
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
-  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter, counterColor, printSettings]);
+  }, [pages, customFonts, projectId, isLoaded, projectTitle, currentPageIndex, imageQuality, minimalCounter, counterColor, printSettings, typography]);
 
   const updatePage = useCallback((updatedPage: PageData) => {
     setPages(prev => {
       const originalPage = prev.find(p => p.id === updatedPage.id);
       if (!originalPage) return prev;
-
-      const layoutChanged = updatedPage.layoutId !== originalPage.layoutId;
 
       const changedGlobalFields: Partial<PageData> = {};
       GLOBAL_FIELDS.forEach(field => {
@@ -189,60 +198,14 @@ export function useProject(projectId: string | undefined, templateId: string | n
         if (updatedPage[field] !== originalPage[field]) {
           // @ts-ignore
           changedGlobalFields[field] = updatedPage[field];
-          
           if (field === 'minimalCounter') setMinimalCounter(updatedPage.minimalCounter ?? false);
           if (field === 'counterColor') setCounterColor(updatedPage.counterColor || '#64748b');
         }
       });
 
       return prev.map(page => {
-        if (page.id === updatedPage.id) {
-          if (!layoutChanged) return updatedPage;
-
-          const template = getTemplateById(updatedPage.layoutId);
-          const allowedFields = template.fields;
-
-          const cleanedPage: any = {
-            id: page.id,
-            type: page.type,
-            layoutId: updatedPage.layoutId,
-            aspectRatio: updatedPage.aspectRatio || '16:9',
-            title: updatedPage.title,
-            subtitle: updatedPage.subtitle,
-            logo: updatedPage.logo,
-            logoSize: updatedPage.logoSize,
-            image: updatedPage.image,
-            imageConfig: updatedPage.imageConfig,
-            backgroundColor: updatedPage.backgroundColor,
-            titleFont: updatedPage.titleFont,
-            bodyFont: updatedPage.bodyFont,
-            backgroundPattern: updatedPage.backgroundPattern,
-            footer: updatedPage.footer,
-            pageNumber: updatedPage.pageNumber,
-            minimalCounter: updatedPage.minimalCounter,
-            counterColor: updatedPage.counterColor,
-            pageNumberText: updatedPage.pageNumberText,
-            counterStyle: updatedPage.counterStyle,
-            styleOverrides: updatedPage.styleOverrides,
-            visibility: updatedPage.visibility
-          };
-
-          if (allowedFields.includes('actionText')) cleanedPage.actionText = (updatedPage as any).actionText;
-          if (allowedFields.includes('imageLabel')) cleanedPage.imageLabel = (updatedPage as any).imageLabel;
-          if (allowedFields.includes('imageSubLabel')) cleanedPage.imageSubLabel = (updatedPage as any).imageSubLabel;
-          if (allowedFields.includes('features')) cleanedPage.features = (updatedPage as any).features;
-          if (allowedFields.includes('metrics')) cleanedPage.metrics = (updatedPage as any).metrics;
-          if (allowedFields.includes('gallery')) cleanedPage.gallery = (updatedPage as any).gallery;
-          if (allowedFields.includes('bullets')) cleanedPage.bullets = (updatedPage as any).bullets;
-          if (allowedFields.includes('variant')) cleanedPage.layoutVariant = updatedPage.layoutVariant;
-
-          return cleanedPage as PageData;
-        }
-        
-        if (Object.keys(changedGlobalFields).length > 0) {
-          return { ...page, ...changedGlobalFields };
-        }
-
+        if (page.id === updatedPage.id) return updatedPage;
+        if (Object.keys(changedGlobalFields).length > 0) return { ...page, ...changedGlobalFields };
         return page;
       });
     });
@@ -265,50 +228,31 @@ export function useProject(projectId: string | undefined, templateId: string | n
       minimalCounter: minimalCounter, 
       counterColor: counterColor,
       footer: firstPage?.footer || '',
-      titleFont: firstPage?.titleFont,
-      bodyFont: firstPage?.bodyFont,
       agenda: existingTOC?.agenda || [],
       activeIndex: existingTOC?.activeIndex ?? 0,
-      visibility: {
-        logo: true
-      }
+      visibility: { logo: true }
     };
     setPages(prev => [...prev, newPage]);
     setCurrentPageIndex(pages.length);
   };
 
   const removePage = (id: string) => {
-    if (pages.length <= 1) {
-      uiAlert("Cannot Delete", "You must have at least one slide.");
-      return;
-    }
-    
-    confirm(
-      "Delete Slide",
-      "Are you sure you want to delete this slide?",
-      () => {
+    if (pages.length <= 1) return;
+    confirm("Delete Slide", "Are you sure?", () => {
         const idx = pages.findIndex(p => p.id === id);
         setPages(prev => prev.filter(p => p.id !== id));
-        if (currentPageIndex >= idx && currentPageIndex > 0) {
-            setCurrentPageIndex(currentPageIndex - 1);
-        }
-      }
-    );
+        if (currentPageIndex >= idx && currentPageIndex > 0) setCurrentPageIndex(currentPageIndex - 1);
+    });
   };
 
   const handleClearAll = () => {
-    confirm(
-      "Reset Project",
-      "Are you sure you want to clear all slides?",
-      () => {
+    confirm("Reset Project", "Are you sure?", () => {
         setPages(DEFAULT_PAGES);
         setProjectTitle('');
         setMinimalCounter(false);
-        setCounterColor('#64748b');
-        setPrintSettings(DEFAULT_PRINT_SETTINGS);
+        setTypography(DEFAULT_TYPOGRAPHY);
         setCurrentPageIndex(0);
-      }
-    );
+    });
   };
 
   const reorderPages = (newPages: PageData[]) => {
@@ -316,97 +260,42 @@ export function useProject(projectId: string | undefined, templateId: string | n
     setPages(newPages);
     if (currentPageId) {
       const newIndex = newPages.findIndex(p => p.id === currentPageId);
-      if (newIndex !== -1) {
-        setCurrentPageIndex(newIndex);
-      }
+      if (newIndex !== -1) setCurrentPageIndex(newIndex);
     }
   };
 
   const handleExportProject = () => {
-    const finalTitle = projectTitle.trim() || pages[0]?.title || 'Untitled';
-    const project: ProjectData = {
-      version: "2.0",
-      title: finalTitle,
-      pages,
-      customFonts,
-      imageQuality,
-      minimalCounter,
-      counterColor,
-      printSettings,
-    };
-    
+    const project: ProjectData = { version: "2.0", title: projectTitle || 'Untitled', pages, customFonts, imageQuality, minimalCounter, counterColor, printSettings, typography };
     const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${finalTitle}.slgrid`;
+    link.download = `${project.title}.slgrid`;
     link.click();
-    URL.revokeObjectURL(url);
   };
 
   const handleImportProject = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (e) => {
       try {
-        const content = event.target?.result as string;
-        if (!content) throw new Error("File is empty");
-
-        const project: ProjectData = JSON.parse(content);
-        
-        if (!project.pages || !Array.isArray(project.pages)) {
-          throw new Error("Invalid project: 'pages' is missing");
-        }
-
-        project.customFonts?.forEach(font => {
-          if (font.dataUrl) registerFontInDOM(font.family, font.dataUrl);
-        });
-        
+        const project: ProjectData = JSON.parse(e.target?.result as string);
+        project.customFonts?.forEach(f => f.dataUrl && registerFontInDOM(f.family, f.dataUrl));
         setCustomFonts(project.customFonts || []);
         setPages(project.pages);
+        setTypography(project.typography || DEFAULT_TYPOGRAPHY);
         setProjectTitle(project.title || '');
-        setImageQuality(project.imageQuality ?? 0.95);
-        setMinimalCounter(project.minimalCounter ?? false);
-        setCounterColor(project.counterColor ?? '#64748b');
-        setPrintSettings(project.printSettings || DEFAULT_PRINT_SETTINGS);
-        setCurrentPageIndex(0);
-        
-        uiAlert("Import Success", "Project loaded successfully.");
-      } catch (err: any) {
-        console.error("FATAL IMPORT ERROR:", err);
-        window.alert("Import Failed: " + err.message);
-      }
+        setIsLoaded(true);
+      } catch (err) {}
     };
-    reader.onerror = () => window.alert("File reading failed.");
     reader.readAsText(file);
   };
 
   return {
-    pages,
-    projectTitle,
-    setProjectTitle,
-    imageQuality,
-    setImageQuality,
-    minimalCounter,
-    setMinimalCounter,
-    counterColor,
-    setCounterColor,
-    printSettings,
-    setPrintSettings,
-    currentPageIndex,
-    setCurrentPageIndex,
-    currentPage: pages[currentPageIndex],
-    customFonts,
-    setCustomFonts,
-    enforceA4,
-    setEnforceA4,
-    isLoaded,
-    updatePage,
-    addPage,
-    removePage,
-    reorderPages, 
-    handleClearAll,
-    handleExportProject,
-    handleImportProject,
-    saveToDB
+    pages, projectTitle, setProjectTitle, imageQuality, setImageQuality,
+    minimalCounter, setMinimalCounter, counterColor, setCounterColor,
+    printSettings, setPrintSettings, typography, setTypography,
+    currentPageIndex, setCurrentPageIndex, currentPage: pages[currentPageIndex],
+    customFonts, setCustomFonts, isLoaded, updatePage, addPage, removePage,
+    reorderPages, handleClearAll, handleExportProject, handleImportProject, saveToDB
   };
 }

@@ -1,15 +1,16 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
+import { SlideBlockLabel } from '../ui/slide/SlideBlockLabel';
 import AutoFitHeadline from '../AutoFitHeadline';
 
 /**
  * FutureFocus (The Chosen One) - 贺图风格三图布局
- * 混排适配版：支持 16:9 和 2:3 动态比例，并支持 Gallery Assets 显隐控制及自定义强调色。
+ * 终极加固版：全原子化渲染，移除所有字体硬编码。
  */
-export default function FutureFocus({ page }: { page: PageData }) {
+export default function FutureFocus({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const isPortrait = page.aspectRatio === '2:3';
   const isGalleryVisible = page.visibility?.gallery !== false; 
   
@@ -17,34 +18,31 @@ export default function FutureFocus({ page }: { page: PageData }) {
   const displaySubtitle = page.subtitle || "MARIN KITAGAWA / NEW YEAR'S GREETING";
   const displayLabel = page.imageLabel || 'JAN 01';
   const displaySubLabel = page.imageSubLabel || 'FIRST POST OF THE YEAR';
-
-  const displayPage = {
-    ...page,
-    title: displayTitle,
-    subtitle: displaySubtitle,
-    imageLabel: displayLabel,
-    imageSubLabel: displaySubLabel
-  };
+  const displayAction = page.actionText || '26';
 
   const backgroundColor = page.backgroundColor || '#ffffff';
-  const accentColor = page.accentColor || '#F472B6'; // 动态强调色
+  const accentColor = page.accentColor || '#F472B6'; 
   const gallery = page.gallery || [];
 
-  // 解析标签内容以支持双色渲染
   const labelParts = displayLabel.split(' ');
   const firstPart = labelParts[0];
   const restPart = labelParts.slice(1).join(' ');
 
   return (
     <div 
-      className={`w-full h-full flex relative overflow-hidden transition-all duration-700 
+      className={`w-full h-full flex relative overflow-hidden transition-all duration-700 isolate
         ${isPortrait ? 'flex-col' : 'flex-row'}`}
       style={{ backgroundColor }}
     >
       {/* 1. 背景装饰 */}
       <div className={`absolute select-none opacity-[0.03] pointer-events-none text-slate-900 z-0
         ${isPortrait ? 'right-[-40px] bottom-[-60px]' : 'right-[-80px] top-[-100px]'}`}>
-        <h1 className={`${isPortrait ? 'text-[25rem]' : 'text-[45rem]'} font-black leading-none tracking-tighter italic`}>26</h1>
+        <SlideHeadline 
+          page={{...page, title: displayAction}} 
+          typography={typography}
+          maxSize={isPortrait ? 400 : 720}
+          className="!font-black !leading-none !tracking-tighter !italic !opacity-100"
+        />
       </div>
 
       {/* 2. 主视觉区 */}
@@ -67,25 +65,24 @@ export default function FutureFocus({ page }: { page: PageData }) {
           />
         </div>
         
-        {/* 文字叠加层 */}
         <div className={`absolute z-20 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]
           ${isPortrait ? 'bottom-12 left-10' : 'bottom-24 left-16'}`}>
           <div className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
             <SlideSubHeadline 
-              page={displayPage} 
+              page={{...page, subtitle: displaySubtitle}} 
+              typography={typography}
               className="mb-2 italic !tracking-[0.1em] !font-medium opacity-90"
               color="#ffffff"
               size={isPortrait ? "1.8rem" : "2rem"}
-              style={{ fontFamily: "'Crimson Pro', serif" }}
             />
           </div>
           <SlideHeadline 
-            page={displayPage} 
+            page={{...page, title: displayTitle}} 
+            typography={typography}
             maxSize={isPortrait ? 100 : 140} 
             minSize={60} 
             color="#ffffff"
             className="!tracking-tighter !leading-[0.85] uppercase !font-black"
-            style={{ textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}
           />
         </div>
       </div>
@@ -97,14 +94,16 @@ export default function FutureFocus({ page }: { page: PageData }) {
         <div className={`flex flex-col items-start w-full 
           ${isPortrait ? 'translate-x-0' : 'translate-x-[5%]'}`}>
           
-          {/* 日期信息块 - 使用动态强调色 accentColor */}
           <div className={`border-l-[6px] pl-8 py-2 animate-in fade-in slide-in-from-left-4 duration-1000 delay-300 w-full max-w-full overflow-hidden
             ${isPortrait ? 'mb-8' : 'mb-12'}`}
             style={{ borderColor: accentColor }}
           >
-            <p className="text-xl font-medium tracking-tight text-slate-400 italic mb-1" style={{ fontFamily: "'Crimson Pro', serif" }}>
-              {displaySubLabel}
-            </p>
+            <SlideBlockLabel 
+              page={page} 
+              typography={typography}
+              text={displaySubLabel}
+              className="!text-xl !font-medium !tracking-tight !italic !opacity-40 mb-1"
+            />
             
             <div className="w-full">
               <AutoFitHeadline 
@@ -115,7 +114,7 @@ export default function FutureFocus({ page }: { page: PageData }) {
                 lineHeight={1}
                 weight={900}
                 className="text-slate-900 tracking-tighter leading-none uppercase"
-                fontFamily={page.titleFont || 'Inter'}
+                fontFamily={typography?.fieldOverrides?.['title'] || `${typography?.defaultLatin}, ${typography?.defaultCJK}`}
               >
                 <span>
                   {firstPart}
@@ -160,18 +159,18 @@ export default function FutureFocus({ page }: { page: PageData }) {
                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-200">Slot 2</div>
                   )}
                 </div>
-                <p className="text-[11px] text-center font-medium text-slate-400 italic" style={{ fontFamily: "'Crimson Pro', serif" }}>
-                  MARIN K. // 2026
-                </p>
+                {/* 核心修正：辅助图底部描述文字原子化 */}
+                <SlideBlockLabel 
+                  page={page}
+                  typography={typography}
+                  text={gallery[1]?.caption || 'ARTWORK // 2026'}
+                  className="!text-[11px] !text-center !font-medium !text-slate-400 !italic !opacity-100"
+                />
               </div>
             </div>
           )}
         </div>
-
-        <div className={`absolute w-32 h-[1px] bg-slate-200 
-          ${isPortrait ? 'right-10 top-1/2 -translate-y-1/2 rotate-90 opacity-0' : 'right-12 bottom-16'}`} />
       </div>
-
     </div>
   );
 }

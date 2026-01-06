@@ -1,12 +1,13 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideImage } from '../ui/slide/SlideImage';
+import { SlideBlockLabel } from '../ui/slide/SlideBlockLabel';
 
 /**
  * KinfolkMontage - 艺术拼贴布局
- * 严谨对齐版：确保左侧垂直标签与上方主图左边缘完美冲齐。
+ * 终极加固版：支持全局字体，原子化垂直标签。
  */
-export default function KinfolkMontage({ page }: { page: PageData }) {
+export default function KinfolkMontage({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const gallery = page.gallery || [];
   const label = page.imageLabel || 'SCENE 04 — THE TOUCH';
   const backgroundColor = page.backgroundColor || '#ffffff';
@@ -48,21 +49,20 @@ export default function KinfolkMontage({ page }: { page: PageData }) {
 
       {/* 
         3. 侧边垂直注脚 
-        核心修复：left 值从 16 (4rem) 调整为 5rem，实现与主图边缘的垂直对齐。
+        核心修正：接入 SlideBlockLabel 并垂直旋转
       */}
       <div 
         className="absolute origin-bottom-left -rotate-90 pointer-events-none"
         style={{ bottom: '2.5rem', left: sidePadding }}
       >
-        <p 
-          className="text-[7px] font-black tracking-[0.6em] uppercase whitespace-nowrap opacity-40 leading-none"
-          style={{ 
-            color: accentColor,
-            marginBottom: '-0.25rem' 
-          }}
-        >
-          {label}
-        </p>
+        <SlideBlockLabel 
+          page={page}
+          typography={typography}
+          text={label}
+          className="!text-[7px] !font-black !tracking-[0.6em] !uppercase !opacity-40 !m-0 !p-0"
+          color={accentColor}
+          style={{ marginBottom: '-0.25rem' }}
+        />
       </div>
 
     </div>

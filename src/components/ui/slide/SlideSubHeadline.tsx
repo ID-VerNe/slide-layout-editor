@@ -1,51 +1,58 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, TypographySettings } from '../../../types';
 
 interface SlideSubHeadlineProps {
   page: PageData;
-  className?: string;
-  weight?: string | number;
-  italic?: boolean;
-  color?: string;
+  typography?: TypographySettings; // 传入全局配置
   size?: string;
+  color?: string;
+  className?: string;
+  italic?: boolean;
   style?: React.CSSProperties;
 }
 
 /**
- * SlideSubHeadline - 副标题原子组件
- * 恢复为标准版本，去除局部模板特定的字距微调。
+ * SlideSubHeadline - 全局字体感应版
  */
 export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({ 
   page, 
+  typography,
+  size, 
+  color, 
   className = "",
-  weight,
   italic,
-  color,
-  size,
-  style
+  style 
 }) => {
   const isVisible = page.visibility?.subtitle !== false;
   if (!isVisible || !page.subtitle) return null;
 
-  const customFontSize = page.styleOverrides?.subtitle?.fontSize;
+  const overrides = page.styleOverrides?.subtitle || {};
+  
+  // 计算字体链
+  const getFontFamily = () => {
+    const fieldFont = typography?.fieldOverrides?.['subtitle'];
+    if (fieldFont) return fieldFont;
+
+    const latin = typography?.defaultLatin || "'Inter', sans-serif";
+    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
+    return `${latin}, ${cjk}`;
+  };
 
   const combinedStyle: React.CSSProperties = {
-    fontWeight: weight || 500,
+    fontSize: overrides.fontSize ? `${overrides.fontSize}px` : (size || '1.25rem'),
+    color: overrides.color || color || 'inherit',
     fontStyle: italic ? 'italic' : 'normal',
-    color: color || '#64748b',
-    fontSize: customFontSize ? `${customFontSize}px` : (size || '1.25rem'),
-    overflowWrap: 'anywhere', 
-    wordBreak: 'break-word',
-    ...style
+    overflowWrap: 'break-word',
+    wordBreak: 'normal',
+    textWrap: 'balance',
+    ...style,
+    fontFamily: getFontFamily()
   };
 
   return (
     <p 
-      className={`leading-relaxed ${className}`}
-      style={{ 
-        fontFamily: page.bodyFont || 'Inter, sans-serif',
-        ...combinedStyle
-      }}
+      className={`font-medium tracking-wide whitespace-pre-line ${className}`}
+      style={combinedStyle}
     >
       {page.subtitle}
     </p>

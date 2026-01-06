@@ -1,48 +1,46 @@
-/**
- * Simple IndexedDB wrapper for project storage
- */
-const DB_NAME = 'MagaEditorDB';
-const STORE_NAME = 'projects';
-const DB_VERSION = 1;
+import { ProjectData } from '../types';
 
-export const openDB = (): Promise<IDBDatabase> => {
+const DB_NAME = 'magazine_editor_db';
+const STORE_NAME = 'projects';
+
+export function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = () => {
+    const request = indexedDB.open(DB_NAME, 2);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+        db.createObjectStore(STORE_NAME);
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
   });
-};
+}
 
-export const saveProject = async (id: string, data: any) => {
-  const db = await openDB();
+export async function saveProject(id: string, data: ProjectData) {
+  const db = await initDB();
   return new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
-    const request = store.put({ id, ...data });
+    const request = store.put(data, id);
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
-};
+}
 
-export const getProject = async (id: string) => {
-  const db = await openDB();
-  return new Promise<any>((resolve, reject) => {
+export async function getProject(id: string): Promise<ProjectData | null> {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const request = store.get(id);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
-};
+}
 
-export const deleteProject = async (id: string) => {
-  const db = await openDB();
+export async function deleteProject(id: string) {
+  const db = await initDB();
   return new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
@@ -50,13 +48,13 @@ export const deleteProject = async (id: string) => {
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
-};
+}
 
 /**
- * 强力压缩图片并转为 JPEG/WebP Base64
- * 限制最大宽度为 1280px，支持动态质量参数
+ * 图像压缩与格式转换
+ * 核心修复：切换为 image/webp 以支持透明度并提升性能
  */
-export const compressImage = (file: File, quality: number = 0.95): Promise<string> => {
+export async function compressImage(file: File, quality: number = 0.9): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -65,34 +63,19 @@ export const compressImage = (file: File, quality: number = 0.95): Promise<strin
       img.src = event.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1280;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas context failed'));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
+        if (!ctx) return reject('Failed to get canvas context');
 
-        // 检测是否需要保留透明度 (PNG/WebP/GIF)
-        const isTransparent = file.type === 'image/png' || file.type === 'image/webp' || file.type === 'image/gif';
-        const outputType = isTransparent ? 'image/webp' : 'image/jpeg';
+        // 保持原始尺寸进行质量压缩
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
 
-        const dataUrl = canvas.toDataURL(outputType, quality);
+        // 导出格式切换为 WebP
+        const dataUrl = canvas.toDataURL('image/webp', quality);
         resolve(dataUrl);
       };
-      img.onerror = (err) => reject(err);
     };
-    reader.onerror = (err) => reject(err);
+    reader.onerror = (error) => reject(reader.error);
   });
-};
+}

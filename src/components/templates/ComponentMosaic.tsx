@@ -1,12 +1,16 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideLogo } from '../ui/slide/SlideLogo';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 import { SlideBlockLabel } from '../ui/slide/SlideBlockLabel';
 import { SlideIcon } from '../ui/slide/SlideIcon';
 
-export default function ComponentMosaic({ page }: { page: PageData }) {
+/**
+ * ComponentMosaic - 碎片组件马赛克布局
+ * 修复版：补全原子组件透传。
+ */
+export default function ComponentMosaic({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const config = {
     rows: page.mosaicConfig?.rows ?? 3,
     cols: page.mosaicConfig?.cols ?? 5,
@@ -16,33 +20,27 @@ export default function ComponentMosaic({ page }: { page: PageData }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden isolate">
       <SlideLogo page={page} className="absolute top-16 left-32" />
 
-      {/* 
-        内容主容器
-        使用 grid 12 列布局
-      */}
       <div className="grid grid-cols-12 gap-12 z-10 w-full max-w-[1600px] px-20 items-center">
         
-        {/* 左侧文字区：占据 5 列 */}
+        {/* 左侧文字区 */}
         <div className="col-span-5 flex flex-col items-start gap-8">
-            <SlideHeadline page={page} maxSize={84} className="text-slate-900" />
-            <SlideSubHeadline page={page} className="max-w-md" />
-            <SlideBlockLabel page={page} />
+            <SlideHeadline page={page} typography={typography} maxSize={84} className="text-slate-900" />
+            <SlideSubHeadline page={page} typography={typography} className="max-w-md" />
+            
+            {/* 核心修正：补全 SlideBlockLabel 状态透传 */}
+            <SlideBlockLabel page={page} typography={typography} />
         </div>
 
-        {/* 
-          右侧网格区：占据 7 列
-          修正：使用 items-end 使整体向右靠拢
-        */}
+        {/* 右侧网格区 */}
         <div className="col-span-7 flex flex-col justify-center items-end gap-6 overflow-visible">
             {Array.from({ length: config.rows }).map((_, r) => (
             <div 
                 key={r} 
                 className="flex gap-6 items-center justify-end"
                 style={{ 
-                  // 修正：向右靠拢时，交错效果应使用 marginRight
                   marginRight: config.stagger && r % 2 !== 0 ? '60px' : '0'
                 }}
             >

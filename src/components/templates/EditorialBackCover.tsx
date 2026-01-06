@@ -1,12 +1,12 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 
 /**
  * EditorialBackCover - 极简杂志封底
- * 优化版：加深底部版权信息颜色，提升可读性。
+ * 修复版：感应全局字体设置。
  */
-export default function EditorialBackCover({ page }: { page: PageData }) {
+export default function EditorialBackCover({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const displayTitle = page.title || 'THANKS';
   const displaySubtitle = page.subtitle || 'SlideGrid Studio // All Rights Reserved';
 
@@ -23,26 +23,26 @@ export default function EditorialBackCover({ page }: { page: PageData }) {
       <div className="max-w-[60%] text-center">
         <SlideHeadline 
           page={{...page, title: displayTitle}} 
+          typography={typography}
           maxSize={32} 
           minSize={16}
           weight={300}
           italic={true}
           className="!tracking-[0.4em] !normal-case"
-          style={{ 
-            color: accentColor,
-            fontFamily: "'Playfair Display', serif"
-          }}
+          style={{ color: accentColor }}
         />
       </div>
 
       {/* 2. 底部极小版权信息 */}
       <div className="absolute bottom-16 inset-x-0 flex flex-col items-center gap-3 pointer-events-none">
-        {/* 装饰线也稍微加深一点点 (opacity 0.2 -> 0.3) */}
         <div className="w-6 h-[1px] opacity-30" style={{ backgroundColor: accentColor }} />
         <p 
-          // 核心修复：移除 opacity-20，颜色设为 #666666 或根据 accentColor 计算出的深灰
           className="text-[7px] font-black tracking-[0.5em] uppercase text-center px-12 leading-loose"
-          style={{ color: page.accentColor ? page.accentColor : '#666666' }}
+          style={{ 
+            color: page.accentColor ? page.accentColor : '#666666',
+            // 核心：使用 Subtitle 字体
+            fontFamily: typography?.fieldOverrides?.['subtitle'] || `${typography?.defaultLatin}, ${typography?.defaultCJK}`
+          }}
         >
           {displaySubtitle}
         </p>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { PageData } from '../../types';
+import { PageData, TypographySettings } from '../../types';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideIcon } from '../ui/slide/SlideIcon';
 
-export default function StepTimeline({ page }: { page: PageData }) {
+export default function StepTimeline({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const allFeatures = page.features || [
     { title: 'Monitor Deployments live', desc: 'Track your deployments with clarity, seeing updates take place as they happen.', icon: 'Activity' },
     { title: 'Immediate Issue Detection', desc: 'Spot issues instantly and address them with precise metrics for optimized performance.', icon: 'Zap' },
@@ -21,17 +21,14 @@ export default function StepTimeline({ page }: { page: PageData }) {
     headerMargin: count >= 4 ? 'mb-10' : 'mb-20'
   };
 
-  const titleStyle = (page.styleOverrides as any)?.featureTitle || {};
-  const descStyle = (page.styleOverrides as any)?.featureDesc || {};
-
   return (
     <div 
-      className={`w-full h-full flex flex-col p-24 relative overflow-hidden transition-all duration-700`}
+      className={`w-full h-full flex flex-col p-24 relative overflow-hidden transition-all duration-700 isolate`}
       style={{ backgroundColor: page.backgroundColor || '#ffffff' }}
     >
       <div className={`${config.headerMargin} text-center flex flex-col items-center shrink-0 space-y-4 transition-all duration-500`}>
-        <SlideHeadline page={page} maxSize={56} className="text-slate-900 !font-medium tracking-tight" />
-        <SlideSubHeadline page={page} className="max-w-2xl text-slate-400 text-sm leading-relaxed" />
+        <SlideHeadline page={page} typography={typography} maxSize={56} className="text-slate-900 !font-medium tracking-tight" />
+        <SlideSubHeadline page={page} typography={typography} className="max-w-2xl text-slate-400 text-sm leading-relaxed" />
       </div>
 
       <div className="flex-1 flex justify-center items-center">
@@ -47,8 +44,20 @@ export default function StepTimeline({ page }: { page: PageData }) {
                 </div>
 
                 <div className="flex-1 flex flex-col gap-1 text-left">
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight line-clamp-1" style={{ fontSize: titleStyle.fontSize ? `${titleStyle.fontSize}px` : undefined, fontFamily: titleStyle.fontFamily }}>{step.title}</h3>
-                  <p className={`text-xs text-slate-400 leading-relaxed max-w-sm ${config.descLines}`} style={{ fontSize: descStyle.fontSize ? `${descStyle.fontSize}px` : undefined, fontFamily: descStyle.fontFamily }}>{step.desc}</p>
+                  {/* 核心修正：时间轴节点文字接入原子组件 */}
+                  <SlideHeadline 
+                    page={{...page, title: step.title}} 
+                    typography={typography}
+                    maxSize={20}
+                    minSize={16}
+                    className="!normal-case !tracking-tight !font-bold"
+                  />
+                  <SlideSubHeadline 
+                    page={{...page, subtitle: step.desc}} 
+                    typography={typography}
+                    size="0.75rem"
+                    className={`!text-slate-400 !leading-relaxed !max-w-sm ${config.descLines}`}
+                  />
                 </div>
 
                 <div 
@@ -56,12 +65,7 @@ export default function StepTimeline({ page }: { page: PageData }) {
                   style={{ height: config.cardHeight }}
                 >
                   {isImg ? (
-                    <SlideImage 
-                      page={page} 
-                      src={step.icon} 
-                      config={step.imageConfig} 
-                      className="w-full h-full"
-                    />
+                    <SlideImage page={page} src={step.icon} config={step.imageConfig} className="w-full h-full" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#F1F3F5]">
                       <SlideIcon name={step.icon || 'Box'} size={config.iconSize} strokeWidth={1.5} className="text-slate-900" />

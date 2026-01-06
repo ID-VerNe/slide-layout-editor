@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageData, CustomFont } from '../../../types';
+import { PageData } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
 import { DebouncedTextArea } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
@@ -7,10 +7,15 @@ import { FieldToolbar } from './FieldToolbar';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
-  customFonts: CustomFont[];
+  customFonts?: any; 
 }
 
-export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, customFonts }) => {
+/**
+ * TitleField - 优化版
+ * 1. 恢复字号调节工具栏。
+ * 2. 彻底移除局部字体选择。
+ */
+export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const isVisible = page.visibility?.title !== false;
 
   const toggle = () => {
@@ -24,21 +29,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
     onUpdate({ ...page, title: val });
   };
 
-  const handleFontChange = (val: string) => {
-    // 同时更新 titleFont 和清理 styleOverrides 里的冲突
-    onUpdate({ 
-      ...page, 
-      titleFont: val,
-      styleOverrides: {
-        ...(page.styleOverrides || {}),
-        title: {
-          ...(page.styleOverrides?.title || {}),
-          fontFamily: val
-        }
-      }
-    });
-  };
-
+  // 仅保留字号和颜色调节
   const updateFontSize = (delta: number) => {
     const currentSize = page.styleOverrides?.title?.fontSize;
     onUpdate({
@@ -47,7 +38,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
         ...(page.styleOverrides || {}),
         title: {
           ...(page.styleOverrides?.title || {}),
-          fontSize: Math.max(12, (currentSize || 140) + delta)
+          fontSize: Math.max(12, (currentSize || 120) + delta)
         }
       }
     });
@@ -68,7 +59,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
 
   return (
     <div className="space-y-2 relative">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <button
             onClick={toggle}
@@ -76,7 +67,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
           >
             {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
-          <span className="text-[10px] text-slate-400 font-bold uppercase">Headline</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Headline</span>
         </div>
 
         <div className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
@@ -95,20 +86,17 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, cu
       </div>
 
       <div className="relative group/field">
-        <FieldToolbar
-          onIncrease={() => updateFontSize(4)}
-          onDecrease={() => updateFontSize(-4)}
-          customFonts={customFonts}
-          currentFont={page.styleOverrides?.title?.fontFamily || page.titleFont}
-          onFontChange={handleFontChange}
+        {/* 核心修复：恢复工具栏（仅传控制函数，不传 customFonts 从而隐藏字体选择器） */}
+        <FieldToolbar 
+          onIncrease={() => updateFontSize(4)} 
+          onDecrease={() => updateFontSize(-4)} 
         />
         <DebouncedTextArea 
             rows={2} 
             value={page.title || ''} 
             onChange={handleChange} 
             placeholder="Title..." 
-            className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
-            style={{ fontFamily: page.styleOverrides?.title?.fontFamily || page.titleFont }} 
+            className={`text-sm font-bold bg-white/50 border-slate-100 hover:border-slate-200 focus:border-[#264376] ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
         />
       </div>
     </div>

@@ -19,11 +19,12 @@ import KinfolkMontage from '../components/templates/KinfolkMontage';
 import MicroAnchor from '../components/templates/MicroAnchor';
 import TypographyHero from '../components/templates/TypographyHero';
 import FilmDiptych from '../components/templates/FilmDiptych';
+import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import { AspectRatioType } from '../constants/layout';
 
 export type EditorFieldType = 
-  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' | 'signature' | 'image' | 'imageLabel' 
-  | 'features' | 'mosaic' | 'metrics' | 'partnersTitle' | 'partners' 
+  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
+  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' | 'partnersTitle' | 'partners' 
   | 'testimonials' | 'agenda' | 'gallery' | 'variant' | 'footer' | 'bullets' | 'backgroundColor' | 'pageNumber';
 
 export interface TemplateConfig {
@@ -32,7 +33,7 @@ export interface TemplateConfig {
   category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery';
   desc: string;
   tags: string[];
-  component: React.FC<{ page: any }>;
+  component: React.FC<{ page: any; typography?: any }>;
   fields: EditorFieldType[];
   supportedRatios: AspectRatioType[];
 }
@@ -42,6 +43,18 @@ const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
 };
 
 export const TEMPLATES: TemplateConfig[] = [
+  // --- Apple Style Bento (16:9 Exclusive) ---
+  {
+    id: 'apple-bento-grid',
+    name: 'Bento Showcase',
+    category: 'Product',
+    desc: 'Apple-style high-density modular grid for features and metrics',
+    tags: ['Bento', 'Grid', 'Apple', 'Showcase'],
+    component: AppleBentoGrid,
+    fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
+    supportedRatios: ['16:9']
+  },
+
   // --- Cover Category (2:3 Optimized) ---
   {
     id: 'editorial-classic',
@@ -50,7 +63,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Kinfolk style classic magazine cover with hard-edge image',
     tags: ['Magazine', 'Minimalist', 'Kinfolk'],
     component: EditorialClassic,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText']),
     supportedRatios: ['2:3']
   },
   {
@@ -60,7 +73,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Full-screen cinematic cover with floating serif typography',
     tags: ['Full Screen', 'Cinematic', 'Impact'],
     component: CinematicFullBleed,
-    fields: withBaseFields(['title', 'subtitle', 'image']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']), // 开启 imageLabel 以编辑版权
     supportedRatios: ['2:3']
   },
   {
@@ -146,7 +159,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Cinematic layout with gold accents and background numbers',
     tags: ['Gallery', 'Impact', 'Dynamic'],
     component: FutureFocus,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel', 'imageSubLabel', 'actionText']), // 开启年份和描述
     supportedRatios: ['16:9']
   },
   {
@@ -176,7 +189,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Japanese style minimalist split layout',
     tags: ['Gallery', 'Minimalist', 'Editorial'],
     component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets']),
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'footer']),
     supportedRatios: ['16:9']
   },
   {
@@ -260,6 +273,8 @@ export const TEMPLATES: TemplateConfig[] = [
     supportedRatios: ['16:9']
   }
 ];
+
+export type TemplateId = typeof TEMPLATES[number]['id'];
 
 export const getTemplateById = (id: string) => {
   return TEMPLATES.find(t => t.id === id) || TEMPLATES[0];

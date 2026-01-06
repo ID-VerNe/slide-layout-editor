@@ -1,64 +1,62 @@
 import React from 'react';
-import { Minus, Plus } from 'lucide-react';
 import { CustomFont } from '../../../types';
+import { Type } from 'lucide-react';
 import { FontSelect } from '../../ui/FontSelect';
 
 interface FieldToolbarProps {
   onIncrease: () => void;
   onDecrease: () => void;
-  // 字体相关
+  // 以下字段变为可选，如果不传则不显示字体选择
   customFonts?: CustomFont[];
   currentFont?: string;
-  onFontChange?: (font: string) => void;
+  onFontChange?: (v: string) => void;
 }
 
 /**
- * FieldToolbar 组件
- * 核心修复：使用 group-focus-within/field 命名组，防止在列表组件中多个工具栏同时显示的问题。
+ * FieldToolbar - 智能工具栏
+ * 优化版：将 - 和 + 修改为右上角标，提升视觉直觉。
  */
 export const FieldToolbar: React.FC<FieldToolbarProps> = ({ 
   onIncrease, 
-  onDecrease,
-  customFonts,
-  currentFont,
-  onFontChange
+  onDecrease, 
+  customFonts, 
+  currentFont, 
+  onFontChange 
 }) => {
   return (
-    <div className="absolute -top-10 right-0 flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl px-2 py-1 z-30 opacity-0 group-focus-within/field:opacity-100 transition-all scale-90 group-focus-within/field:scale-100 pointer-events-none group-focus-within/field:pointer-events-auto origin-bottom-right">
+    <div className="absolute -top-10 right-0 flex items-center gap-1.5 bg-white border border-slate-200 p-1.5 rounded-xl shadow-xl z-20 opacity-0 group-hover/field:opacity-100 transition-all scale-95 group-hover/field:scale-100 pointer-events-auto">
       
-      {/* 字体选择器整合 */}
-      {onFontChange && (
-        <>
-          <div className="min-w-[100px] max-w-[140px]">
+      {/* 字体选择器 (可选渲染) */}
+      {onFontChange && customFonts && (
+        <div className="flex items-center gap-2 pr-2 border-r border-slate-100 mr-1">
+          <Type size={12} className="text-slate-400 ml-1" />
+          <div className="w-32">
             <FontSelect 
-              customFonts={customFonts || []} 
               value={currentFont} 
               onChange={onFontChange} 
-              compact={true}
+              customFonts={customFonts} 
+              compact 
             />
           </div>
-          <div className="w-px h-4 bg-slate-100 mx-1" />
-        </>
+        </div>
       )}
 
-      {/* 字号调整 */}
-      <div className="flex items-center gap-0.5">
+      {/* 字号调节 (必备) */}
+      <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5">
         <button 
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDecrease(); }}
-          className="p-1.5 hover:bg-[#264376]/10 rounded-lg text-[#264376] transition-colors flex items-center gap-0.5"
+          onClick={(e) => { e.preventDefault(); onDecrease(); }}
+          className="px-2 py-1 text-[11px] font-black text-slate-400 hover:text-[#264376] hover:bg-white rounded-md transition-all active:scale-90 flex items-center"
           title="Decrease Size"
         >
-          <span className="text-[10px] font-black tracking-tighter">A</span>
-          <Minus size={10} strokeWidth={3} />
+          A<sup className="text-[8px] ml-0.5 mt-[-2px]">-</sup>
         </button>
-        
+        <div className="w-px h-3 bg-slate-200 mx-0.5" />
         <button 
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onIncrease(); }}
-          className="p-1.5 hover:bg-[#264376]/10 rounded-lg text-[#264376] transition-colors flex items-center gap-0.5"
+          onClick={(e) => { e.preventDefault(); onIncrease(); }}
+          className="px-2 py-1 text-[11px] font-black text-slate-400 hover:text-[#264376] hover:bg-white rounded-md transition-all active:scale-90 flex items-center"
           title="Increase Size"
         >
-          <span className="text-[10px] font-black tracking-tighter">A</span>
-          <Plus size={10} strokeWidth={3} />
+          A<sup className="text-[8px] ml-0.5 mt-[-2px]">+</sup>
         </button>
       </div>
     </div>

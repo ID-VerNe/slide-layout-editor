@@ -1,13 +1,13 @@
 export type SlideLayoutType =
-  | 'cover-main'      // 封面：大标题 + 背景图 (左下对齐)
-  | 'content-bullets' // 正文：左标题 + 右列表 (悬浮卡片)
-  | 'split-image'     // 图文：全屏分割
-  | 'big-statement'   // 强调：极简金句
-  | 'step-timeline'   // 步骤：纵向时间轴
-  | 'gallery-capsule' // 图库：胶囊马赛克
-  | 'back-cover-movie' // 封底：电影谢幕
-  | 'code-snippet'    // 代码：代码演示
-  | 'data-grid';       // 数据：网格展示
+  | 'cover-main'      
+  | 'content-bullets' 
+  | 'split-image'     
+  | 'big-statement'   
+  | 'step-timeline'   
+  | 'gallery-capsule' 
+  | 'back-cover-movie' 
+  | 'code-snippet'    
+  | 'data-grid';       
 
 export type CounterStyle = 'number' | 'alpha' | 'roman' | 'dots';
 export type BackgroundPatternType = 'none' | 'grid' | 'dots' | 'diagonal' | 'cross';
@@ -63,7 +63,7 @@ export interface AgendaData {
 export interface GalleryItem {
   id?: string;
   url: string;
-  caption?: string; // Add caption support for gallery
+  caption?: string; 
   config?: {
     scale: number;
     x: number;
@@ -75,27 +75,61 @@ export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
 
 import { TemplateId } from './templates/registry';
 
+// --- Bento Box 专用定义 ---
+export type BentoItemType = 'metric' | 'icon-text' | 'image' | 'feature-list';
+
+export interface BentoItem {
+  id: string;
+  type: BentoItemType;
+  x: number;       
+  y: number;       
+  colSpan: number; 
+  rowSpan: number;
+  title?: string;
+  subtitle?: string;
+  value?: string;
+  icon?: string;
+  image?: string;
+  imageConfig?: {
+    scale: number;
+    x: number;
+    y: number;
+  };
+  theme?: 'light' | 'dark' | 'accent' | 'glass';
+}
+
+/**
+ * 字体管控层
+ */
+export interface TypographySettings {
+  // 1. 粗略调整
+  defaultLatin: string; // 默认英文字体
+  defaultCJK: string;   // 默认中文字体
+  // 2. 精细调整 (Key 是字段名，如 'title', 'subtitle', 'paragraph')
+  fieldOverrides: Record<string, string>;
+}
+
 export interface PageData {
   id: string;
   type: 'slide';
   layoutId: TemplateId;
-  aspectRatio: AspectRatioType; // 新增：单页比例定义
+  aspectRatio: AspectRatioType; 
   layoutVariant?: string;
 
-  // 核心内容
   title: string;
   subtitle?: string;
-  bullets?: string[]; // 暂保持 string[] 兼容，建议组件层处理 ID
+  bullets?: string[]; 
   actionText?: string;
-  paragraph?: string; // 新增：长文段落内容
+  paragraph?: string; 
   imageLabel?: string;
   imageSubLabel?: string;
 
-  // 扩展内容
     code?: string;
     language?: string;
     metrics?: MetricData[];
     features?: FeatureData[];
+    bentoItems?: BentoItem[]; 
+    bentoConfig?: { rows: number; cols: number }; 
     mosaicIcons?: string[];
     mosaicConfig?: {
       rows: number;
@@ -110,49 +144,42 @@ export interface PageData {
     activeIndex?: number;
     partnersTitle?: string;
 
-    // 图库数据
     gallery?: GalleryItem[];
 
-    // 视觉元素        logo?: string;      // 自定义 Logo
-
-    logoSize?: number;  // Logo 大小
-
+    logo?: string;
+    logoSize?: number;
     image?: string;
-
     imageConfig?: {
       scale: number;
       x: number;
       y: number;
     };
   backgroundColor?: string;
-  accentColor?: string; // 新增：模板强调色 (用于装饰线、高亮文字等)
-  themeColor?: string; // 主题色
-  layoutVariant?: string; // 用于存储布局变体，如 'left' | 'right'
+  accentColor?: string; 
+  themeColor?: string; 
+  layoutVariant?: string; 
 
-  // 字体配置
-  titleFont?: string;
+  titleFont?: string; // 兼容旧数据
   bodyFont?: string;
 
-  // 页脚信息
   footer?: string;
   pageNumber?: boolean;
-  minimalCounter?: boolean; // 新增：极简页码模式（移除背景和边框）
-  counterColor?: string; // 新增：全局页码颜色
-  pageNumberText?: string; // 新增：页码关闭时的替代文本
-  signature?: string; // 新增：本人签名内容 (文字或 Base64 图片)
-  signatureType?: 'text' | 'image'; // 新增：签名类型
+  minimalCounter?: boolean; 
+  counterColor?: string; 
+  pageNumberText?: string; 
+  signature?: string; 
+  signatureType?: 'text' | 'image'; 
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
 
-  // 样式覆盖 (如自定义字号)
   styleOverrides?: Record<string, {
     fontSize?: number;
     lineHeight?: number;
     letterSpacing?: number;
     color?: string;
+    fontFamily?: string;
   }>;
 
-  // 显隐控制
   visibility?: {
     title?: boolean;
     subtitle?: boolean;
@@ -174,7 +201,9 @@ export interface PrintSettings {
   widthMm: number;
   heightMm: number;
   gutterMm: number;
-  // 为每种方向存储独立的装订配置
+  showGutterShadow: boolean;
+  showTrimShadow: boolean;
+  showContentFrame: boolean;
   configs: {
     landscape: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
     portrait: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
@@ -187,8 +216,9 @@ export interface ProjectData {
   title: string;
   pages: PageData[];
   customFonts: CustomFont[];
-  imageQuality?: number; // 新增：全局图片质量控制 (0.1 - 1.0)
-  minimalCounter?: boolean; // 新增：全局极简页码开关
-  counterColor?: string; // 新增：全局页码颜色
-  printSettings?: PrintSettings; // 新增：全局打印/装订设置
+  imageQuality?: number; 
+  minimalCounter?: boolean; 
+  counterColor?: string; 
+  printSettings?: PrintSettings; 
+  typography?: TypographySettings; // 新增：全局字体管控
 }

@@ -1,47 +1,51 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, TypographySettings } from '../../../types';
 
 interface SlideBlockLabelProps {
   page: PageData;
+  typography?: TypographySettings;
+  text?: string;
   className?: string;
-  bg?: string;
   color?: string;
-  radius?: string;
-  border?: string;
   style?: React.CSSProperties;
 }
 
+/**
+ * SlideBlockLabel - 全局字体感应版
+ */
 export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({ 
   page, 
+  typography,
+  text, 
   className = "",
-  bg,
   color,
-  radius,
-  border,
-  style
+  style 
 }) => {
-  const isVisible = page.visibility?.actionText !== false;
-  if (!isVisible || !page.actionText) return null;
+  const labelText = text || page.imageLabel;
+  if (!labelText) return null;
 
-  const customFontSize = page.styleOverrides?.actionText?.fontSize;
+  // 计算字体链
+  const getFontFamily = () => {
+    const fieldFont = typography?.fieldOverrides?.['imageLabel'];
+    if (fieldFont) return fieldFont;
+
+    const latin = typography?.defaultLatin || "'Inter', sans-serif";
+    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
+    return `${latin}, ${cjk}`;
+  };
 
   const combinedStyle: React.CSSProperties = {
-    backgroundColor: bg || '#0F172A', // 默认深蓝色背景
-    color: color || '#ffffff',       // 强制白色文字
-    borderRadius: radius || '0.5rem',
-    border: border || '1px solid rgba(255,255,255,0.1)',
-    fontSize: customFontSize ? `${customFontSize}px` : undefined,
-    overflowWrap: 'anywhere',
-    wordBreak: 'break-word',
-    ...style
+    color: color || 'inherit',
+    ...style,
+    fontFamily: getFontFamily()
   };
 
   return (
     <div 
-      className={`px-4 py-2 font-black text-[13px] uppercase tracking-[0.2em] shadow-lg inline-block text-white ${className}`}
+      className={`text-[10px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-pre-line ${className}`}
       style={combinedStyle}
     >
-      {page.actionText}
+      {labelText}
     </div>
   );
 };

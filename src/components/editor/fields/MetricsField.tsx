@@ -1,123 +1,73 @@
 import React from 'react';
 import { PageData, MetricData } from '../../../types';
-import { Eye, EyeOff, TrendingUp, Plus, X } from 'lucide-react';
-import { Label, Input } from '../../ui/Base';
+import { Activity, Plus, X, Type } from 'lucide-react';
+import { Input } from '../../ui/Base';
+import { FieldWrapper } from './FieldWrapper';
+import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
 }
 
-export const MetricsField: React.FC<FieldProps> = ({ page, onUpdate }) => {
-  const isVisible = page.visibility?.metrics !== false;
+export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+  const metrics = page.metrics || [];
 
-  const toggle = () => {
-    onUpdate({
-      ...page,
-      visibility: { ...(page.visibility || {}), metrics: !isVisible }
-    });
-  };
-
-  const handleMetricChange = (index: number, field: keyof MetricData, value: string) => {
-    const newMetrics = [...(page.metrics || [])];
-    newMetrics[index] = { ...newMetrics[index], [field]: value };
+  const updateMetrics = (newMetrics: MetricData[]) => {
     onUpdate({ ...page, metrics: newMetrics });
   };
 
-  const addMetric = () => {
-    const currentMetrics = page.metrics || [];
-    if (currentMetrics.length >= 6) return; 
-    onUpdate({
-      ...page, 
-      metrics: [...currentMetrics, { label: 'New Metric', value: '0', unit: '', subLabel: '' }]
-    });
+  const addItem = () => {
+    updateMetrics([...metrics, { label: 'New Metric', value: '00', unit: '' }]);
   };
 
-  const removeMetric = (index: number) => {
-    const currentMetrics = page.metrics || [];
+  const updateItem = (idx: number, updates: Partial<MetricData>) => {
+    const newMetrics = [...metrics];
+    newMetrics[idx] = { ...newMetrics[idx], ...updates };
+    updateMetrics(newMetrics);
+  };
+
+  const removeItem = (idx: number) => {
+    updateMetrics(metrics.filter((_, i) => i !== idx));
+  };
+
+  const updateFontSize = (delta: number) => {
+    const currentSize = page.styleOverrides?.metrics?.fontSize;
     onUpdate({
       ...page,
-      metrics: currentMetrics.filter((_, i) => i !== index)
+      styleOverrides: {
+        ...(page.styleOverrides || {}),
+        metrics: {
+          ...(page.styleOverrides?.metrics || {}),
+          fontSize: Math.max(12, (currentSize || 72) + delta)
+        }
+      }
     });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
-        <button 
-          onClick={toggle}
-          className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}
-        >
-          {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <Label icon={TrendingUp} className="mb-0">Big Data Metrics</Label>
-      </div>
-      
-      <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-        {(page.metrics || []).map((m, idx) => (
-          <div key={idx} className="relative group p-5 bg-slate-50 rounded-[2rem] space-y-4 border border-transparent hover:border-slate-200 transition-all shadow-sm">
-            <button 
-              onClick={() => removeMetric(idx)}
-              className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"
-            >
-              <X size={14} />
-            </button>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="metrics" label="Big Data Metrics" icon={Activity}>
+      <div className="space-y-4">
+        {/* 全局控制 metrics 大小 */}
+        <div className="relative group/field mb-2 bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
+           <span className="text-[9px] font-black uppercase text-slate-400 ml-2">Global Metrics Size</span>
+           <div className="scale-90 origin-right">
+             <FieldToolbar onIncrease={() => updateFontSize(4)} onDecrease={() => updateFontSize(-4)} />
+           </div>
+        </div>
 
-            {/* 数值主输入区 */}
-            <div className="space-y-1">
-               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Big Value</span>
-               <div className="flex gap-2">
-                  <Input 
-                    placeholder="e.g. 2.2x" 
-                    value={m.value || ''} 
-                    onChange={(e) => handleMetricChange(idx, 'value', e.target.value)}
-                    className="text-lg font-black text-[#264376] bg-white border-slate-100"
-                  />
-                  <div className="relative w-24">
-                    <Input 
-                        placeholder="Unit" 
-                        value={m.unit || ''} 
-                        onChange={(e) => handleMetricChange(idx, 'unit', e.target.value)}
-                        className="text-xs font-mono bg-white border-slate-100"
-                    />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-slate-300 pointer-events-none uppercase">TeX</div>
-                  </div>
-               </div>
+        {metrics.map((m, idx) => (
+          <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3 relative group">
+            <button onClick={() => removeItem(idx)} className="absolute top-2 right-2 text-slate-300 hover:text-red-500"><X size={14}/></button>
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="Value (e.g. 99)" value={m.value} onChange={(e) => updateItem(idx, { value: e.target.value })} className="font-bold text-lg" />
+              <Input placeholder="Unit (LaTeX support)" value={m.unit} onChange={(e) => updateItem(idx, { unit: e.target.value })} />
             </div>
-
-            {/* 描述辅助区 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Label</span>
-                <Input 
-                    placeholder="Description..." 
-                    value={m.label || ''} 
-                    onChange={(e) => handleMetricChange(idx, 'label', e.target.value)}
-                    className="text-[10px] font-bold bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sub-label</span>
-                <Input 
-                    placeholder="Context..." 
-                    value={m.subLabel || ''} 
-                    onChange={(e) => handleMetricChange(idx, 'subLabel', e.target.value)}
-                    className="text-[10px] bg-white"
-                />
-              </div>
-            </div>
+            <Input placeholder="Label (e.g. Accuracy)" value={m.label} onChange={(e) => updateItem(idx, { label: e.target.value })} className="text-[10px] uppercase font-black tracking-widest" />
           </div>
         ))}
-
-        <button 
-          onClick={addMetric}
-          disabled={(page.metrics?.length || 0) >= 6}
-          className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95"
-        >
-          <Plus size={16} strokeWidth={3} />
-          Add Metric
-        </button>
+        <button onClick={addItem} className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 font-bold uppercase text-xs hover:border-[#264376] hover:text-[#264376] transition-all flex items-center justify-center gap-2"><Plus size={14} /> Add Metric</button>
       </div>
-    </div>
+    </FieldWrapper>
   );
-};
+});
