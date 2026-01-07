@@ -4,6 +4,7 @@ import { LayoutGrid, Plus, X, Type, Image as ImageIcon, Box, Activity, ChevronRi
 import { FieldWrapper } from './FieldWrapper';
 import { Input, Label, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
+import { FieldToolbar } from './FieldToolbar';
 import Modal from '../../Modal';
 
 interface FieldProps {
@@ -13,7 +14,7 @@ interface FieldProps {
 
 export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
-  const [adjustingIdx, setAdjustingIdx] = useState<number | null>(null); // 记录正在微调图片的索引
+  const [adjustingIdx, setAdjustingIdx] = useState<number | null>(null); 
   
   const items = page.bentoItems || [];
   const bentoConfig = page.bentoConfig || { rows: 4, cols: 4 };
@@ -36,10 +37,14 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
     updateItems(newItems);
   };
 
+  const updateFontSize = (idx: number, delta: number) => {
+    const current = items[idx].fontSize || 1;
+    updateItem(idx, { fontSize: Math.max(0.5, current + delta * 0.1) });
+  };
+
   return (
     <FieldWrapper page={page} onUpdate={onUpdate} label="Bento Grid" icon={LayoutGrid} fieldKey="features">
       <div className="space-y-4">
-        {/* 1. 网格规格 */}
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-4">
            <Grid3X3 size={16} className="text-slate-400" />
            <div className="flex-1 flex gap-2">
@@ -58,21 +63,24 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
            </div>
         </div>
 
-        {/* 2. 可视化按钮 */}
         <button onClick={() => setIsVisualEditorOpen(true)} className="w-full py-4 bg-[#264376] text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-[#264376]/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 active:scale-95">
           <MousePointer2 size={16} /> Open Visual Grid Designer
         </button>
 
-        {/* 3. 列表编辑器 */}
         <div className="space-y-3">
           {items.map((item, idx) => (
-            <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative overflow-hidden">
+            <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative group/field">
+              <FieldToolbar 
+                onIncrease={() => updateFontSize(idx, 1)} 
+                onDecrease={() => updateFontSize(idx, -1)}
+              />
+
               <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">
                  <div className="flex bg-slate-100 rounded-lg p-0.5">
-                    <button onClick={() => updateItem(idx, { type: 'metric' })} className={`p-1.5 rounded-md ${item.type === 'metric' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`}><Activity size={14}/></button>
-                    <button onClick={() => updateItem(idx, { type: 'icon-text' })} className={`p-1.5 rounded-md ${item.type === 'icon-text' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`}><Box size={14}/></button>
-                    <button onClick={() => updateItem(idx, { type: 'image' })} className={`p-1.5 rounded-md ${item.type === 'image' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`}><ImageIcon size={14}/></button>
-                    <button onClick={() => updateItem(idx, { type: 'feature-list' })} className={`p-1.5 rounded-md ${item.type === 'feature-list' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`}><Type size={14}/></button>
+                    <button onClick={() => updateItem(idx, { type: 'metric' })} className={`p-1.5 rounded-md ${item.type === 'metric' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`} title="Metric"><Activity size={14}/></button>
+                    <button onClick={() => updateItem(idx, { type: 'icon-text' })} className={`p-1.5 rounded-md ${item.type === 'icon-text' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`} title="Icon & Text"><Box size={14}/></button>
+                    <button onClick={() => updateItem(idx, { type: 'image' })} className={`p-1.5 rounded-md ${item.type === 'image' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`} title="Image"><ImageIcon size={14}/></button>
+                    <button onClick={() => updateItem(idx, { type: 'feature-list' })} className={`p-1.5 rounded-md ${item.type === 'feature-list' ? 'bg-white shadow-sm text-[#264376]' : 'text-slate-400'}`} title="Text Only"><Type size={14}/></button>
                  </div>
                  <span className="text-[8px] font-black text-slate-300 uppercase ml-2">{item.colSpan}x{item.rowSpan}</span>
                  {item.type === 'image' && item.image && (
@@ -112,7 +120,16 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
                     )}
                   </div>
                 )}
-                {(item.type === 'icon-text' || item.type === 'feature-list') && (
+                {item.type === 'icon-text' && (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <IconPicker value={item.icon || 'Box'} onChange={(v) => updateItem(idx, { icon: v })} />
+                      <Input placeholder="Title" value={item.title || ''} onChange={(e) => updateItem(idx, { title: e.target.value })} className="flex-1 font-bold" />
+                    </div>
+                    <Input placeholder="Subtitle" value={item.subtitle || ''} onChange={(e) => updateItem(idx, { subtitle: e.target.value })} />
+                  </div>
+                )}
+                {item.type === 'feature-list' && (
                   <div className="space-y-2">
                     <Input placeholder="Title" value={item.title || ''} onChange={(e) => updateItem(idx, { title: e.target.value })} className="font-bold" />
                     <Input placeholder="Subtitle" value={item.subtitle || ''} onChange={(e) => updateItem(idx, { subtitle: e.target.value })} />
@@ -177,7 +194,8 @@ const BentoVisualDesigner = ({ rows, cols, currentItems, onSave }: { rows: numbe
       colSpan: selectionInfo.w,
       rowSpan: selectionInfo.h,
       theme: 'light',
-      title: 'New Item'
+      title: 'New Item',
+      fontSize: 1 
     };
     setItems([...items, newItem]);
     setSelectedCells(new Set());
@@ -187,31 +205,57 @@ const BentoVisualDesigner = ({ rows, cols, currentItems, onSave }: { rows: numbe
     <div className="space-y-8 p-6">
       <div className="flex justify-between items-start">
         <div className="space-y-1">
-          <h4 className="text-sm font-black uppercase tracking-tight">Step 1: Paint your layout</h4>
-          <p className="text-xs text-slate-400">Click cells to select a rectangular area, then click "Merge Selection".</p>
+          <h4 className="text-sm font-black uppercase tracking-tight text-slate-900">Step 1: Paint your layout</h4>
+          <p className="text-xs text-slate-400 font-medium">Click cells to select a rectangular area, then click "Merge Selection". Double click an item to delete.</p>
         </div>
         <div className="flex gap-3">
-          <button disabled={!selectionInfo?.isValid} onClick={createFromSelection} className={`px-6 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${selectionInfo?.isValid ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>
+          <button disabled={!selectionInfo?.isValid} onClick={createFromSelection} className={`px-6 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${selectionInfo?.isValid ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>
             Merge Selection {selectionInfo?.isValid && `(${selectionInfo.w}x${selectionInfo.h})`}
           </button>
-          <button onClick={() => onSave(items)} className="px-8 py-2.5 bg-[#264376] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-[#264376]/20">Save & Exit</button>
+          <button onClick={() => onSave(items)} className="px-8 py-2.5 bg-[#264376] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-[#264376]/20 transition-all hover:brightness-110">Save & Exit</button>
         </div>
       </div>
 
-      <div className="grid gap-2.5 bg-slate-100 p-4 rounded-[2rem] aspect-[16/10] relative select-none" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
+      {/* 核心修正：背景格与已放置项共享同一个原生 Grid 容器 */}
+      <div 
+        className="grid gap-2.5 bg-slate-100 p-4 rounded-[2.5rem] aspect-[16/10] select-none" 
+        style={{ 
+          gridTemplateColumns: `repeat(${cols}, 1fr)`, 
+          gridTemplateRows: `repeat(${rows}, 1fr)` 
+        }}
+      >
+        {/* A. 背景格 (占位符) */}
         {Array.from({ length: rows * cols }).map((_, i) => {
           const x = (i % cols) + 1;
           const y = Math.floor(i / cols) + 1;
           const isSelected = selectedCells.has(`${x}-${y}`);
           const occupied = isOccupied(x, y);
           return (
-            <div key={i} onClick={() => toggleCell(x, y)} className={`rounded-xl border-2 transition-all cursor-pointer flex items-center justify-center ${occupied ? 'bg-slate-200 border-transparent opacity-50 cursor-not-allowed' : isSelected ? 'bg-blue-500 border-blue-600 shadow-inner' : 'bg-white border-slate-200 hover:border-blue-300'}`}>
+            <div 
+              key={`bg-${i}`} 
+              onClick={() => toggleCell(x, y)} 
+              style={{ gridColumn: x, gridRow: y }}
+              className={`rounded-xl border-2 transition-all cursor-pointer flex items-center justify-center
+                ${occupied ? 'bg-slate-200/50 border-transparent opacity-0 pointer-events-none' : 
+                  isSelected ? 'bg-blue-500 border-blue-600 shadow-inner' : 'bg-white border-slate-200 hover:border-blue-300'}`}
+            >
               {isSelected && <Check size={12} className="text-white" />}
             </div>
           );
         })}
+
+        {/* B. 已放置的项 (原生定位) */}
         {items.map((item) => (
-          <div key={item.id} onDoubleClick={() => setItems(items.filter(i => i.id !== item.id))} className="absolute rounded-xl bg-[#264376] text-white flex flex-col items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-95 duration-200 cursor-help group" style={{ left: `calc(${((item.x - 1) / cols) * 100}% + 16px)`, top: `calc(${((item.y - 1) / rows) * 100}% + 16px)`, width: `calc(${(item.colSpan / cols) * 100}% - 10px)`, height: `calc(${(item.rowSpan / rows) * 100}% - 10px)` }}>
+          <div 
+            key={item.id} 
+            onDoubleClick={() => setItems(items.filter(i => i.id !== item.id))} 
+            className="rounded-xl bg-[#264376] text-white flex flex-col items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-95 duration-200 cursor-help group transition-transform active:scale-95" 
+            style={{ 
+              gridColumn: `${item.x} / span ${item.colSpan}`, 
+              gridRow: `${item.y} / span ${item.rowSpan}`,
+              zIndex: 10 
+            }}
+          >
             <span className="text-[10px] font-black uppercase opacity-60 leading-none">{item.colSpan}x{item.rowSpan}</span>
             <X size={12} className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { PageData, TypographySettings } from '../../types';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
+import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 
 /**
  * EditorialBackCover - 极简杂志封底
- * 修复版：感应全局字体设置。
+ * 最终加固版：全原子化渲染，支持字号微调。
  */
 export default function EditorialBackCover({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const displayTitle = page.title || 'THANKS';
@@ -33,19 +34,16 @@ export default function EditorialBackCover({ page, typography }: { page: PageDat
         />
       </div>
 
-      {/* 2. 底部极小版权信息 */}
+      {/* 2. 底部极小版权信息 - 核心修正：接入 SlideSubHeadline */}
       <div className="absolute bottom-16 inset-x-0 flex flex-col items-center gap-3 pointer-events-none">
         <div className="w-6 h-[1px] opacity-30" style={{ backgroundColor: accentColor }} />
-        <p 
-          className="text-[7px] font-black tracking-[0.5em] uppercase text-center px-12 leading-loose"
-          style={{ 
-            color: page.accentColor ? page.accentColor : '#666666',
-            // 核心：使用 Subtitle 字体
-            fontFamily: typography?.fieldOverrides?.['subtitle'] || `${typography?.defaultLatin}, ${typography?.defaultCJK}`
-          }}
-        >
-          {displaySubtitle}
-        </p>
+        <SlideSubHeadline 
+          page={{...page, subtitle: displaySubtitle}}
+          typography={typography}
+          size="7px"
+          color={page.accentColor || '#666666'}
+          className="!tracking-[0.5em] !uppercase !text-center !px-12 !leading-loose !opacity-100"
+        />
       </div>
 
     </div>

@@ -73,7 +73,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Full-screen cinematic cover with floating serif typography',
     tags: ['Full Screen', 'Cinematic', 'Impact'],
     component: CinematicFullBleed,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']), // 开启 imageLabel 以编辑版权
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']), 
     supportedRatios: ['2:3']
   },
   {
@@ -159,7 +159,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Cinematic layout with gold accents and background numbers',
     tags: ['Gallery', 'Impact', 'Dynamic'],
     component: FutureFocus,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel', 'imageSubLabel', 'actionText']), // 开启年份和描述
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel', 'imageSubLabel', 'actionText']), 
     supportedRatios: ['16:9']
   },
   {
@@ -189,7 +189,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Japanese style minimalist split layout',
     tags: ['Gallery', 'Minimalist', 'Editorial'],
     component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'footer']),
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'paragraph']), // 核心：移除 footer，换成 paragraph
     supportedRatios: ['16:9']
   },
   {

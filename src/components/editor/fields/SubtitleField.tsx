@@ -7,13 +7,8 @@ import { FieldToolbar } from './FieldToolbar';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
-  customFonts?: any;
 }
 
-/**
- * SubtitleField - 优化版
- * 彻底移除字体选择下拉框，保留字号调节。
- */
 export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const isVisible = page.visibility?.subtitle !== false;
 
@@ -44,28 +39,29 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate 
 
   return (
     <div className="space-y-2 relative">
-      <div className="flex items-center gap-2 px-1">
+      <div className="flex items-center gap-2">
         <button
           onClick={toggle}
           className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}
         >
           {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
         </button>
-        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sub-description</span>
+        <span className="text-[10px] text-slate-400 font-bold uppercase">Sub-description</span>
       </div>
 
       <div className="relative group/field">
-        {/* 核心修复：移除字体选择，仅保留 A-/A+ */}
         <FieldToolbar 
-          onIncrease={() => updateFontSize(1)} 
-          onDecrease={() => updateFontSize(-1)} 
+          isFloating
+          onIncrease={() => updateFontSize(2)} 
+          onDecrease={() => updateFontSize(-2)} 
         />
         <DebouncedTextArea 
-            rows={3} 
+            rows={2} 
             value={page.subtitle || ''} 
             onChange={handleChange} 
-            placeholder="Subtitle / Description..." 
-            className={`text-[13px] bg-white/50 border-slate-100 hover:border-slate-200 focus:border-[#264376] ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
+            placeholder="Subtitle..." 
+            className={`text-xs ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
+            style={{ fontFamily: page.styleOverrides?.subtitle?.fontFamily || page.bodyFont }} 
         />
       </div>
     </div>

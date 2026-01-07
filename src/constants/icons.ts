@@ -13,9 +13,15 @@ import {
   Fingerprint, Wrench, Menu
 } from 'lucide-react';
 
+/**
+ * LUCIDE_ICON_MAP - 显式图标映射表
+ * 确保 Key 字符串与 Lucide 官方 PascalCase 名称完全一致
+ */
 export const LUCIDE_ICON_MAP: Record<string, any> = {
   Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
-  Search, X, LayoutGrid, Upload, ImageIcon, History, Trash2, GlobeIcon,
+  Search, X, LayoutGrid, Upload, 
+  Image: ImageIcon, // 显式映射 Image 到导入的 ImageIcon
+  History, Trash2, GlobeIcon,
   Code, Layers, HardDrive, GitBranch, GitCommit, GitPullRequest, Binary, Bot, Boxes,
   CircuitBoard, Container, Database, FileCode, Microchip,
   Dna, FlaskConical, Atom, Microscope, Beaker, TestTube, FlaskRound, Radiation, Biohazard,
@@ -27,6 +33,7 @@ export const LUCIDE_ICON_MAP: Record<string, any> = {
   Shield, Lock, Settings, Zap, Bell, Check, PlusCircle, Info, ShieldAlert, Key,
   Fingerprint, Wrench, Menu
 };
+
 export {
   Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
   Search, X, LayoutGrid, Upload, ImageIcon, History, Trash2, GlobeIcon

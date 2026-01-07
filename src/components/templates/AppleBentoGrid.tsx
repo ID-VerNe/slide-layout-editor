@@ -35,32 +35,31 @@ const BentoCell = ({ item, page, typography }: { item: BentoItem; page: PageData
   };
   const bgClass = themeStyles[item.theme || 'light'];
 
+  const fz = item.fontSize || 1;
+
   const content = () => {
     switch (item.type) {
       case 'metric':
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
-             {/* Value - 使用 SlideHeadline 原子逻辑 */}
              <SlideHeadline 
                page={{...page, title: item.value || '00'}} 
                typography={typography}
-               maxSize={48}
-               minSize={24}
+               maxSize={48 * fz} 
+               minSize={24 * fz}
                className="!tracking-tighter !leading-none mb-3 !opacity-90 !normal-case"
              />
-             {/* Title - 使用 SlideSubHeadline 原子逻辑 */}
              <SlideSubHeadline 
                page={{...page, subtitle: item.title}} 
                typography={typography}
-               size="10px"
+               size={`${10 * fz}px`}
                className="!font-black !uppercase !tracking-[0.2em] !opacity-60 line-clamp-1"
              />
-             {/* Subtitle */}
              {item.subtitle && (
                <SlideSubHeadline 
                  page={{...page, subtitle: item.subtitle}} 
                  typography={typography}
-                 size="8px"
+                 size={`${8 * fz}px`}
                  className="!font-medium !opacity-40 mt-1 !leading-relaxed max-w-[90%] line-clamp-2"
                />
              )}
@@ -76,15 +75,15 @@ const BentoCell = ({ item, page, typography }: { item: BentoItem; page: PageData
                  rounded="0" 
                />
              ) : (
-               <div className="w-full h-full flex items-center justify-center bg-slate-100/50 text-slate-300"><SlideIcon name="Image" size={32} /></div>
+               <div className="w-full h-full flex items-center justify-center bg-slate-100/50 text-slate-300"><SlideIcon name="Image" size={32} * fz /></div>
              )}
              {item.title && (
                <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end pointer-events-none">
-                 <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-slate-900 shadow-xl border border-white/20">
+                 <div className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-slate-900 shadow-xl border border-white/20">
                     <SlideSubHeadline 
                       page={{...page, subtitle: item.title}} 
                       typography={typography}
-                      size="8px"
+                      size={`${8 * fz}px`}
                       className="!font-black !tracking-tight !m-0 !p-0"
                     />
                  </div>
@@ -96,20 +95,20 @@ const BentoCell = ({ item, page, typography }: { item: BentoItem; page: PageData
         return (
           <div className="flex flex-col items-center justify-center h-full text-center gap-2 p-4">
              <div className={`p-3 rounded-xl transition-colors duration-500 ${item.theme === 'dark' ? 'bg-white/10' : 'bg-black/5'}`}>
-                <SlideIcon name={item.icon || 'Box'} size={24} className={item.theme === 'dark' ? 'text-white' : 'text-[#264376]'} />
+                <SlideIcon name={item.icon || 'Box'} size={24 * fz} className={item.theme === 'dark' ? 'text-white' : 'text-[#264376]'} />
              </div>
              <div className="space-y-1">
                <SlideHeadline 
                  page={{...page, title: item.title}} 
                  typography={typography}
-                 maxSize={14}
-                 minSize={12}
+                 maxSize={14 * fz}
+                 minSize={12 * fz}
                  className="!font-black !tracking-tight line-clamp-1 !normal-case"
                />
                <SlideSubHeadline 
                  page={{...page, subtitle: item.subtitle}} 
                  typography={typography}
-                 size="8px"
+                 size={`${8 * fz}px`}
                  className="!opacity-50 !font-medium !leading-relaxed px-2 line-clamp-2"
                />
              </div>
@@ -117,18 +116,20 @@ const BentoCell = ({ item, page, typography }: { item: BentoItem; page: PageData
         );
       case 'feature-list':
         return (
-          <div className="flex flex-col justify-center h-full p-6 space-y-2">
+          <div className="flex flex-col justify-center h-full p-6 space-y-2 items-start text-left"> {/* 核心修正：强制左对齐 */}
              <SlideHeadline 
                page={{...page, title: item.title}} 
                typography={typography}
-               maxSize={18}
+               maxSize={18 * fz}
                className="!font-black !tracking-tighter !leading-tight border-l-3 border-current pl-3 !normal-case"
+               style={{ textAlign: 'left' }}
              />
              <SlideSubHeadline 
                page={{...page, subtitle: item.subtitle}} 
                typography={typography}
-               size="10px"
+               size={`${10 * fz}px`}
                className="!opacity-70 !font-medium !leading-relaxed line-clamp-3"
+               style={{ textAlign: 'left' }}
              />
           </div>
         );

@@ -7,14 +7,8 @@ import { FieldToolbar } from './FieldToolbar';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
-  customFonts?: any; 
 }
 
-/**
- * TitleField - 优化版
- * 1. 恢复字号调节工具栏。
- * 2. 彻底移除局部字体选择。
- */
 export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
   const isVisible = page.visibility?.title !== false;
 
@@ -29,7 +23,6 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
     onUpdate({ ...page, title: val });
   };
 
-  // 仅保留字号和颜色调节
   const updateFontSize = (delta: number) => {
     const currentSize = page.styleOverrides?.title?.fontSize;
     onUpdate({
@@ -38,7 +31,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
         ...(page.styleOverrides || {}),
         title: {
           ...(page.styleOverrides?.title || {}),
-          fontSize: Math.max(12, (currentSize || 120) + delta)
+          fontSize: Math.max(12, (currentSize || 140) + delta)
         }
       }
     });
@@ -59,7 +52,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
 
   return (
     <div className="space-y-2 relative">
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={toggle}
@@ -67,7 +60,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
           >
             {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Headline</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase">Headline</span>
         </div>
 
         <div className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
@@ -86,17 +79,18 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
       </div>
 
       <div className="relative group/field">
-        {/* 核心修复：恢复工具栏（仅传控制函数，不传 customFonts 从而隐藏字体选择器） */}
-        <FieldToolbar 
-          onIncrease={() => updateFontSize(4)} 
-          onDecrease={() => updateFontSize(-4)} 
+        <FieldToolbar
+          isFloating
+          onIncrease={() => updateFontSize(4)}
+          onDecrease={() => updateFontSize(-4)}
         />
         <DebouncedTextArea 
             rows={2} 
             value={page.title || ''} 
             onChange={handleChange} 
             placeholder="Title..." 
-            className={`text-sm font-bold bg-white/50 border-slate-100 hover:border-slate-200 focus:border-[#264376] ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
+            className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
+            style={{ fontFamily: page.styleOverrides?.title?.fontFamily || page.titleFont }} 
         />
       </div>
     </div>

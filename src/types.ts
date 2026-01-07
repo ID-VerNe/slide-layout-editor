@@ -90,11 +90,14 @@ export interface BentoItem {
   value?: string;
   icon?: string;
   image?: string;
+  // 新增：Bento 项独立的图片配置
   imageConfig?: {
     scale: number;
     x: number;
     y: number;
   };
+  // 新增：Bento 项独立的字号配置 (作为基准字号)
+  fontSize?: number; 
   theme?: 'light' | 'dark' | 'accent' | 'glass';
 }
 

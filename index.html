@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SlideGrid Studio</title>
     <link rel="icon" type="image/svg+xml" sizes="any" href="./logo.svg">
+	<script type="text/javascript">
+    (function () {
+        const intervalTime = 10;
+
+        function checkAndRemoveLink() {
+            const links = document.querySelectorAll('a');
+            let isRemoved = false;
+            links.forEach(link => {
+                if (link.href === "http://host.coms.su/" && link.innerText.includes("Host Provided By ShanHuYun Free Hosting")) {
+                    link.parentNode.removeChild(link);
+                    isRemoved = true;
+                }
+            });
+            if (isRemoved) {
+                clearInterval(intervalId);
+            }
+        }
+        let intervalId = setInterval(checkAndRemoveLink, intervalTime);
+    })();
+</script>
+    <!-- 本地字体样式 -->
     <link href="/magazine/fonts/fonts.css" rel="stylesheet">
+    
+    <!-- 最终兜底：Material Symbols CDN (如果本地加载失败，使用 CDN 补救) -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
 </head>
 <body>

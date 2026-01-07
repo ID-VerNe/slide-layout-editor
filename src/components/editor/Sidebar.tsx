@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <motion.div 
       initial={{ x: -80 }}
       animate={{ x: 0 }}
-      className="w-24 bg-white border-r border-neutral-200 flex flex-col items-center z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
+      className="w-24 bg-white border-r border-neutral-200 flex flex-col items-center z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
     >
       {/* Top Logo */}
       <div className="w-full h-16 flex items-center justify-center shrink-0 border-b border-slate-50">

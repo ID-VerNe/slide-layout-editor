@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Upload, Globe, ImageIcon } from '../../constants/icons';
+import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Upload, Globe, ImageIcon, Box } from '../../constants/icons';
 import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
 import { compressImage } from '../../utils/db';
@@ -20,7 +20,7 @@ const RECENT_STORAGE_KEY = 'magazine_editor_recent_assets';
 
 /**
  * IconPicker 组件
- * 增强版：支持读取全局 imageQuality 参数进行本地压缩。
+ * 最终加固版：建立了多级兜底查找链 (Smart Fallback Chain)，彻底解决图标变文字问题。
  */
 export default function IconPicker({ 
   value, 
@@ -34,7 +34,6 @@ export default function IconPicker({
   const [search, setSearch] = useState('');
   const [recentAssets, setRecentAssets] = useState<string[]>([]);
   
-  // 核心：获取全局压缩质量设置
   const { projectId } = useParams();
   const { imageQuality } = useProject(projectId, null);
 
@@ -56,24 +55,57 @@ export default function IconPicker({
     localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(newRecent));
   };
 
-  const clearRecent = () => {
-    setRecentAssets([]);
-    localStorage.removeItem(RECENT_STORAGE_KEY);
-  };
-
   const handleSelect = (val: string) => {
     onChange(val);
     saveToRecent(val);
     setIsOpen(false);
   };
 
+  /**
+   * 核心：多级兜底图标渲染引擎
+   */
   const renderIcon = (name: string, type: 'material' | 'lucide', size = 20) => {
     if (!name) return <HelpCircle size={size} className="opacity-20" />;
+
+    // 1. 处理 Material 图标 (物理加固)
     if (type === 'material') {
-      return <span className="material-symbols-outlined shrink-0 notranslate" style={{ fontSize: `${size}px`, textTransform: 'none !important' as any, fontStyle: 'normal' }}>{name.toLowerCase()}</span>;
+      return (
+        <span 
+          className="material-symbols-outlined shrink-0 notranslate select-none" 
+          style={{ 
+            fontSize: `${size}px`, 
+            width: `${size}px`, 
+            height: `${size}px`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: 1,
+            overflow: 'hidden',
+            textTransform: 'none'
+          }}
+        >
+          {name.toLowerCase()}
+        </span>
+      );
     }
-    const Icon = LUCIDE_ICON_MAP[name] || LUCIDE_ICON_MAP[name.charAt(0).toUpperCase() + name.slice(1)] || HelpCircle;
-    return <Icon size={size} strokeWidth={2.5} className="shrink-0" />;
+
+    // 2. 处理 Lucide 图标的“多级查找链”
+    const findLucideComponent = (n: string) => {
+      if (LUCIDE_ICON_MAP[n]) return LUCIDE_ICON_MAP[n];
+      const capitalized = n.charAt(0).toUpperCase() + n.slice(1);
+      if (LUCIDE_ICON_MAP[capitalized]) return LUCIDE_ICON_MAP[capitalized];
+      const pascal = n.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase()).charAt(0).toUpperCase() + n.slice(1).replace(/[-_][a-z]/g, '');
+      if (LUCIDE_ICON_MAP[pascal]) return LUCIDE_ICON_MAP[pascal];
+      if (n.toLowerCase() === 'image' && LUCIDE_ICON_MAP['ImageIcon']) return LUCIDE_ICON_MAP['ImageIcon'];
+      return null;
+    };
+
+    const FoundIcon = findLucideComponent(name);
+    const IconComponent = (typeof FoundIcon === 'function' || (FoundIcon && (FoundIcon as any).$$typeof)) 
+      ? FoundIcon 
+      : HelpCircle;
+
+    return <IconComponent size={size} strokeWidth={2.5} className="shrink-0" />;
   };
 
   const isImage = (val: string) => val && (val.startsWith('data:image') || val.includes('http') || val.includes('.png') || val.includes('.jpg'));
@@ -85,19 +117,18 @@ export default function IconPicker({
     })).filter(cat => cat.icons.length > 0);
   }, [search]);
 
-  const [visibleCount, setVisibleCount] = useState(2);
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => setVisibleCount(filteredCategories.length), 500);
-      return () => clearTimeout(timer);
-    } else {
-      setVisibleCount(2);
-    }
-  }, [isOpen, filteredCategories.length]);
-
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `.material-symbols-outlined { text-transform: none !important; font-variant: normal !important; font-feature-settings: "liga" 1 !important; }` }} />
+      {/* 强制 Material 图标渲染规则 */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .material-symbols-outlined { 
+          font-family: 'Material Symbols Outlined' !important;
+          text-transform: none !important; 
+          font-variant: normal !important; 
+          font-feature-settings: "liga" 1 !important; 
+          -webkit-font-smoothing: antialiased;
+        }
+      ` }} />
       
       <div onClick={(e) => { e.stopPropagation(); setIsOpen(true); }} className={`cursor-pointer flex ${className}`}>
         {trigger ? trigger : (
@@ -127,28 +158,20 @@ export default function IconPicker({
 
           <div className="flex-1 overflow-hidden flex flex-col gap-6">
             {activeTab === 'icons' && (
-              <div className="relative shrink-0"><Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input type="text" placeholder="Search across 500+ curated icons..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-base focus:ring-2 focus:ring-[#264376]/20 transition-all outline-none" autoFocus /></div>
+              <div className="relative shrink-0"><Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} /><input type="text" placeholder="Search icons..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 text-base focus:ring-2 focus:ring-[#264376]/20 transition-all outline-none" autoFocus /></div>
             )}
 
             <div className="flex-1 overflow-y-auto no-scrollbar pr-2 space-y-10">
-              
               {recentAssets.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900">
                       <History size={14} className="text-[#264376]" /> Recently Used
                     </div>
-                    <button onClick={clearRecent} className="text-[9px] font-black text-slate-300 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-1">
-                      <Trash2 size={10} /> Clear
-                    </button>
                   </div>
                   <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3">
                     {recentAssets.map((asset, idx) => (
-                      <button 
-                        key={idx} 
-                        onClick={() => handleSelect(asset)}
-                        className="aspect-square bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center hover:border-[#264376] hover:bg-white hover:shadow-md transition-all group"
-                      >
+                      <button key={idx} onClick={() => handleSelect(asset)} className="aspect-square bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center hover:border-[#264376] hover:bg-white hover:shadow-md transition-all group">
                         <div className="w-8 h-8 flex items-center justify-center text-[#264376] transition-transform group-hover:scale-110">
                           {isImage(asset) ? <img src={asset} className="w-full h-full object-cover rounded-md" /> : renderIcon(asset, asset.includes('_') ? 'material' : 'lucide', 24)}
                         </div>
@@ -159,10 +182,10 @@ export default function IconPicker({
               )}
 
               {activeTab === 'icons' ? (
-                <div className="space-y-12">
-                  {filteredCategories.slice(0, visibleCount).map(cat => (
+                <div className="space-y-12 pb-20">
+                  {filteredCategories.map(cat => (
                     <div key={cat.category} className="space-y-5">
-                      <div className="flex items-center gap-3 px-2 border-b border-slate-100 pb-3"><cat.icon size={18} className="text-[#264376]" /><h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">{cat.category}</h4><span className="text-[10px] font-bold text-slate-300 ml-auto">{cat.icons.length} Items</span></div>
+                      <div className="flex items-center gap-3 px-2 border-b border-slate-100 pb-3"><cat.icon size={18} className="text-[#264376]" /><h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-900">{cat.category}</h4></div>
                       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3">
                         {cat.icons.map(icon => (
                           <button 
@@ -170,7 +193,7 @@ export default function IconPicker({
                             onClick={() => handleSelect(icon.name)} 
                             className={`group flex flex-col items-center justify-center p-4 rounded-2xl transition-all gap-3 border-2 ${value === icon.name ? 'bg-[#264376]/10 border-[#264376] text-[#264376] shadow-md' : 'bg-white border-transparent hover:border-slate-100 hover:bg-slate-50 text-slate-400'}`}
                           >
-                            <div className="h-8 flex items-center transition-transform group-hover:scale-110">
+                            <div className="h-8 w-8 flex items-center justify-center transition-transform group-hover:scale-110 overflow-hidden">
                               {renderIcon(icon.name, icon.type as any, 32)}
                             </div>
                             <span className="text-[7px] font-bold uppercase truncate w-full text-center opacity-60 px-1">
@@ -193,7 +216,6 @@ export default function IconPicker({
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => { 
                         const file = e.target.files?.[0]; 
                         if (file) { 
-                          // 传入最新的质量参数
                           compressImage(file, imageQuality).then(handleSelect).catch(err => {
                             console.error("Compression failed", err);
                             const reader = new FileReader(); 
@@ -203,35 +225,7 @@ export default function IconPicker({
                         } 
                       }} />
                     </label>
-                    
-                    <div className="flex items-center gap-3 w-full max-w-sm">
-                      <div className="h-[1px] flex-1 bg-slate-200"></div>
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">OR</span>
-                      <div className="h-[1px] flex-1 bg-slate-200"></div>
-                    </div>
-
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-full max-w-md">
-                      <div className="pl-3 text-slate-400"><Globe size={14} /></div>
-                      <input 
-                        type="text" 
-                        placeholder="Paste image URL here..." 
-                        className="flex-1 bg-transparent border-none outline-none text-xs py-2 px-1"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSelect((e.target as HTMLInputElement).value);
-                        }}
-                      />
-                      <button 
-                        className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase hover:bg-slate-200 transition-colors"
-                        onClick={(e) => {
-                          const input = (e.currentTarget.previousSibling as HTMLInputElement);
-                          if (input.value) handleSelect(input.value);
-                        }}
-                      >
-                        Load
-                      </button>
-                    </div>
                   </div>
-                  {isImage(value) && <button onClick={() => onChange('')} className="text-red-500 text-[10px] font-black uppercase tracking-widest hover:underline">Remove Current Image</button>}
                 </div>
               )}
             </div>

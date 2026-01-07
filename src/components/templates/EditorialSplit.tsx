@@ -9,7 +9,7 @@ import { ArrowRight } from 'lucide-react';
 
 /**
  * EditorialSplit - 杂志风格分屏布局
- * 修复版：全原子化集成，支持全局字体感应。
+ * 修复版：将误用的 footer 字段迁移至 paragraph 字段，实现单页数据独立。
  */
 export default function EditorialSplit({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const isVariantRight = page.layoutVariant !== 'left'; 
@@ -20,20 +20,23 @@ export default function EditorialSplit({ page, typography }: { page: PageData, t
       className={`w-full h-full flex p-20 relative overflow-hidden transition-all duration-700 gap-16 isolate ${isVariantRight ? 'flex-row' : 'flex-row-reverse'}`}
       style={{ backgroundColor: page.backgroundColor || '#ffffff' }}
     >
-      {/* Side Sidebar */}
+      {/* Side Sidebar: 文字展示区 */}
       <div className="w-[32%] h-full flex flex-col justify-between py-12 z-10 text-left">
         
         <div className="space-y-6">
           <SlideLogo page={page} className="mb-4" />
           
-          {/* 元数据：使用 SlideSubHeadline 替代原生 p */}
+          {/* 
+            核心修复：改用 paragraph 字段渲染元数据
+            这样可以避免全局页脚内容的冲突，并支持多行编辑。
+          */}
           <SlideSubHeadline 
-            page={{...page, subtitle: page.footer || 'EDITORIAL METADATA\nLOCATED IN TOKYO, JAPAN\nREF. 2025-SLE'}}
+            page={{...page, subtitle: page.paragraph || 'EDITORIAL METADATA\nLOCATED IN TOKYO, JAPAN\nREF. 2025-SLE'}}
             typography={typography}
             className="!text-[8px] !font-medium !tracking-[0.2em] !leading-loose !uppercase !opacity-40 !m-0"
           />
           
-          {/* 导航列表：使用 SlideBlockLabel 替代原生 p */}
+          {/* 导航列表 */}
           {isVisible('bullets' as any) && (page.bullets?.length || 0) > 0 && (
             <div className="pt-8 space-y-3">
               {page.bullets?.map((item, idx) => (
