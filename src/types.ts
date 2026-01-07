@@ -18,6 +18,21 @@ export interface CustomFont {
   dataUrl?: string;
 }
 
+// --- 新增：语义化设计系统 Token ---
+export interface ProjectTheme {
+  colors: {
+    primary: string;    // 主标题/强调文字
+    secondary: string;  // 副标题/引言
+    accent: string;     // 装饰线/图标
+    background: string; // 页面底色
+    surface: string;    // 模块背景/边框
+  };
+  typography: {
+    headingFont?: string;
+    bodyFont?: string;
+  };
+}
+
 export interface MetricData {
   id?: string;
   label: string;
@@ -31,52 +46,8 @@ export interface FeatureData {
   title: string;
   desc: string;
   icon?: string;
-  imageConfig?: {
-    scale: number;
-    x: number;
-    y: number;
-  };
+  imageConfig?: { scale: number; x: number; y: number; };
 }
-
-export interface PartnerData {
-  id?: string;
-  name: string;
-  logo: string;
-}
-
-export interface TestimonialData {
-  id?: string;
-  name: string;
-  quote: string;
-  avatar: string;
-}
-
-export interface AgendaData {
-  id?: string;
-  title: string;
-  desc: string;
-  icon?: string;
-  number?: string;
-  items?: string[];
-}
-
-export interface GalleryItem {
-  id?: string;
-  url: string;
-  caption?: string; 
-  config?: {
-    scale: number;
-    x: number;
-    y: number;
-  };
-}
-
-export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
-
-import { TemplateId } from './templates/registry';
-
-// --- Bento Box 专用定义 ---
-export type BentoItemType = 'metric' | 'icon-text' | 'image' | 'feature-list';
 
 export interface BentoItem {
   id: string;
@@ -90,27 +61,16 @@ export interface BentoItem {
   value?: string;
   icon?: string;
   image?: string;
-  // 新增：Bento 项独立的图片配置
-  imageConfig?: {
-    scale: number;
-    x: number;
-    y: number;
-  };
-  // 新增：Bento 项独立的字号配置 (作为基准字号)
+  imageConfig?: { scale: number; x: number; y: number; };
   fontSize?: number; 
   theme?: 'light' | 'dark' | 'accent' | 'glass';
 }
 
-/**
- * 字体管控层
- */
-export interface TypographySettings {
-  // 1. 粗略调整
-  defaultLatin: string; // 默认英文字体
-  defaultCJK: string;   // 默认中文字体
-  // 2. 精细调整 (Key 是字段名，如 'title', 'subtitle', 'paragraph')
-  fieldOverrides: Record<string, string>;
-}
+export type BentoItemType = 'metric' | 'icon-text' | 'image' | 'feature-list';
+
+export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+
+import { TemplateId } from './templates/registry';
 
 export interface PageData {
   id: string;
@@ -119,6 +79,7 @@ export interface PageData {
   aspectRatio: AspectRatioType; 
   layoutVariant?: string;
 
+  // 核心内容
   title: string;
   subtitle?: string;
   bullets?: string[]; 
@@ -127,44 +88,26 @@ export interface PageData {
   imageLabel?: string;
   imageSubLabel?: string;
 
-    code?: string;
-    language?: string;
-    metrics?: MetricData[];
-    features?: FeatureData[];
-    bentoItems?: BentoItem[]; 
-    bentoConfig?: { rows: number; cols: number }; 
-    mosaicIcons?: string[];
-    mosaicConfig?: {
-      rows: number;
-      cols: number;
-      stagger: boolean;
-      tileColor?: string;
-      icons: Record<string, string>;
-    };
-    partners?: PartnerData[];
-    testimonials?: TestimonialData[];
-    agenda?: AgendaData[];
-    activeIndex?: number;
-    partnersTitle?: string;
+  // 扩展内容
+  metrics?: MetricData[];
+  features?: FeatureData[];
+  bentoItems?: BentoItem[]; 
+  bentoConfig?: { rows: number; cols: number }; 
+  gallery?: GalleryItem[];
 
-    gallery?: GalleryItem[];
-
-    logo?: string;
-    logoSize?: number;
-    image?: string;
-    imageConfig?: {
-      scale: number;
-      x: number;
-      y: number;
-    };
+  // 视觉元素
+  logo?: string;
+  logoSize?: number;
+  image?: string;
+  imageConfig?: { scale: number; x: number; y: number; };
   backgroundColor?: string;
   accentColor?: string; 
-  themeColor?: string; 
-  layoutVariant?: string; 
-
-  titleFont?: string; // 兼容旧数据
+  
+  // 字体配置
+  titleFont?: string;
   bodyFont?: string;
 
+  // 页脚与元数据
   footer?: string;
   pageNumber?: boolean;
   minimalCounter?: boolean; 
@@ -175,6 +118,7 @@ export interface PageData {
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
 
+  // 样式覆盖 (允许单页覆盖全局 Token)
   styleOverrides?: Record<string, {
     fontSize?: number;
     lineHeight?: number;
@@ -183,6 +127,7 @@ export interface PageData {
     fontFamily?: string;
   }>;
 
+  // 显隐控制
   visibility?: {
     title?: boolean;
     subtitle?: boolean;
@@ -197,6 +142,13 @@ export interface PageData {
     testimonials?: boolean;
     agenda?: boolean;
   };
+}
+
+export interface GalleryItem {
+  id?: string;
+  url: string;
+  caption?: string; 
+  config?: { scale: number; x: number; y: number; };
 }
 
 export interface PrintSettings {
@@ -219,9 +171,9 @@ export interface ProjectData {
   title: string;
   pages: PageData[];
   customFonts: CustomFont[];
+  theme?: ProjectTheme; 
   imageQuality?: number; 
-  minimalCounter?: boolean; 
+  minimalCounter?: boolean; // 新增：全局简约页码开关
   counterColor?: string; 
   printSettings?: PrintSettings; 
-  typography?: TypographySettings; // 新增：全局字体管控
 }

@@ -2,13 +2,17 @@ import React from 'react';
 import { PageData, TypographySettings } from '../../types';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
+import { useStore } from '../../store/useStore';
 
 /**
  * BigStatement - 极简金句模板
- * 修复版：透传 typography 状态，感应全局字体。
+ * 最终加固版：全面感应全局主题。
  */
 export default function BigStatement({ page, typography }: { page: PageData, typography?: TypographySettings }) {
-  const backgroundColor = page.backgroundColor || '#ffffff';
+  const theme = useStore((state) => state.theme);
+  
+  // 核心修复 1：底色链接至主题
+  const backgroundColor = page.backgroundColor || theme.colors.background || '#ffffff';
   const pattern = page.backgroundPattern || 'none';
 
   const getPatternClass = () => {
@@ -35,18 +39,19 @@ export default function BigStatement({ page, typography }: { page: PageData, typ
         <div className="relative">
           <SlideHeadline 
             page={page} 
-            typography={typography} // 透传字体状态
+            typography={typography}
             maxSize={84} 
             minSize={48} 
             className="!font-medium leading-[1.2] tracking-tight" 
           />
         </div>
 
+        {/* 核心修复 2：副标题颜色链接至 theme.colors.secondary */}
         <SlideSubHeadline 
           page={page} 
-          typography={typography} // 透传字体状态
+          typography={typography}
           size="1.1rem"
-          color={page.styleOverrides?.subtitle?.color || '#888888'} // 优先感应覆盖样式
+          color={page.styleOverrides?.subtitle?.color || theme.colors.secondary}
           className="!font-bold !tracking-[0.3em] !uppercase !opacity-60"
         />
         

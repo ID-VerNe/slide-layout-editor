@@ -1,10 +1,11 @@
 import React from 'react';
 import { PageData, TypographySettings } from '../../../types';
 import AutoFitHeadline from '../../AutoFitHeadline';
+import { useStore } from '../../../store/useStore';
 
 interface SlideHeadlineProps {
   page: PageData;
-  typography?: TypographySettings; // 传入全局字体设置
+  typography?: TypographySettings; 
   maxSize?: number;
   minSize?: number;
   maxLines?: number;
@@ -17,11 +18,11 @@ interface SlideHeadlineProps {
 }
 
 /**
- * SlideHeadline - 全局字体感应版
+ * SlideHeadline - 全局主题与字体感应版
  * 优先级：
- * 1. 字段专属覆盖 (Fine-grained)
- * 2. 全局默认英文字体 + 全局默认中文字体 (Rough)
- * 3. 系统回退
+ * 1. 字段专属覆盖 (styleOverrides.color)
+ * 2. 外部传入 props.color
+ * 3. 全局主题 Token (theme.colors.primary)
  */
 export const SlideHeadline: React.FC<SlideHeadlineProps> = ({ 
   page, 
@@ -36,27 +37,29 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
   style,
   children
 }) => {
+  // 订阅全局主题
+  const theme = useStore((state) => state.theme);
+  
   const isVisible = page.visibility?.title !== false;
   if (!isVisible || !page.title) return null;
 
   const overrides = page.styleOverrides?.title || {};
   
-  // 核心：计算最终字体链
   const getFontFamily = () => {
-    // 1. 字段精细调整优先
     const fieldFont = typography?.fieldOverrides?.['title'];
     if (fieldFont) return fieldFont;
-
-    // 2. 粗略调整组合 (Latin + CJK)
-    const latin = typography?.defaultLatin || "'Inter', sans-serif";
+    const latin = typography?.defaultLatin || theme?.typography?.headingFont || "'Inter', sans-serif";
     const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
     return `${latin}, ${cjk}`;
   };
 
+  // 核心：颜色回退逻辑
+  const finalColor = overrides.color || color || theme?.colors?.primary || 'inherit';
+
   const combinedStyle: React.CSSProperties = {
     fontWeight: weight || 900,
     fontStyle: italic ? 'italic' : 'normal',
-    color: overrides.color || color || 'inherit',
+    color: finalColor,
     overflowWrap: 'break-word',
     wordBreak: 'normal',
     textWrap: 'balance',

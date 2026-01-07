@@ -11,7 +11,7 @@ interface SidebarProps {
   onPageSelect: (index: number) => void;
   onAddPage: () => void;
   onRemovePage: (id: string) => void;
-  onReorderPages: (newPages: PageData[]) => void; // 新增：排序回调
+  onReorderPages: (newPages: PageData[]) => void; 
   onClearAll: () => void;
   onImport: () => void;
   onExport: () => void;
@@ -22,7 +22,7 @@ interface SidebarProps {
 
 /**
  * Sidebar - 侧边栏
- * 升级版：支持 Reorder 拖拽排序。
+ * 升级版：正方形容器预览，内容比例自动适配。
  */
 const Sidebar: React.FC<SidebarProps> = ({
   pages,
@@ -70,12 +70,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
       
-      {/* Pages List - 替换为 Reorder.Group */}
       <Reorder.Group 
         axis="y" 
         values={pages} 
         onReorder={onReorderPages}
-        className="flex-1 w-full flex flex-col items-center gap-6 overflow-y-auto no-scrollbar pt-6 pb-6"
+        className="flex-1 w-full flex flex-col items-center gap-4 overflow-y-auto no-scrollbar pt-6 pb-6"
         ref={scrollRef}
       >
         {pages.map((p, idx) => {
@@ -100,21 +99,29 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 ref={isActive ? activeBtnRef : null}
                 onClick={() => onPageSelect(idx)}
-                className={`w-full transition-all flex flex-col items-center justify-center relative overflow-hidden border-2 rounded-xl
+                // 核心修复：容器改为固定的 aspect-square (正方形)
+                className={`w-full aspect-square transition-all flex flex-col items-center justify-center relative overflow-hidden border-2 rounded-2xl
                   ${isActive 
                     ? 'border-[#264376] bg-white shadow-xl shadow-[#264376]/10' 
-                    : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}
-                  ${isPortrait ? 'aspect-[2/3]' : 'aspect-[16/10]'}`}
+                    : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}`}
               >
-                {/* Thumbnail Placeholder */}
-                <div className="flex flex-col items-center gap-1 opacity-60 pointer-events-none">
-                  <span className={`text-[10px] font-black ${isActive ? 'text-[#264376]' : 'text-slate-400'}`}>
-                    {idx + 1}
-                  </span>
-                  <Layout size={isPortrait ? 14 : 10} className={isActive ? 'text-[#264376]' : 'text-slate-300'} />
+                {/* 
+                  真实比例线框图：
+                  根据页面是横屏还是竖屏，在正方形内部绘制比例正确的预览块
+                */}
+                <div className="flex flex-col items-center gap-1 opacity-60 pointer-events-none scale-110">
+                  <div 
+                    className={`border-[1.5px] rounded-sm transition-all duration-500 flex items-center justify-center
+                      ${isActive ? 'border-[#264376] bg-[#264376]/5' : 'border-slate-300 bg-white'}
+                      ${isPortrait ? 'w-6 h-9' : 'w-10 h-6'}`}
+                  >
+                    <span className={`text-[8px] font-black ${isActive ? 'text-[#264376]' : 'text-slate-300'}`}>
+                      {idx + 1}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Layout Type Name (Hover only) */}
+                {/* 悬停显示的布局名称 */}
                 <div className="absolute inset-0 bg-[#264376]/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <span className="text-[8px] font-black text-white uppercase tracking-tighter">
                     {p.layoutId.split('-')[0]}
@@ -125,7 +132,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
 
-        {/* Add Page Button */}
         <button 
           onClick={(e) => {
             e.preventDefault();
@@ -151,7 +157,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-// Sub-component for clean code
 const ActionButton = ({ onClick, icon: Icon, title, active = false, danger = false }: any) => (
   <button 
     onClick={onClick}

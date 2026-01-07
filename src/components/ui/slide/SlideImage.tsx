@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageData } from '../../../types';
+import { useAssetUrl } from '../../../hooks/useAssetUrl';
 
 interface ImageConfig {
   scale: number;
@@ -16,16 +17,13 @@ interface SlideImageProps {
   rounded?: string;
   border?: string;
   shadow?: string;
+  backgroundColor?: string;
   style?: React.CSSProperties;
 }
 
 /**
- * SlideImage 原子组件 - 物理边界增强版
- * 
- * 核心逻辑：
- * 1. 使用 object-position 控制“基于原图比例”的平移。
- * 2. 浏览器会自动根据图片宽高比和容器宽高比，计算出最大可移动范围并自动 Clamp。
- * 3. 结合 transform-origin，确保缩放时始终锁定在用户的平移焦点上。
+ * SlideImage 原子组件 - 资源优化版
+ * 核心升级：接入 useAssetUrl，支持解析资源池中的 ID。
  */
 export const SlideImage: React.FC<SlideImageProps> = ({ 
   page, 
@@ -36,15 +34,20 @@ export const SlideImage: React.FC<SlideImageProps> = ({
   rounded,
   border,
   shadow,
+  backgroundColor,
   style
 }) => {
   const isVisible = page.visibility?.image !== false;
+  
+  // 1. 确定原始资源标识 (可能是 asset:// ID，也可能是普通 URL)
+  const rawSrc = overrideSrc || page.image || `${import.meta.env.BASE_URL}/example_pic/example_pic_1.png`;
+  
+  // 2. 解析资源 ID
+  const { url, isLoading } = useAssetUrl(rawSrc);
+
   if (!isVisible) return null;
 
-  const src = overrideSrc || page.image || `${import.meta.env.BASE_URL}/example_pic/example_pic_1.png`;
   const config = overrideConfig || page.imageConfig || { scale: 1, x: 0, y: 0 };
-
-  // 将滑块的 -100 ~ 100 映射为浏览器对齐百分比 0% ~ 100%
   const posX = (config.x + 100) / 2;
   const posY = (config.y + 100) / 2;
 
@@ -53,24 +56,31 @@ export const SlideImage: React.FC<SlideImageProps> = ({
     border: border || 'none',
     boxShadow: shadow || 'none',
     overflow: 'hidden',
-    backgroundColor: '#000000', 
+    backgroundColor: backgroundColor || '#000000', 
     ...style
   };
 
   return (
-    <div className={`relative flex items-center justify-center ${className}`} style={containerStyle}>
-      <img 
-        src={src} 
-        crossOrigin="anonymous"
-        className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName}`}
-        style={{
-          // 核心：基于焦点的缩放
-          transform: `scale(${config.scale})`,
-          // 核心：基于比例的平移（浏览器自动计算边界）
-          objectPosition: `${posX}% ${posY}%`,
-          transformOrigin: `${posX}% ${posY}%`
-        }}
-      />
+    <div className={`relative flex items-center justify-center ${className} ${isLoading ? 'opacity-50 grayscale' : ''}`} style={containerStyle}>
+      {url && (
+        <img 
+          src={url} 
+          crossOrigin="anonymous"
+          className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName}`}
+          style={{
+            transform: `scale(${config.scale})`,
+            objectPosition: `${posX}% ${posY}%`,
+            transformOrigin: `${posX}% ${posY}%`
+          }}
+        />
+      )}
+      
+      {/* Loading 骨架感 */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-slate-50 animate-pulse flex items-center justify-center">
+           <div className="w-8 h-8 rounded-full border-2 border-[#264376]/20 border-t-[#264376] animate-spin" />
+        </div>
+      )}
     </div>
   );
 };

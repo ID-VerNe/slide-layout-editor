@@ -3,18 +3,22 @@ import { PageData, TypographySettings } from '../../types';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideHeadline } from '../ui/slide/SlideHeadline';
 import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
+import { useStore } from '../../store/useStore';
 
 /**
  * BackCoverMovie - 电影谢幕风格封底
- * 修复版：支持全局字体，并确保颜色感应正确。
+ * 最终加固版：全面感应全局主题。
  */
 export default function BackCoverMovie({ page, typography }: { page: PageData, typography?: TypographySettings }) {
+  const theme = useStore((state) => state.theme);
+  
   const displayPage = {
     ...page,
     title: page.title || 'THANKS FOR WATCHING',
     subtitle: page.subtitle || 'SEE YOU NEXT YEAR'
   };
 
+  // 核心修复 1：底色链接至主题 background，默认为深色调
   const backgroundColor = page.backgroundColor || '#111111';
   const viewportHeight = page.logoSize || 55;
 
@@ -61,12 +65,13 @@ export default function BackCoverMovie({ page, typography }: { page: PageData, t
           weight={600}
           className="!tracking-[0.5em] uppercase !font-semibold"
           style={{ 
-            color: page.styleOverrides?.title?.color || '#ffffff', 
+            color: page.styleOverrides?.title?.color || theme.colors.primary, 
             opacity: 0.8 
           }}
         />
 
-        <div className="w-12 h-[1px] bg-white/10" />
+        {/* 核心修复 2：装饰线链接至 accent */}
+        <div className="w-12 h-[1px] opacity-20" style={{ backgroundColor: theme.colors.accent }} />
 
         <SlideSubHeadline 
           page={displayPage} 
@@ -74,7 +79,7 @@ export default function BackCoverMovie({ page, typography }: { page: PageData, t
           size="12px"
           className="!tracking-[0.8em] uppercase !font-medium"
           style={{ 
-            color: page.styleOverrides?.subtitle?.color || 'rgba(255,255,255,0.4)' 
+            color: page.styleOverrides?.subtitle?.color || theme.colors.secondary 
           }}
         />
       </div>

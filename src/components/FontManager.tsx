@@ -9,7 +9,7 @@ interface FontManagerProps {
   onFontsChange: (update: CustomFont[] | ((prev: CustomFont[]) => CustomFont[])) => void;
 }
 
-const FontManager: React.FC<FontManagerProps> = ({ fonts, onFontsChange }) => {
+const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) => {
   const registerFont = useCallback(async (name: string, dataUrl: string) => {
     const family = `custom-${Date.now()}-${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
     

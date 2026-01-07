@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageData, CustomFont } from '../types';
-import { Layout, ChevronRight, Tag as TagIcon } from 'lucide-react';
+import { Layout, ChevronRight, LayoutGrid } from 'lucide-react';
 import { Section, Label } from './ui/Base';
 import { getTemplateById, EditorFieldType } from '../templates/registry';
 
@@ -35,7 +35,23 @@ interface EditorProps {
   customFonts: CustomFont[];
 }
 
+/**
+ * Editor 核心组件
+ * 加固版：增加了对 page 对象的空值保护，防止由于异步加载导致的渲染崩溃。
+ */
 const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts }) => {
+  // 核心修复 1：增加空值保护卫导
+  if (!page || !page.layoutId) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-12 text-center space-y-4 opacity-40">
+        <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-300">
+          <LayoutGrid size={32} />
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em]">Initialing Editor...</p>
+      </div>
+    );
+  }
+
   const template = getTemplateById(page.layoutId);
 
   const handleOpenBrowser = () => {
@@ -65,7 +81,7 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
       case 'bentoItems': return <BentoField key={type} page={page} onUpdate={onUpdate} />;
       case 'gallery': return <GalleryField key={type} page={page} onUpdate={onUpdate} />;
       case 'variant': return <VariantField key={type} page={page} onUpdate={onUpdate} />;
-      case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
+      case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} />;
       case 'backgroundColor': return <ColorField key={type} page={page} onUpdate={onUpdate} />;
       case 'footer': return <FooterField key={type} page={page} onUpdate={onUpdate} />;
       case 'pageNumber': return <PageNumberField key={type} page={page} onUpdate={onUpdate} />;

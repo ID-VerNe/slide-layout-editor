@@ -49,16 +49,24 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
            <Grid3X3 size={16} className="text-slate-400" />
            <div className="flex-1 flex gap-2">
               <div className="flex-1">
-                <span className="text-[8px] font-black uppercase text-slate-400 ml-1">Cols</span>
-                <select value={bentoConfig.cols} onChange={(e) => updateConfig({cols: parseInt(e.target.value)})} className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold">
-                  {[4, 6, 8, 10, 12].map(n => <option key={n} value={n}>{n} Columns</option>)}
-                </select>
+                <span className="text-[8px] font-black uppercase text-slate-400 ml-1">Columns</span>
+                <Input 
+                  type="number" 
+                  min={1} max={24}
+                  value={bentoConfig.cols} 
+                  onChange={(e) => updateConfig({cols: Math.min(24, Math.max(1, parseInt(e.target.value) || 1))})} 
+                  className="font-mono text-xs font-bold py-1"
+                />
               </div>
               <div className="flex-1">
                 <span className="text-[8px] font-black uppercase text-slate-400 ml-1">Rows</span>
-                <select value={bentoConfig.rows} onChange={(e) => updateConfig({rows: parseInt(e.target.value)})} className="w-full bg-white border border-slate-200 rounded px-2 py-1 text-xs font-bold">
-                  {[3, 4, 5, 6, 8].map(n => <option key={n} value={n}>{n} Rows</option>)}
-                </select>
+                <Input 
+                  type="number" 
+                  min={1} max={20}
+                  value={bentoConfig.rows} 
+                  onChange={(e) => updateConfig({rows: Math.min(20, Math.max(1, parseInt(e.target.value) || 1))})} 
+                  className="font-mono text-xs font-bold py-1"
+                />
               </div>
            </div>
         </div>
@@ -184,47 +192,51 @@ const BentoVisualDesigner = ({ rows, cols, currentItems, onSave }: { rows: numbe
     return { x: minX, y: minY, w: width, h: height, isValid };
   }, [selectedCells]);
 
-  const createFromSelection = () => {
-    if (!selectionInfo || !selectionInfo.isValid) return;
+  const createItem = (x: number, y: number, w: number, h: number) => {
     const newItem: BentoItem = {
       id: `bento-${Date.now()}`,
       type: 'metric',
-      x: selectionInfo.x,
-      y: selectionInfo.y,
-      colSpan: selectionInfo.w,
-      rowSpan: selectionInfo.h,
+      x, y, colSpan: w, rowSpan: h,
       theme: 'light',
       title: 'New Item',
       fontSize: 1 
     };
-    setItems([...items, newItem]);
+    setItems(prev => [...prev, newItem]);
     setSelectedCells(new Set());
   };
 
+  const handleDoubleClickOnCell = (x: number, y: number) => {
+    // 1. 如果有合法选择，合并选择
+    if (selectionInfo?.isValid) {
+      createItem(selectionInfo.x, selectionInfo.y, selectionInfo.w, selectionInfo.h);
+    } 
+    // 2. 如果没有选择（由于双击触发了两次 toggle 导致 state 为空），直接在此处创建 1x1
+    else {
+      createItem(x, y, 1, 1);
+    }
+  };
+
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-6" onContextMenu={(e) => { e.preventDefault(); setSelectedCells(new Set()); }}>
       <div className="flex justify-between items-start">
         <div className="space-y-1">
           <h4 className="text-sm font-black uppercase tracking-tight text-slate-900">Step 1: Paint your layout</h4>
-          <p className="text-xs text-slate-400 font-medium">Click cells to select a rectangular area, then click "Merge Selection". Double click an item to delete.</p>
+          <p className="text-xs text-slate-400 font-medium text-slate-400">
+            Click to select • <span className="text-blue-600 font-bold underline">Double-Click</span> to create
+          </p>
         </div>
         <div className="flex gap-3">
-          <button disabled={!selectionInfo?.isValid} onClick={createFromSelection} className={`px-6 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${selectionInfo?.isValid ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>
-            Merge Selection {selectionInfo?.isValid && `(${selectionInfo.w}x${selectionInfo.h})`}
+          <button disabled={!selectionInfo?.isValid} onClick={() => selectionInfo && createItem(selectionInfo.x, selectionInfo.y, selectionInfo.w, selectionInfo.h)} className={`px-6 py-2.5 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all ${selectionInfo?.isValid ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>
+            Create Selection
           </button>
           <button onClick={() => onSave(items)} className="px-8 py-2.5 bg-[#264376] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-[#264376]/20 transition-all hover:brightness-110">Save & Exit</button>
         </div>
       </div>
 
-      {/* 核心修正：背景格与已放置项共享同一个原生 Grid 容器 */}
       <div 
-        className="grid gap-2.5 bg-slate-100 p-4 rounded-[2.5rem] aspect-[16/10] select-none" 
-        style={{ 
-          gridTemplateColumns: `repeat(${cols}, 1fr)`, 
-          gridTemplateRows: `repeat(${rows}, 1fr)` 
-        }}
+        className="grid gap-2.5 bg-slate-100 p-4 rounded-[2.5rem] aspect-[16/10] relative select-none cursor-crosshair overflow-hidden" 
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
       >
-        {/* A. 背景格 (占位符) */}
         {Array.from({ length: rows * cols }).map((_, i) => {
           const x = (i % cols) + 1;
           const y = Math.floor(i / cols) + 1;
@@ -233,7 +245,8 @@ const BentoVisualDesigner = ({ rows, cols, currentItems, onSave }: { rows: numbe
           return (
             <div 
               key={`bg-${i}`} 
-              onClick={() => toggleCell(x, y)} 
+              onClick={() => toggleCell(x, y)}
+              onDoubleClick={() => handleDoubleClickOnCell(x, y)}
               style={{ gridColumn: x, gridRow: y }}
               className={`rounded-xl border-2 transition-all cursor-pointer flex items-center justify-center
                 ${occupied ? 'bg-slate-200/50 border-transparent opacity-0 pointer-events-none' : 
@@ -243,18 +256,12 @@ const BentoVisualDesigner = ({ rows, cols, currentItems, onSave }: { rows: numbe
             </div>
           );
         })}
-
-        {/* B. 已放置的项 (原生定位) */}
         {items.map((item) => (
           <div 
             key={item.id} 
-            onDoubleClick={() => setItems(items.filter(i => i.id !== item.id))} 
+            onDoubleClick={(e) => { e.stopPropagation(); setItems(items.filter(i => i.id !== item.id)); }}
             className="rounded-xl bg-[#264376] text-white flex flex-col items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-95 duration-200 cursor-help group transition-transform active:scale-95" 
-            style={{ 
-              gridColumn: `${item.x} / span ${item.colSpan}`, 
-              gridRow: `${item.y} / span ${item.rowSpan}`,
-              zIndex: 10 
-            }}
+            style={{ gridColumn: `${item.x} / span ${item.colSpan}`, gridRow: `${item.y} / span ${item.rowSpan}`, zIndex: 10 }}
           >
             <span className="text-[10px] font-black uppercase opacity-60 leading-none">{item.colSpan}x{item.rowSpan}</span>
             <X size={12} className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />

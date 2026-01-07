@@ -10,7 +10,7 @@ interface FontSelectProps {
   compact?: boolean;
 }
 
-export const FontSelect: React.FC<FontSelectProps> = ({ value, onChange, label, customFonts, compact = false }) => (
+export const FontSelect: React.FC<FontSelectProps> = ({ value, onChange, label, customFonts = [], compact = false }) => (
   <div className={`flex flex-col gap-1 w-full ${compact ? 'gap-0' : ''}`}>
     {label && !compact && <span className="text-[10px] uppercase font-bold text-slate-400">{label}</span>}
     <div className="relative group">
@@ -22,7 +22,7 @@ export const FontSelect: React.FC<FontSelectProps> = ({ value, onChange, label, 
       >
         <option value="">Default Font</option>
         
-        {customFonts.length > 0 && (
+        {customFonts && customFonts.length > 0 && (
           <optgroup label="Uploaded Fonts">
             {customFonts.map(f => (
               <option key={f.family} value={f.family}>{f.name}</option>
