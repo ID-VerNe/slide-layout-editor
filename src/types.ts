@@ -18,20 +18,39 @@ export interface CustomFont {
   dataUrl?: string;
 }
 
-// --- 新增：语义化设计系统 Token ---
 export interface ProjectTheme {
   colors: {
-    primary: string;    // 主标题/强调文字
-    secondary: string;  // 副标题/引言
-    accent: string;     // 装饰线/图标
-    background: string; // 页面底色
-    surface: string;    // 模块背景/边框
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
   };
   typography: {
     headingFont?: string;
     bodyFont?: string;
   };
 }
+
+// --- Phase 4: Schema 驱动编辑器定义 ---
+
+export type FieldType = 
+  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' 
+  | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
+  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' 
+  | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
+  | 'gallery' | 'variant' | 'footer' | 'bullets' 
+  | 'backgroundColor' | 'pageNumber' | 'logoSize'
+  | 'group' | 'separator'; // 预留特殊类型
+
+export interface FieldSchema {
+  key: FieldType;
+  label?: string;
+  icon?: string;
+  props?: Record<string, any>; // 传递给具体 Field 组件的透传参数
+}
+
+// ------------------------------------
 
 export interface MetricData {
   id?: string;
@@ -118,7 +137,6 @@ export interface PageData {
   counterStyle?: CounterStyle;
   backgroundPattern?: BackgroundPatternType;
 
-  // 样式覆盖 (允许单页覆盖全局 Token)
   styleOverrides?: Record<string, {
     fontSize?: number;
     lineHeight?: number;
@@ -127,7 +145,6 @@ export interface PageData {
     fontFamily?: string;
   }>;
 
-  // 显隐控制
   visibility?: {
     title?: boolean;
     subtitle?: boolean;
@@ -173,7 +190,7 @@ export interface ProjectData {
   customFonts: CustomFont[];
   theme?: ProjectTheme; 
   imageQuality?: number; 
-  minimalCounter?: boolean; // 新增：全局简约页码开关
+  minimalCounter?: boolean; 
   counterColor?: string; 
   printSettings?: PrintSettings; 
 }

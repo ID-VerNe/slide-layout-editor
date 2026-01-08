@@ -21,11 +21,7 @@ import TypographyHero from '../components/templates/TypographyHero';
 import FilmDiptych from '../components/templates/FilmDiptych';
 import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import { AspectRatioType } from '../constants/layout';
-
-export type EditorFieldType = 
-  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
-  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' | 'partnersTitle' | 'partners' 
-  | 'testimonials' | 'agenda' | 'gallery' | 'variant' | 'footer' | 'bullets' | 'backgroundColor' | 'pageNumber';
+import { FieldSchema, FieldType } from '../types';
 
 export interface TemplateConfig {
   id: string;
@@ -34,16 +30,19 @@ export interface TemplateConfig {
   desc: string;
   tags: string[];
   component: React.FC<{ page: any; typography?: any }>;
-  fields: EditorFieldType[];
+  fields: FieldSchema[]; // 核心：升级为 Schema 数组
   supportedRatios: AspectRatioType[];
 }
 
-const withBaseFields = (fields: EditorFieldType[]): EditorFieldType[] => {
-  return ['backgroundColor', 'pageNumber', ...fields];
+/**
+ * 辅助函数：快速生成基础字段配置
+ */
+const withBaseFields = (fields: FieldType[]): FieldSchema[] => {
+  const base: FieldType[] = ['backgroundColor', 'pageNumber'];
+  return [...base, ...fields].map(key => ({ key }));
 };
 
 export const TEMPLATES: TemplateConfig[] = [
-  // --- Apple Style Bento (16:9 Exclusive) ---
   {
     id: 'apple-bento-grid',
     name: 'Bento Showcase',
@@ -54,8 +53,6 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
     supportedRatios: ['16:9']
   },
-
-  // --- Cover Category (2:3 Optimized) ---
   {
     id: 'editorial-classic',
     name: 'Editorial Classic',
@@ -86,8 +83,6 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle']),
     supportedRatios: ['2:3']
   },
-
-  // --- Gallery Category (2:3 Optimized) ---
   {
     id: 'kinfolk-feature',
     name: 'Editorial Feature',
@@ -128,8 +123,6 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
     supportedRatios: ['2:3']
   },
-
-  // --- General Category (2:3 Optimized) ---
   {
     id: 'kinfolk-essay',
     name: 'Editorial Essay',
@@ -150,8 +143,6 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
     supportedRatios: ['2:3']
   },
-
-  // --- Legacy / Landscape Templates (16:9 Only) ---
   {
     id: 'future-focus',
     name: 'Future Focus',
@@ -189,7 +180,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Japanese style minimalist split layout',
     tags: ['Gallery', 'Minimalist', 'Editorial'],
     component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'paragraph']), // 核心：移除 footer，换成 paragraph
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'paragraph']), 
     supportedRatios: ['16:9']
   },
   {

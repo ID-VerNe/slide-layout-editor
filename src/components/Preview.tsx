@@ -2,6 +2,7 @@ import React from 'react';
 import { PageData, PrintSettings, TypographySettings } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LAYOUT_CONFIG } from '../constants/layout';
+import MetadataOverlay from './ui/slide/MetadataOverlay';
 
 // 引入模板
 import ModernFeature from './templates/ModernFeature';
@@ -31,51 +32,17 @@ interface PreviewProps {
   page: PageData;
   pageIndex: number;
   totalPages: number;
-  printSettings?: PrintSettings; // 设为可选
-  typography: TypographySettings;
+  printSettings?: PrintSettings; 
+  typography?: TypographySettings;
+  minimalCounter?: boolean;
 }
 
-const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography }) => {
-  const customCounterColor = page.counterColor || '#64748b';
-
-  const renderCounter = () => {
-    const style = page.counterStyle || 'number';
-    const current = pageIndex + 1;
-
-    switch (style) {
-      case 'alpha':
-        return String.fromCharCode(64 + current).toUpperCase();
-      case 'roman':
-        const romanMap: Record<number, string> = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X' };
-        return romanMap[current] || current.toString();
-      case 'dots':
-        const tens = Math.floor(current / 10);
-        const fives = Math.floor((current % 10) / 5);
-        const ones = current % 5;
-        return (
-          <div className="flex gap-2 items-center">
-            {Array.from({ length: tens }).map((_, i) => <div key={`t-${i}`} className="w-2 h-2 rounded-[1px]" style={{ backgroundColor: customCounterColor }} />)}
-            {Array.from({ length: fives }).map((_, i) => <div key={`f-${i}`} className="w-0.5 h-3 rounded-full mx-0.5" style={{ backgroundColor: customCounterColor }} />)}
-            {Array.from({ length: ones }).map((_, i) => <div key={`o-${i}`} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: customCounterColor }} />)}
-          </div>
-        );
-      default:
-        return current.toString().padStart(2, '0');
-    }
-  };
-
-  const renderBackgroundPattern = () => {
-    const pattern = page.backgroundPattern || 'none';
-    if (pattern === 'none') return null;
-    let style: React.CSSProperties = {};
-    switch (pattern) {
-      case 'grid': style = { backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`, backgroundSize: '60px 60px' }; break;
-      case 'dots': style = { backgroundImage: `radial-gradient(#000 1px, transparent 1px)`, backgroundSize: '30px 30px' }; break;
-      case 'diagonal': style = { backgroundImage: `repeating-linear-gradient(45deg, #000, #000 1px, transparent 1px, transparent 15px)`, backgroundSize: '20px 20px' }; break;
-      case 'cross': style = { backgroundImage: `radial-gradient(#000 1px, transparent 1px), radial-gradient(#000 1px, transparent 1px)`, backgroundSize: '40px 40px', backgroundPosition: '0 0, 20px 20px' }; break;
-    }
-    return <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0" style={style} />;
-  };
+/**
+ * Preview - 核心预览容器
+ * 重构版：已将元数据层（页码、页脚、背景纹理）彻底剥离至 MetadataOverlay 组件。
+ */
+const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter }) => {
+  const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
   const renderTemplate = () => {
     const commonProps = { page, typography }; 
@@ -107,16 +74,9 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
   };
 
   const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
-  const isMinimal = page.minimalCounter === true;
-
-  // --- 物理装订逻辑补正 (带空值防御) ---
   const isPrintEnabled = printSettings?.enabled;
   const orientation = designDims.orientation;
-  
-  // 核心修复：增加 configs 的全方位兜底
   const config = (printSettings?.configs && printSettings.configs[orientation]) || { bindingSide: 'left', trimSide: 'bottom' };
-
-  // 使用默认值防止计算崩溃
   const widthMm = printSettings?.widthMm || 100;
   const heightMm = printSettings?.heightMm || 145;
   const gutterMm = printSettings?.gutterMm || 10;
@@ -124,16 +84,11 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
   const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
   const availWidthMm = isHorizontalBinding ? (widthMm - gutterMm) : widthMm;
   const availHeightMm = !isHorizontalBinding ? (heightMm - gutterMm) : heightMm;
-
   const scaleW = availWidthMm / widthMm;
   const scaleH = availHeightMm / heightMm;
   const scaleFactor = isPrintEnabled ? Math.min(scaleW, scaleH) : 1;
-
   const canvasWidth = designDims.width;
-  const canvasHeight = isPrintEnabled 
-    ? designDims.width * (heightMm / widthMm)
-    : designDims.height;
-
+  const canvasHeight = isPrintEnabled ? designDims.width * (heightMm / widthMm) : designDims.height;
   const ppi = canvasWidth / widthMm;
   const gutterPx = gutterMm * ppi;
 
@@ -148,7 +103,12 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         backgroundColor: page.backgroundColor || '#ffffff',
       }}
     >
-      {renderBackgroundPattern()}
+      {/* 
+        核心重构：元数据层独立渲染
+        这确保了背景纹理和页脚页码永远位于最底层/最顶层，不受模板逻辑干扰。
+      */}
+      <MetadataOverlay page={page} pageIndex={pageIndex} minimalCounter={isMinimal} />
+
       <div 
         className="w-full h-full relative transition-all duration-700 isolate"
         style={isPrintEnabled ? { transform: `scale(${scaleFactor})`, transformOrigin: `${getOriginX()} ${getOriginY()}`, outline: printSettings?.showContentFrame ? '0.5px solid rgba(0,0,0,0.15)' : 'none', outlineOffset: '-0.5px' } : {}}
@@ -158,13 +118,6 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
             {renderTemplate()}
           </motion.div>
         </AnimatePresence>
-
-        <div className={`absolute bottom-10 left-16 right-16 flex justify-between items-center z-20 pointer-events-none ${page.layoutVariant === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
-          <div className={`text-[10px] font-black uppercase tracking-[0.2em] whitespace-pre-line transition-all duration-500 ${page.layoutVariant === 'right' ? 'text-right' : 'text-left'}`} style={{ color: customCounterColor, opacity: 0.4 }}>{page.footer}</div>
-          {page.pageNumber !== false && (
-            <div className={`text-[10px] font-black uppercase tracking-widest flex items-center transition-all duration-500 ${page.minimalCounter ? 'opacity-40' : 'gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50 shadow-sm'}`} style={{ color: customCounterColor }}>{renderCounter()}</div>
-          )}
-        </div>
       </div>
 
       {isPrintEnabled && (

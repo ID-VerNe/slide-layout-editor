@@ -1,33 +1,9 @@
 import React from 'react';
 import { PageData, CustomFont } from '../types';
-import { Layout, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Layout, ChevronRight } from 'lucide-react';
 import { Section, Label } from './ui/Base';
-import { getTemplateById, EditorFieldType } from '../templates/registry';
-
-// 导入原子化字段组件
-import { LogoField } from './editor/fields/LogoField';
-import { TitleField } from './editor/fields/TitleField';
-import { SubtitleField } from './editor/fields/SubtitleField';
-import { ActionTextField } from './editor/fields/ActionTextField';
-import { ParagraphField } from './editor/fields/ParagraphField';
-import { SignatureField } from './editor/fields/SignatureField';
-import { ImageField } from './editor/fields/ImageField';
-import { ImageLabelField } from './editor/fields/ImageLabelField';
-import { ImageSubLabelField } from './editor/fields/ImageSubLabelField';
-import { FeaturesField } from './editor/fields/FeaturesField';
-import { MosaicField } from './editor/fields/MosaicField';
-import { MetricsField } from './editor/fields/MetricsField';
-import { PartnersField } from './editor/fields/PartnersField';
-import { PartnersTitleField } from './editor/fields/PartnersTitleField';
-import { TestimonialsField } from './editor/fields/TestimonialsField';
-import { AgendaField } from './editor/fields/AgendaField';
-import { GalleryField } from './editor/fields/GalleryField';
-import { VariantField } from './editor/fields/VariantField';
-import { BulletsField } from './editor/fields/BulletsField';
-import { ColorField } from './editor/fields/ColorField';
-import { FooterField } from './editor/fields/FooterField';
-import { BentoField } from './editor/fields/BentoField';
-import { PageNumberField } from './editor/fields/PageNumberField';
+import { getTemplateById } from '../templates/registry';
+import { FieldRenderer } from './editor/FieldRenderer';
 
 interface EditorProps {
   page: PageData;
@@ -36,21 +12,11 @@ interface EditorProps {
 }
 
 /**
- * Editor 核心组件
- * 加固版：增加了对 page 对象的空值保护，防止由于异步加载导致的渲染崩溃。
+ * Editor 核心组件 (Schema 驱动版)
+ * 核心升级：不再硬编码组件分发，而是遍历模板 Schema 进行动态渲染。
  */
 const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts }) => {
-  // 核心修复 1：增加空值保护卫导
-  if (!page || !page.layoutId) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-12 text-center space-y-4 opacity-40">
-        <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-300">
-          <LayoutGrid size={32} />
-        </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em]">Initialing Editor...</p>
-      </div>
-    );
-  }
+  if (!page || !page.layoutId) return null;
 
   const template = getTemplateById(page.layoutId);
 
@@ -60,37 +26,9 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
     }));
   };
 
-  const renderField = (type: EditorFieldType) => {
-    switch (type) {
-      case 'logo': return <LogoField key={type} page={page} onUpdate={onUpdate} />;
-      case 'title': return <TitleField key={type} page={page} onUpdate={onUpdate} />;
-      case 'subtitle': return <SubtitleField key={type} page={page} onUpdate={onUpdate} />;
-      case 'actionText': return <ActionTextField key={type} page={page} onUpdate={onUpdate} />;
-      case 'paragraph': return <ParagraphField key={type} page={page} onUpdate={onUpdate} />;
-      case 'signature': return <SignatureField key={type} page={page} onUpdate={onUpdate} />;
-      case 'image': return <ImageField key={type} page={page} onUpdate={onUpdate} />;
-      case 'imageLabel': return <ImageLabelField key={type} page={page} onUpdate={onUpdate} />;
-      case 'imageSubLabel': return <ImageSubLabelField key={type} page={page} onUpdate={onUpdate} />;
-      case 'features': return <FeaturesField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'mosaic': return <MosaicField key={type} page={page} onUpdate={onUpdate} />;
-      case 'metrics': return <MetricsField key={type} page={page} onUpdate={onUpdate} />;
-      case 'partnersTitle': return <PartnersTitleField key={type} page={page} onUpdate={onUpdate} />;
-      case 'partners': return <PartnersField key={type} page={page} onUpdate={onUpdate} />;
-      case 'testimonials': return <TestimonialsField key={type} page={page} onUpdate={onUpdate} customFonts={customFonts} />;
-      case 'agenda': return <AgendaField key={type} page={page} onUpdate={onUpdate} />;
-      case 'bentoItems': return <BentoField key={type} page={page} onUpdate={onUpdate} />;
-      case 'gallery': return <GalleryField key={type} page={page} onUpdate={onUpdate} />;
-      case 'variant': return <VariantField key={type} page={page} onUpdate={onUpdate} />;
-      case 'bullets': return <BulletsField key={type} page={page} onUpdate={onUpdate} />;
-      case 'backgroundColor': return <ColorField key={type} page={page} onUpdate={onUpdate} />;
-      case 'footer': return <FooterField key={type} page={page} onUpdate={onUpdate} />;
-      case 'pageNumber': return <PageNumberField key={type} page={page} onUpdate={onUpdate} />;
-      default: return null;
-    }
-  };
-
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-10 pb-20 animate-in fade-in duration-500">
+      {/* 顶部：布局与比例概览 */}
       <Section>
         <Label icon={Layout}>Slide Layout & Ratio</Label>
         <button 
@@ -108,8 +46,20 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
         </button>
       </Section>
 
-      <div className="space-y-8">
-        {template.fields.map(renderField)}
+      {/* 
+        核心逻辑：根据模板配置的 Schema 动态生成编辑器列表
+        这消除了庞大的 switch-case，使架构具备极强的扩展性。
+      */}
+      <div className="space-y-8 px-1">
+        {template.fields.map((schema) => (
+          <FieldRenderer 
+            key={`${page.id}-${schema.key}`}
+            schema={schema}
+            page={page}
+            onUpdate={onUpdate}
+            customFonts={customFonts}
+          />
+        ))}
       </div>
     </div>
   );

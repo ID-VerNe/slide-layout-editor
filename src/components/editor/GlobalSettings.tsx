@@ -91,13 +91,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                   </div>
                 </Section>
                 <Section>
-                  <Label icon={Hash}>Pagination & Metadata</Label>
+                  <Label icon={Hash}>Pagination</Label>
                   <div className="space-y-8">
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-3"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Counter Style</span><div className="flex bg-slate-100 p-1 rounded-xl gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => handleChange('counterStyle', s.id as CounterStyle)} className={`flex-1 p-2 flex items-center justify-center rounded-lg transition-all ${(page.counterStyle || 'number') === s.id ? 'bg-white text-[#264376] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><s.icon size={14} /></button>))}</div></div>
                       <div className="space-y-3">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">UI Mode</span>
-                        {/* 核心修正：使用独立的 setMinimalCounter 动作 */}
                         <button 
                           onClick={() => setMinimalCounter(!minimalCounter)} 
                           className={`w-full py-2.5 rounded-xl border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${minimalCounter ? 'border-[#264376] bg-[#264376] text-white shadow-lg' : 'border-slate-100 text-slate-400 hover:border-slate-200 bg-white'}`}
@@ -107,7 +106,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-2"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Global Footer Text</span><Input value={page.footer || ''} onChange={(e) => handleChange('footer', e.target.value)} placeholder="© 2026 Studio Grid" className="text-xs font-bold" /></div>
+                    {/* 已移除 Global Footer Text 输入框 */}
                   </div>
                 </Section>
                 <Section><Label icon={CircleDot}>Background Pattern</Label><div className="grid grid-cols-5 gap-3">{[ { id: 'none', label: 'None' }, { id: 'grid', label: 'Grid' }, { id: 'dots', label: 'Dots' }, { id: 'diagonal', label: 'Lines' }, { id: 'cross', label: 'Plus' } ].map(p => (<button key={p.id} onClick={() => handleChange('backgroundPattern', p.id)} className={`py-3 flex flex-col items-center justify-center rounded-xl border-2 transition-all ${(page.backgroundPattern || 'none') === p.id ? 'border-[#264376] bg-[#264376]/5 text-[#264376]' : 'border-slate-50 bg-slate-50/50 text-slate-300 hover:border-slate-200'}`}><span className="text-[8px] font-black uppercase tracking-tighter">{p.label}</span></button>))}</div></Section>

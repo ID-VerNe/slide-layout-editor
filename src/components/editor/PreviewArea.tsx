@@ -11,14 +11,11 @@ interface PreviewAreaProps {
   enforceA4: boolean;
   isAutoFit: boolean; 
   setIsAutoFit: (val: boolean) => void;
-  printSettings: PrintSettings; // 新增：打印设置
+  printSettings: PrintSettings; 
+  minimalCounter?: boolean; // 新增：接收全局 minimal 状态
   onOverflowChange: (pageId: string, isOverflowing: boolean) => void;
 }
 
-/**
- * PreviewArea - 画布预览容器
- * 增强版：支持打印装订位预览适配。
- */
 const PreviewArea: React.FC<PreviewAreaProps> = ({
   pages,
   currentPageIndex,
@@ -27,7 +24,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   previewContainerRef,
   isAutoFit,
   setIsAutoFit,
-  printSettings
+  printSettings,
+  minimalCounter // 解构
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -112,7 +110,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
               page={pages[currentPageIndex]} 
               pageIndex={currentPageIndex}
               totalPages={pages.length}
-              printSettings={printSettings} // 传递打印设置
+              printSettings={printSettings}
+              minimalCounter={minimalCounter} // 核心修复：透传给 Preview
             />
           </div>
         )}
