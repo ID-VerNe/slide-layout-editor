@@ -65,6 +65,18 @@ SlideGrid Studio 是一款为摄影师、独立出版人及设计师量身定制
 
 ---
 
+## 📐 开发者指南 (Developer Guide)
+
+如果你想为 SlideGrid Studio 贡献代码或添加新的排版模板，请务必遵循以下指南：
+
+*   **[模板开发标准作业程序 (SOP)](STANDARD_OPERATING_PROCEDURE.md)**：这是创建新模板的**必读文档**。它详细介绍了如何利用 **Schema-Driven Engine** 快速构建、注册并集成新模板，以及原子组件的使用规范。
+*   **架构规范**：
+    -   **配置优先**：新增字段时应修改 `src/types.ts` 和注册表，而非硬编码 UI。
+    -   **状态隔离**：禁止在模板内使用本地 `useState` 管理持久化数据，必须通过 Store 更新。
+    -   **视觉一致性**：强制使用 `theme.colors` 中的 Token，严禁在模板中硬编码 Hex 色值。
+
+---
+
 ## 📄 开源协议
 
 本项目基于 **MIT License** 协议开源。详情请参阅 [LICENSE](LICENSE) 文件。
