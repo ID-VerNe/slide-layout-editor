@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
 import AutoFitHeadline from '../../AutoFitHeadline';
 import { useStore } from '../../../store/useStore';
@@ -45,11 +46,21 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
 
   const overrides = page.styleOverrides?.title || {};
   
+  // XSS 消毒
+  const sanitizedText = DOMPurify.sanitize(page.title, { ALLOWED_TAGS: [] });
+  
   const getFontFamily = () => {
+    // 0. 显式的样式覆盖 (EditorPanel 调整)
+    if (overrides.fontFamily) return overrides.fontFamily;
+
+    // 1. 如果有字段级别的覆盖（通过 props 传入的 typography），优先使用
     const fieldFont = typography?.fieldOverrides?.['title'];
     if (fieldFont) return fieldFont;
-    const latin = typography?.defaultLatin || theme?.typography?.headingFont || "'Inter', sans-serif";
-    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
+
+    // 2. 使用 PageData 中的字体定义，它已经同步了全局主题
+    const latin = page.titleFont || theme?.typography?.headingFont || "'Playfair Display', serif";
+    const cjk = page.titleFontZH || theme?.typography?.headingFontZH || "'Noto Serif SC', serif";
+    
     return `${latin}, ${cjk}`;
   };
 
@@ -69,7 +80,7 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
 
   return (
     <AutoFitHeadline
-      text={page.title}
+      text={sanitizedText}
       maxSize={overrides.fontSize || maxSize}
       minSize={overrides.fontSize || minSize}
       lineHeight={1.05}

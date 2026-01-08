@@ -7,7 +7,7 @@ import { FieldRenderer } from './editor/FieldRenderer';
 
 interface EditorProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
 }
 

@@ -6,7 +6,7 @@ import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
 }
 
 export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
@@ -21,6 +21,10 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
 
   const handleChange = (val: string) => {
     onUpdate({ ...page, title: val });
+  };
+
+  const handleImmediateChange = (val: string) => {
+    onUpdate({ ...page, title: val }, true);
   };
 
   const updateFontSize = (delta: number) => {
@@ -88,6 +92,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
             rows={2} 
             value={page.title || ''} 
             onChange={handleChange} 
+            onImmediateChange={handleImmediateChange}
             placeholder="Title..." 
             className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
             style={{ fontFamily: page.styleOverrides?.title?.fontFamily || page.titleFont }} 

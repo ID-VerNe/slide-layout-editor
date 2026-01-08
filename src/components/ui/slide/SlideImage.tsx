@@ -66,6 +66,8 @@ export const SlideImage: React.FC<SlideImageProps> = ({
         <img 
           src={url} 
           crossOrigin="anonymous"
+          loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName}`}
           style={{
             transform: `scale(${config.scale})`,

@@ -26,10 +26,37 @@ import { FooterField } from './fields/FooterField';
 import { BentoField } from './fields/BentoField';
 import { PageNumberField } from './fields/PageNumberField';
 
+// 映射表 - 移出组件以避免重复创建
+const componentMap: Record<string, React.FC<any>> = {
+  logo: LogoField,
+  title: TitleField,
+  subtitle: SubtitleField,
+  actionText: ActionTextField,
+  paragraph: ParagraphField,
+  signature: SignatureField,
+  image: ImageField,
+  imageLabel: ImageLabelField,
+  imageSubLabel: ImageSubLabelField,
+  features: FeaturesField,
+  mosaic: MosaicField,
+  metrics: MetricsField,
+  partnersTitle: PartnersTitleField,
+  partners: PartnersField,
+  testimonials: TestimonialsField,
+  agenda: AgendaField,
+  bentoItems: BentoField,
+  gallery: GalleryField,
+  variant: VariantField,
+  bullets: BulletsField,
+  backgroundColor: ColorField,
+  footer: FooterField,
+  pageNumber: PageNumberField,
+};
+
 interface FieldRendererProps {
   schema: FieldSchema;
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
 }
 
@@ -41,33 +68,6 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   schema, page, onUpdate, customFonts 
 }) => {
   const { key, props = {} } = schema;
-
-  // 映射表
-  const componentMap: Record<string, React.FC<any>> = {
-    logo: LogoField,
-    title: TitleField,
-    subtitle: SubtitleField,
-    actionText: ActionTextField,
-    paragraph: ParagraphField,
-    signature: SignatureField,
-    image: ImageField,
-    imageLabel: ImageLabelField,
-    imageSubLabel: ImageSubLabelField,
-    features: FeaturesField,
-    mosaic: MosaicField,
-    metrics: MetricsField,
-    partnersTitle: PartnersTitleField,
-    partners: PartnersField,
-    testimonials: TestimonialsField,
-    agenda: AgendaField,
-    bentoItems: BentoField,
-    gallery: GalleryField,
-    variant: VariantField,
-    bullets: BulletsField,
-    backgroundColor: ColorField,
-    footer: FooterField,
-    pageNumber: PageNumberField,
-  };
 
   const Component = componentMap[key];
 

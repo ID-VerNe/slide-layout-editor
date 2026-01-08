@@ -29,10 +29,16 @@ export interface ProjectTheme {
   typography: {
     headingFont?: string;
     bodyFont?: string;
+    headingFontZH?: string;
+    bodyFontZH?: string;
   };
 }
 
-// --- Phase 4: Schema 驱动编辑器定义 ---
+export interface TypographySettings {
+  defaultLatin?: string;
+  defaultCJK?: string;
+  fieldOverrides?: Record<string, string>;
+}
 
 export type FieldType = 
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' 
@@ -41,16 +47,14 @@ export type FieldType =
   | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
   | 'gallery' | 'variant' | 'footer' | 'bullets' 
   | 'backgroundColor' | 'pageNumber' | 'logoSize'
-  | 'group' | 'separator'; // 预留特殊类型
+  | 'group' | 'separator';
 
 export interface FieldSchema {
   key: FieldType;
   label?: string;
   icon?: string;
-  props?: Record<string, any>; // 传递给具体 Field 组件的透传参数
+  props?: Record<string, any>;
 }
-
-// ------------------------------------
 
 export interface MetricData {
   id?: string;
@@ -86,19 +90,15 @@ export interface BentoItem {
 }
 
 export type BentoItemType = 'metric' | 'icon-text' | 'image' | 'feature-list';
-
 export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
-
-import { TemplateId } from './templates/registry';
 
 export interface PageData {
   id: string;
   type: 'slide';
-  layoutId: TemplateId;
+  layoutId: string; // 核心解耦：不再引用 TemplateId 类型
   aspectRatio: AspectRatioType; 
   layoutVariant?: string;
 
-  // 核心内容
   title: string;
   subtitle?: string;
   bullets?: string[]; 
@@ -107,14 +107,12 @@ export interface PageData {
   imageLabel?: string;
   imageSubLabel?: string;
 
-  // 扩展内容
   metrics?: MetricData[];
   features?: FeatureData[];
   bentoItems?: BentoItem[]; 
   bentoConfig?: { rows: number; cols: number }; 
   gallery?: GalleryItem[];
 
-  // 视觉元素
   logo?: string;
   logoSize?: number;
   image?: string;
@@ -122,11 +120,11 @@ export interface PageData {
   backgroundColor?: string;
   accentColor?: string; 
   
-  // 字体配置
   titleFont?: string;
   bodyFont?: string;
+  titleFontZH?: string;
+  bodyFontZH?: string;
 
-  // 页脚与元数据
   footer?: string;
   pageNumber?: boolean;
   minimalCounter?: boolean; 
@@ -183,14 +181,16 @@ export interface PrintSettings {
   }
 }
 
-export interface ProjectData {
+export interface ProjectSaveData {
   version: string;
   title: string;
   pages: PageData[];
   customFonts: CustomFont[];
-  theme?: ProjectTheme; 
-  imageQuality?: number; 
-  minimalCounter?: boolean; 
-  counterColor?: string; 
-  printSettings?: PrintSettings; 
+  theme: ProjectTheme; 
+  minimalCounter: boolean;
+  imageQuality: number;
+  printSettings: PrintSettings;
+  filePath?: string; 
 }
+
+export type ProjectData = ProjectSaveData;

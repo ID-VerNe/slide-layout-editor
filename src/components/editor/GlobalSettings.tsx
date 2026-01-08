@@ -128,11 +128,23 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                     <ColorToken label="Page Canvas" value={theme.colors.background} field="background" theme={theme} onThemeChange={setTheme} />
                     <div className="col-span-2 pt-2"><ColorToken label="Surface / Modules" value={theme.colors.surface} field="surface" theme={theme} onThemeChange={setTheme} /></div>
                   </div>
-                  <div className="mt-10 pt-8 border-t border-slate-50 space-y-6">
+                  <div className="mt-10 pt-8 border-t border-slate-50 space-y-8">
                     <div className="flex items-center gap-2 text-slate-900"><TypeIcon size={12} className="text-[#264376]" /><span className="text-[9px] font-black uppercase tracking-widest">Global Font Pairing</span></div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <FontSelect label="Heading (Hero)" value={theme.typography?.headingFont} onChange={(v) => setTheme({ typography: { ...theme.typography, headingFont: v } })} customFonts={customFonts} />
-                      <FontSelect label="Body (Reading)" value={theme.typography?.bodyFont} onChange={(v) => setTheme({ typography: { ...theme.typography, bodyFont: v } })} customFonts={customFonts} />
+                    
+                    <div className="space-y-4">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Hero Headings (Title)</span>
+                      <div className="grid grid-cols-2 gap-6">
+                        <FontSelect label="English (EN)" value={theme.typography?.headingFont} onChange={(v) => setTheme({ typography: { ...theme.typography, headingFont: v } })} customFonts={customFonts} />
+                        <FontSelect label="Chinese (ZH)" value={theme.typography?.headingFontZH} onChange={(v) => setTheme({ typography: { ...theme.typography, headingFontZH: v } })} customFonts={customFonts} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Body Paragraphs</span>
+                      <div className="grid grid-cols-2 gap-6">
+                        <FontSelect label="English (EN)" value={theme.typography?.bodyFont} onChange={(v) => setTheme({ typography: { ...theme.typography, bodyFont: v } })} customFonts={customFonts} />
+                        <FontSelect label="Chinese (ZH)" value={theme.typography?.bodyFontZH} onChange={(v) => setTheme({ typography: { ...theme.typography, bodyFontZH: v } })} customFonts={customFonts} />
+                      </div>
                     </div>
                   </div>
                 </Section>

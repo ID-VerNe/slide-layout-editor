@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
 import { useStore } from '../../../store/useStore';
 
@@ -31,11 +32,21 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
 
   const overrides = page.styleOverrides?.subtitle || {};
   
+  // XSS 消毒
+  const sanitizedText = DOMPurify.sanitize(page.subtitle || '', { ALLOWED_TAGS: [] });
+
   const getFontFamily = () => {
+    // 1. 显式的样式覆盖
+    if (overrides.fontFamily) return overrides.fontFamily;
+    
+    // 2. 模板注入的覆盖
     const fieldFont = typography?.fieldOverrides?.['subtitle'];
     if (fieldFont) return fieldFont;
-    const latin = typography?.defaultLatin || theme?.typography?.bodyFont || "'Inter', sans-serif";
-    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
+
+    // 3. 页面/主题配置 (副标题通常使用 Body 字体)
+    const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
+    const cjk = page.bodyFontZH || theme?.typography?.bodyFontZH || "'Noto Serif SC', serif";
+    
     return `${latin}, ${cjk}`;
   };
 
@@ -58,7 +69,7 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
       className={`font-medium tracking-wide whitespace-pre-line ${className}`}
       style={combinedStyle}
     >
-      {page.subtitle}
+      {sanitizedText}
     </p>
   );
 };

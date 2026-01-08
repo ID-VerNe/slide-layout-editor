@@ -1,68 +1,171 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, protocol, net } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
+import { ProjectArchiveManager } from './archive-manager';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
+const THUMBNAIL_DIR = path.join(app.getPath('userData'), 'thumbnails');
+const archiveManager = new ProjectArchiveManager();
+
+// 缩略图缓存
+const thumbnailCache = new Map<string, string>();
+const MAX_CACHE_SIZE = 100;
+let isCapturing = false; // 并发锁
+
+// 定期清理缓存
+setInterval(() => {
+  if (thumbnailCache.size > MAX_CACHE_SIZE) {
+    const keys = Array.from(thumbnailCache.keys());
+    keys.slice(0, keys.length - MAX_CACHE_SIZE).forEach(key => {
+      thumbnailCache.delete(key);
+    });
+  }
+}, 60000);
+
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'asset', privileges: { bypassCSP: true, stream: true, supportFetchAPI: true, secure: true } }
+]);
+
+(async () => {
+  if (!existsSync(THUMBNAIL_DIR)) {
+    await fs.mkdir(THUMBNAIL_DIR, { recursive: true });
+  }
+})();
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
     title: 'SlideGrid Studio',
+    icon: path.join(__dirname, '../public/logo.svg'),
+    show: false,
+    backgroundColor: '#ffffff',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webSecurity: false, 
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: true,
+      sandbox: false, // 暂时关闭沙盒以确保 preload 脚本在某些 Windows 环境下能正常注入 API
+      preload: path.join(__dirname, 'preload.js'),
+      experimentalFeatures: true,
+      enableBlinkFeatures: 'CSSColorSchemeUARendering',
     },
+  });
+
+  // 添加 CSP 策略
+  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline'; " +
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+          "img-src 'self' asset: data: blob:; " +
+          "font-src 'self' asset: data: https://fonts.gstatic.com; " +
+          "connect-src 'self' https://api.gemini.com;"
+        ]
+      }
+    });
   });
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
-    win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(process.env.DIST, 'index.html'));
   }
+
+  // 优化窗口显示时机
+  win.once('ready-to-show', () => {
+    win.show();
+  });
 }
 
-// 开启 GPU 加速以获得丝滑动画
+// 硬件加速优化 (移除过于激进的标志，保持默认 Skia 渲染以提高稳定性)
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
-// app.commandLine.appendSwitch('disable-gpu'); <--- 已移除
-// app.commandLine.appendSwitch('disable-gpu-compositing'); <--- 已移除
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  const assetRoot = await archiveManager.getAssetRoot();
+  
+  protocol.handle('asset', (req) => {
+    const url = req.url.replace('asset://', '');
+    const filename = decodeURIComponent(url.split('?')[0]);
+    const filePath = path.join(assetRoot, filename);
+    return net.fetch(pathToFileURL(filePath).toString());
+  });
+
   createWindow();
 
-  // --- IPC Handlers for Native File System ---
+  ipcMain.handle('get-app-paths', () => ({
+    userData: app.getPath('userData'),
+    thumbnails: THUMBNAIL_DIR
+  }));
 
-  // 1. 保存项目
-  ipcMain.handle('save-project', async (event, { filePath, content }) => {
+  ipcMain.handle('capture-page-to-thumbnail', async (event, { projectId, rect }) => {
+    if (isCapturing) return null; // 如果正在截图中，直接跳过
+    
+    try {
+      isCapturing = true;
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) return null;
+
+      // 创建缓存键 (增加时间戳偏移以防旧缓存)
+      const cacheKey = `${projectId}_${Math.floor(rect.width)}_${Math.floor(rect.height)}`;
+      
+      const image = await win.webContents.capturePage({
+        x: Math.floor(rect.x),
+        y: Math.floor(rect.y),
+        width: Math.floor(rect.width),
+        height: Math.floor(rect.height)
+      });
+
+      const thumbnail = image.resize({ width: 300, quality: 'good' }); 
+      const thumbnailData = thumbnail.toDataURL();
+      return thumbnailData;
+    } catch (e) {
+      console.error('Native capture failed:', e);
+      return null;
+    } finally {
+      isCapturing = false;
+    }
+  });
+
+  // 核心修改：接收 defaultName 参数
+  ipcMain.handle('save-project', async (event, { filePath, content, defaultName }) => {
+    console.log('[Main] save-project triggered', { hasPath: !!filePath, defaultName });
     try {
       let targetPath = filePath;
-      
-      // 如果没有提供路径，则弹出 "另存为" 对话框
       if (!targetPath) {
+        console.log('[Main] No path provided, showing save dialog...');
+        // 使用前端传来的文件名作为默认值，sanitize 掉非法字符
+        const safeName = (defaultName || 'Untitled').replace(/[<>:"/\\|?*]/g, '');
         const { canceled, filePath: savePath } = await dialog.showSaveDialog({
           title: 'Save Project',
-          defaultPath: 'Untitled.slgrid',
+          defaultPath: `${safeName}.slgrid`, // 自动填充
           filters: [{ name: 'SlideGrid Project', extensions: ['slgrid'] }]
         });
         if (canceled) return { success: false, canceled: true };
         targetPath = savePath;
       }
 
-      await fs.writeFile(targetPath, content, 'utf-8');
+      let projectData = content;
+      if (typeof content === 'string') projectData = JSON.parse(content);
+
+      await archiveManager.saveProject(targetPath, projectData);
       return { success: true, filePath: targetPath };
     } catch (error: any) {
       console.error('Save failed:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.stack || error.message };
     }
   });
 
-  // 2. 打开项目
   ipcMain.handle('open-project', async () => {
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog({
@@ -70,27 +173,37 @@ app.whenReady().then(() => {
         filters: [{ name: 'SlideGrid Project', extensions: ['slgrid'] }],
         properties: ['openFile']
       });
-
       if (canceled || filePaths.length === 0) return { canceled: true };
-
       const filePath = filePaths[0];
-      const content = await fs.readFile(filePath, 'utf-8');
-      return { success: true, filePath, content };
+      const projectData = await archiveManager.openProject(filePath);
+      return { success: true, filePath, content: JSON.stringify(projectData) };
     } catch (error: any) {
-      console.error('Open failed:', error);
       return { success: false, error: error.message };
     }
   });
+
+  ipcMain.handle('upload-asset', async (event, { filename, base64Data }) => {
+    try {
+      const buffer = Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64');
+      const assetUrl = await archiveManager.saveAsset(filename, buffer);
+      return { success: true, url: assetUrl };
+    } catch (error: any) { return { success: false, error: error.message }; }
+  });
+
+  ipcMain.handle('select-directory', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({ title: 'Select Export Folder', properties: ['openDirectory', 'createDirectory'] });
+    if (canceled || filePaths.length === 0) return { canceled: true };
+    return { success: true, path: filePaths[0] };
+  });
+
+  ipcMain.handle('save-file-buffer', async (event, { filePath, base64Data }) => {
+    try {
+      const buffer = Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64');
+      await fs.writeFile(filePath, buffer);
+      return { success: true };
+    } catch (error: any) { return { success: false, error: error.message }; }
+  });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

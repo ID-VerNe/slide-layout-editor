@@ -5,7 +5,7 @@ import { PageData, CustomFont } from '../../types';
 
 interface EditorPanelProps {
   currentPage: PageData;
-  onUpdatePage: (page: PageData) => void;
+  onUpdatePage: (page: PageData, silent?: boolean) => void;
   onRemovePage: (id: string) => void;
   customFonts: CustomFont[];
 }

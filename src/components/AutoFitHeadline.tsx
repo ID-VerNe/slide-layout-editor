@@ -14,8 +14,8 @@ interface AutoFitHeadlineProps {
 }
 
 /**
- * AutoFitHeadline
- * 稳定版：修复因观察自身导致的死循环，解决空心字消失/淡化问题。
+ * AutoFitHeadline - 极致稳定版
+ * 核心设计：移除自动 ResizeObserver，改用基于关键属性变化的单次计算流。
  */
 const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({ 
   text, 
@@ -33,7 +33,6 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   const [range, setRange] = useState({ min: minSize, max: maxSize });
   const [isCalculating, setIsCalculating] = useState(true);
   const [retryCount, setRetryCount] = useState(0); 
-  const [parentVersion, setParentVersion] = useState(0); // 仅观察父容器
   const ref = useRef<HTMLHeadingElement>(null);
 
   // 1. 只有在关键属性改变时才重置计算
@@ -42,21 +41,21 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
     setRetryCount(0);
     setRange({ min: minSize, max: maxSize });
     setFontSize(maxSize);
-  }, [text, maxSize, fontFamily, maxLines, minSize, parentVersion]);
+  }, [text, maxSize, fontFamily, maxLines, minSize]);
 
-  // 2. 递归缩放算法
+  // 2. 递归缩放算法 (纯同步/微任务模式，防止渲染抖动)
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !isCalculating) return;
 
-    // 增加高度余量，防止浮点误差
-    const maxHeight = Math.floor(fontSize * lineHeight * maxLines) + 4;
-    const isOverflowing = el.scrollHeight > maxHeight;
-
-    if (retryCount > 15) { 
+    // 严格限制重试次数，防止 OOM
+    if (retryCount > 12) { 
       setIsCalculating(false);
       return;
     }
+
+    const maxHeight = Math.floor(fontSize * lineHeight * maxLines) + 2;
+    const isOverflowing = el.scrollHeight > maxHeight;
 
     if (isOverflowing) {
       const newMax = fontSize - 1;
@@ -85,23 +84,16 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
     }
   }, [fontSize, isCalculating, range, retryCount, lineHeight, maxLines, text]);
 
-  // 3. 核心修复：观察父容器而非自身，防止死循环
+  // 3. 字体加载保障
   useEffect(() => {
     if (document.fonts) {
-      document.fonts.ready.then(() => setParentVersion(v => v + 1));
+      document.fonts.ready.then(() => {
+        setIsCalculating(true);
+        setRetryCount(0);
+        setFontSize(maxSize);
+      });
     }
-    
-    const parent = ref.current?.parentElement;
-    if (!parent) return;
-
-    const observer = new ResizeObserver(() => {
-      // 只有父容器宽度变化才重置
-      setParentVersion(v => v + 1);
-    });
-    
-    observer.observe(parent);
-    return () => observer.disconnect();
-  }, []);
+  }, [fontFamily]);
 
   return (
     <Tag 
@@ -113,13 +105,12 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         wordBreak: 'break-all',
         whiteSpace: 'pre-line',
         textWrap: text.includes('\n') ? 'unset' : 'balance',
-        ...style, // 外部传入的 style (包含描边) 必须放在后面以防被覆盖
+        ...style,
         fontFamily,
         fontSize: `${fontSize}px`,
         lineHeight: lineHeight,
-        // 计算中给极低不透明度，计算完立即恢复
-        opacity: isCalculating ? 0.01 : 1,
-        transition: 'opacity 0.2s ease-out'
+        opacity: isCalculating ? 0.01 : 1, // 计算中渐隐，计算完显示
+        transition: 'opacity 0.15s ease-out'
       }}
     >
       {children || text}

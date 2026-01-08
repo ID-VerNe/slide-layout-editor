@@ -5,38 +5,36 @@ import { PrintSettings } from '../types';
 interface UsePreviewOptions {
   pages: any[];
   currentPageIndex: number;
-  printSettings: PrintSettings; // 传入打印设置
+  printSettings: PrintSettings;
+  isLoaded?: boolean; // 新增：感知加载状态
 }
 
-export function usePreview({ pages, currentPageIndex, printSettings }: UsePreviewOptions) {
+export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = true }: UsePreviewOptions) {
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [isAutoFit, setIsAutoFit] = useState(true);
   const [pagesOverflow, setPagesOverflow] = useState<Record<string, boolean>>({});
   
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const lastLayoutRef = useRef<string>('');
 
   const calculateFitZoom = useCallback(() => {
-    if (!previewContainerRef.current || !pages[currentPageIndex]) return 0.5;
+    // 关键加固：如果项目没加载完，或者 DOM 没准备好，不进行任何计算，防止死循环
+    if (!isLoaded || !previewContainerRef.current || !pages[currentPageIndex]) return 0.5;
     
     const rect = previewContainerRef.current.getBoundingClientRect();
-    const containerWidth = rect.width;
-    const containerHeight = rect.height;
-    
-    if (containerHeight <= 0 || containerWidth <= 0) return 0.5;
+    if (rect.height <= 0 || rect.width <= 0) return 0.5;
 
     const padding = 120; 
-    const availableWidth = containerWidth - padding;
-    const availableHeight = containerHeight - padding;
+    const availableWidth = rect.width - padding;
+    const availableHeight = rect.height - padding;
 
     const currentPage = pages[currentPageIndex];
     const designDims = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
     
     let targetWidth, targetHeight;
 
-    // 核心修复：如果开启了打印模式，则以纸张的物理比例计算缩放
     if (printSettings?.enabled) {
-      // 我们以设计稿的宽度作为基准像素，换算纸张的像素尺寸
       const ppi = designDims.width / (printSettings.widthMm - (designDims.orientation === 'portrait' ? printSettings.gutterMm : 0));
       targetWidth = printSettings.widthMm * ppi;
       targetHeight = printSettings.heightMm * ppi;
@@ -49,36 +47,42 @@ export function usePreview({ pages, currentPageIndex, printSettings }: UsePrevie
     const scaleY = availableHeight / targetHeight;
 
     return Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1.5);
-  }, [pages, currentPageIndex, printSettings]);
+  }, [pages, currentPageIndex, printSettings, isLoaded]);
 
+  // 1. 响应窗口变化，但增加防抖
   useEffect(() => {
-    if (!previewContainerRef.current) return;
+    if (!previewContainerRef.current || !isLoaded) return;
 
+    let timeoutId: any;
     const observer = new ResizeObserver(() => {
-      if (isAutoFit) {
-        setPreviewZoom(calculateFitZoom());
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (isAutoFit) {
+          setPreviewZoom(calculateFitZoom());
+        }
+      }, 100); // 100ms 防抖，防止与子组件的布局计算竞争
     });
 
     observer.observe(previewContainerRef.current);
     
-    const timeoutId = setTimeout(() => {
-      if (isAutoFit) {
-        setPreviewZoom(calculateFitZoom());
-      }
-    }, 50);
+    // 初次挂载延时执行
+    const initTimer = setTimeout(() => {
+      if (isAutoFit) setPreviewZoom(calculateFitZoom());
+    }, 200);
 
     return () => {
       observer.disconnect();
       clearTimeout(timeoutId);
+      clearTimeout(initTimer);
     };
-  }, [isAutoFit, calculateFitZoom]);
+  }, [isAutoFit, calculateFitZoom, isLoaded]);
 
+  // 2. 响应页面切换
   useEffect(() => {
-    if (isAutoFit) {
+    if (isAutoFit && isLoaded) {
       setPreviewZoom(calculateFitZoom());
     }
-  }, [currentPageIndex, isAutoFit, calculateFitZoom, pages]);
+  }, [currentPageIndex, isAutoFit, isLoaded, calculateFitZoom]);
 
   const handleManualZoom = (value: number) => {
     setIsAutoFit(false);

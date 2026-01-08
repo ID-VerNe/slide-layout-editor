@@ -62,6 +62,15 @@
   src: url('./crimson-pro/CrimsonPro-Bold.woff2') format('woff2');
 }
 
+/* Noto Serif SC (Source Han Serif) - Local */
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./noto-serif-sc/NotoSerifSC-Light.woff2') format('woff2');
+}
+
 @font-face {
   font-family: 'Noto Serif SC';
   font-style: normal;

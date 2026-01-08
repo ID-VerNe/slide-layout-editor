@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
 import { useStore } from '../../../store/useStore';
 
@@ -29,6 +30,12 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
   const text = page.paragraph;
   if (!text) return null;
 
+  // XSS 消毒
+  const sanitizedText = DOMPurify.sanitize(text, { 
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'span'],
+    ALLOWED_ATTR: ['style', 'class'] 
+  });
+
   const overrides = page.styleOverrides?.paragraph || {};
   const fontSize = overrides.fontSize ? `${overrides.fontSize}px` : (size || '1.15rem');
   const lineHeight = overrides.lineHeight || 1.8;
@@ -37,10 +44,15 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
   const textColor = overrides.color || color || theme?.colors?.primary || '#4b5563';
 
   const getFontFamily = () => {
+    // 1. 显式的样式覆盖
+    if (overrides.fontFamily) return overrides.fontFamily;
+
     const fieldFont = typography?.fieldOverrides?.['paragraph'];
     if (fieldFont) return fieldFont;
-    const latin = typography?.defaultLatin || theme?.typography?.bodyFont || "'Crimson Pro', serif";
-    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
+
+    const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
+    const cjk = page.bodyFontZH || theme?.typography?.bodyFontZH || "'Noto Serif SC', serif";
+    
     return `${latin}, ${cjk}`;
   };
 
@@ -72,12 +84,10 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
           >
             {text.charAt(0)}
           </span>
-          <span className="inline" style={{ fontFamily: currentFont }}>
-            {text.slice(1)}
-          </span>
+          <span className="inline" style={{ fontFamily: currentFont }} dangerouslySetInnerHTML={{ __html: sanitizedText.slice(1) }} />
         </div>
       ) : (
-        <span style={{ fontFamily: currentFont }}>{text}</span>
+        <span style={{ fontFamily: currentFont }} dangerouslySetInnerHTML={{ __html: sanitizedText }} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Plus, FolderOpen, Settings, Eraser, Layout, Trash2, Download, Save, HardDrive } from 'lucide-react';
+import { Plus, Settings, Eraser, Layout, Trash2 } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
@@ -14,14 +14,9 @@ interface SidebarProps {
   onRemovePage: (id: string) => void;
   onReorderPages: (newPages: PageData[]) => void; 
   onClearAll: () => void;
-  onImport: () => void;
-  onExport: () => void;
   onToggleFontManager: () => void;
   showFontManager: boolean;
   onNavigateHome: () => void;
-  // 新增 Native 接口
-  onNativeSave?: () => void;
-  onNativeOpen?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -32,17 +27,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   onRemovePage,
   onReorderPages,
   onClearAll,
-  onImport,
-  onExport,
   onToggleFontManager,
   showFontManager,
-  onNavigateHome,
-  onNativeSave,
-  onNativeOpen
+  onNavigateHome
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
-  const isElectron = nativeFs.isElectron();
 
   const currentPageId = pages[currentPageIndex]?.id;
 
@@ -136,18 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </Reorder.Group>
 
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
-        {/* Electron 特有功能区域 */}
-        {isElectron && (
-          <>
-            <ActionButton onClick={onNativeSave} icon={Save} title="Save to Disk (Ctrl+S)" active />
-            <ActionButton onClick={onNativeOpen} icon={HardDrive} title="Open File (Ctrl+O)" />
-            <div className="h-px w-8 bg-slate-100 my-1" />
-          </>
-        )}
-
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
-        {!isElectron && <ActionButton onClick={onImport} icon={FolderOpen} title="Import Project" />}
-        {!isElectron && <ActionButton onClick={onExport} icon={Download} title="Download (.slgrid)" />}
         
         <div className="h-px w-8 bg-slate-100 my-1" />
         <ActionButton onClick={() => onRemovePage(currentPageId)} icon={Trash2} title="Delete Slide" danger />

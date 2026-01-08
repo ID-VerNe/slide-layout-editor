@@ -17,7 +17,7 @@ interface TopNavProps {
   isAutoFit: boolean;
   onToggleAutoFit: () => void;
   onExportPng: (all: boolean) => void;
-  onSave: () => void;
+  onSave: (forceDialog?: boolean) => void;
   isExporting: boolean;
   showExportMenu: boolean;
   setShowExportMenu: (val: boolean) => void;
@@ -40,6 +40,17 @@ const TopNav: React.FC<TopNavProps> = ({
   showEditor, onToggleEditor,
   canUndo, canRedo, onUndo, onRedo
 }) => {
+  // 点击外部关闭导出菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showExportMenu && exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showExportMenu, setShowExportMenu, exportMenuRef]);
+
   return (
     <div className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0 z-40 relative shadow-sm">
       
@@ -149,8 +160,14 @@ const TopNav: React.FC<TopNavProps> = ({
           {showEditor ? <Maximize size={18} /> : <Minimize size={18} />}
         </button>
 
-        <button onClick={onSave} className="p-2.5 text-slate-400 hover:text-[#264376] transition-colors rounded-xl border-2 border-transparent hover:border-slate-100" title="Save Project">
+        <button 
+          onClick={(e) => onSave(e.shiftKey)} 
+          className="p-2.5 text-slate-400 hover:text-[#264376] transition-colors rounded-xl border-2 border-transparent hover:border-slate-100 group relative" 
+          title="Save Project (Shift+Click for Save As)"
+        >
           <Save size={20} />
+          {/* 简单的另存为提示小点 */}
+          <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#264376] opacity-0 group-hover:opacity-20 transition-opacity" />
         </button>
 
         <div className="relative" ref={exportMenuRef}>
