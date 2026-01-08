@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { FileImage, FileText, Monitor, Smartphone, ChevronRight, Tag as TagIcon, Square, Check } from 'lucide-react';
+import { FileImage, FileText, Monitor, Smartphone, ChevronRight, Tag as TagIcon, Square, Check, LayoutGrid } from 'lucide-react';
 
 import { useProject } from '../hooks/useProject';
 import { usePreview } from '../hooks/usePreview';
@@ -15,6 +15,9 @@ import GlobalSettings from '../components/editor/GlobalSettings';
 import Modal from '../components/Modal';
 import { LAYOUT, LAYOUT_CONFIG, AspectRatioType, OrientationType } from '../constants/layout';
 import { TEMPLATES } from '../templates/registry';
+import { nativeFs } from '../utils/native-fs';
+import { useStore } from '../store/useStore';
+import { getAsset } from '../utils/db';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -33,7 +36,10 @@ export default function EditorPage() {
     minimalCounter, setMinimalCounter, customFonts, setCustomFonts
   } = useProject(projectId, templateId);
 
-  const { previewZoom, setPreviewZoom, isAutoFit, setIsAutoFit, previewRef, previewContainerRef, handleManualZoom, toggleFit, handleOverflowChange } = usePreview({ pages, currentPageIndex, printSettings });
+  // 获取 Store 的底层初始化方法，用于原生文件加载
+  const initProject = useStore(s => s.initProject);
+
+  const { previewZoom, setPreviewZoom, isAutoFit, setIsAutoFit, previewRef, previewContainerRef, handleManualZoom, toggleFit, handleOverflowChange } = usePreview({ pages, currentPageIndex, printSettings, minimalCounter });
 
   const [showSettings, setShowSettings] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
@@ -60,6 +66,15 @@ export default function EditorPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
+      
+      // Ctrl+S / Cmd+S Native Save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (nativeFs.isElectron()) handleNativeSave();
+        else saveToDB(previewRef, true);
+        return;
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         if (e.shiftKey) redo(); else undo();
@@ -68,7 +83,7 @@ export default function EditorPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, saveToDB]);
 
   useEffect(() => {
     if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
@@ -103,6 +118,65 @@ export default function EditorPage() {
     }
     return () => clearTimeout(timeout);
   }, [pages, projectId, isLoaded, saveToDB, projectTitle, theme, minimalCounter, imageQuality, printSettings]);
+
+  // --- Electron Native Handlers ---
+
+  const handleNativeSave = async () => {
+    // 1. 打包资产
+    const assetIds = new Set<string>();
+    pages.forEach(p => {
+      if (p.image?.startsWith('asset://')) assetIds.add(p.image);
+      if (p.logo?.startsWith('asset://')) assetIds.add(p.logo);
+      p.gallery?.forEach(g => { if (g.url?.startsWith('asset://')) assetIds.add(g.url); });
+      p.bentoItems?.forEach(b => { if (b.image?.startsWith('asset://')) assetIds.add(b.image); });
+    });
+    
+    const assetsBundle: Record<string, string> = {};
+    for (const id of assetIds) { 
+      const data = await getAsset(id); 
+      if (data) assetsBundle[id] = data; 
+    }
+
+    // 2. 构建 JSON
+    const content = JSON.stringify({
+      version: "3.0",
+      title: projectTitle,
+      pages,
+      theme,
+      minimalCounter,
+      customFonts,
+      imageQuality,
+      printSettings,
+      assets: assetsBundle
+    }, null, 2);
+
+    // 3. 调用 IPC
+    await nativeFs.saveProject(content);
+    alert('Project saved successfully!');
+  };
+
+  const handleNativeOpen = async () => {
+    const result = await nativeFs.openProject();
+    if (result.success && result.content) {
+      try {
+        const project = JSON.parse(result.content);
+        // 恢复资产到 IndexedDB (这是必须的，因为 <img src="asset://..."> 依赖它)
+        if (project.assets) {
+          const { saveAsset } = await import('../utils/db');
+          for (const [id, dataUrl] of Object.entries(project.assets)) {
+            await saveAsset(dataUrl as string);
+          }
+        }
+        // 注入 Store
+        initProject(projectId || 'native-import', project);
+      } catch (e) {
+        console.error('Failed to parse project file', e);
+        alert('Invalid project file.');
+      }
+    }
+  };
+
+  // --------------------------------
 
   const handleFinalAction = (layoutId: string) => {
     if (modalMode === 'create' && pages[0]?.title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
@@ -159,7 +233,23 @@ export default function EditorPage() {
 
   return (
     <div className="flex h-screen bg-neutral-100 overflow-hidden font-sans">
-      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={() => window.dispatchEvent(new CustomEvent('open-layout-browser', { detail: { mode: 'create' } }))} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={handleClearAll} onImport={() => fileInputRef.current?.click()} onExport={handleExportProject} onToggleFontManager={() => setShowSettings(!showSettings)} showFontManager={showSettings} onNavigateHome={() => navigate('/')} />
+      <Sidebar 
+        pages={pages} 
+        currentPageIndex={currentPageIndex} 
+        onPageSelect={setCurrentPageIndex} 
+        onAddPage={() => window.dispatchEvent(new CustomEvent('open-layout-browser', { detail: { mode: 'create' } }))} 
+        onRemovePage={removePage} 
+        onReorderPages={reorderPages} 
+        onClearAll={handleClearAll} 
+        onImport={() => fileInputRef.current?.click()} 
+        onExport={handleExportProject} 
+        onToggleFontManager={() => setShowSettings(!showSettings)} 
+        showFontManager={showSettings} 
+        onNavigateHome={() => navigate('/')} 
+        // 绑定 Native Handlers
+        onNativeSave={handleNativeSave}
+        onNativeOpen={handleNativeOpen}
+      />
       <input ref={fileInputRef} type="file" className="hidden" accept=".slgrid,.wdzmaga" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportProject(f); }} />
       <div className="flex-1 flex overflow-hidden">
         <motion.div initial={false} animate={{ flex: 1 }} className="bg-neutral-200/50 flex flex-col overflow-hidden relative">
@@ -171,24 +261,9 @@ export default function EditorPage() {
         </motion.div>
       </div>
       <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl">
-        <GlobalSettings 
-          page={currentPage} 
-          onUpdate={updatePage} 
-          customFonts={customFonts} 
-          setCustomFonts={setCustomFonts} 
-          theme={theme}
-          setTheme={setTheme}
-          imageQuality={imageQuality}
-          setImageQuality={setImageQuality}
-          minimalCounter={minimalCounter}
-          setMinimalCounter={setMinimalCounter}
-          counterColor={pages[0]?.counterColor || '#64748b'}
-          setCounterColor={(c) => updatePage({...pages[0], counterColor: c})}
-          printSettings={printSettings}
-          setPrintSettings={setPrintSettings}
-        />
+        <GlobalSettings page={currentPage || pages[0]} onUpdate={updatePage} customFonts={customFonts} setCustomFonts={setCustomFonts} theme={theme} setTheme={setTheme} imageQuality={imageQuality} setImageQuality={setImageQuality} minimalCounter={minimalCounter || false} setMinimalCounter={setMinimalCounter} counterColor="" setCounterColor={()=>{}} printSettings={printSettings} setPrintSettings={setPrintSettings} />
       </Modal>
-      {/* (Layout Browser Modal omitted for brevity, keeping existing logic) */}
+      {/* Layout Browser Modal omitted */}
       <Modal isOpen={showLayoutModal} onClose={() => setShowLayoutModal(false)} title={modalMode === 'create' ? "Add New Slide" : "Change Layout"} type="custom" maxWidth="max-w-5xl">
         <div className="min-h-[60vh] flex flex-col p-4">
           {creationStage === 'orientation' && (
@@ -206,8 +281,8 @@ export default function EditorPage() {
               <div className="w-full flex items-center justify-between border-b pb-6"><button onClick={() => setCreationStage('orientation')} className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-900">← Orientation</button><div className="text-center"><h3 className="text-xl font-black uppercase text-slate-900">Step 2: Specific Ratio</h3></div><div className="w-24"/></div>
               <div className="flex gap-6 flex-wrap justify-center">
                 {Object.entries(LAYOUT_CONFIG).filter(([_, cfg]) => cfg.orientation === selectedOrientation).map(([key, cfg]) => (
-                  <button key={key} onClick={() => { setSelectedRatio(key as any); setCreationStage('template'); }} className={`group relative flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border-2 transition-all ${selectedRatio === key ? 'border-[#264376] bg-[#264376]/5 shadow-lg' : 'border-slate-100 hover:border-[#264376]/30'}`}>
-                    <div className={`bg-white rounded shadow-md border ${cfg.width > cfg.height ? 'w-24 h-14' : cfg.width === cfg.height ? 'w-16 h-16' : 'w-14 h-20'}`} />
+                  <button key={key} onClick={() => { setSelectedRatio(key as any); setCreationStage('template'); }} className={`group relative flex flex-col items-center gap-4 p-8 rounded-[2.5rem] border-2 transition-all ${selectedRatio === key ? 'border-[#264376] bg-[#264376]/5' : 'border-slate-100 hover:border-[#264376]/30'}`}>
+                    <div className={`bg-white rounded shadow-md border ${cfg.width > cfg.height ? 'w-24 h-14' : 'w-14 h-20'}`} />
                     <span className="block text-sm font-black uppercase text-slate-900">{key}</span>
                   </button>
                 ))}

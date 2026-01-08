@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Plus, FolderOpen, Settings, Eraser, Layout, Trash2, Download } from 'lucide-react';
+import { Plus, FolderOpen, Settings, Eraser, Layout, Trash2, Download, Save, HardDrive } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
+import { nativeFs } from '../../utils/native-fs';
 
 interface SidebarProps {
   pages: PageData[];
@@ -18,12 +19,11 @@ interface SidebarProps {
   onToggleFontManager: () => void;
   showFontManager: boolean;
   onNavigateHome: () => void;
+  // 新增 Native 接口
+  onNativeSave?: () => void;
+  onNativeOpen?: () => void;
 }
 
-/**
- * Sidebar - 侧边栏
- * 升级版：正方形容器预览，内容比例自动适配。
- */
 const Sidebar: React.FC<SidebarProps> = ({
   pages,
   currentPageIndex,
@@ -36,10 +36,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   onExport,
   onToggleFontManager,
   showFontManager,
-  onNavigateHome
+  onNavigateHome,
+  onNativeSave,
+  onNativeOpen
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
+  const isElectron = nativeFs.isElectron();
 
   const currentPageId = pages[currentPageIndex]?.id;
 
@@ -59,7 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       animate={{ x: 0 }}
       className="w-24 bg-white border-r border-neutral-200 flex flex-col items-center z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
     >
-      {/* Top Logo */}
       <div className="w-full h-16 flex items-center justify-center shrink-0 border-b border-slate-50">
         <button 
           onClick={onNavigateHome}
@@ -88,7 +90,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               value={p}
               className="relative px-3 w-full group cursor-grab active:cursor-grabbing"
             >
-              {/* Active Indicator Bar */}
               {isActive && (
                 <motion.div 
                   layoutId="active-bar"
@@ -99,16 +100,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 ref={isActive ? activeBtnRef : null}
                 onClick={() => onPageSelect(idx)}
-                // 核心修复：容器改为固定的 aspect-square (正方形)
                 className={`w-full aspect-square transition-all flex flex-col items-center justify-center relative overflow-hidden border-2 rounded-2xl
                   ${isActive 
                     ? 'border-[#264376] bg-white shadow-xl shadow-[#264376]/10' 
                     : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}`}
               >
-                {/* 
-                  真实比例线框图：
-                  根据页面是横屏还是竖屏，在正方形内部绘制比例正确的预览块
-                */}
                 <div className="flex flex-col items-center gap-1 opacity-60 pointer-events-none scale-110">
                   <div 
                     className={`border-[1.5px] rounded-sm transition-all duration-500 flex items-center justify-center
@@ -120,8 +116,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </span>
                   </div>
                 </div>
-
-                {/* 悬停显示的布局名称 */}
                 <div className="absolute inset-0 bg-[#264376]/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <span className="text-[8px] font-black text-white uppercase tracking-tighter">
                     {p.layoutId.split('-')[0]}
@@ -133,10 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         })}
 
         <button 
-          onClick={(e) => {
-            e.preventDefault();
-            onAddPage();
-          }}
+          onClick={(e) => { e.preventDefault(); onAddPage(); }}
           className="w-12 h-12 shrink-0 rounded-2xl border-2 border-dashed border-slate-200 text-slate-300 hover:border-[#264376] hover:text-[#264376] hover:bg-[#264376]/10 flex items-center justify-center transition-all mt-2 active:scale-90"
           title="Add New Slide"
         >
@@ -144,11 +135,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </Reorder.Group>
 
-      {/* Bottom Actions */}
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
+        {/* Electron 特有功能区域 */}
+        {isElectron && (
+          <>
+            <ActionButton onClick={onNativeSave} icon={Save} title="Save to Disk (Ctrl+S)" active />
+            <ActionButton onClick={onNativeOpen} icon={HardDrive} title="Open File (Ctrl+O)" />
+            <div className="h-px w-8 bg-slate-100 my-1" />
+          </>
+        )}
+
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
-        <ActionButton onClick={onImport} icon={FolderOpen} title="Import Project" />
-        <ActionButton onClick={onExport} icon={Download} title="Download (.slgrid)" />
+        {!isElectron && <ActionButton onClick={onImport} icon={FolderOpen} title="Import Project" />}
+        {!isElectron && <ActionButton onClick={onExport} icon={Download} title="Download (.slgrid)" />}
+        
         <div className="h-px w-8 bg-slate-100 my-1" />
         <ActionButton onClick={() => onRemovePage(currentPageId)} icon={Trash2} title="Delete Slide" danger />
         <ActionButton onClick={onClearAll} icon={Eraser} title="Reset Project" danger />
