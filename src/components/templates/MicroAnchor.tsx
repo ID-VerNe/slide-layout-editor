@@ -2,6 +2,7 @@ import React from 'react';
 import { PageData, TypographySettings } from '../../types';
 import { SlideImage } from '../ui/slide/SlideImage';
 import { SlideBlockLabel } from '../ui/slide/SlideBlockLabel';
+import { SlideSubHeadline } from '../ui/slide/SlideSubHeadline';
 import { useStore } from '../../store/useStore';
 
 /**
@@ -13,7 +14,6 @@ export default function MicroAnchor({ page, typography }: { page: PageData, typo
   const isRight = page.layoutVariant === 'right';
   
   const displayTopText = page.title || 'THE SILENCE OF THE FRAME';
-  const displayBottomLabel = page.subtitle || 'FIG. 05 · THE AMBIENCE';
   
   // 核心修复 1：默认底色链接至主题
   const backgroundColor = page.backgroundColor || theme.colors.background || '#FAFAF9';
@@ -52,18 +52,13 @@ export default function MicroAnchor({ page, typography }: { page: PageData, typo
         </div>
 
         <div className="relative" style={{ width: imageWidth }}>
-          {/* 核心修复 3：底部标签色链接至 secondary */}
-          <SlideBlockLabel 
+          {/* 核心重构：改用 SlideSubHeadline 以完美支持换行 */}
+          <SlideSubHeadline 
             page={page}
             typography={typography}
-            text={displayBottomLabel}
-            className="!tracking-[0.2em] !font-bold !uppercase !opacity-100 !leading-[1.4] !border-none !p-0"
+            className={`!tracking-[0.2em] !font-bold !uppercase !opacity-100 !leading-[1.4] !m-0 !p-0 ${isRight ? '!text-right' : '!text-left'}`}
             color={theme.colors.secondary}
-            style={{ 
-              fontSize: page.styleOverrides?.subtitle?.fontSize ? `${page.styleOverrides.subtitle.fontSize}px` : '0.75rem',
-              textAlign: isRight ? 'right' : 'left',
-              marginBottom: '-0.1rem' 
-            }}
+            size="0.75rem"
           />
         </div>
       </div>

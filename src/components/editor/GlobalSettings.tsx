@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { PageData, CustomFont, CounterStyle, PrintSettings, OrientationType, ProjectTheme } from '../../types';
-import { ImageIcon, X, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff, Printer, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Monitor, Smartphone, Square, Scissors, Palette, RefreshCcw, Type as TypeIcon, UploadCloud, Layers } from 'lucide-react';
+import { PageData, CustomFont, CounterStyle, PrintSettings, ProjectTheme } from '../../types';
+import { ImageIcon, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff, Printer, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Monitor, Smartphone, Square, Palette, RefreshCcw, Type as TypeIcon, UploadCloud } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import { FontSelect } from '../ui/FontSelect';
 import FontManager from '../FontManager';
@@ -40,7 +40,7 @@ type SettingsTab = 'general' | 'brand' | 'fonts' | 'print';
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
   page, onUpdate, customFonts, setCustomFonts, theme, setTheme,
   imageQuality, setImageQuality, minimalCounter, setMinimalCounter,
-  counterColor, setCounterColor, printSettings, setPrintSettings
+  printSettings, setPrintSettings
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [syncing, setSyncing] = useState(false);
@@ -106,14 +106,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                         </button>
                       </div>
                     </div>
-                    {/* 已移除 Global Footer Text 输入框 */}
                   </div>
                 </Section>
                 <Section><Label icon={CircleDot}>Background Pattern</Label><div className="grid grid-cols-5 gap-3">{[ { id: 'none', label: 'None' }, { id: 'grid', label: 'Grid' }, { id: 'dots', label: 'Dots' }, { id: 'diagonal', label: 'Lines' }, { id: 'cross', label: 'Plus' } ].map(p => (<button key={p.id} onClick={() => handleChange('backgroundPattern', p.id)} className={`py-3 flex flex-col items-center justify-center rounded-xl border-2 transition-all ${(page.backgroundPattern || 'none') === p.id ? 'border-[#264376] bg-[#264376]/5 text-[#264376]' : 'border-slate-50 bg-slate-50/50 text-slate-300 hover:border-slate-200'}`}><span className="text-[8px] font-black uppercase tracking-tighter">{p.label}</span></button>))}</div></Section>
               </div>
             )}
 
-            {/* TAB: Brand & Theme */}
             {activeTab === 'brand' && (
               <div className="space-y-10 animate-in fade-in">
                 <Section>
@@ -151,14 +149,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
               </div>
             )}
 
-            {/* TAB: Typography */}
             {activeTab === 'fonts' && (
               <div className="space-y-6 animate-in fade-in">
                 <Section><div className="mb-6"><Label icon={UploadCloud} className="mb-1">Local Asset Manager</Label><p className="text-[10px] text-slate-400 font-medium">Upload .woff2 or .ttf files.</p></div><FontManager fonts={customFonts} onFontsChange={setCustomFonts} /></Section>
               </div>
             )}
 
-            {/* TAB: Print & Binding */}
             {activeTab === 'print' && (
               <div className="space-y-10 animate-in fade-in">
                 <Section>
@@ -169,9 +165,36 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                       <div className="space-y-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Height (mm)</span><Input type="number" value={printSettings?.heightMm || 145} onChange={(e) => updatePrintField('heightMm', parseFloat(e.target.value))} className="font-mono text-xs" /></div>
                       <div className="space-y-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Gutter (mm)</span><Input type="number" value={printSettings?.gutterMm || 10} onChange={(e) => updatePrintField('gutterMm', parseFloat(e.target.value))} className="font-mono text-xs text-amber-600 font-bold" /></div>
                     </div>
+                    
                     <div className="space-y-6">
                       <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">Strategies</p>
-                      <div className="grid grid-cols-1 gap-4">{[ { id: 'landscape', label: 'Landscape', icon: Monitor }, { id: 'portrait', label: 'Portrait', icon: Smartphone } ].map(ori => { const config = printSettings?.configs?.[ori.id as 'landscape' | 'portrait'] || { bindingSide: 'left', trimSide: 'bottom' }; const SideBtn = ({ side, type, icon: Icon }: any) => (<button onClick={() => { if (!printSettings) return; const nc = { ...printSettings.configs }; nc[ori.id as 'landscape' | 'portrait'] = { ...nc[ori.id as 'landscape' | 'portrait'], [type]: side }; updatePrintField('configs', nc); }} className={`p-2 rounded-lg border transition-all ${config[type as 'bindingSide' | 'trimSide'] === side ? 'bg-[#264376] text-white shadow-md' : 'bg-white text-slate-300 hover:border-slate-200'}`}><Icon size={12} /></button>); return (<div key={ori.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex items-center justify-between"><div className="flex flex-col gap-1"><div className="flex items-center gap-2"><ori.icon size={12} className="text-[#264376]" /><span className="text-[10px] font-black uppercase text-slate-700">{ori.label}</span></div></div><div className="flex gap-10"><div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Spine</span><div className="flex gap-1"><SideBtn side="left" type="bindingSide" icon={ArrowLeft} /><SideBtn side="right" type="bindingSide" icon={ArrowRight} /><SideBtn side="top" type="bindingSide" icon={ArrowUp} /><SideBtn side="bottom" type="bindingSide" icon={ArrowDown} /></div></div><div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Cut</span><div className="flex gap-1"><SideBtn side="left" type="trimSide" icon={ArrowLeft} /><SideBtn side="right" type="trimSide" icon={ArrowRight} /><SideBtn side="top" type="trimSide" icon={ArrowUp} /><SideBtn side="bottom" type="trimSide" icon={ArrowDown} /></div></div></div></div>); })}</div></div>
+                      <div className="grid grid-cols-1 gap-4">
+                        {[ { id: 'landscape', label: 'Landscape', icon: Monitor }, { id: 'portrait', label: 'Portrait', icon: Smartphone } ].map(ori => { 
+                          const config = printSettings?.configs?.[ori.id as 'landscape' | 'portrait'] || { bindingSide: 'left', trimSide: 'bottom' }; 
+                          const SideBtn = ({ side, type, icon: Icon }: any) => (
+                            <button onClick={() => { if (!printSettings) return; const nc = { ...printSettings.configs }; nc[ori.id as 'landscape' | 'portrait'] = { ...nc[ori.id as 'landscape' | 'portrait'], [type]: side }; updatePrintField('configs', nc); }} className={`p-2 rounded-lg border transition-all ${config[type as 'bindingSide' | 'trimSide'] === side ? 'bg-[#264376] text-white shadow-md' : 'bg-white text-slate-300 hover:border-slate-200'}`}><Icon size={12} /></button>
+                          ); 
+                          return (
+                            <div key={ori.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex items-center justify-between">
+                              <div className="flex flex-col gap-1"><div className="flex items-center gap-2"><ori.icon size={12} className="text-[#264376]" /><span className="text-[10px] font-black uppercase text-slate-700">{ori.label}</span></div></div>
+                              <div className="flex gap-10">
+                                <div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Spine</span><div className="flex gap-1"><SideBtn side="left" type="bindingSide" icon={ArrowLeft} /><SideBtn side="right" type="bindingSide" icon={ArrowRight} /><SideBtn side="top" type="bindingSide" icon={ArrowUp} /><SideBtn side="bottom" type="bindingSide" icon={ArrowDown} /></div></div>
+                                <div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Cut</span><div className="flex gap-1"><SideBtn side="left" type="trimSide" icon={ArrowLeft} /><SideBtn side="right" type="trimSide" icon={ArrowRight} /><SideBtn side="top" type="trimSide" icon={ArrowUp} /><SideBtn side="bottom" type="trimSide" icon={ArrowDown} /></div></div>
+                              </div>
+                            </div>
+                          ); 
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-100 space-y-4">
+                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Visual Helpers</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        <HelperToggle label="Spine Shadow" active={!!printSettings?.showGutterShadow} onClick={() => updatePrintField('showGutterShadow', !printSettings?.showGutterShadow)} />
+                        <HelperToggle label="Cut Shadow" active={!!printSettings?.showTrimShadow} onClick={() => updatePrintField('showTrimShadow', !printSettings?.showTrimShadow)} />
+                        <HelperToggle label="Content Frame" active={!!printSettings?.showContentFrame} onClick={() => updatePrintField('showContentFrame', !printSettings?.showContentFrame)} />
+                      </div>
+                    </div>
                   </div>
                 </Section>
               </div>
@@ -182,5 +205,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
     </div>
   );
 };
+
+const HelperToggle = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
+  <button onClick={onClick} className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${active ? 'border-[#264376] bg-[#264376]/5 text-[#264376]' : 'border-slate-50 text-slate-300 hover:border-slate-100'}`}>
+    <span className="text-[8px] font-black uppercase text-center">{label}</span>
+    {active ? <Eye size={14} /> : <EyeOff size={14} />}
+  </button>
+);
 
 export default GlobalSettings;

@@ -103,16 +103,16 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         backgroundColor: page.backgroundColor || '#ffffff',
       }}
     >
-      {/* 
-        核心重构：元数据层独立渲染
-        这确保了背景纹理和页脚页码永远位于最底层/最顶层，不受模板逻辑干扰。
-      */}
-      <MetadataOverlay page={page} pageIndex={pageIndex} minimalCounter={isMinimal} />
-
       <div 
         className="w-full h-full relative transition-all duration-700 isolate"
         style={isPrintEnabled ? { transform: `scale(${scaleFactor})`, transformOrigin: `${getOriginX()} ${getOriginY()}`, outline: printSettings?.showContentFrame ? '0.5px solid rgba(0,0,0,0.15)' : 'none', outlineOffset: '-0.5px' } : {}}
       >
+        {/* 
+          核心重构：元数据层移动到缩放层内部
+          这确保了页码和纹理能跟随整体比例调整（例如打印位移）
+        */}
+        <MetadataOverlay page={page} pageIndex={pageIndex} minimalCounter={isMinimal} />
+
         <AnimatePresence mode="wait">
           <motion.div key={page.id + page.layoutId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative z-10">
             {renderTemplate()}

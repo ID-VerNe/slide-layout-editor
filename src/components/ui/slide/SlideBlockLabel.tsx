@@ -9,6 +9,7 @@ interface SlideBlockLabelProps {
   className?: string;
   color?: string;
   style?: React.CSSProperties;
+  noBorder?: boolean;
 }
 
 /**
@@ -20,7 +21,8 @@ export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({
   text, 
   className = "", 
   color,
-  style 
+  style,
+  noBorder = false
 }) => {
   const theme = useStore((state) => state.theme);
   
@@ -45,9 +47,9 @@ export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({
 
   return (
     <div 
-      className={`inline-flex items-center justify-center px-6 py-2 border rounded-full transition-colors duration-300 ${className}`}
+      className={`inline-flex items-center justify-center ${noBorder ? '' : 'px-6 py-2 border rounded-full'} transition-colors duration-300 ${className}`}
       style={{ 
-        borderColor: finalColor,
+        borderColor: noBorder ? 'transparent' : finalColor,
         color: finalColor,
         ...style
       }}

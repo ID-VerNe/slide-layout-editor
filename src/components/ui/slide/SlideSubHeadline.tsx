@@ -33,7 +33,10 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
   const overrides = page.styleOverrides?.subtitle || {};
   
   // XSS 消毒
-  const sanitizedText = DOMPurify.sanitize(page.subtitle || '', { ALLOWED_TAGS: [] });
+  const sanitizedText = DOMPurify.sanitize(page.subtitle || '', { 
+    ALLOWED_TAGS: ['br', 'b', 'i', 'strong', 'em'],
+    ALLOWED_ATTR: [] 
+  });
 
   const getFontFamily = () => {
     // 1. 显式的样式覆盖
@@ -68,8 +71,7 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
     <p 
       className={`font-medium tracking-wide whitespace-pre-line ${className}`}
       style={combinedStyle}
-    >
-      {sanitizedText}
-    </p>
+      dangerouslySetInnerHTML={{ __html: sanitizedText }}
+    />
   );
 };

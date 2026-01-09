@@ -59,6 +59,7 @@ export default function KinfolkMontage({ page, typography }: { page: PageData, t
           page={page}
           typography={typography}
           text={label}
+          noBorder={true}
           className="!text-[7px] !font-black !tracking-[0.6em] !uppercase !opacity-40 !m-0 !p-0"
           color={accentColor}
           style={{ marginBottom: '-0.25rem' }}

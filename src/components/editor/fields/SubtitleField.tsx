@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData } from '../../../types';
 import { Eye, EyeOff } from 'lucide-react';
-import { DebouncedInput } from '../../ui/DebouncedBase';
+import { DebouncedTextArea } from '../../ui/DebouncedBase';
 
 interface FieldProps {
   page: PageData;
@@ -38,7 +38,8 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate 
         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Subtitle</span>
       </div>
 
-      <DebouncedInput 
+      <DebouncedTextArea 
+        rows={2}
         value={page.subtitle || ''} 
         onChange={handleChange} 
         onImmediateChange={handleImmediateChange}
