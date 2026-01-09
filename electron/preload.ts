@@ -26,5 +26,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('select-directory'),
   
   saveFileBuffer: (filePath: string, base64Data: string) =>
-    ipcRenderer.invoke('save-file-buffer', { filePath, base64Data })
+    ipcRenderer.invoke('save-file-buffer', { filePath, base64Data }),
+
+  processResponsiveImages: (input: string | Buffer, formats: string[]) =>
+    ipcRenderer.invoke('process-responsive-images', { input, formats })
 });

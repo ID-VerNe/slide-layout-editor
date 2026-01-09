@@ -5,6 +5,7 @@ import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
 import { nativeFs } from '../../utils/native-fs';
+import VirtualPageList from './VirtualPageList';
 
 interface SidebarProps {
   pages: PageData[];
@@ -19,18 +20,22 @@ interface SidebarProps {
   onNavigateHome: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  pages,
-  currentPageIndex,
-  onPageSelect,
-  onAddPage,
-  onRemovePage,
-  onReorderPages,
-  onClearAll,
-  onToggleFontManager,
-  showFontManager,
-  onNavigateHome
-}) => {
+const VIRTUAL_SCROLL_THRESHOLD = 30;
+
+const Sidebar: React.FC<SidebarProps> = (props) => {
+  const {
+    pages,
+    currentPageIndex,
+    onPageSelect,
+    onAddPage,
+    onRemovePage,
+    onReorderPages,
+    onClearAll,
+    onToggleFontManager,
+    showFontManager,
+    onNavigateHome
+  } = props;
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -45,6 +50,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       });
     }
   }, [currentPageIndex]);
+
+  // Use virtual scroll for large projects
+  if (pages.length >= VIRTUAL_SCROLL_THRESHOLD) {
+    return <VirtualPageList {...props} />;
+  }
 
   return (
     <motion.div 

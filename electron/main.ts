@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import { ProjectArchiveManager } from './archive-manager';
+import { processResponsiveImages } from './image-processor';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,6 +203,28 @@ app.whenReady().then(async () => {
       await fs.writeFile(filePath, buffer);
       return { success: true };
     } catch (error: any) { return { success: false, error: error.message }; }
+  });
+
+  ipcMain.handle('process-responsive-images', async (event, { input, formats }) => {
+    try {
+      let buffer: Buffer;
+      if (typeof input === 'string') {
+        if (input.startsWith('asset://')) {
+          const assetRoot = await archiveManager.getAssetRoot();
+          const filename = input.replace('asset://', '');
+          const filePath = path.join(assetRoot, filename);
+          buffer = await fs.readFile(filePath);
+        } else {
+          buffer = Buffer.from(input, 'base64');
+        }
+      } else {
+        buffer = input;
+      }
+      return await processResponsiveImages(buffer, formats);
+    } catch (error: any) {
+      console.error('Responsive image processing failed:', error);
+      return [];
+    }
   });
 });
 

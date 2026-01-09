@@ -1,40 +1,71 @@
 import { useState, useEffect } from 'react';
 import { getAsset } from '../utils/db';
+import { blobManager } from '../utils/blobManager';
+import { LRUCache } from '../utils/lruCache';
+
+const assetCache = new LRUCache<string, string>(100);
 
 /**
  * useAssetUrl - 智能资源解析 Hook
  * 功能：将 asset:// 格式的 ID 转换为可供 <img> 使用的 URL。
- * 优势：自动管理 Blob 生命周期，防止内存泄漏。
+ * 核心优化：使用 LRU 缓存和 BlobManager 管理资源生命周期。
  */
 export function useAssetUrl(assetSource: string | undefined) {
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // 1. 如果是空，直接返回
     if (!assetSource) {
       setUrl(undefined);
       return;
     }
 
-    // 2. 如果已经是普通 DataURL 或 Http 链接，直接使用
     if (!assetSource.startsWith('asset://')) {
       setUrl(assetSource);
       return;
     }
 
-    // 3. 处理 asset:// 协议资源
     let isMounted = true;
-    let objectUrl: string | null = null;
 
     async function load() {
       setIsLoading(true);
       try {
+        const cachedUrl = assetCache.get(assetSource);
+        if (cachedUrl && isMounted) {
+          setUrl(cachedUrl);
+          setIsLoading(false);
+          return;
+        }
+
         const data = await getAsset(assetSource);
         if (data && isMounted) {
-          // 为了极致性能，如果是 DataURL 我们直接用；
-          // 如果后续我们存的是原始 Blob，这里会调用 URL.createObjectURL
-          setUrl(data);
+          if (data.startsWith('data:')) {
+            setUrl(data);
+            assetCache.set(assetSource, data);
+          } else {
+            // 如果 data 是二进制数据（通常 getAsset 在 Electron 下返回 asset://）
+            // 在 Web 下可能返回 DataURL 或需要转为 Blob
+            // 这里的 getAsset 逻辑在 Electron 下直接返回 assetSource
+            // 所以我们其实已经在上面 if (!assetSource.startsWith('asset://')) 之后跳过了
+            // 但如果 getAsset 返回的是 Blob，我们需要用 blobManager
+            
+            // 兼容性处理：如果 getAsset 返回了 asset:// 字符串以外的东西
+            if (data !== assetSource) {
+                // 假设 data 是 DataURL
+                if (data.startsWith('data:')) {
+                    setUrl(data);
+                    assetCache.set(assetSource, data);
+                } else {
+                    // 假设是二进制字符串或数据，转为 Blob
+                    const blob = new Blob([data]);
+                    const blobUrl = blobManager.create(blob, assetSource);
+                    setUrl(blobUrl);
+                    assetCache.set(assetSource, blobUrl);
+                }
+            } else {
+                setUrl(data);
+            }
+          }
         }
       } catch (err) {
         console.error("Failed to load asset:", assetSource, err);
@@ -47,10 +78,16 @@ export function useAssetUrl(assetSource: string | undefined) {
 
     return () => {
       isMounted = false;
-      // 预留：如果是 ObjectURL，在这里销毁
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (assetSource.startsWith('asset://')) {
+        blobManager.release(assetSource);
+      }
     };
   }, [assetSource]);
 
   return { url, isLoading };
+}
+
+export function clearAssetCache(): void {
+  assetCache.clear();
+  blobManager.clear();
 }

@@ -32,7 +32,22 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
         await document.fonts.ready;
       }
 
-      // 2. 检查所有图片是否加载完成
+      // 2. 等待懒加载组件就绪 (直到没有 status role 的 loader)
+      const waitForTemplate = async () => {
+        const maxRetries = 50; // 5 seconds max
+        for (let i = 0; i < maxRetries; i++) {
+          const loader = containerRef.current?.querySelector('[role="status"]');
+          if (!loader && containerRef.current?.querySelector('.magazine-page')) {
+            return true;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return false;
+      };
+
+      await waitForTemplate();
+
+      // 3. 检查所有图片是否加载完成
       const checkImages = () => {
         const images = Array.from(containerRef.current?.querySelectorAll('img') || []);
         return images.every(img => img.complete && img.naturalHeight !== 0);

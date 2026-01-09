@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageData } from '../../../types';
 import { useAssetUrl } from '../../../hooks/useAssetUrl';
+import { useResponsiveImage } from '../../../hooks/useResponsiveImage';
+import { generateLQIP } from '../../../utils/lqip';
 
 interface ImageConfig {
   scale: number;
@@ -19,11 +21,13 @@ interface SlideImageProps {
   shadow?: string;
   backgroundColor?: string;
   style?: React.CSSProperties;
+  priority?: boolean;
+  sizes?: string;
 }
 
 /**
- * SlideImage 原子组件 - 资源优化版
- * 核心升级：接入 useAssetUrl，支持解析资源池中的 ID。
+ * SlideImage 优化版
+ * 核心升级：支持响应式图片、渐进式加载 (LQIP) 和加载优先级。
  */
 export const SlideImage: React.FC<SlideImageProps> = ({ 
   page, 
@@ -35,15 +39,25 @@ export const SlideImage: React.FC<SlideImageProps> = ({
   border,
   shadow,
   backgroundColor,
-  style
+  style,
+  priority = false,
+  sizes = "(max-width: 768px) 100vw, 50vw"
 }) => {
   const isVisible = page.visibility?.image !== false;
-  
-  // 1. 确定原始资源标识 (可能是 asset:// ID，也可能是普通 URL)
   const rawSrc = overrideSrc || page.image || `${import.meta.env.BASE_URL}/example_pic/example_pic_1.png`;
   
-  // 2. 解析资源 ID
-  const { url, isLoading } = useAssetUrl(rawSrc);
+  const { url, isLoading: isAssetLoading } = useAssetUrl(rawSrc);
+  const { srcSet, variants } = useResponsiveImage(rawSrc, { priority, sizes });
+  
+  const [lqip, setLqip] = useState<string | undefined>(undefined);
+  const [showLqip, setShowLqip] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (url && !priority && !isLoaded) {
+      generateLQIP(url).then(setLqip).catch(console.error);
+    }
+  }, [url, priority, isLoaded]);
 
   if (!isVisible) return null;
 
@@ -60,25 +74,53 @@ export const SlideImage: React.FC<SlideImageProps> = ({
     ...style
   };
 
+  const imageStyle: React.CSSProperties = {
+    transform: `scale(${config.scale})`,
+    objectPosition: `${posX}% ${posY}%`,
+    transformOrigin: `${posX}% ${posY}%`
+  };
+
   return (
-    <div className={`relative flex items-center justify-center ${className} ${isLoading ? 'opacity-50 grayscale' : ''}`} style={containerStyle}>
-      {url && (
-        <img 
-          src={url} 
-          crossOrigin="anonymous"
-          loading="lazy"
-          decoding="async"
-          className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName}`}
-          style={{
-            transform: `scale(${config.scale})`,
-            objectPosition: `${posX}% ${posY}%`,
-            transformOrigin: `${posX}% ${posY}%`
-          }}
+    <div className={`relative flex items-center justify-center ${className}`} style={containerStyle}>
+      {/* LQIP 占位图 */}
+      {lqip && showLqip && (
+        <img
+          src={lqip}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
+          style={{ ...imageStyle, filter: 'blur(10px)' }}
+          alt="Loading Placeholder"
         />
       )}
       
-      {/* Loading 骨架感 */}
-      {isLoading && (
+      {url && (
+        <picture className="w-full h-full block">
+          {variants?.webp && (
+            <source srcSet={variants.webp.srcSet} type="image/webp" sizes={sizes} />
+          )}
+          {variants?.avif && (
+            <source srcSet={variants.avif.srcSet} type="image/avif" sizes={sizes} />
+          )}
+          <img 
+            src={url} 
+            srcSet={srcSet}
+            sizes={sizes}
+            crossOrigin="anonymous"
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+            style={imageStyle}
+            onLoad={(e) => {
+                if (e.currentTarget.complete) {
+                  setIsLoaded(true);
+                  setTimeout(() => setShowLqip(false), 300);
+                }
+            }}
+          />
+        </picture>
+      )}
+      
+      {/* 基础 Loading 动画（仅在没有 LQIP 且加载中时显示） */}
+      {isAssetLoading && !lqip && (
         <div className="absolute inset-0 bg-slate-50 animate-pulse flex items-center justify-center">
            <div className="w-8 h-8 rounded-full border-2 border-[#264376]/20 border-t-[#264376] animate-spin" />
         </div>

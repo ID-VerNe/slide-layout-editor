@@ -74,7 +74,6 @@ export class ProjectArchiveManager {
         return { buffer, format: 'svg' };
       }
 
-      // 使用 sharp 进行 WebP 转换
       const s = sharp(buffer);
       const metadata = await s.metadata();
       
@@ -83,11 +82,31 @@ export class ProjectArchiveManager {
         return { buffer, format: metadata.format || 'bin' };
       }
 
-      const compressed = await s
-        .webp({ quality: 80, effort: 4 })
-        .toBuffer();
+      // 尝试多种格式并选择体积最小的
+      // 注意：AVIF 压缩较慢但效率极高
+      const formats = ['avif', 'webp', 'jpeg'];
+      let bestFormat = 'webp';
+      let bestBuffer = buffer;
+      let minSize = buffer.length;
+
+      for (const format of formats) {
+        let currentBuffer: Buffer;
+        if (format === 'avif') {
+          currentBuffer = await s.avif({ quality: 65, effort: 4 }).toBuffer();
+        } else if (format === 'webp') {
+          currentBuffer = await s.webp({ quality: 80, effort: 4 }).toBuffer();
+        } else {
+          currentBuffer = await s.jpeg({ quality: 85 }).toBuffer();
+        }
+
+        if (currentBuffer.length < minSize) {
+          minSize = currentBuffer.length;
+          bestBuffer = currentBuffer;
+          bestFormat = format;
+        }
+      }
       
-      return { buffer: compressed, format: 'webp' };
+      return { buffer: bestBuffer, format: bestFormat };
     } catch (e) {
       console.error('Image compression failed:', e);
       return { buffer, format: 'bin' };
@@ -244,10 +263,11 @@ export class ProjectArchiveManager {
     // 压缩图片
     const { buffer: compressedBuffer, format } = await this.compressImage(buffer);
     
-    // 修正文件名扩展名 (如果是 webp 转换)
+    // 修正文件名扩展名 (根据选择的最佳格式)
     let finalFilename = filename;
-    if (format === 'webp' && !filename.toLowerCase().endsWith('.webp')) {
-      finalFilename = filename.replace(/\.[^/.]+$/, "") + ".webp";
+    const targetExt = `.${format === 'jpeg' ? 'jpg' : format}`;
+    if (format !== 'bin' && format !== 'svg' && !filename.toLowerCase().endsWith(targetExt)) {
+      finalFilename = filename.replace(/\.[^/.]+$/, "") + targetExt;
     }
     
     const sessionDir = await this.ensureSession();

@@ -5,6 +5,7 @@ import { Monitor, Smartphone, Square } from 'lucide-react';
 
 import { useProject } from '../hooks/useProject';
 import { usePreview } from '../hooks/usePreview';
+import { useImagePreload } from '../hooks/useImagePreload';
 import Sidebar from '../components/editor/Sidebar';
 import TopNav from '../components/editor/TopNav';
 import PreviewArea from '../components/editor/PreviewArea';
@@ -41,6 +42,8 @@ export default function EditorPage() {
     minimalCounter,
     isLoaded // 透传加载状态
   });
+
+  useImagePreload();
 
   const [showSettings, setShowSettings] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
