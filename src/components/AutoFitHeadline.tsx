@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect, useMemo } from 'react';
 
 interface AutoFitHeadlineProps {
   text: string;
@@ -13,9 +13,15 @@ interface AutoFitHeadlineProps {
   children?: React.ReactNode; 
 }
 
+// 缓存系统
+const fontCache = new Map<string, number>();
+
+const getCacheKey = (text: string, maxSize: number, fontFamily: string, maxLines: number, minSize: number) => {
+  return `${text}-${maxSize}-${fontFamily}-${maxLines}-${minSize}`;
+};
+
 /**
- * AutoFitHeadline - 极致稳定版
- * 核心设计：移除自动 ResizeObserver，改用基于关键属性变化的单次计算流。
+ * AutoFitHeadline - 极致稳定性能优化版 (Worker 集成)
  */
 const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({ 
   text, 
@@ -29,60 +35,119 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   style = {},
   children
 }) => {
-  const [fontSize, setFontSize] = useState(maxSize);
+  const cacheKey = useMemo(() => 
+    getCacheKey(text, maxSize, fontFamily, maxLines, minSize),
+    [text, maxSize, fontFamily, maxLines, minSize]
+  );
+
+  const cachedFontSize = useMemo(() => fontCache.get(cacheKey), [cacheKey]);
+
+  const [fontSize, setFontSize] = useState(cachedFontSize || maxSize);
   const [range, setRange] = useState({ min: minSize, max: maxSize });
-  const [isCalculating, setIsCalculating] = useState(true);
+  const [isCalculating, setIsCalculating] = useState(!cachedFontSize);
   const [retryCount, setRetryCount] = useState(0); 
   const ref = useRef<HTMLHeadingElement>(null);
+  const workerRef = useRef<Worker | null>(null);
 
-  // 1. 只有在关键属性改变时才重置计算
+  // 初始化 Worker
+  useEffect(() => {
+    // Vite 模式下的 Worker 加载方式
+    try {
+      workerRef.current = new Worker(new URL('../workers/fontCalculator.ts', import.meta.url), {
+        type: 'module'
+      });
+    } catch (e) {
+      console.error('Failed to initialize font calculator worker', e);
+    }
+    
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
+
+  // 1. 关键属性改变时，优先尝试 Worker 预计算
   useLayoutEffect(() => {
-    setIsCalculating(true);
-    setRetryCount(0);
-    setRange({ min: minSize, max: maxSize });
-    setFontSize(maxSize);
-  }, [text, maxSize, fontFamily, maxLines, minSize]);
+    if (cachedFontSize) {
+      setFontSize(cachedFontSize);
+      setIsCalculating(false);
+      return;
+    }
 
-  // 2. 递归缩放算法 (纯同步/微任务模式，防止渲染抖动)
+    if (workerRef.current && ref.current) {
+      const containerWidth = ref.current.offsetWidth || 800; // 兜底宽度
+      
+      workerRef.current.postMessage({
+        text,
+        maxSize,
+        lineHeight,
+        maxLines,
+        minSize,
+        containerWidth
+      });
+
+      workerRef.current.onmessage = (e) => {
+        setFontSize(e.data.fontSize);
+        setRange({ min: minSize, max: e.data.fontSize + 2 }); // 缩小搜索范围
+        setIsCalculating(true); // 让 useLayoutEffect 进行最终精确校准
+      };
+    } else {
+      setIsCalculating(true);
+      setRetryCount(0);
+      setRange({ min: minSize, max: maxSize });
+      setFontSize(maxSize);
+    }
+  }, [cacheKey, cachedFontSize, maxSize, minSize, lineHeight, maxLines, text]);
+
+  // 2. 递归缩放算法 (最终精确校准)
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !isCalculating) return;
 
-    // 严格限制重试次数，防止 OOM
     if (retryCount > 12) { 
       setIsCalculating(false);
       return;
     }
 
-    const maxHeight = Math.floor(fontSize * lineHeight * maxLines) + 2;
-    const isOverflowing = el.scrollHeight > maxHeight;
+    const frameId = requestAnimationFrame(() => {
+      const maxHeight = Math.floor(fontSize * lineHeight * maxLines) + 2;
+      const isOverflowing = el.scrollHeight > maxHeight;
 
-    if (isOverflowing) {
-      const newMax = fontSize - 1;
-      if (newMax <= range.min) {
-        setIsCalculating(false);
-      } else {
-        const nextSize = Math.floor((range.min + newMax) / 2);
-        setRange(prev => ({ ...prev, max: newMax }));
-        setFontSize(nextSize);
-        setRetryCount(prev => prev + 1);
-      }
-    } else {
-      const newMin = fontSize + 1;
-      if (newMin > range.max) {
-        setIsCalculating(false);
-      } else {
-        const nextSize = Math.ceil((newMin + range.max) / 2);
-        if (nextSize === fontSize) {
+      if (isOverflowing) {
+        const newMax = fontSize - 1;
+        if (newMax <= range.min) {
           setIsCalculating(false);
-          return;
+        } else {
+          const nextSize = Math.floor((range.min + newMax) / 2);
+          setRange(prev => ({ ...prev, max: newMax }));
+          setFontSize(nextSize);
+          setRetryCount(prev => prev + 1);
         }
-        setRange(prev => ({ ...prev, min: newMin }));
-        setFontSize(nextSize);
-        setRetryCount(prev => prev + 1);
+      } else {
+        const newMin = fontSize + 1;
+        if (newMin > range.max) {
+          setIsCalculating(false);
+        } else {
+          const nextSize = Math.ceil((newMin + range.max) / 2);
+          if (nextSize === fontSize) {
+            setIsCalculating(false);
+            return;
+          }
+          setRange(prev => ({ ...prev, min: newMin }));
+          setFontSize(nextSize);
+          setRetryCount(prev => prev + 1);
+        }
       }
-    }
+    });
+
+    return () => cancelAnimationFrame(frameId);
   }, [fontSize, isCalculating, range, retryCount, lineHeight, maxLines, text]);
+
+  // 缓存计算结果
+  useEffect(() => {
+    if (!isCalculating && !cachedFontSize) {
+      fontCache.set(cacheKey, fontSize);
+    }
+  }, [isCalculating, fontSize, cacheKey, cachedFontSize]);
 
   // 3. 字体加载保障
   useEffect(() => {
@@ -93,7 +158,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         setFontSize(maxSize);
       });
     }
-  }, [fontFamily]);
+  }, [fontFamily, maxSize]);
 
   return (
     <Tag 
@@ -109,7 +174,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         fontFamily,
         fontSize: `${fontSize}px`,
         lineHeight: lineHeight,
-        opacity: isCalculating ? 0.01 : 1, // 计算中渐隐，计算完显示
+        opacity: isCalculating ? 0.01 : 1,
         transition: 'opacity 0.15s ease-out'
       }}
     >

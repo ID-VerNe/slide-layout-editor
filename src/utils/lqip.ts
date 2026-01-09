@@ -6,7 +6,11 @@ export async function generateLQIP(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    
+    // 仅对外部 https/http 链接启用 crossOrigin，本地协议 (asset:, data:, blob:) 不需要且可能导致失败
+    if (imageUrl.startsWith('http')) {
+      img.crossOrigin = 'anonymous';
+    }
     
     img.onload = () => {
       try {

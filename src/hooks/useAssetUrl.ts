@@ -3,7 +3,13 @@ import { getAsset } from '../utils/db';
 import { blobManager } from '../utils/blobManager';
 import { LRUCache } from '../utils/lruCache';
 
+interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
 const assetCache = new LRUCache<string, string>(100);
+const dimensionCache = new Map<string, ImageDimensions>();
 
 /**
  * useAssetUrl - 智能资源解析 Hook
@@ -13,19 +19,43 @@ const assetCache = new LRUCache<string, string>(100);
 export function useAssetUrl(assetSource: string | undefined) {
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [dimensions, setDimensions] = useState<ImageDimensions>({ width: 0, height: 0 });
 
   useEffect(() => {
-    if (!assetSource) {
-      setUrl(undefined);
-      return;
-    }
+    // 立即重置状态，防止旧内容残留
+    setIsLoading(!!assetSource);
+    setUrl(undefined);
+    setDimensions({ width: 0, height: 0 });
 
-    if (!assetSource.startsWith('asset://')) {
-      setUrl(assetSource);
+    if (!assetSource) {
+      setIsLoading(false);
       return;
     }
 
     let isMounted = true;
+
+    const fetchDimensions = (imageUrl: string) => {
+      if (dimensionCache.has(imageUrl)) {
+        if (isMounted) setDimensions(dimensionCache.get(imageUrl)!);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        if (isMounted) {
+          const dims = { width: img.width, height: img.height };
+          dimensionCache.set(imageUrl, dims);
+          setDimensions(dims);
+        }
+      };
+      img.src = imageUrl;
+    };
+
+    if (!assetSource.startsWith('asset://')) {
+      setUrl(assetSource);
+      fetchDimensions(assetSource);
+      return;
+    }
 
     async function load() {
       setIsLoading(true);
@@ -33,38 +63,27 @@ export function useAssetUrl(assetSource: string | undefined) {
         const cachedUrl = assetCache.get(assetSource);
         if (cachedUrl && isMounted) {
           setUrl(cachedUrl);
+          fetchDimensions(cachedUrl);
           setIsLoading(false);
           return;
         }
 
         const data = await getAsset(assetSource);
         if (data && isMounted) {
-          if (data.startsWith('data:')) {
-            setUrl(data);
-            assetCache.set(assetSource, data);
-          } else {
-            // 如果 data 是二进制数据（通常 getAsset 在 Electron 下返回 asset://）
-            // 在 Web 下可能返回 DataURL 或需要转为 Blob
-            // 这里的 getAsset 逻辑在 Electron 下直接返回 assetSource
-            // 所以我们其实已经在上面 if (!assetSource.startsWith('asset://')) 之后跳过了
-            // 但如果 getAsset 返回的是 Blob，我们需要用 blobManager
-            
-            // 兼容性处理：如果 getAsset 返回了 asset:// 字符串以外的东西
-            if (data !== assetSource) {
-                // 假设 data 是 DataURL
-                if (data.startsWith('data:')) {
-                    setUrl(data);
-                    assetCache.set(assetSource, data);
-                } else {
-                    // 假设是二进制字符串或数据，转为 Blob
-                    const blob = new Blob([data]);
-                    const blobUrl = blobManager.create(blob, assetSource);
-                    setUrl(blobUrl);
-                    assetCache.set(assetSource, blobUrl);
-                }
-            } else {
-                setUrl(data);
-            }
+          let resolvedUrl = assetSource;
+          if (data !== assetSource) {
+              if (data.startsWith('data:')) {
+                  resolvedUrl = data;
+              } else {
+                  const blob = new Blob([data]);
+                  resolvedUrl = blobManager.create(blob, assetSource);
+              }
+          }
+          
+          if (isMounted) {
+            setUrl(resolvedUrl);
+            assetCache.set(assetSource, resolvedUrl);
+            fetchDimensions(resolvedUrl);
           }
         }
       } catch (err) {
@@ -84,10 +103,5 @@ export function useAssetUrl(assetSource: string | undefined) {
     };
   }, [assetSource]);
 
-  return { url, isLoading };
-}
-
-export function clearAssetCache(): void {
-  assetCache.clear();
-  blobManager.clear();
+  return { url, isLoading, dimensions };
 }

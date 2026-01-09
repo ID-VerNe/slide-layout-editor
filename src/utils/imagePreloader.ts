@@ -19,6 +19,11 @@ class ImagePreloader {
         this.currentLoads++;
         const img = new Image();
         
+        // 仅对外部 https/http 链接启用 crossOrigin
+        if (url.startsWith('http')) {
+          img.crossOrigin = 'anonymous';
+        }
+        
         img.onload = () => {
           this.currentLoads--;
           resolve();

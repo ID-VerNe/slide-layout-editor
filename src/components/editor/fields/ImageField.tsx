@@ -33,8 +33,24 @@ export const ImageField: React.FC<FieldProps> = ({ page, onUpdate }) => {
 
   const handleImageSelect = async (val: string) => {
     if (val.startsWith('data:')) {
-      const assetId = await saveAsset(val);
-      handleChange('image', assetId);
+      // 检查是否在 Electron 环境下
+      if ((window as any).electronAPI) {
+        try {
+          const filename = `upload_${Date.now()}.png`; // 默认扩展名，主进程 Sharp 会自动修正
+          const result = await (window as any).electronAPI.uploadAsset(filename, val);
+          if (result.success && result.url) {
+            handleChange('image', result.url);
+          } else {
+            console.error('Failed to upload asset via Native API:', result.error);
+          }
+        } catch (e) {
+          console.error('Native upload error:', e);
+        }
+      } else {
+        // Fallback 到 Web IndexedDB 逻辑
+        const assetId = await saveAsset(val);
+        handleChange('image', assetId);
+      }
     } else {
       handleChange('image', val);
     }

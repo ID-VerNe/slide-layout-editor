@@ -175,10 +175,23 @@ export default function EditorPage() {
   }, [projectId, isLoaded, saveToDB]); // 移除 pages 等频繁变动的依赖，仅通过定时器或手动触发保存
 
   const handleFinalAction = (layoutId: string) => {
-    if (modalMode === 'create') {
+    // 关键修复：如果是新建项目的初始设置（只有一个占位页面），则更新第一页而不是添加新页
+    const isInitialSetup = pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT';
+
+    if (modalMode === 'create' && !isInitialSetup) {
       addPage(selectedRatio, layoutId);
-    } else if (currentPage) {
-      updatePage({ ...currentPage, layoutId: layoutId as any, aspectRatio: selectedRatio });
+    } else {
+      // 无论是修改现有页面布局，还是初始化第一个页面，都走 updatePage
+      const targetPage = isInitialSetup ? pages[0] : currentPage;
+      if (targetPage) {
+        updatePage({ 
+          ...targetPage, 
+          layoutId: layoutId as any, 
+          aspectRatio: selectedRatio,
+          // 如果是初始化，顺便把占位标题清掉
+          title: isInitialSetup ? '' : targetPage.title 
+        });
+      }
     }
     setShowLayoutModal(false);
   };

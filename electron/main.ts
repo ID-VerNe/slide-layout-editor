@@ -66,7 +66,7 @@ function createWindow() {
           "default-src 'self'; " +
           "script-src 'self' 'unsafe-inline'; " +
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-          "img-src 'self' asset: data: blob:; " +
+          "img-src 'self' asset: data: blob: https: http:; " + // 增加 https: http: 支持
           "font-src 'self' asset: data: https://fonts.gstatic.com; " +
           "connect-src 'self' https://api.gemini.com;"
         ]
@@ -95,11 +95,40 @@ app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 app.whenReady().then(async () => {
   const assetRoot = await archiveManager.getAssetRoot();
   
-  protocol.handle('asset', (req) => {
-    const url = req.url.replace('asset://', '');
-    const filename = decodeURIComponent(url.split('?')[0]);
-    const filePath = path.join(assetRoot, filename);
-    return net.fetch(pathToFileURL(filePath).toString());
+  protocol.handle('asset', async (req) => {
+    try {
+      // 获取文件名：直接截取 asset:// 之后的部分并清理尾部斜杠
+      let filename = req.url.replace(/^asset:\/\//, '');
+      // 清理查询参数、尾部斜杠以及 URL 编码
+      filename = decodeURIComponent(filename.split('?')[0].replace(/\/$/, ''));
+      
+      const assetRoot = await archiveManager.getAssetRoot();
+      const filePath = path.join(assetRoot, filename);
+      
+      try {
+        const buffer = await fs.readFile(filePath);
+        const extension = path.extname(filename).toLowerCase();
+        
+        let mimeType = 'image/png';
+        if (extension === '.jpg' || extension === '.jpeg') mimeType = 'image/jpeg';
+        else if (extension === '.webp') mimeType = 'image/webp';
+        else if (extension === '.avif') mimeType = 'image/avif';
+        else if (extension === '.svg') mimeType = 'image/svg+xml';
+
+        return new Response(buffer, {
+          headers: { 
+            'Content-Type': mimeType,
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      } catch (readError) {
+        console.error(`[Asset Protocol] 404 - File not found: ${filePath}`);
+        return new Response(null, { status: 404 });
+      }
+    } catch (e) {
+      console.error('[Asset Protocol] Critical Error:', e);
+      return new Response(null, { status: 404 });
+    }
   });
 
   createWindow();

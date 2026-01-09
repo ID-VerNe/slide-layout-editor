@@ -66,10 +66,9 @@ export class ProjectArchiveManager {
     return this.currentSessionPath;
   }
 
-  // 压缩图片资源
+  // 优化版图片处理：优先速度，不再尝试多种格式
   private async compressImage(buffer: Buffer): Promise<{ buffer: Buffer, format: string }> {
     try {
-      // 检查是否为 SVG
       if (buffer.toString('ascii', 0, 4) === '<svg' || buffer.toString('ascii', 0, 5) === '<?xml') {
         return { buffer, format: 'svg' };
       }
@@ -77,38 +76,22 @@ export class ProjectArchiveManager {
       const s = sharp(buffer);
       const metadata = await s.metadata();
       
-      // 如果已经是极小的图片或者 metadata 获取失败，跳过压缩
-      if (!metadata.width || metadata.width < 100) {
-        return { buffer, format: metadata.format || 'bin' };
+      // 如果图片过大，先进行下采样缩放（最大 2560px），既保证清晰度又大幅提升后续处理速度
+      if (metadata.width && metadata.width > 2560) {
+        s.resize({ width: 2560, withoutEnlargement: true });
       }
 
-      // 尝试多种格式并选择体积最小的
-      // 注意：AVIF 压缩较慢但效率极高
-      const formats = ['avif', 'webp', 'jpeg'];
-      let bestFormat = 'webp';
-      let bestBuffer = buffer;
-      let minSize = buffer.length;
-
-      for (const format of formats) {
-        let currentBuffer: Buffer;
-        if (format === 'avif') {
-          currentBuffer = await s.avif({ quality: 65, effort: 4 }).toBuffer();
-        } else if (format === 'webp') {
-          currentBuffer = await s.webp({ quality: 80, effort: 4 }).toBuffer();
-        } else {
-          currentBuffer = await s.jpeg({ quality: 85 }).toBuffer();
-        }
-
-        if (currentBuffer.length < minSize) {
-          minSize = currentBuffer.length;
-          bestBuffer = currentBuffer;
-          bestFormat = format;
-        }
-      }
+      // 仅使用 WebP 格式：它是速度与体积的最佳平衡点
+      // effort: 0 表示最快速度
+      const bestBuffer = await s.webp({ 
+        quality: 80, 
+        effort: 0, 
+        lossless: false 
+      }).toBuffer();
       
-      return { buffer: bestBuffer, format: bestFormat };
+      return { buffer: bestBuffer, format: 'webp' };
     } catch (e) {
-      console.error('Image compression failed:', e);
+      console.error('Image processing failed, using original:', e);
       return { buffer, format: 'bin' };
     }
   }
@@ -132,19 +115,23 @@ export class ProjectArchiveManager {
         ...cached,
         timestamp: Date.now()
       });
-      this.currentSessionPath = null;
-      const sessionDir = await this.ensureSession();
       
-      // 重新解压资源文件
+      const sessionDir = await this.ensureSession();
+      // 不再清空旧资产，以防丢失未保存的上传
+      const assetsDir = path.join(sessionDir, 'assets');
+      if (!existsSync(assetsDir)) await fs.mkdir(assetsDir, { recursive: true });
+
+      // 重新解压资源文件 (AdmZip 默认会合并/覆盖)
       const zip = new AdmZip(filePath);
       zip.extractAllTo(sessionDir, true);
       
       return cached.data;
     }
     
-    this.currentSessionPath = null;
     const sessionDir = await this.ensureSession();
-    
+    const assetsDir = path.join(sessionDir, 'assets');
+    if (!existsSync(assetsDir)) await fs.mkdir(assetsDir, { recursive: true });
+
     const fileBuffer = await fs.readFile(filePath);
     
     // 核心修复：更宽松的 Zip 检测 (PK..)

@@ -28,7 +28,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
         </h2>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+      <div id="editor-scroll-container" className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
         <Editor 
           page={currentPage} 
           onUpdate={onUpdatePage} 

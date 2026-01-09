@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PageData, PrintSettings, TypographySettings } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LAYOUT_CONFIG } from '../constants/layout';
@@ -6,6 +6,7 @@ import MetadataOverlay from './ui/slide/MetadataOverlay';
 import templateMap from './templateMap';
 import TemplateLoader from './ui/TemplateLoader';
 import TemplateErrorBoundary from './ui/TemplateErrorBoundary';
+import { shallowEqual } from '../utils/comparison';
 
 interface PreviewProps {
   page: PageData;
@@ -23,11 +24,12 @@ interface PreviewProps {
 const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter }) => {
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
-  const renderTemplate = () => {
-    const commonProps = { page, typography }; 
+  const commonProps = useMemo(() => ({ page, typography }), [page, typography]);
+
+  const templateElement = useMemo(() => {
     const TemplateComponent = templateMap[page.layoutId] || templateMap['modern-feature'];
     return <TemplateComponent {...commonProps} />;
-  };
+  }, [page.layoutId, commonProps]);
 
   const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
   const isPrintEnabled = printSettings?.enabled;
@@ -69,11 +71,18 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         */}
         <MetadataOverlay page={page} pageIndex={pageIndex} minimalCounter={isMinimal} />
 
-        <AnimatePresence mode="wait">
-          <motion.div key={page.id + page.layoutId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative z-10">
+        <AnimatePresence>
+          <motion.div 
+            key={page.id + page.layoutId} 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full h-full relative z-10"
+          >
             <React.Suspense fallback={<TemplateLoader />}>
               <TemplateErrorBoundary>
-                {renderTemplate()}
+                {templateElement}
               </TemplateErrorBoundary>
             </React.Suspense>
           </motion.div>
@@ -95,6 +104,15 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         </>
       )}
     </div>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.page === nextProps.page &&
+    prevProps.minimalCounter === nextProps.minimalCounter &&
+    prevProps.totalPages === nextProps.totalPages &&
+    prevProps.pageIndex === nextProps.pageIndex &&
+    shallowEqual(prevProps.printSettings, nextProps.printSettings) &&
+    shallowEqual(prevProps.typography, nextProps.typography)
   );
 });
 
