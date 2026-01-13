@@ -2,6 +2,8 @@ import React from 'react';
 import { Type } from 'lucide-react';
 import Editor from '../Editor';
 import { PageData, CustomFont } from '../../types';
+import { FreeformPropertiesPanel } from '../freeform/FreeformPropertiesPanel';
+import { FreeformItem, FreeformConfig } from '../../types/freeform.types';
 
 interface EditorPanelProps {
   currentPage: PageData;
@@ -15,6 +17,29 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   onUpdatePage,
   customFonts,
 }) => {
+
+  const handleUpdateFreeformItem = (id: string, updates: Partial<FreeformItem>) => {
+    const items = currentPage.freeformItems || [];
+    const newItems = items.map(item => item.id === id ? { ...item, ...updates } : item);
+    onUpdatePage({ ...currentPage, freeformItems: newItems });
+  };
+
+  const handleUpdateFreeformConfig = (updates: Partial<FreeformConfig>) => {
+    const config = currentPage.freeformConfig || {
+      gridSize: 20,
+      snapToGrid: true,
+      showAlignmentGuides: true,
+      showGridOverlay: true,
+    };
+    onUpdatePage({ ...currentPage, freeformConfig: { ...config, ...updates } });
+  };
+
+  const handleDeleteFreeformItem = (id: string) => {
+    const items = currentPage.freeformItems || [];
+    const newItems = items.filter(item => item.id !== id);
+    onUpdatePage({ ...currentPage, freeformItems: newItems });
+  };
+
   return (
     /* 
       移除内部 motion 逻辑，转为固定宽度的 flex 容器 
@@ -29,11 +54,28 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       </div>
       
       <div id="editor-scroll-container" className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
-        <Editor 
-          page={currentPage} 
-          onUpdate={onUpdatePage} 
-          customFonts={customFonts} 
-        />
+        {currentPage?.layoutId === 'freeform' ? (
+          <FreeformPropertiesPanel 
+            page={currentPage}
+            items={currentPage.freeformItems || []}
+            onUpdateItem={handleUpdateFreeformItem}
+            config={currentPage.freeformConfig || {
+              gridSize: 20,
+              snapToGrid: true,
+              showAlignmentGuides: true,
+              showGridOverlay: true,
+            }}
+            onUpdateConfig={handleUpdateFreeformConfig}
+            customFonts={customFonts}
+            onDeleteItem={handleDeleteFreeformItem}
+          />
+        ) : (
+          <Editor 
+            page={currentPage} 
+            onUpdate={onUpdatePage} 
+            customFonts={customFonts} 
+          />
+        )}
       </div>
     </div>
   );

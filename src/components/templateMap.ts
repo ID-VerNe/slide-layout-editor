@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 
 const templateMap: Record<string, React.LazyExoticComponent<React.FC<any>>> = {
+  'freeform': lazy(() => import('./templates/Freeform')),
   'modern-feature': lazy(() => import('./templates/ModernFeature')),
   'platform-hero': lazy(() => import('./templates/PlatformHero')),
   'component-mosaic': lazy(() => import('./templates/ComponentMosaic')),

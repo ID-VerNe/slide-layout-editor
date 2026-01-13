@@ -21,6 +21,15 @@ const withBaseFields = (fields: FieldType[]): FieldSchema[] => {
 
 export const TEMPLATES: TemplateConfig[] = [
   {
+    id: 'freeform',
+    name: 'Freeform Canvas',
+    category: 'General',
+    desc: 'Fully customizable canvas with free positioning',
+    tags: ['Freeform', 'Canvas', 'Custom', 'Flexible'],
+    fields: withBaseFields(['backgroundColor']),
+    supportedRatios: ['16:9', '2:3', 'A4', '1:1']
+  },
+  {
     id: 'apple-bento-grid',
     name: 'Bento Showcase',
     category: 'Product',

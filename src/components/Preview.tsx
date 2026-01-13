@@ -15,16 +15,17 @@ interface PreviewProps {
   printSettings?: PrintSettings; 
   typography?: TypographySettings;
   minimalCounter?: boolean;
+  onUpdate?: (page: PageData) => void;
 }
 
 /**
  * Preview - 核心预览容器
  * 重构版：已将元数据层（页码、页脚、背景纹理）彻底剥离至 MetadataOverlay 组件。
  */
-const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter }) => {
+const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter, onUpdate }) => {
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
-  const commonProps = useMemo(() => ({ page, typography }), [page, typography]);
+  const commonProps = useMemo(() => ({ page, typography, onUpdate }), [page, typography, onUpdate]);
 
   const templateElement = useMemo(() => {
     const TemplateComponent = templateMap[page.layoutId] || templateMap['modern-feature'];
@@ -111,6 +112,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
     prevProps.minimalCounter === nextProps.minimalCounter &&
     prevProps.totalPages === nextProps.totalPages &&
     prevProps.pageIndex === nextProps.pageIndex &&
+    prevProps.onUpdate === nextProps.onUpdate &&
     shallowEqual(prevProps.printSettings, nextProps.printSettings) &&
     shallowEqual(prevProps.typography, nextProps.typography)
   );

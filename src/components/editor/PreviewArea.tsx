@@ -14,6 +14,7 @@ interface PreviewAreaProps {
   printSettings: PrintSettings; 
   minimalCounter?: boolean; // 新增：接收全局 minimal 状态
   onOverflowChange: (pageId: string, isOverflowing: boolean) => void;
+  onUpdatePage?: (page: PageData) => void;
 }
 
 const PreviewArea: React.FC<PreviewAreaProps> = ({
@@ -25,7 +26,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   isAutoFit,
   setIsAutoFit,
   printSettings,
-  minimalCounter // 解构
+  minimalCounter, // 解构
+  onUpdatePage
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -112,6 +114,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
               totalPages={pages.length}
               printSettings={printSettings}
               minimalCounter={minimalCounter} // 核心修复：透传给 Preview
+              onUpdate={onUpdatePage}
             />
           </div>
         )}

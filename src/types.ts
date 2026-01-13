@@ -1,3 +1,5 @@
+import { FreeformItem, FreeformConfig } from './types/freeform.types';
+
 export type SlideLayoutType =
   | 'cover-main'      
   | 'content-bullets' 
@@ -119,6 +121,10 @@ export interface PageData {
   imageConfig?: { scale: number; x: number; y: number; };
   backgroundColor?: string;
   accentColor?: string; 
+  
+  // Freeform layout data
+  freeformItems?: FreeformItem[];
+  freeformConfig?: FreeformConfig;
   
   titleFont?: string;
   bodyFont?: string;
