@@ -14,7 +14,7 @@ interface SlideSubHeadlineProps {
 }
 
 /**
- * SlideSubHeadline - 主题感应版
+ * SlideSubHeadline - 高优先级颜色感应版
  */
 export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({ 
   page, 
@@ -30,30 +30,28 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
   const isVisible = page.visibility?.subtitle !== false;
   if (!isVisible || !page.subtitle) return null;
 
+  // 1. 获取覆盖数据
   const overrides = page.styleOverrides?.subtitle || {};
   
-  // XSS 消毒
   const sanitizedText = DOMPurify.sanitize(page.subtitle || '', { 
     ALLOWED_TAGS: ['br', 'b', 'i', 'strong', 'em'],
     ALLOWED_ATTR: [] 
   });
 
   const getFontFamily = () => {
-    // 1. 显式的样式覆盖
     if (overrides.fontFamily) return overrides.fontFamily;
-    
-    // 2. 模板注入的覆盖
     const fieldFont = typography?.fieldOverrides?.['subtitle'];
     if (fieldFont) return fieldFont;
-
-    // 3. 页面/主题配置 (副标题通常使用 Body 字体)
     const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
-    const cjk = page.bodyFontZH || theme?.typography?.bodyFontZH || "'Noto Serif SC', serif";
-    
-    return `${latin}, ${cjk}`;
+    return `${latin}`;
   };
 
-  // 默认使用 Secondary 色
+  /**
+   * 核心修复：优先级重排
+   * 1. overrides.color (编辑器自定义)
+   * 2. color (模板传入)
+   * 3. theme.colors.secondary (全局辅色)
+   */
   const finalColor = overrides.color || color || theme?.colors?.secondary || '#64748B';
 
   const combinedStyle: React.CSSProperties = {

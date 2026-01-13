@@ -24,8 +24,19 @@ export interface ProjectTheme {
   };
 }
 
+// --- Phase 4: Schema 驱动编辑器定义 ---
+
+export type FieldType = 
+  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' 
+  | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
+  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' 
+  | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
+  | 'gallery' | 'variant' | 'footer' | 'bullets' 
+  | 'backgroundColor' | 'pageNumber' | 'logoSize' | 'titleY' // 新增 titleY
+  | 'group' | 'separator' | 'resumeSections';
+
 export interface FieldSchema {
-  key: string;
+  key: FieldType;
   label?: string;
   icon?: string;
   props?: Record<string, any>;
@@ -60,29 +71,28 @@ export interface FreeformConfig {
 // --- 简历 2.0 全动态结构 ---
 export interface ResumeItem {
   id: string;
-  title: string;       // 标题 (学校/公司/项目名)
-  subtitle?: string;    // 副标题 (学位/职位)
-  time?: string;        // 时间 (2020 - 2024)
-  location?: string;    // 地点 (香港, 中国)
-  description?: string; // 描述 (支持 - 列表模式)
+  title: string;       
+  subtitle?: string;    
+  time?: string;        
+  location?: string;    
+  description?: string; 
 }
 
 export interface ResumeSection {
   id: string;
-  title: string;        // 板块标题 (EDUCATION, WORK, etc.)
+  title: string;        
   items: ResumeItem[];
 }
 
 export interface PageData {
   id: string;
-  type: 'slide' | 'freeform'; // 支持自由布局
+  type: 'slide' | 'freeform'; 
   layoutId: TemplateId;
   aspectRatio: AspectRatioType; 
   layoutVariant?: string;
-  title: string;        // 姓名/主标题
-  subtitle?: string;    // 副标题
+  title: string;        
+  subtitle?: string;    
   
-  // 找回的缺失字段
   bullets?: string[];
   paragraph?: string;
   image?: string;
@@ -91,15 +101,12 @@ export interface PageData {
   accentColor?: string;
   backgroundPattern?: BackgroundPatternType;
   
-  // 自由布局
   freeformItems?: FreeformItem[];
   freeformConfig?: FreeformConfig;
 
-  // 核心：全量数据池
   resumeSections?: ResumeSection[];
   resumePageIndex?: number; 
 
-  // 视觉控制
   visibility?: Record<string, boolean>;
   styleOverrides?: Record<string, any>;
 
@@ -111,7 +118,6 @@ export interface PageData {
   minimalCounter?: boolean;
   counterStyle?: CounterStyle;
 
-  // 兼容性字段
   agenda?: any[];
   features?: any[];
   metrics?: any[];
@@ -145,4 +151,8 @@ export interface ProjectData {
   imageQuality?: number; 
   minimalCounter?: boolean; 
   printSettings?: PrintSettings; 
+}
+
+export interface ProjectSaveData extends ProjectData {
+  assets?: Record<string, string>;
 }

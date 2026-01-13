@@ -14,7 +14,7 @@ interface SlideParagraphProps {
 }
 
 /**
- * SlideParagraph - 主题感应版
+ * SlideParagraph - 高优先级颜色感应版
  */
 export const SlideParagraph: React.FC<SlideParagraphProps> = ({ 
   page, 
@@ -30,7 +30,6 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
   const text = page.paragraph;
   if (!text) return null;
 
-  // XSS 消毒
   const sanitizedText = DOMPurify.sanitize(text, { 
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'span'],
     ALLOWED_ATTR: ['style', 'class'] 
@@ -40,20 +39,17 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
   const fontSize = overrides.fontSize ? `${overrides.fontSize}px` : (size || '1.15rem');
   const lineHeight = overrides.lineHeight || 1.8;
   
-  // 默认使用 Primary 文本色 (通常是接近黑色的深灰)
+  /**
+   * 核心修复：优先级重排
+   */
   const textColor = overrides.color || color || theme?.colors?.primary || '#4b5563';
 
   const getFontFamily = () => {
-    // 1. 显式的样式覆盖
     if (overrides.fontFamily) return overrides.fontFamily;
-
     const fieldFont = typography?.fieldOverrides?.['paragraph'];
     if (fieldFont) return fieldFont;
-
     const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
-    const cjk = page.bodyFontZH || theme?.typography?.bodyFontZH || "'Noto Serif SC', serif";
-    
-    return `${latin}, ${cjk}`;
+    return `${latin}`;
   };
 
   const currentFont = getFontFamily();
@@ -79,7 +75,7 @@ export const SlideParagraph: React.FC<SlideParagraphProps> = ({
               lineHeight: '0.8',
               marginTop: '0.45rem',
               marginBottom: '-0.2rem',
-              color: textColor // 首字也跟随主题色
+              color: textColor 
             }} 
           >
             {text.charAt(0)}

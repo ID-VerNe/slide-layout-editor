@@ -13,7 +13,9 @@ interface SlideBlockLabelProps {
 }
 
 /**
- * SlideBlockLabel - 主题感应版
+ * SlideBlockLabel - 核心修复版
+ * 1. 动态读取 styleOverrides.[字段].fontSize
+ * 2. 智能识别当前使用的字段 ID
  */
 export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({ 
   page, 
@@ -26,37 +28,43 @@ export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({
 }) => {
   const theme = useStore((state) => state.theme);
   
-  // 优先显示传入的 text，其次是 page.actionText
+  // 智能识别：如果是从 imageLabel 传进来的 text
+  const isImageLabel = text && text === page?.imageLabel;
+  const fieldKey = isImageLabel ? 'imageLabel' : 'actionText';
+
   const content = text || page?.actionText;
-  const isVisible = page?.visibility?.actionText !== false;
+  const isVisible = page?.visibility?.[fieldKey] !== false;
 
   if (!content || !isVisible) return null;
 
-  const overrides = page?.styleOverrides?.actionText || {};
+  const overrides = page?.styleOverrides?.[fieldKey] || {};
   
   const getFontFamily = () => {
-    const fieldFont = typography?.fieldOverrides?.['actionText'];
+    const fieldFont = typography?.fieldOverrides?.[fieldKey];
     if (fieldFont) return fieldFont;
-    const latin = typography?.defaultLatin || theme?.typography?.headingFont || "'Inter', sans-serif";
-    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
-    return `${latin}, ${cjk}`;
+    const latin = theme?.typography?.headingFont || "'Inter', sans-serif";
+    return `${latin}`;
   };
 
-  // 默认使用 Accent 色作为装饰性标签
   const finalColor = overrides.color || color || theme?.colors?.accent || '#264376';
 
   return (
     <div 
-      className={`inline-flex items-center justify-center ${noBorder ? '' : 'px-6 py-2 border rounded-full'} transition-colors duration-300 ${className}`}
+      className={`inline-flex items-center justify-center ${noBorder ? '' : 'px-6 py-2 border rounded-full'} transition-all duration-300 ${className}`}
       style={{ 
-        borderColor: noBorder ? 'transparent' : finalColor,
+        borderColor: noBorder ? 'transparent' : `${finalColor}44`, // 默认带透明度的边框
         color: finalColor,
+        // 核心修复：应用 styleOverrides 里的字号
+        fontSize: overrides.fontSize ? `${overrides.fontSize}px` : undefined,
         ...style
       }}
     >
       <span 
-        className="text-[10px] font-black uppercase tracking-widest"
-        style={{ fontFamily: getFontFamily() }}
+        className="font-black uppercase tracking-widest"
+        style={{ 
+          fontFamily: getFontFamily(),
+          fontSize: 'inherit' // 继承父级定义的 fontSize
+        }}
       >
         {content}
       </span>

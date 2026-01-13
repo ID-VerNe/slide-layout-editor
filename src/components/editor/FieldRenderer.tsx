@@ -25,7 +25,8 @@ import { ColorField } from './fields/ColorField';
 import { FooterField } from './fields/FooterField';
 import { BentoField } from './fields/BentoField';
 import { PageNumberField } from './fields/PageNumberField';
-import { ResumeSectionsField } from './fields/ResumeSectionsField'; // 新增
+import { ResumeSectionsField } from './fields/ResumeSectionsField';
+import { TitleYField } from './fields/TitleYField';
 
 interface FieldRendererProps {
   schema: FieldSchema;
@@ -63,7 +64,8 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     backgroundColor: ColorField,
     footer: FooterField,
     pageNumber: PageNumberField,
-    resumeSections: ResumeSectionsField, // 核心：全能简历字段
+    resumeSections: ResumeSectionsField,
+    titleY: TitleYField, // 注册新控件
   };
 
   const Component = componentMap[key];

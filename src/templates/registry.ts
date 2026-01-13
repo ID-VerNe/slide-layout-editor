@@ -22,6 +22,7 @@ import FilmDiptych from '../components/templates/FilmDiptych';
 import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import AcademicHybridResume from '../components/templates/AcademicHybridResume';
 import Freeform from '../components/templates/Freeform';
+import GravityAnchorIntro from '../components/templates/GravityAnchorIntro';
 
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
@@ -44,71 +45,46 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 };
 
 export const TEMPLATES: TemplateConfig[] = [
-  // --- 简历系列 ---
+  // --- 简历 & 自由布局 (顶级工具) ---
   {
     id: 'academic-hybrid-resume',
     name: 'Dynamic Resume Pro',
     category: 'Resume',
-    desc: 'Block-based technical resume with smart lists and dynamic sections.',
-    tags: ['Resume', 'A4', 'Professional', 'Block-based'],
+    desc: 'Block-based technical resume with smart lists.',
+    tags: ['Resume', 'A4'],
     component: AcademicHybridResume,
     fields: withBaseFields([
       { key: 'title', label: 'Candidate Name' },
-      { key: 'subtitle', label: 'Header Subtitle (Email | GitHub)' },
+      { key: 'subtitle', label: 'Header Subtitle' },
       { key: 'resumeSections', label: 'Resume Content Hub' }
     ]),
     supportedRatios: ['A4']
   },
-  // --- 自由布局 (必须补回) ---
   {
     id: 'freeform',
     name: 'Freeform Canvas',
     category: 'Freeform',
-    desc: 'Total creative freedom with drag-and-drop elements.',
-    tags: ['Canvas', 'Creative', 'Custom'],
+    desc: 'Total creative freedom with drag-and-drop.',
+    tags: ['Canvas', 'Creative'],
     component: Freeform,
     fields: withBaseFields([]), 
     supportedRatios: ['16:9', '2:3', 'A4', '1:1']
   },
-  // --- 标准幻灯片系列 ---
+
+  // --- 核心内页模板 (Gallery 系列) ---
   {
-    id: 'apple-bento-grid',
-    name: 'Bento Showcase',
-    category: 'Product',
-    desc: 'Apple-style high-density modular grid.',
-    tags: ['Bento', 'Grid', 'Apple'],
-    component: AppleBentoGrid,
-    fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
-    supportedRatios: ['16:9']
-  },
-  {
-    id: 'editorial-classic',
-    name: 'Editorial Classic',
-    category: 'Cover',
-    desc: 'Kinfolk style magazine cover.',
-    tags: ['Magazine', 'Minimalist'],
-    component: EditorialClassic,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
-    supportedRatios: ['2:3']
-  },
-  {
-    id: 'cinematic-full-bleed',
-    name: 'Cinematic Bleed',
-    category: 'Cover',
-    desc: 'Full-screen cinematic cover.',
-    tags: ['Cinematic', 'Impact'],
-    component: CinematicFullBleed,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']), 
-    supportedRatios: ['2:3']
-  },
-  {
-    id: 'editorial-back-cover',
-    name: 'Editorial Back',
-    category: 'Cover',
-    desc: 'Magazine back cover.',
-    tags: ['Back Cover'],
-    component: EditorialBackCover,
-    fields: withBaseFields(['title', 'subtitle']),
+    id: 'gravity-anchor-intro',
+    name: 'Gravity Anchor',
+    category: 'Gallery',
+    desc: 'Professional intro page with heavy bottom imagery.',
+    tags: ['Establishing', 'Intro'],
+    component: GravityAnchorIntro,
+    fields: withBaseFields([
+      { key: 'title', label: 'Chapter Header' },
+      { key: 'paragraph', label: 'Introductory Verse' },
+      { key: 'image', label: 'Bottom Anchor Image' },
+      { key: 'imageLabel', label: 'Camera / Metadata Text' }
+    ]), 
     supportedRatios: ['2:3']
   },
   {
@@ -152,26 +128,6 @@ export const TEMPLATES: TemplateConfig[] = [
     supportedRatios: ['2:3']
   },
   {
-    id: 'kinfolk-essay',
-    name: 'Editorial Essay',
-    category: 'General',
-    desc: 'Text-heavy narrative layout.',
-    tags: ['Narrative'],
-    component: KinfolkEssay,
-    fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
-    supportedRatios: ['2:3']
-  },
-  {
-    id: 'typography-hero',
-    name: 'Typography Hero',
-    category: 'General',
-    desc: 'Typography-focused divider.',
-    tags: ['Typography'],
-    component: TypographyHero,
-    fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
-    supportedRatios: ['2:3']
-  },
-  {
     id: 'future-focus',
     name: 'Future Focus',
     category: 'Gallery',
@@ -210,6 +166,77 @@ export const TEMPLATES: TemplateConfig[] = [
     component: EditorialSplit,
     fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'bullets', 'paragraph']), 
     supportedRatios: ['16:9']
+  },
+
+  // --- 封面系列 ---
+  {
+    id: 'cinematic-full-bleed',
+    name: 'Cinematic Bleed',
+    category: 'Cover',
+    desc: 'Full-screen cinematic cover.',
+    tags: ['Cinematic', 'Impact'],
+    component: CinematicFullBleed,
+    fields: withBaseFields([
+      { key: 'variant', label: 'Layout Orientation', props: { options: [{ value: 'bottom', label: 'Bottom Stack' }, { value: 'top', label: 'Headline on Top' }] } },
+      { key: 'titleY', label: 'Headline Position' },
+      { key: 'title', label: 'Headline' },
+      { key: 'subtitle', label: 'Subtitle' },
+      { key: 'image', label: 'Background Image' },
+      { key: 'imageLabel', label: 'Copyright Text' }
+    ]), 
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'editorial-classic',
+    name: 'Editorial Classic',
+    category: 'Cover',
+    desc: 'Kinfolk style magazine cover.',
+    tags: ['Magazine', 'Minimalist'],
+    component: EditorialClassic,
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'editorial-back-cover',
+    name: 'Editorial Back',
+    category: 'Cover',
+    desc: 'Magazine back cover.',
+    tags: ['Back Cover'],
+    component: EditorialBackCover,
+    fields: withBaseFields(['title', 'subtitle']),
+    supportedRatios: ['2:3']
+  },
+
+  // --- 其他通用模板 ---
+  {
+    id: 'apple-bento-grid',
+    name: 'Bento Showcase',
+    category: 'Product',
+    desc: 'Apple-style modular grid.',
+    tags: ['Bento', 'Grid'],
+    component: AppleBentoGrid,
+    fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
+    supportedRatios: ['16:9']
+  },
+  {
+    id: 'kinfolk-essay',
+    name: 'Editorial Essay',
+    category: 'General',
+    desc: 'Text-heavy narrative layout.',
+    tags: ['Narrative'],
+    component: KinfolkEssay,
+    fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'typography-hero',
+    name: 'Typography Hero',
+    category: 'General',
+    desc: 'Typography-focused divider.',
+    tags: ['Typography'],
+    component: TypographyHero,
+    fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
+    supportedRatios: ['2:3']
   },
   {
     id: 'modern-feature',

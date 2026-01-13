@@ -8,23 +8,19 @@ import { useStore } from '../../store/useStore';
 
 /**
  * CinematicFullBleed - 全屏电影流封面
- * 最终加固版：全面感应全局主题。
+ * 升级版：支持顶部/底部布局切换，以及标题位置微调。
  */
 export default function CinematicFullBleed({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const theme = useStore((state) => state.theme);
   
   const displayTitle = page.title || '0.5 DISTANCE';
   const displaySubtitle = page.subtitle || "NEW YEAR'S SPECIAL EDITION";
+  // 核心：页脚内容由 imageLabel 驱动
   const displayLabel = page.imageLabel || '© 2026';
 
-  const displayPage = {
-    ...page,
-    title: displayTitle,
-    subtitle: displaySubtitle,
-  };
-
-  // 核心：强调色优先感应 accentColor 或主题 primary
-  const accentColor = page.accentColor || theme.colors.primary || '#ffffff';
+  const isTopMode = page.layoutVariant === 'top';
+  // 提取位置偏移量
+  const titleY = page.styleOverrides?.title?.translateY || 0;
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-slate-950 transition-all duration-700 isolate">
@@ -39,34 +35,68 @@ export default function CinematicFullBleed({ page, typography }: { page: PageDat
         />
       </div>
 
-      {/* 2. 悬浮文字层 */}
+      {/* 2. 顶置模式 - 标题层 */}
+      {isTopMode && (
+        <div 
+          className="absolute top-32 inset-x-0 z-20 flex flex-col items-center text-center px-20 pointer-events-none"
+          style={{ transform: `translateY(${titleY}px)` }}
+        >
+          <div className="drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]">
+            <SlideHeadline 
+              page={{ ...page, title: displayTitle }} 
+              typography={typography}
+              maxSize={96} 
+              minSize={40}
+              weight={300}
+              italic={true}
+              className="!tracking-[0.4em] !normal-case"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 3. 底部信息层 */}
       <div className="absolute bottom-24 inset-x-0 z-10 flex flex-col items-center text-center px-20">
-        <div className="mb-4 overflow-hidden">
-          <SlideSubHeadline 
-            page={displayPage}
-            typography={typography}
-            className="!tracking-[0.6em] uppercase !font-black animate-in slide-in-from-bottom-2 duration-1000"
-            size="11px"
-            color={theme.colors.secondary} // 核心修复 1：链接至 secondary
-          />
-        </div>
+        
+        {/* 在底部模式下，Headline 渲染在这里 */}
+        {!isTopMode && (
+          <>
+            <div className="mb-4 overflow-hidden">
+              <SlideSubHeadline 
+                page={{ ...page, subtitle: displaySubtitle }}
+                typography={typography}
+                className="!tracking-[0.6em] uppercase !font-black animate-in slide-in-from-bottom-2 duration-1000"
+                size="11px"
+              />
+            </div>
+            <div className="drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)] mb-12">
+              <SlideHeadline 
+                page={{ ...page, title: displayTitle }} 
+                typography={typography}
+                maxSize={84} 
+                minSize={40}
+                weight={300}
+                italic={true}
+                className="!tracking-[0.3em] !normal-case"
+              />
+            </div>
+          </>
+        )}
 
-        <div className="drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
-          <SlideHeadline 
-            page={displayPage} 
-            typography={typography}
-            maxSize={84} 
-            minSize={40}
-            weight={300}
-            italic={true}
-            className="!tracking-[0.3em] !normal-case"
-            style={{ color: accentColor }}
-          />
-        </div>
+        {/* 在顶置模式下，Subtitle 紧贴页脚上方 */}
+        {isTopMode && (
+          <div className="mb-8 overflow-hidden opacity-80">
+            <SlideSubHeadline 
+              page={{ ...page, subtitle: displaySubtitle }}
+              typography={typography}
+              className="!tracking-[0.5em] uppercase !font-bold"
+              size="10px"
+            />
+          </div>
+        )}
 
-        {/* 底部元数据 */}
-        <div className="mt-12 flex items-center gap-4 opacity-40">
-          {/* 核心修复 2：装饰线链接至 accent */}
+        {/* 通用页脚元数据 */}
+        <div className="flex items-center gap-4 opacity-40">
           <div className="w-8 h-[1px]" style={{ backgroundColor: theme.colors.accent }} />
           <SlideBlockLabel 
             page={page} 
