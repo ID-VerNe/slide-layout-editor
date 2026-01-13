@@ -26,7 +26,8 @@ export const FreeformItem: React.FC<FreeformItemProps> = ({
       case 'text':
         return <TextBlock item={item} page={page} />;
       case 'image':
-        return <ImageBlock item={item} />;
+        // 核心修复：透传 page 以便 SlideImage 正确解析资源
+        return <ImageBlock item={item} page={page} />;
       case 'shape':
         return <Shape item={item} />;
       case 'icon':
@@ -37,11 +38,10 @@ export const FreeformItem: React.FC<FreeformItemProps> = ({
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
-    e.stopPropagation(); // 阻止触发拖拽
+    e.stopPropagation();
     onResizeStart(e, handle);
   };
 
-  // 视觉样式容器 (处理边框、圆角、背景、裁剪)
   const visualStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
@@ -77,23 +77,10 @@ export const FreeformItem: React.FC<FreeformItemProps> = ({
           className="absolute inset-0 border-2 border-[#264376] pointer-events-none"
           style={{ borderRadius: visualStyle.borderRadius }}
         >
-          {/* Resize Handles - 明确的交互区域 */}
-          <div 
-            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-nw-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
-          />
-          <div 
-            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-ne-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
-          />
-          <div 
-            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-sw-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
-          />
-          <div 
-            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-[#264376] border border-white rounded-full pointer-events-auto cursor-se-resize shadow-sm"
-            onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
-          />
+          <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-nw-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} />
+          <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-ne-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} />
+          <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-[#264376] rounded-full pointer-events-auto cursor-sw-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} />
+          <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-[#264376] border border-white rounded-full pointer-events-auto cursor-se-resize shadow-sm" onMouseDown={(e) => handleResizeMouseDown(e, 'se')} />
         </div>
       )}
     </div>

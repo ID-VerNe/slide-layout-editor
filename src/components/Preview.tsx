@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { LAYOUT_CONFIG } from '../constants/layout';
 import MetadataOverlay from './ui/slide/MetadataOverlay';
 
-// 引入模板
+// 引入标准模板矩阵
 import ModernFeature from './templates/ModernFeature';
 import PlatformHero from './templates/PlatformHero';
 import ComponentMosaic from './templates/ComponentMosaic';
@@ -28,6 +28,7 @@ import TypographyHero from './templates/TypographyHero';
 import FilmDiptych from './templates/FilmDiptych';
 import AppleBentoGrid from './templates/AppleBentoGrid';
 import AcademicHybridResume from './templates/AcademicHybridResume';
+import Freeform from './templates/Freeform';
 
 interface PreviewProps {
   page: PageData;
@@ -36,21 +37,18 @@ interface PreviewProps {
   printSettings?: PrintSettings; 
   typography?: TypographySettings;
   minimalCounter?: boolean;
+  onUpdate?: (page: PageData) => void;
 }
 
-const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter }) => {
+const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter, onUpdate }) => {
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
   const renderTemplate = () => {
-    // 核心重构：将页码元数据透传给模板组件
-    const commonProps = { 
-      page, 
-      typography,
-      pageIndex,
-      totalPages 
-    }; 
+    // 统一通过模板映射分发，包括自由布局
+    const commonProps = { page, typography, pageIndex, totalPages, onUpdate }; 
 
     switch (page.layoutId) {
+      case 'freeform': return <Freeform {...commonProps} />;
       case 'academic-hybrid-resume': return <AcademicHybridResume {...commonProps} />;
       case 'modern-feature': return <ModernFeature {...commonProps} />;
       case 'platform-hero': return <PlatformHero {...commonProps} />;
@@ -81,7 +79,8 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
   const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
   const isPrintEnabled = printSettings?.enabled;
   const orientation = designDims.orientation;
-  const config = (printSettings?.configs && printSettings.configs[orientation]) || { bindingSide: 'left', trimSide: 'bottom' };
+  const config = (printSettings?.configs && (printSettings.configs[orientation] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
+  
   const widthMm = printSettings?.widthMm || 100;
   const heightMm = printSettings?.heightMm || 145;
   const gutterMm = printSettings?.gutterMm || 10;

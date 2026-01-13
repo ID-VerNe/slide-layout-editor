@@ -26,6 +26,7 @@ import {
   Type as TypeIcon,
   SlidersHorizontal,
   RotateCcw,
+  // 修正图标导入：确保语义与视觉一致
   AlignStartVertical,
   AlignCenterVertical,
   AlignEndVertical,
@@ -46,7 +47,6 @@ interface FreeformPropertiesPanelProps {
   onDeleteItem?: (id: string) => void;
 }
 
-// 内部预览组件
 const AssetPreviewSmall = ({ source }: { source?: string }) => {
   const { url } = useAssetUrl(source);
   return (
@@ -69,15 +69,12 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
   const selectedItem = items.find((i) => i.id === selectedItemId);
   const [showImageAdjust, setShowImageAdjust] = useState(false);
 
-  // 获取当前画布尺寸
   const canvasDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
   const CANVAS_W = canvasDims.width;
   const CANVAS_H = canvasDims.height;
 
-  // 快速对齐逻辑 (修复算法)
   const alignElement = (type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
     if (!selectedItem) return;
-
     switch(type) {
       case 'left': onUpdateItem(selectedItem.id, { x: 0 }); break;
       case 'center': onUpdateItem(selectedItem.id, { x: (CANVAS_W - selectedItem.width) / 2 }); break;
@@ -88,7 +85,6 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
     }
   };
 
-  // 一键适配画布
   const fitToCanvas = (direction: 'width' | 'height') => {
     if (!selectedItem) return;
     if (direction === 'width') {
@@ -98,7 +94,6 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
     }
   };
 
-  // 处理图片逻辑
   const handleImageChange = async (val: string) => {
     if (!selectedItem) return;
     const resetConfig = { scale: 1, x: 0, y: 0 };
@@ -135,41 +130,48 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
     if (selectedItemId && onDeleteItem) { onDeleteItem(selectedItemId); }
   };
 
-  // 渲染通用属性（布局）
   const renderLayoutSection = () => (
     <Section>
       <Label icon={Move}>Layout & Transform</Label>
       
-      {/* 快速对齐工具栏 (图标映射修正) */}
+      {/* 修正后的快速对齐工具栏：图标与动作精准对应 */}
       <div className="flex gap-1 mb-4 bg-slate-50 p-1 rounded-lg border border-slate-100">
-        <AlignButton icon={AlignStartHorizontal} onClick={() => alignElement('left')} label="Align Left" />
-        <AlignButton icon={AlignCenterHorizontal} onClick={() => alignElement('center')} label="Align Center" />
-        <AlignButton icon={AlignEndHorizontal} onClick={() => alignElement('right')} label="Align Right" />
+        {/* Horizontal Align (Vertical Bars) */}
+        <AlignButton icon={AlignStartVertical} onClick={() => alignElement('left')} label="Align Left" />
+        <AlignButton icon={AlignCenterVertical} onClick={() => alignElement('center')} label="Align Center" />
+        <AlignButton icon={AlignEndVertical} onClick={() => alignElement('right')} label="Align Right" />
         <div className="w-px bg-slate-200 my-1 mx-1" />
-        <AlignButton icon={AlignStartVertical} onClick={() => alignElement('top')} label="Align Top" />
-        <AlignButton icon={AlignCenterVertical} onClick={() => alignElement('middle')} label="Align Middle" />
-        <AlignButton icon={AlignEndVertical} onClick={() => alignElement('bottom')} label="Align Bottom" />
+        {/* Vertical Align (Horizontal Bars) */}
+        <AlignButton icon={AlignStartHorizontal} onClick={() => alignElement('top')} label="Align Top" />
+        <AlignButton icon={AlignCenterHorizontal} onClick={() => alignElement('middle')} label="Align Middle" />
+        <AlignButton icon={AlignEndHorizontal} onClick={() => alignElement('bottom')} label="Align Bottom" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+      <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100 items-start">
+        {/* Position Column */}
         <div className="space-y-1">
-           <span className="text-[9px] font-bold text-slate-400 uppercase">Position</span>
+           {/* 核心修复：添加 h-6 并使用 items-center 确保与右侧标题行对齐 */}
+           <div className="h-6 flex items-center">
+              <span className="text-[9px] font-bold text-slate-400 uppercase">Position</span>
+           </div>
            <div className="flex gap-2">
-             <Input type="number" value={Math.round(selectedItem!.x)} onChange={(e) => onUpdateItem(selectedItem!.id, { x: Number(e.target.value) })} className="bg-white" placeholder="X" />
-             <Input type="number" value={Math.round(selectedItem!.y)} onChange={(e) => onUpdateItem(selectedItem!.id, { y: Number(e.target.value) })} className="bg-white" placeholder="Y" />
+             <Input type="number" value={Math.round(selectedItem!.x)} onChange={(e) => onUpdateItem(selectedItem!.id, { x: Number(e.target.value) })} className="bg-white !text-[10px] !py-1" placeholder="X" />
+             <Input type="number" value={Math.round(selectedItem!.y)} onChange={(e) => onUpdateItem(selectedItem!.id, { y: Number(e.target.value) })} className="bg-white !text-[10px] !py-1" placeholder="Y" />
            </div>
         </div>
+
+        {/* Size Column */}
         <div className="space-y-1">
-           <div className="flex justify-between items-center">
+           <div className="h-6 flex justify-between items-center">
               <span className="text-[9px] font-bold text-slate-400 uppercase">Size</span>
               <div className="flex gap-1">
-                 <button onClick={() => fitToCanvas('width')} className="p-0.5 hover:text-[#264376] text-slate-300 transition-colors" title="Fit Width"><ArrowsStretchHorizontal size={10}/></button>
-                 <button onClick={() => fitToCanvas('height')} className="p-0.5 hover:text-[#264376] text-slate-300 transition-colors" title="Fit Height"><ArrowsStretchVertical size={10}/></button>
+                 <button onClick={() => fitToCanvas('width')} className="p-0.5 hover:text-[#264376] text-slate-300 transition-colors" title="Fit Width"><StretchHorizontal size={10}/></button>
+                 <button onClick={() => fitToCanvas('height')} className="p-0.5 hover:text-[#264376] text-slate-300 transition-colors" title="Fit Height"><StretchVertical size={10}/></button>
               </div>
            </div>
            <div className="flex gap-2">
-             <Input type="number" value={Math.round(selectedItem!.width)} onChange={(e) => onUpdateItem(selectedItem!.id, { width: Number(e.target.value) })} className="bg-white" placeholder="W" />
-             <Input type="number" value={Math.round(selectedItem!.height)} onChange={(e) => onUpdateItem(selectedItem!.id, { height: Number(e.target.value) })} className="bg-white" placeholder="H" />
+             <Input type="number" value={Math.round(selectedItem!.width)} onChange={(e) => onUpdateItem(selectedItem!.id, { width: Number(e.target.value) })} className="bg-white !text-[10px] !py-1" placeholder="W" />
+             <Input type="number" value={Math.round(selectedItem!.height)} onChange={(e) => onUpdateItem(selectedItem!.id, { height: Number(e.target.value) })} className="bg-white !text-[10px] !py-1" placeholder="H" />
            </div>
         </div>
       </div>
@@ -181,7 +183,6 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
     </Section>
   );
 
-  // 渲染样式属性
   const renderStyleSection = () => (
     <Section>
       <Label icon={Palette}>Appearance</Label>
@@ -209,7 +210,6 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
     </Section>
   );
 
-  // 渲染文本属性
   const renderTextSection = () => {
     if (selectedItem?.type !== 'text') return null;
     return (
@@ -267,8 +267,8 @@ export const FreeformPropertiesPanel: React.FC<FreeformPropertiesPanelProps> = (
            <div className="mt-4 p-4 bg-slate-50 rounded-2xl space-y-5 border border-slate-100 animate-in fade-in slide-in-from-top-2">
               <div className="flex justify-between items-center mb-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Manual Positioning</span><button onClick={resetImageConfig} className="text-[9px] font-black text-slate-400 hover:text-[#264376] uppercase flex items-center gap-1"><RotateCcw size={10} /> Reset</button></div>
               <Slider label="Scale / Zoom" value={imgConfig.scale || 1} min={0.5} max={3} step={0.05} onChange={(v) => handleImageConfigChange('scale', v)} />
-              <Slider label="Move Horiz." value={imgConfig.x || 0} min={-200} max={200} step={1} onChange={(v) => handleImageConfigChange('x', v)} />
-              <Slider label="Move Vert." value={imgConfig.y || 0} min={-200} max={200} step={1} onChange={(v) => handleImageConfigChange('y', v)} />
+              <Slider label="Move Horiz." value={imgConfig.x || 0} min={-100} max={100} step={1} onChange={(v) => handleImageConfigChange('x', v)} />
+              <Slider label="Move Vert." value={imgConfig.y || 0} min={-100} max={100} step={1} onChange={(v) => handleImageConfigChange('y', v)} />
            </div>
          )}
       </Section>

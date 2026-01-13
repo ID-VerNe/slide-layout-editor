@@ -31,6 +31,32 @@ export interface FieldSchema {
   props?: Record<string, any>;
 }
 
+// --- 自由布局 (Freeform) 类型 ---
+export interface FreeformItem {
+  id: string;
+  type: 'text' | 'image' | 'shape' | 'icon';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  opacity?: number;
+  content?: any;
+  style?: any;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  typography?: any;
+}
+
+export interface FreeformConfig {
+  gridSize: number;
+  snapToGrid: boolean;
+  showGridOverlay: boolean;
+  showAlignmentGuides: boolean;
+}
+
 // --- 简历 2.0 全动态结构 ---
 export interface ResumeItem {
   id: string;
@@ -49,26 +75,49 @@ export interface ResumeSection {
 
 export interface PageData {
   id: string;
-  type: 'slide';
+  type: 'slide' | 'freeform'; // 支持自由布局
   layoutId: TemplateId;
   aspectRatio: AspectRatioType; 
-  title: string;        // 姓名
-  subtitle?: string;    // 联系方式 (Email | GitHub | ...)
+  layoutVariant?: string;
+  title: string;        // 姓名/主标题
+  subtitle?: string;    // 副标题
   
+  // 找回的缺失字段
+  bullets?: string[];
+  paragraph?: string;
+  image?: string;
+  logo?: string;
+  logoSize?: number;
+  accentColor?: string;
+  backgroundPattern?: BackgroundPatternType;
+  
+  // 自由布局
+  freeformItems?: FreeformItem[];
+  freeformConfig?: FreeformConfig;
+
   // 核心：全量数据池
   resumeSections?: ResumeSection[];
-  
-  // 自动分页标记 (由引擎计算)
   resumePageIndex?: number; 
 
+  // 视觉控制
+  visibility?: Record<string, boolean>;
+  styleOverrides?: Record<string, any>;
+
   backgroundColor?: string;
-  accentColor?: string; 
   titleFont?: string;
   bodyFont?: string;
   footer?: string;
   pageNumber?: boolean;
   minimalCounter?: boolean;
   counterStyle?: CounterStyle;
+
+  // 兼容性字段
+  agenda?: any[];
+  features?: any[];
+  metrics?: any[];
+  mosaic?: any[];
+  testimonials?: any[];
+  gallery?: any[];
 }
 
 export interface PrintSettings {

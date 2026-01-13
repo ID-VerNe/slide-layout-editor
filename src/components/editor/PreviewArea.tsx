@@ -12,7 +12,7 @@ interface PreviewAreaProps {
   isAutoFit: boolean; 
   setIsAutoFit: (val: boolean) => void;
   printSettings: PrintSettings; 
-  minimalCounter?: boolean; // 新增：接收全局 minimal 状态
+  minimalCounter?: boolean; 
   onOverflowChange: (pageId: string, isOverflowing: boolean) => void;
   onUpdatePage?: (page: PageData) => void;
 }
@@ -26,7 +26,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   isAutoFit,
   setIsAutoFit,
   printSettings,
-  minimalCounter, // 解构
+  minimalCounter,
   onUpdatePage
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -40,16 +40,9 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   }, [isAutoFit, currentPageIndex]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') {
-      return;
-    }
-
+    if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') return;
     if (isAutoFit) setIsAutoFit(false);
-
-    setDragOffset(prev => ({
-      x: prev.x - e.deltaX,
-      y: prev.y - e.deltaY
-    }));
+    setDragOffset(prev => ({ x: prev.x - e.deltaX, y: prev.y - e.deltaY }));
   }, [isAutoFit, setIsAutoFit]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -60,24 +53,10 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-    
     const deltaX = e.clientX - lastPos.x;
     const deltaY = e.clientY - lastPos.y;
-
-    setDragOffset(prev => ({
-      x: prev.x + deltaX,
-      y: prev.y + deltaY
-    }));
-
+    setDragOffset(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
     setLastPos({ x: e.clientX, y: e.clientY });
-  };
-
-  const stopDragging = () => {
-    setIsDragging(false);
-  };
-
-  const handleDoubleClick = () => {
-    setDragOffset({ x: 0, y: 0 });
   };
 
   return (
@@ -87,10 +66,10 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       ref={previewContainerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={stopDragging}
-      onMouseLeave={stopDragging}
+      onMouseUp={() => setIsDragging(false)}
+      onMouseLeave={() => setIsDragging(false)}
       onWheel={handleWheel}
-      onDoubleClick={handleDoubleClick}
+      onDoubleClick={() => setDragOffset({ x: 0, y: 0 })}
     >
       <div 
         className="magazine-canvas-scaler relative"
@@ -113,17 +92,11 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
               pageIndex={currentPageIndex}
               totalPages={pages.length}
               printSettings={printSettings}
-              minimalCounter={minimalCounter} // 核心修复：透传给 Preview
-              onUpdate={onUpdatePage}
+              minimalCounter={minimalCounter}
+              onUpdate={onUpdatePage} // 核心修复：透传更新函数
             />
           </div>
         )}
-      </div>
-
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-white/60 px-4 py-2 rounded-full shadow-sm backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity">
-          Drag to Pan • Wheel to Scroll • Double Click to Center
-        </p>
       </div>
     </div>
   );

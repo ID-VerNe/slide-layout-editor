@@ -21,6 +21,7 @@ import TypographyHero from '../components/templates/TypographyHero';
 import FilmDiptych from '../components/templates/FilmDiptych';
 import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import AcademicHybridResume from '../components/templates/AcademicHybridResume';
+import Freeform from '../components/templates/Freeform';
 
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
@@ -28,7 +29,7 @@ import { FieldSchema, FieldType } from '../types';
 export interface TemplateConfig {
   id: string;
   name: string;
-  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Freeform';
   desc: string;
   tags: string[];
   component: React.FC<{ page: any; typography?: any }>;
@@ -38,11 +39,12 @@ export interface TemplateConfig {
 
 const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
   const base: FieldSchema[] = [{ key: 'backgroundColor' }, { key: 'pageNumber' }];
-  const custom = fields.map(f => typeof f === 'string' ? { key: f } : f);
+  const custom = fields.map(f => typeof f === 'string' ? { key: f as FieldType } : f);
   return [...base, ...custom];
 };
 
 export const TEMPLATES: TemplateConfig[] = [
+  // --- 简历系列 ---
   {
     id: 'academic-hybrid-resume',
     name: 'Dynamic Resume Pro',
@@ -52,17 +54,29 @@ export const TEMPLATES: TemplateConfig[] = [
     component: AcademicHybridResume,
     fields: withBaseFields([
       { key: 'title', label: 'Candidate Name' },
-      { key: 'subtitle', label: 'Header Subtitle (use | to separate)' },
-      { key: 'resumeSections', label: 'Dynamic Content Blocks' }
+      { key: 'subtitle', label: 'Header Subtitle (Email | GitHub)' },
+      { key: 'resumeSections', label: 'Resume Content Hub' }
     ]),
     supportedRatios: ['A4']
   },
+  // --- 自由布局 (必须补回) ---
+  {
+    id: 'freeform',
+    name: 'Freeform Canvas',
+    category: 'Freeform',
+    desc: 'Total creative freedom with drag-and-drop elements.',
+    tags: ['Canvas', 'Creative', 'Custom'],
+    component: Freeform,
+    fields: withBaseFields([]), 
+    supportedRatios: ['16:9', '2:3', 'A4', '1:1']
+  },
+  // --- 标准幻灯片系列 ---
   {
     id: 'apple-bento-grid',
     name: 'Bento Showcase',
     category: 'Product',
-    desc: 'Apple-style high-density modular grid for features and metrics',
-    tags: ['Bento', 'Grid', 'Apple', 'Showcase'],
+    desc: 'Apple-style high-density modular grid.',
+    tags: ['Bento', 'Grid', 'Apple'],
     component: AppleBentoGrid,
     fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
     supportedRatios: ['16:9']
@@ -71,18 +85,18 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'editorial-classic',
     name: 'Editorial Classic',
     category: 'Cover',
-    desc: 'Kinfolk style classic magazine cover with hard-edge image',
-    tags: ['Magazine', 'Minimalist', 'Kinfolk'],
+    desc: 'Kinfolk style magazine cover.',
+    tags: ['Magazine', 'Minimalist'],
     component: EditorialClassic,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
     supportedRatios: ['2:3']
   },
   {
     id: 'cinematic-full-bleed',
     name: 'Cinematic Bleed',
     category: 'Cover',
-    desc: 'Full-screen cinematic cover with floating serif typography',
-    tags: ['Full Screen', 'Cinematic', 'Impact'],
+    desc: 'Full-screen cinematic cover.',
+    tags: ['Cinematic', 'Impact'],
     component: CinematicFullBleed,
     fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']), 
     supportedRatios: ['2:3']
@@ -91,8 +105,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'editorial-back-cover',
     name: 'Editorial Back',
     category: 'Cover',
-    desc: 'Minimalist magazine back cover with centered title',
-    tags: ['Magazine', 'Minimalist', 'Back Cover'],
+    desc: 'Magazine back cover.',
+    tags: ['Back Cover'],
     component: EditorialBackCover,
     fields: withBaseFields(['title', 'subtitle']),
     supportedRatios: ['2:3']
@@ -101,8 +115,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'kinfolk-feature',
     name: 'Editorial Feature',
     category: 'Gallery',
-    desc: 'Impactful vertical typography with hard-edge imagery',
-    tags: ['Kinfolk', 'Portrait', 'Minimalist'],
+    desc: 'Vertical typography with imagery.',
+    tags: ['Kinfolk', 'Portrait'],
     component: KinfolkFeature,
     fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
@@ -111,8 +125,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'kinfolk-montage',
     name: 'Art Montage',
     category: 'Gallery',
-    desc: 'Staggered dual-image collage with vertical metadata',
-    tags: ['Montage', 'Collage', 'Details'],
+    desc: 'Staggered dual-image collage.',
+    tags: ['Collage'],
     component: KinfolkMontage,
     fields: withBaseFields(['gallery', 'imageLabel']),
     supportedRatios: ['2:3']
@@ -121,8 +135,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'film-diptych',
     name: 'Film Diptych',
     category: 'Gallery',
-    desc: 'Dual images side-by-side or stacked with zero distractions',
-    tags: ['Diptych', 'Sequence', 'Comparison', 'Pure'],
+    desc: 'Dual images side-by-side.',
+    tags: ['Sequence'],
     component: FilmDiptych,
     fields: withBaseFields(['variant', 'gallery', 'imageLabel']),
     supportedRatios: ['2:3']
@@ -131,8 +145,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'micro-anchor',
     name: 'Micro Anchor',
     category: 'Gallery',
-    desc: 'Extreme negative space with a tiny atmospheric anchor image',
-    tags: ['Atmospheric', 'Whitespace', 'Minimalist'],
+    desc: 'Extreme negative space.',
+    tags: ['Minimalist'],
     component: MicroAnchor,
     fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
     supportedRatios: ['2:3']
@@ -141,8 +155,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'kinfolk-essay',
     name: 'Editorial Essay',
     category: 'General',
-    desc: 'Text-heavy narrative layout with drop cap and technical grid',
-    tags: ['Narrative', 'Text', 'Specs'],
+    desc: 'Text-heavy narrative layout.',
+    tags: ['Narrative'],
     component: KinfolkEssay,
     fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
     supportedRatios: ['2:3']
@@ -151,8 +165,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'typography-hero',
     name: 'Typography Hero',
     category: 'General',
-    desc: 'Typography-focused section divider with horizontal lines',
-    tags: ['Typography', 'Divider', 'Slogan'],
+    desc: 'Typography-focused divider.',
+    tags: ['Typography'],
     component: TypographyHero,
     fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
     supportedRatios: ['2:3']
@@ -161,18 +175,18 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'future-focus',
     name: 'Future Focus',
     category: 'Gallery',
-    desc: 'Cinematic layout with gold accents and background numbers',
-    tags: ['Gallery', 'Impact', 'Dynamic'],
+    desc: 'Gold accents and background numbers.',
+    tags: ['Impact'],
     component: FutureFocus,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel', 'imageSubLabel', 'actionText']), 
+    fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']), 
     supportedRatios: ['16:9']
   },
   {
     id: 'back-cover-movie',
     name: 'Back Cover Movie',
     category: 'Gallery',
-    desc: 'Cinematic movie credits style back cover',
-    tags: ['Gallery', 'Back Cover', 'Cinematic'],
+    desc: 'Movie credits style back cover.',
+    tags: ['Cinematic'],
     component: BackCoverMovie,
     fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle']),
     supportedRatios: ['16:9']
@@ -181,28 +195,28 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'gallery-capsule',
     name: 'Capsule Mosaic',
     category: 'Gallery',
-    desc: 'Stylish vertical capsule gallery with staggered layout',
-    tags: ['Gallery', 'Portrait', 'Modern'],
+    desc: 'Vertical capsule gallery.',
+    tags: ['Modern'],
     component: GalleryCapsule,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel', 'imageSubLabel']),
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel']),
     supportedRatios: ['16:9']
   },
   {
     id: 'editorial-split',
     name: 'Editorial Split',
     category: 'Gallery',
-    desc: 'Japanese style minimalist split layout',
-    tags: ['Gallery', 'Minimalist', 'Editorial'],
+    desc: 'Minimalist split layout.',
+    tags: ['Editorial'],
     component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets', 'paragraph']), 
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'bullets', 'paragraph']), 
     supportedRatios: ['16:9']
   },
   {
     id: 'modern-feature',
     name: 'Modern Feature',
     category: 'Product',
-    desc: 'Bold text with large visual placeholder',
-    tags: ['Bold', 'Minimalist'],
+    desc: 'Bold text with large visual.',
+    tags: ['Bold'],
     component: ModernFeature,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel']),
     supportedRatios: ['16:9']
@@ -211,28 +225,28 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'component-mosaic',
     name: 'Component Mosaic',
     category: 'Product',
-    desc: 'Text with scattered icon grid',
-    tags: ['Showcase', 'Mosaic'],
+    desc: 'Icon grid showcase.',
+    tags: ['Mosaic'],
     component: ComponentMosaic,
-    fields: withBaseFields(['title', 'subtitle', 'actionText', 'mosaic']),
+    fields: withBaseFields(['title', 'subtitle', 'mosaic']),
     supportedRatios: ['16:9']
   },
   {
     id: 'platform-hero',
     name: 'Platform Hero',
     category: 'Marketing',
-    desc: 'Centered hero with feature grid',
-    tags: ['Branding', 'Grid'],
+    desc: 'Centered hero with feature grid.',
+    tags: ['Branding'],
     component: PlatformHero,
-    fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'features']),
+    fields: withBaseFields(['logo', 'title', 'subtitle', 'features']),
     supportedRatios: ['16:9']
   },
   {
     id: 'testimonial-card',
     name: 'Testimonial Card',
     category: 'Marketing',
-    desc: 'Profile with quote and data points',
-    tags: ['Review', 'Card', 'Data'],
+    desc: 'Profile with quote and data.',
+    tags: ['Review'],
     component: TestimonialCard,
     fields: withBaseFields(['image', 'imageLabel', 'title', 'subtitle', 'metrics']),
     supportedRatios: ['16:9']
@@ -241,18 +255,18 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'community-hub',
     name: 'Community Hub',
     category: 'Marketing',
-    desc: 'Call to action with testimonials and partners',
-    tags: ['Community', 'Feedback', 'Social'],
+    desc: 'Call to action with testimonials.',
+    tags: ['Social'],
     component: CommunityHub,
-    fields: withBaseFields(['title', 'subtitle', 'actionText', 'partnersTitle', 'partners', 'testimonials']),
+    fields: withBaseFields(['title', 'subtitle', 'partnersTitle', 'partners', 'testimonials']),
     supportedRatios: ['16:9']
   },
   {
     id: 'big-statement',
     name: 'Big Statement',
     category: 'General',
-    desc: 'Pure centered minimalist slogan',
-    tags: ['Impact', 'Slogan', 'Clean'],
+    desc: 'Centered minimalist slogan.',
+    tags: ['Slogan'],
     component: BigStatement,
     fields: withBaseFields(['title', 'subtitle']),
     supportedRatios: ['16:9']
@@ -261,8 +275,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'step-timeline',
     name: 'Step Timeline',
     category: 'General',
-    desc: 'Vertical process flow with timeline',
-    tags: ['Process', 'Workflow', 'Steps'],
+    desc: 'Vertical process flow.',
+    tags: ['Process'],
     component: StepTimeline,
     fields: withBaseFields(['title', 'subtitle', 'features']),
     supportedRatios: ['16:9']
@@ -271,8 +285,8 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'table-of-contents',
     name: 'Table of Contents',
     category: 'General',
-    desc: 'Professional agenda with card-based section overview',
-    tags: ['Agenda', 'Navigation', 'Minimalist'],
+    desc: 'Card-based overview.',
+    tags: ['Agenda'],
     component: TableOfContents,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda']),
     supportedRatios: ['16:9']
