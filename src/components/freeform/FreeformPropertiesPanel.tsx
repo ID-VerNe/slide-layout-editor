@@ -32,8 +32,8 @@ import {
   AlignStartHorizontal,
   AlignCenterHorizontal,
   AlignEndHorizontal,
-  ArrowsStretchHorizontal,
-  ArrowsStretchVertical
+  StretchHorizontal,
+  StretchVertical
 } from 'lucide-react';
 
 interface FreeformPropertiesPanelProps {

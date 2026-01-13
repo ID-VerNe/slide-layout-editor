@@ -1,16 +1,6 @@
-import { FreeformItem, FreeformConfig } from './types/freeform.types';
+import { TemplateId } from './templates/registry';
 
-export type SlideLayoutType =
-  | 'cover-main'      
-  | 'content-bullets' 
-  | 'split-image'     
-  | 'big-statement'   
-  | 'step-timeline'   
-  | 'gallery-capsule' 
-  | 'back-cover-movie' 
-  | 'code-snippet'    
-  | 'data-grid';       
-
+export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
 export type CounterStyle = 'number' | 'alpha' | 'roman' | 'dots';
 export type BackgroundPatternType = 'none' | 'grid' | 'dots' | 'diagonal' | 'cross';
 
@@ -31,145 +21,54 @@ export interface ProjectTheme {
   typography: {
     headingFont?: string;
     bodyFont?: string;
-    headingFontZH?: string;
-    bodyFontZH?: string;
   };
 }
 
-export interface TypographySettings {
-  defaultLatin?: string;
-  defaultCJK?: string;
-  fieldOverrides?: Record<string, string>;
-}
-
-export type FieldType = 
-  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' 
-  | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
-  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' 
-  | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
-  | 'gallery' | 'variant' | 'footer' | 'bullets' 
-  | 'backgroundColor' | 'pageNumber' | 'logoSize'
-  | 'group' | 'separator';
-
 export interface FieldSchema {
-  key: FieldType;
+  key: string;
   label?: string;
   icon?: string;
   props?: Record<string, any>;
 }
 
-export interface MetricData {
-  id?: string;
-  label: string;
-  value: string;
-  unit?: string;
-  subLabel?: string;
-}
-
-export interface FeatureData {
-  id?: string;
-  title: string;
-  desc: string;
-  icon?: string;
-  imageConfig?: { scale: number; x: number; y: number; };
-}
-
-export interface BentoItem {
+// --- 简历 2.0 全动态结构 ---
+export interface ResumeItem {
   id: string;
-  type: BentoItemType;
-  x: number;       
-  y: number;       
-  colSpan: number; 
-  rowSpan: number;
-  title?: string;
-  subtitle?: string;
-  value?: string;
-  icon?: string;
-  image?: string;
-  imageConfig?: { scale: number; x: number; y: number; };
-  fontSize?: number; 
-  theme?: 'light' | 'dark' | 'accent' | 'glass';
+  title: string;       // 标题 (学校/公司/项目名)
+  subtitle?: string;    // 副标题 (学位/职位)
+  time?: string;        // 时间 (2020 - 2024)
+  location?: string;    // 地点 (香港, 中国)
+  description?: string; // 描述 (支持 - 列表模式)
 }
 
-export type BentoItemType = 'metric' | 'icon-text' | 'image' | 'feature-list';
-export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+export interface ResumeSection {
+  id: string;
+  title: string;        // 板块标题 (EDUCATION, WORK, etc.)
+  items: ResumeItem[];
+}
 
 export interface PageData {
   id: string;
   type: 'slide';
-  layoutId: string; // 核心解耦：不再引用 TemplateId 类型
+  layoutId: TemplateId;
   aspectRatio: AspectRatioType; 
-  layoutVariant?: string;
+  title: string;        // 姓名
+  subtitle?: string;    // 联系方式 (Email | GitHub | ...)
+  
+  // 核心：全量数据池
+  resumeSections?: ResumeSection[];
+  
+  // 自动分页标记 (由引擎计算)
+  resumePageIndex?: number; 
 
-  title: string;
-  subtitle?: string;
-  bullets?: string[]; 
-  actionText?: string;
-  paragraph?: string; 
-  imageLabel?: string;
-  imageSubLabel?: string;
-
-  metrics?: MetricData[];
-  features?: FeatureData[];
-  bentoItems?: BentoItem[]; 
-  bentoConfig?: { rows: number; cols: number }; 
-  gallery?: GalleryItem[];
-
-  logo?: string;
-  logoSize?: number;
-  image?: string;
-  imageConfig?: { scale: number; x: number; y: number; };
   backgroundColor?: string;
   accentColor?: string; 
-  
-  // Freeform layout data
-  freeformItems?: FreeformItem[];
-  freeformConfig?: FreeformConfig;
-  
   titleFont?: string;
   bodyFont?: string;
-  titleFontZH?: string;
-  bodyFontZH?: string;
-
   footer?: string;
   pageNumber?: boolean;
-  minimalCounter?: boolean; 
-  counterColor?: string; 
-  pageNumberText?: string; 
-  signature?: string; 
-  signatureType?: 'text' | 'image'; 
+  minimalCounter?: boolean;
   counterStyle?: CounterStyle;
-  backgroundPattern?: BackgroundPatternType;
-
-  styleOverrides?: Record<string, {
-    fontSize?: number;
-    lineHeight?: number;
-    letterSpacing?: number;
-    color?: string;
-    fontFamily?: string;
-  }>;
-
-  visibility?: {
-    title?: boolean;
-    subtitle?: boolean;
-    logo?: boolean;
-    actionText?: boolean;
-    imageLabel?: boolean;
-    features?: boolean;
-    metrics?: boolean;
-    image?: boolean;
-    partnersTitle?: boolean;
-    partners?: boolean;
-    testimonials?: boolean;
-    agenda?: boolean;
-  };
-}
-
-export interface GalleryItem {
-  id?: string;
-  url: string;
-  caption?: string; 
-  config?: { scale: number; x: number; y: number; };
 }
 
 export interface PrintSettings {
@@ -184,19 +83,17 @@ export interface PrintSettings {
     landscape: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
     portrait: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
     square: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
+    resume: { bindingSide: 'left' | 'right' | 'top' | 'bottom'; trimSide: 'left' | 'right' | 'top' | 'bottom' };
   }
 }
 
-export interface ProjectSaveData {
+export interface ProjectData {
   version: string;
   title: string;
   pages: PageData[];
   customFonts: CustomFont[];
-  theme: ProjectTheme; 
-  minimalCounter: boolean;
-  imageQuality: number;
-  printSettings: PrintSettings;
-  filePath?: string; 
+  theme?: ProjectTheme; 
+  imageQuality?: number; 
+  minimalCounter?: boolean; 
+  printSettings?: PrintSettings; 
 }
-
-export type ProjectData = ProjectSaveData;

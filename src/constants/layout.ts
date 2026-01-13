@@ -2,14 +2,15 @@
  * 幻灯片布局配置系统
  */
 
-export type OrientationType = 'landscape' | 'portrait' | 'square';
+// 核心重构：新增 resume 顶级分类
+export type OrientationType = 'landscape' | 'portrait' | 'square' | 'resume';
 export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
 
 export interface LayoutDimensions {
   width: number;
   height: number;
   label: string;
-  orientation: OrientationType; // 新增：方向归类
+  orientation: OrientationType;
 }
 
 export const LAYOUT_CONFIG: Record<AspectRatioType, LayoutDimensions> = {
@@ -28,8 +29,8 @@ export const LAYOUT_CONFIG: Record<AspectRatioType, LayoutDimensions> = {
   'A4': {
     width: 1240,
     height: 1754,
-    label: 'A4 Document',
-    orientation: 'portrait'
+    label: 'Professional Resume',
+    orientation: 'resume' // 核心：从 portrait 剥离，归入 resume
   },
   '1:1': {
     width: 1080,

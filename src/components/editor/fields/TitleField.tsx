@@ -7,9 +7,10 @@ import { FieldToolbar } from './FieldToolbar';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData, silent?: boolean) => void;
+  label?: string; // 支持 Schema 标签
 }
 
-export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label }) => {
   const isVisible = page.visibility?.title !== false;
 
   const toggle = () => {
@@ -64,7 +65,8 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
           >
             {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
-          <span className="text-[10px] text-slate-400 font-bold uppercase">Headline</span>
+          {/* 使用传入的 label，回退到 Headline */}
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{label || 'Headline'}</span>
         </div>
 
         <div className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
@@ -93,7 +95,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
             value={page.title || ''} 
             onChange={handleChange} 
             onImmediateChange={handleImmediateChange}
-            placeholder="Title..." 
+            placeholder="Name..." 
             className={`text-sm font-bold ${!isVisible ? 'opacity-50 grayscale' : ''}`} 
             style={{ fontFamily: page.styleOverrides?.title?.fontFamily || page.titleFont }} 
         />

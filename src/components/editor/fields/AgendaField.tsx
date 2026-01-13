@@ -7,19 +7,19 @@ import IconPicker from '../../ui/IconPicker';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  label?: string;
+  // 以下为支持简历模板的自定义标签 Props
+  titleLabel?: string;
+  subtitleLabel?: string;
+  timeLabel?: string;
+  locationLabel?: string;
 }
 
-export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const AgendaField: React.FC<FieldProps> = ({ 
+  page, onUpdate, label, 
+  titleLabel, subtitleLabel, timeLabel, locationLabel 
+}) => {
   const isVisible = page.visibility?.agenda !== false;
-
-  // Auto-generate IDs for legacy data
-  React.useEffect(() => {
-    const agenda = page.agenda || [];
-    if (agenda.some(item => !item.id)) {
-      const migrated = agenda.map(item => item.id ? item : { ...item, id: `agenda-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
-      onUpdate({ ...page, agenda: migrated });
-    }
-  }, [page.agenda, onUpdate, page]);
 
   const toggle = () => {
     onUpdate({
@@ -36,26 +36,22 @@ export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
 
   const addSection = () => {
     const current = page.agenda || [];
-    if (current.length >= 12) return; 
     onUpdate({
       ...page,
       agenda: [...current, { 
-        id: `agenda-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title: 'New Section', 
-        desc: 'Section overview', 
-        number: `0${current.length + 1}`, 
-        icon: 'LayoutGrid',
-        items: ['Key point 1', 'Key point 2']
+        id: `agenda-${Date.now()}`,
+        title: 'New Entry', 
+        subtitle: 'Sub-entry details',
+        time: '2020-2024',
+        location: 'City, Country',
+        items: []
       }]
     });
   };
 
   const removeSection = (index: number) => {
     const current = page.agenda || [];
-    onUpdate({
-      ...page,
-      agenda: current.filter((_, i) => i !== index)
-    });
+    onUpdate({ ...page, agenda: current.filter((_, i) => i !== index) });
   };
 
   return (
@@ -65,70 +61,46 @@ export const AgendaField: React.FC<FieldProps> = ({ page, onUpdate }) => {
           <button onClick={toggle} className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}>
             {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
-          <Label icon={ListOrdered} className="mb-0">Agenda Sections</Label>
+          <Label icon={ListOrdered} className="mb-0">{label || 'Agenda Sections'}</Label>
         </div>
       </div>
 
       <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-        {(page.agenda || []).map((section, idx) => {
-          const key = section.id || idx;
-          return (
-            <div key={key} className={`relative group p-5 rounded-[2rem] space-y-4 border-2 transition-all shadow-sm ${page.activeIndex === idx ? 'bg-[#264376]/5 border-[#264376]/20' : 'bg-slate-50 border-transparent hover:border-slate-200'}`}>
-              <button onClick={() => removeSection(idx)} className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10">
-                <X size={14} />
-              </button>
-
-            {/* 设置为当前活动章节 */}
-            <button 
-              onClick={() => onUpdate({ ...page, activeIndex: idx })}
-              className={`absolute top-4 right-4 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[8px] font-black uppercase transition-all ${page.activeIndex === idx ? 'bg-[#264376] text-white shadow-lg shadow-[#264376]/30' : 'bg-white text-slate-300 border border-slate-100 hover:text-[#264376]'}`}
-            >
-              <Target size={10} />
-              {page.activeIndex === idx ? 'Current' : 'Select'}
-            </button>
-
-            <div className="flex gap-3">
-              <div className="w-12">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">No.</span>
-                <Input value={section.number || ''} onChange={(e) => handleAgendaChange(idx, 'number', e.target.value)} className="text-center font-black" />
+        {(page.agenda || []).map((section, idx) => (
+          <div key={section.id || idx} className="relative group p-5 rounded-[2rem] bg-slate-50 border-2 border-transparent hover:border-slate-200 transition-all space-y-4">
+            <button onClick={() => removeSection(idx)} className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"><X size={14}/></button>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{titleLabel || 'Section Title'}</span>
+                <Input value={section.title || ''} onChange={(e) => handleAgendaChange(idx, 'title', e.target.value)} className="font-bold bg-white" />
               </div>
-              <div className="flex-1">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Section Title</span>
-                <Input value={section.title || ''} onChange={(e) => handleAgendaChange(idx, 'title', e.target.value)} className="font-bold" />
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{timeLabel || 'Dates'}</span>
+                <Input value={section.time || ''} onChange={(e) => handleAgendaChange(idx, 'time', e.target.value)} className="bg-white" />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Icon & Summary</span>
-                <IconPicker 
-                  value={section.icon || 'LayoutGrid'}
-                  onChange={(val) => handleAgendaChange(idx, 'icon', val)}
-                />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{subtitleLabel || 'Subtitle'}</span>
+                <Input value={section.subtitle || ''} onChange={(e) => handleAgendaChange(idx, 'subtitle', e.target.value)} className="italic bg-white" />
               </div>
-              <Input value={section.desc || ''} onChange={(e) => handleAgendaChange(idx, 'desc', e.target.value)} placeholder="Overview..." className="text-[10px]" />
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{locationLabel || 'Location'}</span>
+                <Input value={section.location || ''} onChange={(e) => handleAgendaChange(idx, 'location', e.target.value)} className="bg-white" />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><List size={10}/> Sub Topics</span>
-              <TextArea 
-                value={section.items?.join('\n') || ''} 
-                onChange={(e) => handleAgendaChange(idx, 'items', e.target.value.split('\n'))}
-                rows={3}
-                placeholder="Topic A\nTopic B..."
-                className="text-[10px] leading-relaxed"
-              />
+            <div className="space-y-1">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Details / Description</span>
+              <TextArea value={section.description || ''} onChange={(e) => handleAgendaChange(idx, 'description', e.target.value)} rows={2} className="text-[10px] bg-white" />
             </div>
-                      </div>
-                    );
-                  })}
-                  <button 
-          onClick={addSection}
-          disabled={(page.agenda?.length || 0) >= 12}
-          className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] active:scale-95"
-        >
-          <Plus size={16} strokeWidth={3} />
-          Add Section
+          </div>
+        ))}
+        
+        <button onClick={addSection} className="w-full py-4 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-300 hover:text-[#264376] hover:border-[#264376] hover:bg-[#264376]/10 transition-all flex items-center justify-center gap-2 font-black text-[10px] uppercase active:scale-95">
+          <Plus size={16} /> Add Entry
         </button>
       </div>
     </div>

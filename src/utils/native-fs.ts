@@ -27,8 +27,13 @@ declare global {
   }
 }
 
+/**
+ * Native File System Adapter
+ * 核心修复：确保 isElectron 可以作为函数被正确调用
+ */
 export const nativeFs = {
-  get isElectron() {
+  // 改回函数定义，确保调用方 nativeFs.isElectron() 成功
+  isElectron: (): boolean => {
     if (typeof window === 'undefined') return false;
     return !!((window as any).electronAPI || (window as any).process?.versions?.electron || (window as any).navigator?.userAgent?.includes('Electron'));
   },
@@ -39,7 +44,7 @@ export const nativeFs = {
     return await api.getAppPaths();
   },
 
-  async saveProject(projectData: ProjectSaveData, filePath?: string, defaultName?: string) {
+  async saveProject(projectData: ProjectSaveData, filePath?: string, defaultName?: string): Promise<NativeResponse> {
     logger.debug('saveProject request', { filePath, defaultName });
     const api = (window as any).electronAPI;
     if (!api) throw new Error("Native API not found");
@@ -54,7 +59,7 @@ export const nativeFs = {
     }
   },
 
-  async openProject() {
+  async openProject(): Promise<NativeResponse> {
     logger.debug('openProject request');
     const api = (window as any).electronAPI;
     if (!api) throw new Error("Native API not found");
@@ -69,19 +74,19 @@ export const nativeFs = {
     return await api.captureThumbnail(projectId, rect);
   },
 
-  async uploadAsset(filename: string, base64Data: string) {
+  async uploadAsset(filename: string, base64Data: string): Promise<NativeResponse> {
     const api = (window as any).electronAPI;
     if (!api) throw new Error("Native API not found");
     return await api.uploadAsset(filename, base64Data);
   },
 
-  async selectDirectory() {
+  async selectDirectory(): Promise<NativeResponse> {
     const api = (window as any).electronAPI;
     if (!api) return { success: false, canceled: true };
     return await api.selectDirectory();
   },
 
-  async saveFileBuffer(filePath: string, base64Data: string) {
+  async saveFileBuffer(filePath: string, base64Data: string): Promise<NativeResponse> {
     const api = (window as any).electronAPI;
     if (!api) return { success: false, error: "API not found" };
     return await api.saveFileBuffer(filePath, base64Data);

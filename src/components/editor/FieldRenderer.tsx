@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { PageData, CustomFont, FieldSchema } from '../../types';
-import { shallowEqual } from '../../utils/comparison';
 
 // 导入所有原子化字段组件
 import { LogoField } from './fields/LogoField';
-// ... (rest of imports are same, I will use a shorthand if possible but better be explicit to match file)
 import { TitleField } from './fields/TitleField';
 import { SubtitleField } from './fields/SubtitleField';
 import { ActionTextField } from './fields/ActionTextField';
@@ -27,74 +25,57 @@ import { ColorField } from './fields/ColorField';
 import { FooterField } from './fields/FooterField';
 import { BentoField } from './fields/BentoField';
 import { PageNumberField } from './fields/PageNumberField';
-
-// 映射表 - 移出组件以避免重复创建
-const componentMap: Record<string, React.FC<any>> = {
-  logo: LogoField,
-  title: TitleField,
-  subtitle: SubtitleField,
-  actionText: ActionTextField,
-  paragraph: ParagraphField,
-  signature: SignatureField,
-  image: ImageField,
-  imageLabel: ImageLabelField,
-  imageSubLabel: ImageSubLabelField,
-  features: FeaturesField,
-  mosaic: MosaicField,
-  metrics: MetricsField,
-  partnersTitle: PartnersTitleField,
-  partners: PartnersField,
-  testimonials: TestimonialsField,
-  agenda: AgendaField,
-  bentoItems: BentoField,
-  gallery: GalleryField,
-  variant: VariantField,
-  bullets: BulletsField,
-  backgroundColor: ColorField,
-  footer: FooterField,
-  pageNumber: PageNumberField,
-};
+import { ResumeSectionsField } from './fields/ResumeSectionsField'; // 新增
 
 interface FieldRendererProps {
   schema: FieldSchema;
   page: PageData;
-  onUpdate: (page: PageData, silent?: boolean) => void;
+  onUpdate: (page: PageData) => void;
   customFonts: CustomFont[];
 }
 
-/**
- * FieldRenderer - Schema 驱动分发器
- * 根据配置对象自动匹配 UI 控件
- */
-export const FieldRenderer: React.FC<FieldRendererProps> = React.memo(({ 
+export const FieldRenderer: React.FC<FieldRendererProps> = ({ 
   schema, page, onUpdate, customFonts 
 }) => {
-  const { key, props = {} } = schema;
+  const { key, label, props = {} } = schema;
+
+  const componentMap: Record<string, React.FC<any>> = {
+    logo: LogoField,
+    title: TitleField,
+    subtitle: SubtitleField,
+    actionText: ActionTextField,
+    paragraph: ParagraphField,
+    signature: SignatureField,
+    image: ImageField,
+    imageLabel: ImageLabelField,
+    imageSubLabel: ImageSubLabelField,
+    features: FeaturesField,
+    mosaic: MosaicField,
+    metrics: MetricsField,
+    partnersTitle: PartnersTitleField,
+    partners: PartnersField,
+    testimonials: TestimonialsField,
+    agenda: AgendaField,
+    bentoItems: BentoField,
+    gallery: GalleryField,
+    variant: VariantField,
+    bullets: BulletsField,
+    backgroundColor: ColorField,
+    footer: FooterField,
+    pageNumber: PageNumberField,
+    resumeSections: ResumeSectionsField, // 核心：全能简历字段
+  };
 
   const Component = componentMap[key];
+  if (!Component) return null;
 
-  const renderedField = useMemo(() => {
-    if (!Component) {
-      console.warn(`Field type "${key}" is not registered in FieldRenderer.`);
-      return null;
-    }
-
-    return (
-      <Component 
-        page={page} 
-        onUpdate={onUpdate} 
-        customFonts={customFonts} 
-        {...props} 
-      />
-    );
-  }, [Component, page, onUpdate, customFonts, props, key]);
-
-  return renderedField;
-}, (prevProps, nextProps) => {
   return (
-    prevProps.schema === nextProps.schema &&
-    prevProps.page === nextProps.page &&
-    prevProps.onUpdate === nextProps.onUpdate &&
-    shallowEqual(prevProps.customFonts, nextProps.customFonts)
+    <Component 
+      page={page} 
+      onUpdate={onUpdate} 
+      customFonts={customFonts} 
+      label={label}
+      {...props} 
+    />
   );
-});
+};
