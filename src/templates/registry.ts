@@ -21,7 +21,6 @@ import TypographyHero from '../components/templates/TypographyHero';
 import FilmDiptych from '../components/templates/FilmDiptych';
 import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import AcademicHybridResume from '../components/templates/AcademicHybridResume';
-import Freeform from '../components/templates/Freeform';
 import GravityAnchorIntro from '../components/templates/GravityAnchorIntro';
 
 import { AspectRatioType } from '../constants/layout';
@@ -30,7 +29,7 @@ import { FieldSchema, FieldType } from '../types';
 export interface TemplateConfig {
   id: string;
   name: string;
-  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Freeform';
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
   desc: string;
   tags: string[];
   component: React.FC<{ page: any; typography?: any }>;
@@ -45,7 +44,7 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 };
 
 export const TEMPLATES: TemplateConfig[] = [
-  // --- 简历 & 自由布局 (顶级工具) ---
+  // --- 简历 (顶级工具) ---
   {
     id: 'academic-hybrid-resume',
     name: 'Dynamic Resume Pro',
@@ -59,16 +58,6 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'resumeSections', label: 'Resume Content Hub' }
     ]),
     supportedRatios: ['A4']
-  },
-  {
-    id: 'freeform',
-    name: 'Freeform Canvas',
-    category: 'Freeform',
-    desc: 'Total creative freedom with drag-and-drop.',
-    tags: ['Canvas', 'Creative'],
-    component: Freeform,
-    fields: withBaseFields([]), 
-    supportedRatios: ['16:9', '2:3', 'A4', '1:1']
   },
 
   // --- 核心内页模板 (Gallery 系列) ---

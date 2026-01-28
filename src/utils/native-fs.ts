@@ -19,6 +19,8 @@ interface ElectronAPI {
   uploadAsset: (filename: string, base64Data: string) => Promise<NativeResponse>;
   selectDirectory: () => Promise<NativeResponse>;
   saveFileBuffer: (filePath: string, base64Data: string) => Promise<NativeResponse>;
+  // 新增：打开外部链接
+  openExternal: (url: string) => Promise<void>;
 }
 
 declare global {
@@ -29,13 +31,20 @@ declare global {
 
 /**
  * Native File System Adapter
- * 核心修复：确保 isElectron 可以作为函数被正确调用
  */
 export const nativeFs = {
-  // 改回函数定义，确保调用方 nativeFs.isElectron() 成功
   isElectron: (): boolean => {
     if (typeof window === 'undefined') return false;
     return !!((window as any).electronAPI || (window as any).process?.versions?.electron || (window as any).navigator?.userAgent?.includes('Electron'));
+  },
+
+  async openExternal(url: string) {
+    const api = (window as any).electronAPI;
+    if (api?.openExternal) {
+      await api.openExternal(url);
+    } else {
+      window.open(url, '_blank');
+    }
   },
 
   async getPaths() {
@@ -45,27 +54,15 @@ export const nativeFs = {
   },
 
   async saveProject(projectData: ProjectSaveData, filePath?: string, defaultName?: string): Promise<NativeResponse> {
-    logger.debug('saveProject request', { filePath, defaultName });
     const api = (window as any).electronAPI;
     if (!api) throw new Error("Native API not found");
-    
-    try {
-      const result = await api.saveProject(projectData, filePath, defaultName);
-      logger.info('saveProject response:', result.success ? 'Success' : 'Failed');
-      return result;
-    } catch (e: any) {
-      logger.error('saveProject IPC error:', e);
-      throw e;
-    }
+    return await api.saveProject(projectData, filePath, defaultName);
   },
 
   async openProject(): Promise<NativeResponse> {
-    logger.debug('openProject request');
     const api = (window as any).electronAPI;
     if (!api) throw new Error("Native API not found");
-    const result = await api.openProject();
-    logger.info('openProject response:', result.success ? 'Success' : 'Canceled/Failed');
-    return result;
+    return await api.openProject();
   },
 
   async captureThumbnail(projectId: string, rect: { x: number, y: number, width: number, height: number }): Promise<string | null> {

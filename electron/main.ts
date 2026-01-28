@@ -1,6 +1,12 @@
-import { app, BrowserWindow, ipcMain, dialog, protocol, net } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, protocol, net, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+// ... 保持其他导入不变
+
+// 在 app.whenReady().then(...) 内部增加：
+  ipcMain.handle('open-external', async (event, url) => {
+    await shell.openExternal(url);
+  });
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import { ProjectArchiveManager } from './archive-manager';

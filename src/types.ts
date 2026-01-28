@@ -24,6 +24,13 @@ export interface ProjectTheme {
   };
 }
 
+// --- 排版设置类型 ---
+export interface TypographySettings {
+  defaultLatin?: string;
+  defaultCJK?: string;
+  fieldOverrides?: Record<string, string>;
+}
+
 // --- Phase 4: Schema 驱动编辑器定义 ---
 
 export type FieldType = 
@@ -32,7 +39,7 @@ export type FieldType =
   | 'features' | 'bentoItems' | 'mosaic' | 'metrics' 
   | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
   | 'gallery' | 'variant' | 'footer' | 'bullets' 
-  | 'backgroundColor' | 'pageNumber' | 'logoSize' | 'titleY' // 新增 titleY
+  | 'backgroundColor' | 'pageNumber' | 'logoSize' | 'titleY'
   | 'group' | 'separator' | 'resumeSections';
 
 export interface FieldSchema {
@@ -40,32 +47,6 @@ export interface FieldSchema {
   label?: string;
   icon?: string;
   props?: Record<string, any>;
-}
-
-// --- 自由布局 (Freeform) 类型 ---
-export interface FreeformItem {
-  id: string;
-  type: 'text' | 'image' | 'shape' | 'icon';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  opacity?: number;
-  content?: any;
-  style?: any;
-  backgroundColor?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  borderRadius?: number;
-  typography?: any;
-}
-
-export interface FreeformConfig {
-  gridSize: number;
-  snapToGrid: boolean;
-  showGridOverlay: boolean;
-  showAlignmentGuides: boolean;
 }
 
 // --- 简历 2.0 全动态结构 ---
@@ -86,7 +67,7 @@ export interface ResumeSection {
 
 export interface PageData {
   id: string;
-  type: 'slide' | 'freeform'; 
+  type: 'slide'; 
   layoutId: TemplateId;
   aspectRatio: AspectRatioType; 
   layoutVariant?: string;
@@ -100,9 +81,6 @@ export interface PageData {
   logoSize?: number;
   accentColor?: string;
   backgroundPattern?: BackgroundPatternType;
-  
-  freeformItems?: FreeformItem[];
-  freeformConfig?: FreeformConfig;
 
   resumeSections?: ResumeSection[];
   resumePageIndex?: number; 

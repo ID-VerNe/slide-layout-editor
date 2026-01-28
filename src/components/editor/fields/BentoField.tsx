@@ -112,7 +112,7 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
                 {item.type === 'image' && (
                   <div className="space-y-3">
                     <div className="flex gap-2">
-                      <IconPicker value={item.image || ''} onChange={(v) => updateItem(idx, { image: v })} allowedTabs={['upload']} />
+                      <IconPicker value={item.image || ''} onChange={(v) => updateItem(idx, { image: v })} allowedTabs={['upload', 'map']} />
                       <Input placeholder="Label" value={item.title || ''} onChange={(e) => updateItem(idx, { title: e.target.value })} className="flex-1" />
                     </div>
                     {adjustingIdx === idx && (

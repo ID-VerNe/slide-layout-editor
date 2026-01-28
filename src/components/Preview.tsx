@@ -28,7 +28,6 @@ import TypographyHero from './templates/TypographyHero';
 import FilmDiptych from './templates/FilmDiptych';
 import AppleBentoGrid from './templates/AppleBentoGrid';
 import AcademicHybridResume from './templates/AcademicHybridResume';
-import Freeform from './templates/Freeform';
 import GravityAnchorIntro from './templates/GravityAnchorIntro';
 
 interface PreviewProps {
@@ -50,7 +49,6 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
 
     switch (page.layoutId) {
       case 'gravity-anchor-intro': return <GravityAnchorIntro {...commonProps} />;
-      case 'freeform': return <Freeform {...commonProps} />;
       case 'academic-hybrid-resume': return <AcademicHybridResume {...commonProps} />;
       case 'modern-feature': return <ModernFeature {...commonProps} />;
       case 'platform-hero': return <PlatformHero {...commonProps} />;
