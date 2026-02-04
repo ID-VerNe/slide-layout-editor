@@ -13,6 +13,10 @@ import { useStore } from '../../store/useStore';
 export default function GravityAnchorIntro({ page, typography }: { page: PageData, typography?: TypographySettings }) {
   const theme = useStore((state) => state.theme);
   
+  // 动态比例：默认 55%，允许用户控制
+  const imgRatio = page.imageHeight ?? 55;
+  const textRatio = 100 - imgRatio;
+
   const displayTitle = page.title || 'CASE FILE : AKO';
   
   // 核心修复：改用反引号以支持多行默认文本
@@ -25,8 +29,11 @@ but in heartbeats.`;
   return (
     <div className="w-full h-full relative bg-white flex flex-col overflow-hidden isolate">
       
-      {/* 1. 上半部分：极简序言区 (45%) */}
-      <div className="h-[45%] w-full flex flex-col items-center justify-center px-24 space-y-10">
+      {/* 1. 上半部分：极简序言区 (动态比例) */}
+      <div 
+        className="w-full flex flex-col items-center justify-center px-24 space-y-10 transition-all duration-500 ease-out"
+        style={{ height: `${textRatio}%` }}
+      >
         
         {/* 章节标题：极细、极宽、全大写 */}
         <div className="w-full text-center">
@@ -51,8 +58,11 @@ but in heartbeats.`;
         </div>
       </div>
 
-      {/* 2. 下半部分：沉底大图 (55%) */}
-      <div className="h-[55%] w-full relative group">
+      {/* 2. 下半部分：沉底大图 (动态比例) */}
+      <div 
+        className="w-full relative group transition-all duration-500 ease-out"
+        style={{ height: `${imgRatio}%` }}
+      >
         <SlideImage 
           page={page}
           className="w-full h-full"

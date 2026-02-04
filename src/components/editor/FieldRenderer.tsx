@@ -27,6 +27,7 @@ import { BentoField } from './fields/BentoField';
 import { PageNumberField } from './fields/PageNumberField';
 import { ResumeSectionsField } from './fields/ResumeSectionsField';
 import { TitleYField } from './fields/TitleYField';
+import { GenericNumberField } from './fields/GenericNumberField';
 
 interface FieldRendererProps {
   schema: FieldSchema;
@@ -38,8 +39,9 @@ interface FieldRendererProps {
 export const FieldRenderer: React.FC<FieldRendererProps> = ({ 
   schema, page, onUpdate, customFonts 
 }) => {
-  const { key, label, props = {} } = schema;
+  const { key, label, type, props = {} } = schema;
 
+  // 1. 定义具名组件映射
   const componentMap: Record<string, React.FC<any>> = {
     logo: LogoField,
     title: TitleField,
@@ -65,10 +67,24 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     footer: FooterField,
     pageNumber: PageNumberField,
     resumeSections: ResumeSectionsField,
-    titleY: TitleYField, // 注册新控件
+    titleY: TitleYField,
   };
 
-  const Component = componentMap[key];
+  // 2. 匹配组件：优先找具名组件，如果是 number 类型则使用通用调节控件
+  let Component = componentMap[key];
+  
+  if (!Component && type === 'number') {
+    return (
+      <GenericNumberField 
+        page={page} 
+        onUpdate={onUpdate} 
+        label={label} 
+        fieldKey={key} 
+        {...props} 
+      />
+    );
+  }
+
   if (!Component) return null;
 
   return (

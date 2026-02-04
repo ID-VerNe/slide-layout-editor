@@ -20,7 +20,6 @@ const DEFAULT_PRINT_SETTINGS: PrintSettings = {
 
 const getDefaultPage = (ratio: AspectRatioType, layoutId: string): PageData => ({
   id: `slide-${Date.now()}`,
-  // 核心修复：根据布局 ID 设定页面类型
   type: layoutId === 'freeform' ? 'freeform' : 'slide',
   layoutId: layoutId as any,
   aspectRatio: ratio,
@@ -52,7 +51,8 @@ interface ProjectState {
   past: any[];
   future: any[];
 
-  loadProject: (id: string, templateId?: string | null) => Promise<void>;
+  createProject: (title: string, templateId?: string) => string;
+  loadProject: (idOrData: string | any, templateId?: string | null, filePath?: string | null) => Promise<void>;
   setPages: (pages: PageData[]) => void;
   setProjectTitle: (title: string) => void;
   setTheme: (themeUpdate: Partial<ProjectTheme>, applyToAll?: boolean) => void;
@@ -77,18 +77,68 @@ const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
 export const useStore = create<ProjectState>((set, get) => ({
   pages: [], projectTitle: '', theme: DEFAULT_THEME, currentPageIndex: 0, customFonts: [], imageQuality: 0.95, minimalCounter: false, printSettings: DEFAULT_PRINT_SETTINGS, isLoaded: false, activeProjectId: null, currentFilePath: null, hasUnsavedChanges: false, past: [], future: [],
 
-  loadProject: async (id, templateId) => {
-    if (get().activeProjectId === id && get().isLoaded) return;
-    set({ isLoaded: false, activeProjectId: id, currentFilePath: null, hasUnsavedChanges: false });
-    const savedData = await getProject(id);
-    if (get().activeProjectId !== id) return;
-    if (savedData) {
-      set({
-        pages: savedData.pages || [], projectTitle: savedData.title || '', theme: savedData.theme || DEFAULT_THEME, customFonts: savedData.customFonts || [], imageQuality: savedData.imageQuality ?? 0.95, minimalCounter: savedData.minimalCounter ?? false, printSettings: savedData.printSettings || DEFAULT_PRINT_SETTINGS, currentPageIndex: 0, isLoaded: true, past: [], future: []
-      });
+  createProject: (title, templateId) => {
+    const id = crypto.randomUUID();
+    set({
+      activeProjectId: id,
+      projectTitle: title,
+      pages: [{ ...getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature'), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
+      theme: DEFAULT_THEME,
+      currentPageIndex: 0,
+      isLoaded: true,
+      currentFilePath: null,
+      hasUnsavedChanges: true,
+      past: [],
+      future: []
+    });
+    return id;
+  },
+
+  loadProject: async (idOrData, templateId, filePath) => {
+    let projectData: any = null;
+    let projectId: string | null = null;
+
+    if (typeof idOrData === 'string') {
+      projectId = idOrData;
+      set({ isLoaded: false, activeProjectId: projectId, currentFilePath: filePath || null, hasUnsavedChanges: false });
+      projectData = await getProject(projectId);
+    } else {
+      projectData = idOrData;
+      projectId = projectData.id || crypto.randomUUID();
+      // 核心修复：如果调用处传了路径，优先使用；否则尝试从数据对象中恢复
+      const targetPath = filePath || projectData.filePath || null;
+      set({ isLoaded: false, activeProjectId: projectId, currentFilePath: targetPath, hasUnsavedChanges: false });
+    }
+
+    if (projectData) {
+      set((state) => ({
+        pages: projectData.pages || [], 
+        projectTitle: projectData.title || projectData.projectTitle || '', 
+        theme: projectData.theme || DEFAULT_THEME, 
+        customFonts: projectData.customFonts || [], 
+        imageQuality: projectData.imageQuality ?? 0.95, 
+        minimalCounter: projectData.minimalCounter ?? false, 
+        printSettings: projectData.printSettings || DEFAULT_PRINT_SETTINGS, 
+        // 关键：保留刚才设置好的路径，不要被 JSON 覆盖为空
+        currentFilePath: filePath || projectData.filePath || state.currentFilePath,
+        currentPageIndex: 0, 
+        isLoaded: true, 
+        past: [], 
+        future: []
+      }));
     } else {
       set({
-        pages: [getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature')], projectTitle: '', theme: DEFAULT_THEME, customFonts: [], imageQuality: 0.95, minimalCounter: false, printSettings: DEFAULT_PRINT_SETTINGS, currentPageIndex: 0, isLoaded: true, past: [], future: []
+        pages: [getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature')], 
+        projectTitle: '', 
+        theme: DEFAULT_THEME, 
+        customFonts: [], 
+        imageQuality: 0.95, 
+        minimalCounter: false, 
+        printSettings: DEFAULT_PRINT_SETTINGS, 
+        currentPageIndex: 0, 
+        isLoaded: true, 
+        past: [], 
+        future: []
       });
     }
   },

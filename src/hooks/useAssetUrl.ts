@@ -1,20 +1,14 @@
 import { useState, useEffect } from 'react';
-import { getAsset } from '../utils/db';
-import { blobManager } from '../utils/blobManager';
 import { LRUCache } from '../utils/lruCache';
 
-interface ImageDimensions {
-  width: number;
-  height: number;
-}
+interface ImageDimensions { width: number; height: number; }
 
 const assetCache = new LRUCache<string, string>(100);
 const dimensionCache = new Map<string, ImageDimensions>();
 
 /**
- * useAssetUrl - 智能资源解析 Hook
- * 功能：将 asset:// 格式的 ID 转换为可供 <img> 使用的 URL。
- * 核心优化：使用 LRU 缓存和 BlobManager 管理资源生命周期。
+ * useAssetUrl 4.0 - 直读式架构
+ * 直接调用 Electron API 读取 Workspace 物理文件并转换为内存 URL
  */
 export function useAssetUrl(assetSource: string | undefined) {
   const [url, setUrl] = useState<string | undefined>(undefined);
@@ -22,85 +16,53 @@ export function useAssetUrl(assetSource: string | undefined) {
   const [dimensions, setDimensions] = useState<ImageDimensions>({ width: 0, height: 0 });
 
   useEffect(() => {
-    // 立即重置状态，防止旧内容残留
-    setIsLoading(!!assetSource);
-    setUrl(undefined);
-    setDimensions({ width: 0, height: 0 });
-
     if (!assetSource) {
+      setUrl(undefined);
       setIsLoading(false);
       return;
     }
 
     let isMounted = true;
 
-    const fetchDimensions = (imageUrl: string) => {
-      if (dimensionCache.has(imageUrl)) {
-        if (isMounted) setDimensions(dimensionCache.get(imageUrl)!);
-        return;
-      }
-
-      const img = new Image();
-      img.onload = () => {
-        if (isMounted) {
-          const dims = { width: img.width, height: img.height };
-          dimensionCache.set(imageUrl, dims);
-          setDimensions(dims);
-        }
-      };
-      img.src = imageUrl;
-    };
-
+    // 1. 如果不是 asset:// 协议，直接使用（可能是 DataURL 或外部 Link）
     if (!assetSource.startsWith('asset://')) {
       setUrl(assetSource);
-      fetchDimensions(assetSource);
       return;
     }
 
-    async function load() {
+    // 2. 如果是 asset:// 协议，从 Electron 读取物理文件
+    async function loadDirectly() {
       setIsLoading(true);
       try {
-        const cachedUrl = assetCache.get(assetSource);
-        if (cachedUrl && isMounted) {
-          setUrl(cachedUrl);
-          fetchDimensions(cachedUrl);
+        // 检查缓存
+        if (assetCache.has(assetSource)) {
+          setUrl(assetCache.get(assetSource));
           setIsLoading(false);
           return;
         }
 
-        const data = await getAsset(assetSource);
-        if (data && isMounted) {
-          let resolvedUrl = assetSource;
-          if (data !== assetSource) {
-              if (data.startsWith('data:')) {
-                  resolvedUrl = data;
-              } else {
-                  const blob = new Blob([data]);
-                  resolvedUrl = blobManager.create(blob, assetSource);
-              }
-          }
+        const filename = assetSource.replace('asset://', '');
+        // 核心：调用 Electron 暴露的直接读取接口
+        const base64Data = await (window as any).electronAPI.readAssetFile(filename);
+        
+        if (base64Data && isMounted) {
+          // 这里我们使用 Base64 作为最直接的传递方式（或者 Blob）
+          // 为了极致稳定性，我们将其转换为可用的图片地址
+          const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+          const finalUrl = `data:${mime};base64,${base64Data}`;
           
-          if (isMounted) {
-            setUrl(resolvedUrl);
-            assetCache.set(assetSource, resolvedUrl);
-            fetchDimensions(resolvedUrl);
-          }
+          assetCache.set(assetSource!, finalUrl);
+          setUrl(finalUrl);
         }
       } catch (err) {
-        console.error("Failed to load asset:", assetSource, err);
+        console.error("Direct load failed:", assetSource, err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
 
-    load();
-
-    return () => {
-      isMounted = false;
-      if (assetSource.startsWith('asset://')) {
-        blobManager.release(assetSource);
-      }
-    };
+    loadDirectly();
+    return () => { isMounted = false; };
   }, [assetSource]);
 
   return { url, isLoading, dimensions };

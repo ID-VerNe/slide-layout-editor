@@ -72,6 +72,7 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'title', label: 'Chapter Header' },
       { key: 'paragraph', label: 'Introductory Verse' },
       { key: 'image', label: 'Bottom Anchor Image' },
+      { key: 'imageHeight' as any, type: 'number', label: 'Image Proportion (%)', props: { min: 20, max: 80, step: 5 } },
       { key: 'imageLabel', label: 'Camera / Metadata Text' }
     ]), 
     supportedRatios: ['2:3']

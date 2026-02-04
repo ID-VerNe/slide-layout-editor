@@ -48,10 +48,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
     stateRef.current = { projectId, isLoaded, pages };
   }, [projectId, isLoaded, pages]);
 
-  useEffect(() => {
-    if (projectId) loadProject(projectId, templateId);
-  }, [projectId]);
-
   // 核心功能：每分钟静默生成微型缩略图
   useEffect(() => {
     const generateThumbnail = async () => {
@@ -152,7 +148,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     pages, projectTitle, setProjectTitle, theme, setTheme,
     currentPageIndex, setCurrentPageIndex,
     currentPage: pages[currentPageIndex], isLoaded, 
-    updatePage, addPage, removePage, reorderPages,
+    updatePage, addPage, removePage, reorderPages, loadProject,
     saveToDB, undo, redo, canUndo: past.length > 0, canRedo: future.length > 0,
     printSettings, setPrintSettings, imageQuality, setImageQuality, 
     minimalCounter, setMinimalCounter, customFonts, setCustomFonts,
