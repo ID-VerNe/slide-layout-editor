@@ -29,6 +29,7 @@ import FilmDiptych from './templates/FilmDiptych';
 import AppleBentoGrid from './templates/AppleBentoGrid';
 import AcademicHybridResume from './templates/AcademicHybridResume';
 import GravityAnchorIntro from './templates/GravityAnchorIntro';
+import SincerityPortrait from './templates/SincerityPortrait';
 
 interface PreviewProps {
   page: PageData;
@@ -69,6 +70,7 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'kinfolk-essay': return <KinfolkEssay {...commonProps} />;
       case 'kinfolk-montage': return <KinfolkMontage {...commonProps} />;
       case 'micro-anchor': return <MicroAnchor {...commonProps} />;
+      case 'sincerity-portrait': return <SincerityPortrait {...commonProps} />;
       case 'typography-hero': return <TypographyHero {...commonProps} />;
       case 'film-diptych': return <FilmDiptych {...commonProps} />;
       case 'apple-bento-grid': return <AppleBentoGrid {...commonProps} />;

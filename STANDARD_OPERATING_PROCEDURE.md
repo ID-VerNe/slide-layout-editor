@@ -1,4 +1,4 @@
-# SlideGrid Studio 模板开发标准作业程序 (SOP) - v2.0
+# SlideGrid Studio 模板开发标准作业程序 (SOP) - v2.1
 
 本指南旨在指导开发者如何基于 **Schema-Driven Engine** 快速构建并注册新模板。
 
@@ -20,7 +20,9 @@
 - **SlideHeadline**: 主标题。内置 Auto-fit 算法，自动消费 `theme.typography.headingFont`。
 - **SlideSubHeadline**: 副标题。支持样式覆盖，自动消费 `theme.typography.bodyFont`。
 - **SlideParagraph**: 长文本块。处理行高与留白。
+- **SlideBlockLabel / SlideAction**: 辅助标签或操作说明文字。
 - **SlideImage / SlideLogo**: 视觉资产。内置物理边界增强算法，支持 `asset://` 协议。
+- **SlideImageLabel / SlideMetadata**: 图片元数据或版权信息。
 - **SlideMetric**: 数据指标。支持 KaTeX 公式与单位格式化。
 - **MetadataOverlay**: **[重要]** 严禁在模板内私自渲染页码/页脚。必须确保模板容器为 `relative`，由顶层 `Preview.tsx` 统一注入 Overlay。
 
@@ -31,28 +33,25 @@
 **原则**：不再需要修改 `Editor.tsx` 中的 `switch-case`。你只需要在注册表中通过 JSON 对象定义该模板需要哪些编辑控件。
 
 ### 字段配置协议 (`FieldSchema`):
-```typescript
-{
-  key: 'title',           // 必填。对应 PageData 中的字段名
-  label: 'Section Title', // 可选。在编辑器中显示的自定义标签
-  props: { ... }          // 可选。透传给具体 Field 控件的特殊参数（如范围限制）
-}
-```
+- **简写模式**：直接传入字符串（如 `'title'`)，将使用默认配置。
+- **对象模式**：传入 `{ key: 'title', label: 'Custom Label', props: { ... } }` 进行深度定制。
 
 ### 快速装配示例 (`src/templates/registry.ts`):
 ```tsx
 {
   id: 'my-new-layout',
   name: 'Modern Showcase',
-  category: 'Product',
+  category: 'Product', // 枚举值：Cover | Product | Marketing | General | Gallery | Resume
+  desc: 'A modern bento-style layout.',
+  tags: ['Modern', 'Bento'],
   component: MyNewLayout,
   // 使用 withBaseFields 自动包含背景色和页码控制
   fields: withBaseFields([ 
-    { key: 'title' }, 
-    { key: 'image', props: { label: 'Hero Shot' } },
-    { key: 'features' }
+    'title', // 简写
+    { key: 'image', label: 'Hero Shot' }, // 对象
+    'features'
   ]),
-  supportedRatios: ['16:9']
+  supportedRatios: ['16:9', '2:3']
 }
 ```
 
@@ -63,12 +62,10 @@
 ### 第一步：创建渲染组件
 在 `src/components/templates/` 创建 `MyNewLayout.tsx`。
 - **必须** 接收 `{ page: PageData, typography?: TypographySettings }` 作为 Props。
-- **必须** 将 `page.backgroundColor` 绑定至根容器。
+- **必须** 在根容器添加 `isolate` 类名，确保 `z-index` 隔离。
 
 ### 第二步：定义字段协议
-确定你的模板需要用户修改哪些数据。
-- 基础字段建议始终通过 `withBaseFields()` 注入。
-- 如果需要复杂网格，请引入 `bentoItems` 字段。
+确定你的模板需要用户修改哪些数据。基础字段建议始终通过 `withBaseFields()` 注入。
 
 ### 第三步：注册与集成
 在 `src/templates/registry.ts` 中完成导入与配置。
@@ -81,5 +78,5 @@
 
 1. **绝对间距**：由于画布采用整体缩放（Scale），请优先使用像素（px）或 Tailwind 间距类（如 `p-16`）。
 2. **色彩同步**：严禁硬编码颜色。必须使用 `theme.colors` 中的 Token。
-3. **物理隔离**：模板根容器必须具备 `isolate` 类名，确保内部的 `z-index` 不会与顶层元数据层（MetadataOverlay）发生冲突。
-4. **资产安全**：所有图片引用必须通过 `SlideImage` 组件，以兼容 Electron 环境下的物理路径解析。
+3. **物理隔离**：模板根容器必须具备 `isolate` 类名，并建议设置为 `overflow-hidden`。
+4. **资产安全**：所有图片引用必须通过 `SlideImage` 或 `SlideLogo` 组件，以兼容 Electron 环境下的物理路径解析。

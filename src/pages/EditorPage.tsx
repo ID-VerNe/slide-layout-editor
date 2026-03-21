@@ -33,7 +33,7 @@ export default function EditorPage() {
     handleExportProject, handleImportProject, loadProject,
     saveToDB, undo, redo, canUndo, canRedo,
     printSettings, setPrintSettings, imageQuality, setImageQuality,
-    minimalCounter, setMinimalCounter, customFonts, setCustomFonts,
+    minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,
     currentFilePath, setCurrentFilePath, hasUnsavedChanges, markAsSaved
   } = useProject(projectId, templateId);
 
@@ -143,7 +143,7 @@ export default function EditorPage() {
   const handleSmartSave = async () => {
     if (!isLoaded || !projectId) return;
     const thumb = await generateThumb();
-    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: currentFilePath };
+    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: currentFilePath };
     if (nativeFs.isElectron()) {
       const result = await nativeFs.saveProject(content, currentFilePath || undefined, projectTitle || fallbackTitle);
       if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
@@ -155,7 +155,7 @@ export default function EditorPage() {
   const handleSaveAs = async () => {
     if (!isLoaded || !projectId) return;
     const thumb = await generateThumb();
-    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: null };
+    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: null };
     if (nativeFs.isElectron()) {
       const result = await nativeFs.saveProject(content, undefined, `${projectTitle || fallbackTitle}_Copy`);
       if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); updateIndex(thumb, result.filePath); }
@@ -252,7 +252,7 @@ export default function EditorPage() {
         </motion.div>
         <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} /></motion.div>
       </div>
-      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl"><GlobalSettings page={currentPage || pages[0]} onUpdate={updatePage} customFonts={customFonts} setCustomFonts={setCustomFonts} theme={theme} setTheme={setTheme} imageQuality={imageQuality} setImageQuality={setImageQuality} minimalCounter={minimalCounter || false} setMinimalCounter={setMinimalCounter} counterColor="" setCounterColor={()=>{}} printSettings={printSettings} setPrintSettings={setPrintSettings} /></Modal>
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl"><GlobalSettings page={currentPage || pages[0]} onUpdate={updatePage} customFonts={customFonts} setCustomFonts={setCustomFonts} theme={theme} setTheme={setTheme} imageQuality={imageQuality} setImageQuality={setImageQuality} minimalCounter={minimalCounter || false} setMinimalCounter={setMinimalCounter} counterStyle={counterStyle} setCounterStyle={setCounterStyle} counterColor="" setCounterColor={()=>{}} printSettings={printSettings} setPrintSettings={setPrintSettings} /></Modal>
       
       <Modal isOpen={showLayoutModal} onClose={() => setShowLayoutModal(false)} title={modalMode === 'create' ? "Add New Slide" : "Change Layout"} type="custom" maxWidth="max-w-6xl">
         <div className="min-h-[70vh] flex flex-col p-6">

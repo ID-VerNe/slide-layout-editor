@@ -22,6 +22,7 @@ import FilmDiptych from '../components/templates/FilmDiptych';
 import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import AcademicHybridResume from '../components/templates/AcademicHybridResume';
 import GravityAnchorIntro from '../components/templates/GravityAnchorIntro';
+import SincerityPortrait from '../components/templates/SincerityPortrait';
 
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
@@ -115,6 +116,22 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Minimalist'],
     component: MicroAnchor,
     fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'sincerity-portrait',
+    name: 'Sincerity Portrait',
+    category: 'Gallery',
+    desc: 'Intimate portrait with asymmetrical balance.',
+    tags: ['Sincerity', 'Portrait'],
+    component: SincerityPortrait,
+    fields: withBaseFields([
+      { key: 'title', label: 'Headline' },
+      { key: 'subtitle', label: 'Sub-Headline' },
+      { key: 'paragraph', label: 'Narrative Verse' },
+      { key: 'image', label: 'Portrait' },
+      { key: 'imageLabel', label: 'Image Meta' }
+    ]),
     supportedRatios: ['2:3']
   },
   {

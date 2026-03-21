@@ -32,7 +32,7 @@ export default function KinfolkFeature({ page, typography }: { page: PageData, t
       <div className="w-[75%] h-[70%] relative bg-white border-[6px] border-white shadow-[0_30px_80px_rgba(0,0,0,0.04)] overflow-hidden z-10">
         <SlideImage page={page} className="w-full h-full object-cover" rounded="0" backgroundColor="transparent" />
         <div className={`absolute bottom-6 ${isImageRight ? 'right-8 text-right' : 'left-8 text-left'}`}>
-          <SlideBlockLabel page={page} typography={typography} text={displayLabel} className="!text-[7px] !font-black !tracking-[0.4em] !uppercase !text-white/60 !opacity-100 mix-blend-difference !border-none !p-0" color={theme.colors.primary} />
+          <SlideBlockLabel page={page} typography={typography} text={displayLabel} fieldKey="imageLabel" className="!text-[7px] !font-black !tracking-[0.4em] !uppercase !text-white/60 !opacity-100 mix-blend-difference !border-none !p-0" color={theme.colors.primary} />
         </div>
       </div>
 

@@ -102,6 +102,7 @@ export default function CinematicFullBleed({ page, typography }: { page: PageDat
             page={page} 
             typography={typography}
             text={displayLabel}
+            fieldKey="imageLabel"
             className="!tracking-[0.4em] !italic !opacity-100 !border-none !p-0"
             color={theme.colors.accent}
           />

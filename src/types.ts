@@ -77,6 +77,8 @@ export interface PageData {
   bullets?: string[];
   paragraph?: string;
   image?: string;
+  imageLabel?: string;
+  actionText?: string;
   logo?: string;
   logoSize?: number;
   accentColor?: string;
@@ -128,6 +130,7 @@ export interface ProjectData {
   theme?: ProjectTheme; 
   imageQuality?: number; 
   minimalCounter?: boolean; 
+  counterStyle?: CounterStyle;
   printSettings?: PrintSettings; 
 }
 

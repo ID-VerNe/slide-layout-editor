@@ -17,6 +17,8 @@ interface GlobalSettingsProps {
   setImageQuality: (q: number) => void;
   minimalCounter: boolean;
   setMinimalCounter: (m: boolean) => void;
+  counterStyle: CounterStyle;
+  setCounterStyle: (s: CounterStyle) => void;
   counterColor: string;
   setCounterColor: (c: string) => void;
   printSettings: PrintSettings;
@@ -40,6 +42,7 @@ type SettingsTab = 'general' | 'brand' | 'fonts' | 'print';
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
   page, onUpdate, customFonts, setCustomFonts, theme, setTheme,
   imageQuality, setImageQuality, minimalCounter, setMinimalCounter,
+  counterStyle, setCounterStyle,
   printSettings, setPrintSettings
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
@@ -94,7 +97,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                   <Label icon={Hash}>Pagination</Label>
                   <div className="space-y-8">
                     <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Counter Style</span><div className="flex bg-slate-100 p-1 rounded-xl gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => handleChange('counterStyle', s.id as CounterStyle)} className={`flex-1 p-2 flex items-center justify-center rounded-lg transition-all ${(page.counterStyle || 'number') === s.id ? 'bg-white text-[#264376] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><s.icon size={14} /></button>))}</div></div>
+                      <div className="space-y-3"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Counter Style</span><div className="flex bg-slate-100 p-1 rounded-xl gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => setCounterStyle(s.id as CounterStyle)} className={`flex-1 p-2 flex items-center justify-center rounded-lg transition-all ${(counterStyle || 'number') === s.id ? 'bg-white text-[#264376] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><s.icon size={14} /></button>))}</div></div>
                       <div className="space-y-3">
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">UI Mode</span>
                         <button 

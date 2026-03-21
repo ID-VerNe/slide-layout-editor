@@ -20,6 +20,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const printSettings = useStore(s => s.printSettings);
   const imageQuality = useStore(s => s.imageQuality);
   const minimalCounter = useStore(s => s.minimalCounter);
+  const counterStyle = useStore(s => s.counterStyle);
   const customFonts = useStore(s => s.customFonts);
   const currentFilePath = useStore(s => s.currentFilePath);
   const hasUnsavedChanges = useStore(s => s.hasUnsavedChanges);
@@ -35,6 +36,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const setPrintSettings = useStore(s => s.setPrintSettings);
   const setImageQuality = useStore(s => s.setImageQuality);
   const setMinimalCounter = useStore(s => s.setMinimalCounter);
+  const setCounterStyle = useStore(s => s.setCounterStyle);
   const setCustomFonts = useStore(s => s.setCustomFonts);
   const setCurrentFilePath = useStore(s => s.setCurrentFilePath);
   const markAsSaved = useStore(s => s.markAsSaved);
@@ -122,6 +124,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
       printSettings, 
       theme, 
       minimalCounter,
+      counterStyle,
       filePath: currentFilePath || undefined // 保存当前路径
     });
 
@@ -151,7 +154,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     updatePage, addPage, removePage, reorderPages, loadProject,
     saveToDB, undo, redo, canUndo: past.length > 0, canRedo: future.length > 0,
     printSettings, setPrintSettings, imageQuality, setImageQuality, 
-    minimalCounter, setMinimalCounter, customFonts, setCustomFonts,
+    minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,
     currentFilePath, setCurrentFilePath, hasUnsavedChanges, markAsSaved
   };
 }

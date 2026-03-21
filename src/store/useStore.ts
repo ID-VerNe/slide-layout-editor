@@ -43,6 +43,7 @@ interface ProjectState {
   customFonts: CustomFont[];
   imageQuality: number;
   minimalCounter: boolean;
+  counterStyle: CounterStyle;
   printSettings: PrintSettings;
   isLoaded: boolean;
   activeProjectId: string | null;
@@ -59,6 +60,7 @@ interface ProjectState {
   setPrintSettings: (settings: PrintSettings) => void;
   setImageQuality: (quality: number) => void;
   setMinimalCounter: (minimal: boolean) => void;
+  setCounterStyle: (style: CounterStyle) => void;
   setCustomFonts: (fonts: CustomFont[]) => void;
   setCurrentPageIndex: (index: number) => void;
   setCurrentFilePath: (path: string | null) => void;
@@ -75,7 +77,7 @@ interface ProjectState {
 const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
 
 export const useStore = create<ProjectState>((set, get) => ({
-  pages: [], projectTitle: '', theme: DEFAULT_THEME, currentPageIndex: 0, customFonts: [], imageQuality: 0.95, minimalCounter: false, printSettings: DEFAULT_PRINT_SETTINGS, isLoaded: false, activeProjectId: null, currentFilePath: null, hasUnsavedChanges: false, past: [], future: [],
+  pages: [], projectTitle: '', theme: DEFAULT_THEME, currentPageIndex: 0, customFonts: [], imageQuality: 0.95, minimalCounter: false, counterStyle: 'number', printSettings: DEFAULT_PRINT_SETTINGS, isLoaded: false, activeProjectId: null, currentFilePath: null, hasUnsavedChanges: false, past: [], future: [],
 
   createProject: (title, templateId) => {
     const id = crypto.randomUUID();
@@ -118,6 +120,7 @@ export const useStore = create<ProjectState>((set, get) => ({
         customFonts: projectData.customFonts || [], 
         imageQuality: projectData.imageQuality ?? 0.95, 
         minimalCounter: projectData.minimalCounter ?? false, 
+        counterStyle: projectData.counterStyle || (projectData.pages?.[0]?.counterStyle) || 'number',
         printSettings: projectData.printSettings || DEFAULT_PRINT_SETTINGS, 
         // 关键：保留刚才设置好的路径，不要被 JSON 覆盖为空
         currentFilePath: filePath || projectData.filePath || state.currentFilePath,
@@ -134,6 +137,7 @@ export const useStore = create<ProjectState>((set, get) => ({
         customFonts: [], 
         imageQuality: 0.95, 
         minimalCounter: false, 
+        counterStyle: 'number',
         printSettings: DEFAULT_PRINT_SETTINGS, 
         currentPageIndex: 0, 
         isLoaded: true, 
@@ -158,6 +162,11 @@ export const useStore = create<ProjectState>((set, get) => ({
   setPrintSettings: (printSettings) => set({ printSettings, hasUnsavedChanges: true }),
   setImageQuality: (imageQuality) => set({ imageQuality, hasUnsavedChanges: true }),
   setMinimalCounter: (minimalCounter) => set({ minimalCounter, hasUnsavedChanges: true }),
+  setCounterStyle: (counterStyle) => {
+    const { pages } = get();
+    const updatedPages = pages.map(p => ({ ...p, counterStyle }));
+    set({ counterStyle, pages: updatedPages, hasUnsavedChanges: true });
+  },
   setCustomFonts: (customFonts) => set({ customFonts, hasUnsavedChanges: true }),
   setCurrentFilePath: (currentFilePath) => set({ currentFilePath }),
   markAsSaved: () => set({ hasUnsavedChanges: false }),
@@ -170,7 +179,17 @@ export const useStore = create<ProjectState>((set, get) => ({
     let hasGlobalChange = false;
     if (original) GLOBAL_FIELDS.forEach(f => { if (updatedPage[f] !== (original as any)[f]) hasGlobalChange = true; });
     let nextPages = pages.map(p => p.id === updatedPage.id ? updatedPage : p);
-    if (hasGlobalChange) nextPages = nextPages.map(p => { const u: any = {}; GLOBAL_FIELDS.forEach(f => { u[f] = (updatedPage as any)[f]; }); return { ...p, ...u }; });
+    if (hasGlobalChange) {
+      nextPages = nextPages.map(p => { 
+        const u: any = {}; 
+        GLOBAL_FIELDS.forEach(f => { u[f] = (updatedPage as any)[f]; }); 
+        return { ...p, ...u }; 
+      });
+      // 额外修复：如果是 counterStyle 改变了，同步到全局 store 状态
+      if (updatedPage.counterStyle !== original?.counterStyle) {
+        set({ counterStyle: updatedPage.counterStyle });
+      }
+    }
     set({ pages: nextPages, hasUnsavedChanges: true });
   },
 

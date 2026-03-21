@@ -21,6 +21,7 @@ const templateMap: Record<string, React.LazyExoticComponent<React.FC<any>>> = {
   'kinfolk-essay': lazy(() => import('./templates/KinfolkEssay')),
   'kinfolk-montage': lazy(() => import('./templates/KinfolkMontage')),
   'micro-anchor': lazy(() => import('./templates/MicroAnchor')),
+  'sincerity-portrait': lazy(() => import('./templates/SincerityPortrait')),
   'typography-hero': lazy(() => import('./templates/TypographyHero')),
   'film-diptych': lazy(() => import('./templates/FilmDiptych')),
   'apple-bento-grid': lazy(() => import('./templates/AppleBentoGrid')),

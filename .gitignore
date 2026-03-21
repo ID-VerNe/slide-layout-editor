@@ -1,0 +1,18 @@
+# Node
+node_modules
+dist
+dist-electron
+release
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.gemini_backups/

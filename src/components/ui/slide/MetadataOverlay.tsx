@@ -1,5 +1,6 @@
 import React from 'react';
 import { PageData, ProjectTheme } from '../../../types';
+import { useStore } from '../../../store/useStore';
 
 interface MetadataOverlayProps {
   page: PageData;
@@ -9,12 +10,13 @@ interface MetadataOverlayProps {
 }
 
 const MetadataOverlay: React.FC<MetadataOverlayProps> = ({ page, pageIndex, minimalCounter }) => {
+  const globalCounterStyle = useStore(s => s.counterStyle);
   const customCounterColor = page.counterColor || '#64748b';
   const isMinimal = minimalCounter; // 纯净的布尔值
 
   // 1. 渲染页码逻辑
   const renderCounter = () => {
-    const style = page.counterStyle || 'number';
+    const style = globalCounterStyle || page.counterStyle || 'number';
     const current = pageIndex + 1;
 
     switch (style) {
