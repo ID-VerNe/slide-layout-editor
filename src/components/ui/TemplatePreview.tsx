@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { AspectRatioType, LAYOUT_CONFIG } from '../../constants/layout';
 import { TEMPLATES } from '../../templates/registry';
+import { JsonTemplateRenderer } from '../JsonTemplateRenderer';
 
 interface TemplatePreviewProps {
   layoutId: string;
@@ -61,7 +62,11 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({ layoutId, aspe
         }}
         className="wireframe-mode shadow-sm"
       >
-        <template.component page={mockPage} />
+        {template.schema ? (
+          <JsonTemplateRenderer schema={template.schema} page={mockPage as any} />
+        ) : (
+          <template.component page={mockPage} />
+        )}
       </div>
 
       {/* 遮罩层：防止预览图内部产生滚动或点击交互 */}

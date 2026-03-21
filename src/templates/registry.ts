@@ -27,6 +27,11 @@ import SincerityPortrait from '../components/templates/SincerityPortrait';
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
 
+import { BigStatementSchema } from './schemas/big-statement';
+import { MicroAnchorSchema } from './schemas/micro-anchor';
+import { SincerityPortraitSchema } from './schemas/sincerity-portrait';
+import { TemplateSchema } from './schemas/types';
+
 export interface TemplateConfig {
   id: string;
   name: string;
@@ -34,6 +39,7 @@ export interface TemplateConfig {
   desc: string;
   tags: string[];
   component: React.FC<{ page: any; typography?: any }>;
+  schema?: TemplateSchema;
   fields: FieldSchema[];
   supportedRatios: AspectRatioType[];
 }
@@ -115,6 +121,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Extreme negative space.',
     tags: ['Minimalist'],
     component: MicroAnchor,
+    schema: MicroAnchorSchema,
     fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
     supportedRatios: ['2:3']
   },
@@ -125,6 +132,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Intimate portrait with asymmetrical balance.',
     tags: ['Sincerity', 'Portrait'],
     component: SincerityPortrait,
+    schema: SincerityPortraitSchema,
     fields: withBaseFields([
       { key: 'title', label: 'Headline' },
       { key: 'subtitle', label: 'Sub-Headline' },
@@ -302,6 +310,7 @@ export const TEMPLATES: TemplateConfig[] = [
     desc: 'Centered minimalist slogan.',
     tags: ['Slogan'],
     component: BigStatement,
+    schema: BigStatementSchema,
     fields: withBaseFields(['title', 'subtitle']),
     supportedRatios: ['16:9']
   },

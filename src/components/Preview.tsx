@@ -3,6 +3,8 @@ import { PageData, PrintSettings, TypographySettings } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LAYOUT_CONFIG } from '../constants/layout';
 import MetadataOverlay from './ui/slide/MetadataOverlay';
+import { getTemplateById } from '../templates/registry';
+import { JsonTemplateRenderer } from './JsonTemplateRenderer';
 
 // 引入标准模板矩阵
 import ModernFeature from './templates/ModernFeature';
@@ -45,7 +47,19 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
   const renderTemplate = () => {
-    // 统一通过模板映射分发，包括自由布局
+    // 1. 尝试使用 JSON Schema 渲染器 (Phase 1)
+    const templateConfig = getTemplateById(page.layoutId);
+    if (templateConfig?.schema) {
+      return (
+        <JsonTemplateRenderer 
+          schema={templateConfig.schema} 
+          page={page} 
+          typography={typography} 
+        />
+      );
+    }
+
+    // 2. 否则回退到原有的 React 组件映射 (Hybrid Mode)
     const commonProps = { page, typography, pageIndex, totalPages, onUpdate }; 
 
     switch (page.layoutId) {
