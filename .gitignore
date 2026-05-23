@@ -16,3 +16,6 @@ Thumbs.db
 .env
 .env.local
 .gemini_backups/
+
+# Handoff Docs
+handoff-*.md
