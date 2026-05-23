@@ -19,3 +19,14 @@ Thumbs.db
 
 # Handoff Docs
 handoff-*.md
+
+# Local Projects & Assets
+workspace/
+0.5DISTANCE/
+
+# Internal Tool Metadata & Requests
+gemini.md
+*.request
+metadata.json
+.trae/
+.code-review-graph/
