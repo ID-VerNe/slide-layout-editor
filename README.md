@@ -372,8 +372,16 @@ SlideGrid Studio 内置 **24+ 种专业模板**，涵盖多个使用场景：
 
 ---
 
-## 📄 开源协议
+## 📄 开源协议 (License)
 
-本项目基于 **MIT License** 协议开源。详情请参阅 [LICENSE](LICENSE) 文件。
+本项目基于 **GNU GPL v3 (GNU General Public License v3)** 协议开源。
+
+### ⚠️ 重要说明
+SlideGrid Studio 采用强 Copyleft 许可。这意味着：
+1.  **强制开源**：如果你修改了本项目代码或将其集成到你的作品中，你的作品也**必须**在 GPL v3 协议下开源。
+2.  **保留署名**：必须保留原始版权声明和作者署名。
+3.  **禁止闭源商用**：不允许在不公开源代码的情况下将本项目用于商业闭源产品。
+
+详情请参阅 [LICENSE](LICENSE) 文件。
 
 © 2026 **SlideGrid Studio**. 由 **ID-VerNe** 驱动。
