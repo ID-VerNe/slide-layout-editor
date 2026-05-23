@@ -26,6 +26,9 @@ import SincerityPortrait from '../components/templates/SincerityPortrait';
 import ArtisticLSpace from '../components/templates/ArtisticLSpace';
 import FloatingGallery from '../components/templates/FloatingGallery';
 import CinematicLetterbox from '../components/templates/CinematicLetterbox';
+import VerticalColumn from '../components/templates/VerticalColumn';
+import HorizonSky from '../components/templates/HorizonSky';
+import EpiloguePillar from '../components/templates/EpiloguePillar';
 
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
@@ -190,6 +193,65 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'paragraph', label: 'Movie Subtitle (Below Image)' },
       { key: 'image', label: 'Widescreen Artwork' },
       { key: 'imageLabel', label: 'Catalog Info' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'vertical-column',
+    name: 'Vertical Column',
+    category: 'Gallery',
+    desc: 'Left-bleed image with a structured white sidebar on the right.',
+    tags: ['Gallery', 'Minimalist', 'Sidebar'],
+    component: VerticalColumn,
+    fields: withBaseFields([
+      { 
+        key: 'variant', 
+        label: 'Image Side', 
+        props: { 
+          options: [
+            { label: 'Left', value: 'left' },
+            { label: 'Right', value: 'right' }
+          ] 
+        } 
+      },
+      { key: 'title', label: 'Stacked Headline (Right)' },
+      { key: 'subtitle', label: 'Sidebar Teaser (Top-Left of Title)' },
+      { key: 'paragraph', label: 'Detailed Paragraph (Bottom)' },
+      { key: 'image', label: 'Left Bleed Artwork' },
+      { key: 'imageLabel', label: 'Catalog Info' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'horizon-sky',
+    name: 'Horizon Sky',
+    category: 'Gallery',
+    desc: 'Top negative space "sky" with a bottom-aligned image "earth".',
+    tags: ['Gallery', 'Minimalist', 'Ethereal'],
+    component: HorizonSky,
+    fields: withBaseFields([
+      { key: 'title', label: 'Sky Headline' },
+      { key: 'subtitle', label: 'Top Teaser (Above Title)' },
+      { key: 'paragraph', label: 'Detailed Verse (Below Title)' },
+      { key: 'image', label: 'Bottom Artwork (Earth)' },
+      { key: 'imageLabel', label: 'Info Above Horizon' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'epilogue-pillar',
+    name: 'Epilogue Pillar',
+    category: 'Gallery',
+    desc: 'Right-aligned pillar image with a left-side colophon and signature.',
+    tags: ['Gallery', 'Minimalist', 'Colophon'],
+    component: EpiloguePillar,
+    fields: withBaseFields([
+      { key: 'title', label: 'End Title (e.g. EPILOGUE)' },
+      { key: 'metrics', label: 'Colophon Details (Character, Gear...)' },
+      { key: 'paragraph', label: 'Extra Copyright Notes' },
+      { key: 'image', label: 'Right Pillar Image' },
+      { key: 'signature', label: 'Handwritten Signature' },
+      { key: 'imageLabel', label: 'Page Meta' }
     ]),
     supportedRatios: ['2:3']
   },

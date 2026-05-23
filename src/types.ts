@@ -91,6 +91,7 @@ export interface PageData {
   styleOverrides?: Record<string, any>;
 
   backgroundColor?: string;
+  counterColor?: string;
   titleFont?: string;
   bodyFont?: string;
   footer?: string;

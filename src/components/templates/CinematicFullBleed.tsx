@@ -95,8 +95,8 @@ export default function CinematicFullBleed({ page, typography }: { page: PageDat
           </div>
         )}
 
-        {/* 通用页脚元数据 */}
-        <div className="flex items-center gap-4 opacity-40">
+        {/* 通用页脚元数据 (加固版：提高可见性) */}
+        <div className="flex items-center gap-4 opacity-80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
           <div className="w-8 h-[1px]" style={{ backgroundColor: theme.colors.accent }} />
           <SlideBlockLabel 
             page={page} 

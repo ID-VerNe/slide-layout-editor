@@ -35,6 +35,9 @@ import SincerityPortrait from './templates/SincerityPortrait';
 import ArtisticLSpace from './templates/ArtisticLSpace';
 import FloatingGallery from './templates/FloatingGallery';
 import CinematicLetterbox from './templates/CinematicLetterbox';
+import VerticalColumn from './templates/VerticalColumn';
+import HorizonSky from './templates/HorizonSky';
+import EpiloguePillar from './templates/EpiloguePillar';
 
 interface PreviewProps {
   page: PageData;
@@ -87,6 +90,9 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'artistic-l-space': return <ArtisticLSpace {...commonProps} />;
       case 'floating-gallery': return <FloatingGallery {...commonProps} />;
       case 'cinematic-letterbox': return <CinematicLetterbox {...commonProps} />;
+      case 'vertical-column': return <VerticalColumn {...commonProps} />;
+      case 'horizon-sky': return <HorizonSky {...commonProps} />;
+      case 'epilogue-pillar': return <EpiloguePillar {...commonProps} />;
       case 'kinfolk-essay': return <KinfolkEssay {...commonProps} />;
       case 'kinfolk-montage': return <KinfolkMontage {...commonProps} />;
       case 'micro-anchor': return <MicroAnchor {...commonProps} />;
