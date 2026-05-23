@@ -2,6 +2,7 @@
   "name": "slidegrid-studio",
   "private": true,
   "version": "0.0.0",
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
