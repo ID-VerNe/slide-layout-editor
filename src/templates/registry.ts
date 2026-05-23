@@ -23,6 +23,9 @@ import AppleBentoGrid from '../components/templates/AppleBentoGrid';
 import AcademicHybridResume from '../components/templates/AcademicHybridResume';
 import GravityAnchorIntro from '../components/templates/GravityAnchorIntro';
 import SincerityPortrait from '../components/templates/SincerityPortrait';
+import ArtisticLSpace from '../components/templates/ArtisticLSpace';
+import FloatingGallery from '../components/templates/FloatingGallery';
+import CinematicLetterbox from '../components/templates/CinematicLetterbox';
 
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
@@ -139,6 +142,54 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'paragraph', label: 'Narrative Verse' },
       { key: 'image', label: 'Portrait' },
       { key: 'imageLabel', label: 'Image Meta' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'artistic-l-space',
+    name: 'Artistic L-Space',
+    category: 'Gallery',
+    desc: 'L-shaped negative space with bottom-right bleed imagery.',
+    tags: ['Minimalist', 'L-Shape', 'Bleed'],
+    component: ArtisticLSpace,
+    fields: withBaseFields([
+      { key: 'variant', label: 'Image Side', props: { options: [{ value: 'right', label: 'Image Right' }, { value: 'left', label: 'Image Left' }] } },
+      { key: 'title', label: 'Vertical Headline' },
+      { key: 'subtitle', label: 'Handwritten Notes (Top)' },
+      { key: 'image', label: 'Main Image' },
+      { key: 'imageLabel', label: 'Metadata' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'floating-gallery',
+    name: 'Floating Gallery',
+    category: 'Gallery',
+    desc: 'Centered floating imagery with wide passepartout margins.',
+    tags: ['Gallery', 'Classic', 'Floating'],
+    component: FloatingGallery,
+    fields: withBaseFields([
+      { key: 'title', label: 'Headline (Slanted)' },
+      { key: 'subtitle', label: 'Poetic Verse (Under Line)' },
+      { key: 'paragraph', label: 'Detailed Paragraph (Bottom)' },
+      { key: 'image', label: 'Main Artwork' },
+      { key: 'imageLabel', label: 'Catalog Info' }
+    ]),
+    supportedRatios: ['2:3']
+  },
+  {
+    id: 'cinematic-letterbox',
+    name: 'Cinematic Letterbox',
+    category: 'Gallery',
+    desc: 'Widescreen cinematic focus with extreme horizontal typography.',
+    tags: ['Gallery', 'Cinematic', 'Wide'],
+    component: CinematicLetterbox,
+    fields: withBaseFields([
+      { key: 'title', label: 'Scattered Headline (Bottom)' },
+      { key: 'subtitle', label: 'Top Teaser (Above Title)' },
+      { key: 'paragraph', label: 'Movie Subtitle (Below Image)' },
+      { key: 'image', label: 'Widescreen Artwork' },
+      { key: 'imageLabel', label: 'Catalog Info' }
     ]),
     supportedRatios: ['2:3']
   },

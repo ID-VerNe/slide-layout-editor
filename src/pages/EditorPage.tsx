@@ -116,7 +116,7 @@ export default function EditorPage() {
     };
     window.addEventListener('open-layout-browser', handleOpenBrowser);
     return () => window.removeEventListener('open-layout-browser', handleOpenBrowser);
-  }, [currentPage?.id]);
+  }, [currentPage]);
 
   useEffect(() => {
     let timeout: any;

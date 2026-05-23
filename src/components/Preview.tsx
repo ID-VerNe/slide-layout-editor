@@ -32,6 +32,9 @@ import AppleBentoGrid from './templates/AppleBentoGrid';
 import AcademicHybridResume from './templates/AcademicHybridResume';
 import GravityAnchorIntro from './templates/GravityAnchorIntro';
 import SincerityPortrait from './templates/SincerityPortrait';
+import ArtisticLSpace from './templates/ArtisticLSpace';
+import FloatingGallery from './templates/FloatingGallery';
+import CinematicLetterbox from './templates/CinematicLetterbox';
 
 interface PreviewProps {
   page: PageData;
@@ -81,6 +84,9 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       case 'cinematic-full-bleed': return <CinematicFullBleed {...commonProps} />;
       case 'editorial-back-cover': return <EditorialBackCover {...commonProps} />;
       case 'kinfolk-feature': return <KinfolkFeature {...commonProps} />;
+      case 'artistic-l-space': return <ArtisticLSpace {...commonProps} />;
+      case 'floating-gallery': return <FloatingGallery {...commonProps} />;
+      case 'cinematic-letterbox': return <CinematicLetterbox {...commonProps} />;
       case 'kinfolk-essay': return <KinfolkEssay {...commonProps} />;
       case 'kinfolk-montage': return <KinfolkMontage {...commonProps} />;
       case 'micro-anchor': return <MicroAnchor {...commonProps} />;
