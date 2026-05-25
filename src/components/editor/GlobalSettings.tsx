@@ -5,6 +5,7 @@ import { Label, Input, Slider, Section } from '../ui/Base';
 import { FontSelect } from '../ui/FontSelect';
 import FontManager from '../FontManager';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStore } from '../../store/useStore';
 
 interface GlobalSettingsProps {
   page: PageData;
@@ -26,29 +27,26 @@ interface GlobalSettingsProps {
 }
 
 const ColorToken = ({ label, value, field, theme, onThemeChange }: { label: string, value: string, field: keyof ProjectTheme['colors'], theme: ProjectTheme, onThemeChange: (t: Partial<ProjectTheme>) => void }) => (
-  <div className="flex flex-col gap-1.5">
-    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">{label}</span>
-    <div className="flex gap-2 items-center bg-white p-1.5 rounded-xl border border-slate-100 shadow-sm transition-all hover:border-[#264376]/30">
-      <div className="relative w-6 h-6 rounded-lg overflow-hidden shrink-0 border border-slate-100 shadow-inner">
-        <input type="color" className="absolute -top-2 -left-2 w-10 h-10 cursor-pointer p-0 border-0" value={value || '#000000'} onInput={(e) => onThemeChange({ colors: { ...theme.colors, [field]: (e.target as HTMLInputElement).value } })} />
+  <div className="flex flex-col gap-2">
+    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">{label}</span>
+    <div className="flex gap-0 items-center bg-white border border-slate-950">
+      <div className="relative w-8 h-8 shrink-0 border-r border-slate-950 overflow-hidden">
+        <input type="color" className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer p-0 border-0" value={value || '#000000'} onInput={(e) => onThemeChange({ colors: { ...theme.colors, [field]: (e.target as HTMLInputElement).value } })} />
       </div>
-      <Input className="flex-1 !py-0.5 !px-1 font-mono !text-[10px] border-none focus:ring-0 uppercase" value={value || ''} onChange={(e) => onThemeChange({ colors: { ...theme.colors, [field]: e.target.value } })} />
+      <Input className="flex-1 !border-none !ring-0 !text-[10px] font-mono uppercase !py-1 !px-2" value={value || ''} onChange={(e) => onThemeChange({ colors: { ...theme.colors, [field]: e.target.value } })} />
     </div>
   </div>
 );
 
-type SettingsTab = 'general' | 'brand' | 'fonts' | 'print';
+type SettingsTab = 'general' | 'print' | 'assets';
 
 const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
-  page, onUpdate, customFonts, setCustomFonts, theme, setTheme,
+  page, onUpdate, customFonts, setCustomFonts,
   imageQuality, setImageQuality, minimalCounter, setMinimalCounter,
   counterStyle, setCounterStyle,
   printSettings, setPrintSettings
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
-  const [syncing, setSyncing] = useState(false);
-
-  if (!theme || !theme.colors) return null;
 
   const handleChange = (field: keyof PageData, value: any) => onUpdate({ ...page, [field]: value });
   
@@ -57,132 +55,88 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
     setPrintSettings({ ...printSettings, [field]: value });
   };
 
-  const handleSyncTheme = () => {
-    setSyncing(true);
-    setTheme({}, true);
-    setTimeout(() => setSyncing(false), 800);
-  };
-
   return (
     <div className="flex flex-col h-[75vh]">
-      <div className="flex gap-6 border-b border-slate-100 mb-8 shrink-0 px-2">
-        {(['general', 'brand', 'fonts', 'print'] as const).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-[#264376]' : 'text-slate-300 hover:text-slate-500'}`}>
-            <div className="flex items-center gap-2">
-              {tab === 'general' && <Settings size={14} />}
-              {tab === 'brand' && <Palette size={14} />}
-              {tab === 'fonts' && <TypeIcon size={14} />}
-              {tab === 'print' && <Printer size={14} />}
-              {tab === 'general' ? 'General' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+      <div className="flex gap-8 border-b border-slate-950 mb-12 shrink-0 px-2">
+        {(['general', 'assets', 'print'] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`pb-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === tab ? 'text-slate-950' : 'text-slate-300 hover:text-slate-500'}`}>
+            <div className="flex items-center gap-3">
+              {tab === 'general' && <Settings size={14} strokeWidth={3} />}
+              {tab === 'assets' && <UploadCloud size={14} strokeWidth={3} />}
+              {tab === 'print' && <Printer size={14} strokeWidth={3} />}
+              {tab === 'general' ? 'General' : tab}
             </div>
-            {activeTab === tab && <motion.div layoutId="activeTab" className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-[#264376] rounded-full" />}
+            {activeTab === tab && <motion.div layoutId="activeTab" className="absolute bottom-[-1px] left-0 right-0 h-[3px] bg-slate-950" />}
           </button>
         ))}
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar pr-4">
         <AnimatePresence mode="wait">
-          <motion.div key={activeTab} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
+          <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
             
             {activeTab === 'general' && (
-              <div className="space-y-10 animate-in fade-in">
+              <div className="space-y-16">
                 <Section>
                   <Label icon={ImageControl}>Export & Processing</Label>
-                  <div className="space-y-6 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                    <div className="flex justify-between items-center mb-2"><span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">WebP Quality</span><span className="text-xs font-mono font-bold text-[#264376]">{Math.round(imageQuality * 100)}%</span></div>
-                    <Slider value={imageQuality} min={0.1} max={1.0} step={0.01} onChange={setImageQuality} />
+                  <div className="space-y-8 bg-white p-8 border border-slate-200">
+                    <div className="flex justify-between items-center mb-2"><span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">WebP Quality</span><span className="text-xs font-mono font-black text-slate-950">{Math.round(imageQuality * 100)}%</span></div>
+                    <Slider label="Output Compression" value={imageQuality} min={0.1} max={1.0} step={0.01} onChange={setImageQuality} />
                   </div>
                 </Section>
                 <Section>
-                  <Label icon={Hash}>Pagination</Label>
-                  <div className="space-y-8">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Counter Style</span><div className="flex bg-slate-100 p-1 rounded-xl gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => setCounterStyle(s.id as CounterStyle)} className={`flex-1 p-2 flex items-center justify-center rounded-lg transition-all ${(counterStyle || 'number') === s.id ? 'bg-white text-[#264376] shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}><s.icon size={14} /></button>))}</div></div>
-                      <div className="space-y-3">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">UI Mode</span>
+                  <Label icon={Hash}>Pagination Control</Label>
+                  <div className="space-y-10">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-4"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Counter Style</span><div className="flex border border-slate-200 p-1 gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => setCounterStyle(s.id as CounterStyle)} className={`flex-1 p-3 flex items-center justify-center transition-all ${(counterStyle || 'number') === s.id ? 'bg-slate-950 text-white' : 'text-slate-300 hover:text-slate-900'}`}><s.icon size={16} strokeWidth={3} /></button>))}</div></div>
+                      <div className="space-y-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Editor Mode</span>
                         <button 
                           onClick={() => setMinimalCounter(!minimalCounter)} 
-                          className={`w-full py-2.5 rounded-xl border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${minimalCounter ? 'border-[#264376] bg-[#264376] text-white shadow-lg' : 'border-slate-100 text-slate-400 hover:border-slate-200 bg-white'}`}
+                          className={`w-full py-4 border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${minimalCounter ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 text-slate-300 hover:border-slate-950 bg-white'}`}
                         >
-                          {minimalCounter ? <EyeOff size={14} /> : <Eye size={14} />}
-                          <span className="text-[10px] font-black uppercase">Minimal UI</span>
+                          {minimalCounter ? <EyeOff size={16} strokeWidth={3} /> : <Eye size={16} strokeWidth={3} />}
+                          <span className="text-[11px] font-black uppercase tracking-[0.1em]">Minimal UI</span>
                         </button>
                       </div>
                     </div>
                   </div>
                 </Section>
-                <Section><Label icon={CircleDot}>Background Pattern</Label><div className="grid grid-cols-5 gap-3">{[ { id: 'none', label: 'None' }, { id: 'grid', label: 'Grid' }, { id: 'dots', label: 'Dots' }, { id: 'diagonal', label: 'Lines' }, { id: 'cross', label: 'Plus' } ].map(p => (<button key={p.id} onClick={() => handleChange('backgroundPattern', p.id)} className={`py-3 flex flex-col items-center justify-center rounded-xl border-2 transition-all ${(page.backgroundPattern || 'none') === p.id ? 'border-[#264376] bg-[#264376]/5 text-[#264376]' : 'border-slate-50 bg-slate-50/50 text-slate-300 hover:border-slate-200'}`}><span className="text-[8px] font-black uppercase tracking-tighter">{p.label}</span></button>))}</div></Section>
+                <Section><Label icon={CircleDot}>Texture Patterns</Label><div className="grid grid-cols-5 gap-0 border border-slate-200">{[ { id: 'none', label: 'None' }, { id: 'grid', label: 'Grid' }, { id: 'dots', label: 'Dots' }, { id: 'diagonal', label: 'Lines' }, { id: 'cross', label: 'Plus' } ].map(p => (<button key={p.id} onClick={() => handleChange('backgroundPattern', p.id)} className={`py-4 flex flex-col items-center justify-center border-r border-slate-100 last:border-r-0 transition-all ${(page.backgroundPattern || 'none') === p.id ? 'bg-slate-950 text-white' : 'bg-white text-slate-400 hover:bg-slate-50'}`}><span className="text-[9px] font-black uppercase tracking-widest">{p.label}</span></button>))}</div></Section>
               </div>
             )}
 
-            {activeTab === 'brand' && (
-              <div className="space-y-10 animate-in fade-in">
-                <Section>
-                  <div className="flex items-center justify-between mb-6">
-                    <Label icon={Palette} className="mb-0">Brand & Theme Tokens</Label>
-                    <button onClick={handleSyncTheme} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-black text-[9px] uppercase tracking-widest shadow-sm ${syncing ? 'bg-emerald-500 text-white animate-pulse' : 'bg-[#264376]/5 text-[#264376] hover:bg-[#264376] hover:text-white'}`}><RefreshCcw size={12} className={syncing ? 'animate-spin' : ''} />{syncing ? 'Syncing...' : 'Apply to all'}</button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                    <ColorToken label="Brand Primary" value={theme.colors.primary} field="primary" theme={theme} onThemeChange={setTheme} />
-                    <ColorToken label="Brand Accent" value={theme.colors.accent} field="accent" theme={theme} onThemeChange={setTheme} />
-                    <ColorToken label="Text Body" value={theme.colors.secondary} field="secondary" theme={theme} onThemeChange={setTheme} />
-                    <ColorToken label="Page Canvas" value={theme.colors.background} field="background" theme={theme} onThemeChange={setTheme} />
-                    <div className="col-span-2 pt-2"><ColorToken label="Surface / Modules" value={theme.colors.surface} field="surface" theme={theme} onThemeChange={setTheme} /></div>
-                  </div>
-                  <div className="mt-10 pt-8 border-t border-slate-50 space-y-8">
-                    <div className="flex items-center gap-2 text-slate-900"><TypeIcon size={12} className="text-[#264376]" /><span className="text-[9px] font-black uppercase tracking-widest">Global Font Pairing</span></div>
-                    
-                    <div className="space-y-4">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Hero Headings (Title)</span>
-                      <div className="grid grid-cols-2 gap-6">
-                        <FontSelect label="English (EN)" value={theme.typography?.headingFont} onChange={(v) => setTheme({ typography: { ...theme.typography, headingFont: v } })} customFonts={customFonts} />
-                        <FontSelect label="Chinese (ZH)" value={theme.typography?.headingFontZH} onChange={(v) => setTheme({ typography: { ...theme.typography, headingFontZH: v } })} customFonts={customFonts} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Body Paragraphs</span>
-                      <div className="grid grid-cols-2 gap-6">
-                        <FontSelect label="English (EN)" value={theme.typography?.bodyFont} onChange={(v) => setTheme({ typography: { ...theme.typography, bodyFont: v } })} customFonts={customFonts} />
-                        <FontSelect label="Chinese (ZH)" value={theme.typography?.bodyFontZH} onChange={(v) => setTheme({ typography: { ...theme.typography, bodyFontZH: v } })} customFonts={customFonts} />
-                      </div>
-                    </div>
-                  </div>
-                </Section>
-              </div>
-            )}
-
-            {activeTab === 'fonts' && (
-              <div className="space-y-6 animate-in fade-in">
-                <Section><div className="mb-6"><Label icon={UploadCloud} className="mb-1">Local Asset Manager</Label><p className="text-[10px] text-slate-400 font-medium">Upload .woff2 or .ttf files.</p></div><FontManager fonts={customFonts} onFontsChange={setCustomFonts} /></Section>
+            {activeTab === 'assets' && (
+              <div className="space-y-8">
+                <Section><div className="mb-8 border-l-4 border-slate-950 pl-4"><Label icon={UploadCloud} className="mb-1">Local Asset Library</Label><p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Woff2 / TTF Container</p></div><FontManager fonts={customFonts} onFontsChange={setCustomFonts} /></Section>
               </div>
             )}
 
             {activeTab === 'print' && (
-              <div className="space-y-10 animate-in fade-in">
+              <div className="space-y-16">
                 <Section>
-                  <div className="flex items-center justify-between mb-8"><Label icon={Printer} className="mb-0">Print Engine</Label><button onClick={() => updatePrintField('enabled', !printSettings?.enabled)} className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${printSettings?.enabled ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-100 text-slate-400'}`}><span className="text-[9px] font-black uppercase tracking-widest">{printSettings?.enabled ? 'Live Active' : 'Enable'}</span></button></div>
-                  <div className={`space-y-10 transition-all duration-500 ${printSettings?.enabled ? 'opacity-100' : 'opacity-30 grayscale pointer-events-none'}`}>
-                    <div className="grid grid-cols-3 gap-6">
-                      <div className="space-y-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Width (mm)</span><Input type="number" value={printSettings?.widthMm || 100} onChange={(e) => updatePrintField('widthMm', parseFloat(e.target.value))} className="font-mono text-xs" /></div>
-                      <div className="space-y-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Height (mm)</span><Input type="number" value={printSettings?.heightMm || 145} onChange={(e) => updatePrintField('heightMm', parseFloat(e.target.value))} className="font-mono text-xs" /></div>
-                      <div className="space-y-1"><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Gutter (mm)</span><Input type="number" value={printSettings?.gutterMm || 10} onChange={(e) => updatePrintField('gutterMm', parseFloat(e.target.value))} className="font-mono text-xs text-amber-600 font-bold" /></div>
+                  <div className="flex items-center justify-between mb-10"><Label icon={Printer} className="mb-0">Mechanical Print Engine</Label><button onClick={() => updatePrintField('enabled', !printSettings?.enabled)} className={`flex items-center gap-3 px-6 py-3 border-2 transition-all ${printSettings?.enabled ? 'bg-slate-950 text-white border-slate-950' : 'bg-white border-slate-200 text-slate-300 hover:border-slate-950 hover:text-slate-950'}`}><span className="text-[10px] font-black uppercase tracking-[0.2em]">{printSettings?.enabled ? 'Engine Active' : 'Off-Line'}</span></button></div>
+                  <div className={`space-y-12 transition-all duration-500 ${printSettings?.enabled ? 'opacity-100' : 'opacity-20 grayscale pointer-events-none'}`}>
+                    <div className="grid grid-cols-3 gap-8">
+                      <div className="space-y-2"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Width (mm)</span><Input type="number" value={printSettings?.widthMm || 100} onChange={(e) => updatePrintField('widthMm', parseFloat(e.target.value))} className="font-mono text-xs !py-3" /></div>
+                      <div className="space-y-2"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Height (mm)</span><Input type="number" value={printSettings?.heightMm || 145} onChange={(e) => updatePrintField('heightMm', parseFloat(e.target.value))} className="font-mono text-xs !py-3" /></div>
+                      <div className="space-y-2"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Gutter (mm)</span><Input type="number" value={printSettings?.gutterMm || 10} onChange={(e) => updatePrintField('gutterMm', parseFloat(e.target.value))} className="font-mono text-xs text-slate-950 font-black !py-3" /></div>
                     </div>
                     
-                    <div className="space-y-6">
-                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">Strategies</p>
-                      <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-8">
+                      <p className="text-[11px] font-black text-slate-950 uppercase tracking-[0.2em] border-b border-slate-950 pb-2">Strategies</p>
+                      <div className="grid grid-cols-1 gap-6">
                         {[ { id: 'landscape', label: 'Landscape', icon: Monitor }, { id: 'portrait', label: 'Portrait', icon: Smartphone } ].map(ori => { 
                           const config = printSettings?.configs?.[ori.id as 'landscape' | 'portrait'] || { bindingSide: 'left', trimSide: 'bottom' }; 
                           const SideBtn = ({ side, type, icon: Icon }: any) => (
-                            <button onClick={() => { if (!printSettings) return; const nc = { ...printSettings.configs }; nc[ori.id as 'landscape' | 'portrait'] = { ...nc[ori.id as 'landscape' | 'portrait'], [type]: side }; updatePrintField('configs', nc); }} className={`p-2 rounded-lg border transition-all ${config[type as 'bindingSide' | 'trimSide'] === side ? 'bg-[#264376] text-white shadow-md' : 'bg-white text-slate-300 hover:border-slate-200'}`}><Icon size={12} /></button>
+                            <button onClick={() => { if (!printSettings) return; const nc = { ...printSettings.configs }; nc[ori.id as 'landscape' | 'portrait'] = { ...nc[ori.id as 'landscape' | 'portrait'], [type]: side }; updatePrintField('configs', nc); }} className={`p-3 border transition-all ${config[type as 'bindingSide' | 'trimSide'] === side ? 'bg-slate-950 text-white border-slate-950' : 'bg-white border-slate-200 text-slate-300 hover:border-slate-950 hover:text-slate-950'}`}><Icon size={14} strokeWidth={3} /></button>
                           ); 
                           return (
-                            <div key={ori.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex items-center justify-between">
-                              <div className="flex flex-col gap-1"><div className="flex items-center gap-2"><ori.icon size={12} className="text-[#264376]" /><span className="text-[10px] font-black uppercase text-slate-700">{ori.label}</span></div></div>
-                              <div className="flex gap-10">
-                                <div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Spine</span><div className="flex gap-1"><SideBtn side="left" type="bindingSide" icon={ArrowLeft} /><SideBtn side="right" type="bindingSide" icon={ArrowRight} /><SideBtn side="top" type="bindingSide" icon={ArrowUp} /><SideBtn side="bottom" type="bindingSide" icon={ArrowDown} /></div></div>
-                                <div className="space-y-2 text-center"><span className="text-[7px] font-black uppercase text-slate-400 block tracking-widest">Cut</span><div className="flex gap-1"><SideBtn side="left" type="trimSide" icon={ArrowLeft} /><SideBtn side="right" type="trimSide" icon={ArrowRight} /><SideBtn side="top" type="trimSide" icon={ArrowUp} /><SideBtn side="bottom" type="trimSide" icon={ArrowDown} /></div></div>
+                            <div key={ori.id} className="bg-white p-8 border border-slate-200 flex items-center justify-between">
+                              <div className="flex flex-col gap-2"><div className="flex items-center gap-3"><ori.icon size={16} strokeWidth={3} className="text-slate-950" /><span className="text-[11px] font-black uppercase text-slate-950 tracking-[0.1em]">{ori.label}</span></div></div>
+                              <div className="flex gap-12">
+                                <div className="space-y-3 text-center"><span className="text-[8px] font-black uppercase text-slate-400 block tracking-[0.3em]">Spine</span><div className="flex gap-1"><SideBtn side="left" type="bindingSide" icon={ArrowLeft} /><SideBtn side="right" type="bindingSide" icon={ArrowRight} /><SideBtn side="top" type="bindingSide" icon={ArrowUp} /><SideBtn side="bottom" type="bindingSide" icon={ArrowDown} /></div></div>
+                                <div className="space-y-3 text-center"><span className="text-[8px] font-black uppercase text-slate-400 block tracking-[0.3em]">Cut</span><div className="flex gap-1"><SideBtn side="left" type="trimSide" icon={ArrowLeft} /><SideBtn side="right" type="trimSide" icon={ArrowRight} /><SideBtn side="top" type="trimSide" icon={ArrowUp} /><SideBtn side="bottom" type="trimSide" icon={ArrowDown} /></div></div>
                               </div>
                             </div>
                           ); 
@@ -190,12 +144,12 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                       </div>
                     </div>
 
-                    <div className="pt-6 border-t border-slate-100 space-y-4">
-                      <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Visual Helpers</p>
-                      <div className="grid grid-cols-3 gap-4">
-                        <HelperToggle label="Spine Shadow" active={!!printSettings?.showGutterShadow} onClick={() => updatePrintField('showGutterShadow', !printSettings?.showGutterShadow)} />
-                        <HelperToggle label="Cut Shadow" active={!!printSettings?.showTrimShadow} onClick={() => updatePrintField('showTrimShadow', !printSettings?.showTrimShadow)} />
-                        <HelperToggle label="Content Frame" active={!!printSettings?.showContentFrame} onClick={() => updatePrintField('showContentFrame', !printSettings?.showContentFrame)} />
+                    <div className="pt-10 border-t border-slate-950 space-y-6">
+                      <p className="text-[11px] font-black text-slate-950 uppercase tracking-[0.2em]">Visual Helpers</p>
+                      <div className="grid grid-cols-3 gap-6">
+                        <HelperToggle label="Spine Projection" active={!!printSettings?.showGutterShadow} onClick={() => updatePrintField('showGutterShadow', !printSettings?.showGutterShadow)} />
+                        <HelperToggle label="Cut Guidelines" active={!!printSettings?.showTrimShadow} onClick={() => updatePrintField('showTrimShadow', !printSettings?.showTrimShadow)} />
+                        <HelperToggle label="Logic Frame" active={!!printSettings?.showContentFrame} onClick={() => updatePrintField('showContentFrame', !printSettings?.showContentFrame)} />
                       </div>
                     </div>
                   </div>
@@ -210,9 +164,9 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
 };
 
 const HelperToggle = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
-  <button onClick={onClick} className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${active ? 'border-[#264376] bg-[#264376]/5 text-[#264376]' : 'border-slate-50 text-slate-300 hover:border-slate-100'}`}>
-    <span className="text-[8px] font-black uppercase text-center">{label}</span>
-    {active ? <Eye size={14} /> : <EyeOff size={14} />}
+  <button onClick={onClick} className={`flex flex-col items-center gap-3 p-4 border-2 transition-all ${active ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-100 text-slate-300 hover:border-slate-950'}`}>
+    <span className="text-[9px] font-black uppercase text-center tracking-widest leading-tight">{label}</span>
+    {active ? <Eye size={16} strokeWidth={3} /> : <EyeOff size={16} strokeWidth={3} />}
   </button>
 );
 

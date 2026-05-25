@@ -1,24 +1,20 @@
 import React from 'react';
-import { PageData } from '../../../types';
-import { Eye, EyeOff } from 'lucide-react';
+import { PageData, CustomFont } from '../../../types';
+import { Type } from 'lucide-react';
 import { DebouncedTextArea } from '../../ui/DebouncedBase';
-import { FieldToolbar } from './FieldToolbar';
+import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData, silent?: boolean) => void;
+  label?: string;
+  customFonts: CustomFont[];
 }
 
-export const ParagraphField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
-  const isVisible = page.visibility?.paragraph !== false;
-
-  const toggle = () => {
-    onUpdate({
-      ...page,
-      visibility: { ...(page.visibility || {}), paragraph: !isVisible }
-    });
-  };
-
+/**
+ * ParagraphField - 已重构：基于 FieldWrapper 与 ZineStylePanel
+ */
+export const ParagraphField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, customFonts }) => {
   const handleChange = (val: string) => {
     onUpdate({ ...page, paragraph: val });
   };
@@ -27,48 +23,33 @@ export const ParagraphField: React.FC<FieldProps> = React.memo(({ page, onUpdate
     onUpdate({ ...page, paragraph: val }, true);
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.paragraph?.fontSize;
-    onUpdate({
-      ...page,
-      styleOverrides: {
-        ...(page.styleOverrides || {}),
-        paragraph: {
-          ...(page.styleOverrides?.paragraph || {}),
-          fontSize: Math.max(8, (currentSize || 24) + delta)
-        }
-      }
-    });
-  };
-
+  const style = page.styleOverrides?.paragraph || {};
+  
   return (
-    <div className="space-y-2 relative">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={toggle}
-          className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}
-        >
-          {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-        </button>
-        <span className="text-[10px] text-slate-400 font-bold uppercase">Body Text</span>
-      </div>
-
+    <FieldWrapper
+      page={page}
+      onUpdate={onUpdate}
+      fieldKey="paragraph"
+      label={label || 'Body Text'}
+      icon={Type}
+      showStyleConfig={true}
+      customFonts={customFonts}
+    >
       <div className="relative group/field">
-        <FieldToolbar
-          isFloating
-          onIncrease={() => updateFontSize(2)}
-          onDecrease={() => updateFontSize(-2)}
-        />
         <DebouncedTextArea 
             rows={5} 
             value={page.paragraph || ''} 
             onChange={handleChange} 
             onImmediateChange={handleImmediateChange}
             placeholder="Write something..." 
-            className={`text-sm leading-relaxed ${!isVisible ? 'opacity-50 grayscale' : ''}`}
-            style={{ fontFamily: page.styleOverrides?.paragraph?.fontFamily || page.bodyFont }} 
+            className="text-xs leading-relaxed border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
+            style={{ 
+              fontFamily: style.fontFamily || page.bodyFont,
+              textAlign: style.textAlign,
+              color: '#0F172A'
+            }} 
         />
       </div>
-    </div>
+    </FieldWrapper>
   );
 });

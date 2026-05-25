@@ -146,6 +146,13 @@ app.whenReady().then(async () => {
       return { success: true };
     } catch (error: any) { return { success: false, error: error.message }; }
   });
+
+  ipcMain.handle('process-responsive-images', async (event, { input, formats }) => {
+    try {
+      const result = await processResponsiveImages(input, formats);
+      return { success: true, result };
+    } catch (error: any) { return { success: false, error: error.message }; }
+  });
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -49,7 +49,7 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
 
       // 3. 检查所有图片是否加载完成
       const checkImages = () => {
-        const images = Array.from(containerRef.current?.querySelectorAll('img') || []);
+        const images = Array.from(containerRef.current?.querySelectorAll('img') || []) as HTMLImageElement[];
         return images.every(img => img.complete && img.naturalHeight !== 0);
       };
 

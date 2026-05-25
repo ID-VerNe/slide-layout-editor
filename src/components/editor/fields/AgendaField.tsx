@@ -1,13 +1,14 @@
 import React from 'react';
-import { PageData, AgendaData } from '../../../types';
-import { Eye, EyeOff, ListOrdered, Plus, X, List, Target } from 'lucide-react';
-import { Label, Input, TextArea } from '../../ui/Base';
-import IconPicker from '../../ui/IconPicker';
+import { PageData, AgendaData, CustomFont } from '../../../types';
+import { ListOrdered, Plus, X } from 'lucide-react';
+import { Input, TextArea } from '../../ui/Base';
+import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   label?: string;
+  customFonts?: CustomFont[];
   // 以下为支持简历模板的自定义标签 Props
   titleLabel?: string;
   subtitleLabel?: string;
@@ -15,19 +16,13 @@ interface FieldProps {
   locationLabel?: string;
 }
 
+/**
+ * AgendaField - 已重构：基于 FieldWrapper 与 ZineStylePanel
+ */
 export const AgendaField: React.FC<FieldProps> = ({ 
-  page, onUpdate, label, 
+  page, onUpdate, label, customFonts,
   titleLabel, subtitleLabel, timeLabel, locationLabel 
 }) => {
-  const isVisible = page.visibility?.agenda !== false;
-
-  const toggle = () => {
-    onUpdate({
-      ...page,
-      visibility: { ...(page.visibility || {}), agenda: !isVisible }
-    });
-  };
-
   const handleAgendaChange = (index: number, field: keyof AgendaData, value: any) => {
     const newAgenda = [...(page.agenda || [])];
     newAgenda[index] = { ...newAgenda[index], [field]: value };
@@ -55,17 +50,16 @@ export const AgendaField: React.FC<FieldProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
-        <div className="flex items-center gap-2">
-          <button onClick={toggle} className={`p-1.5 rounded-md transition-all ${isVisible ? 'text-[#264376] bg-[#264376]/10' : 'text-slate-300 bg-slate-50'}`}>
-            {isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button>
-          <Label icon={ListOrdered} className="mb-0">{label || 'Agenda Sections'}</Label>
-        </div>
-      </div>
-
-      <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+    <FieldWrapper 
+      page={page} 
+      onUpdate={onUpdate} 
+      fieldKey="agenda" 
+      label={label || 'Agenda Sections'} 
+      icon={ListOrdered}
+      showStyleConfig={true}
+      customFonts={customFonts}
+    >
+      <div className="space-y-6">
         {(page.agenda || []).map((section, idx) => (
           <div key={section.id || idx} className="relative group p-5 rounded-[2rem] bg-slate-50 border-2 border-transparent hover:border-slate-200 transition-all space-y-4">
             <button onClick={() => removeSection(idx)} className="absolute -top-2 -right-2 w-7 h-7 bg-white border border-slate-100 shadow-md rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"><X size={14}/></button>
@@ -103,6 +97,6 @@ export const AgendaField: React.FC<FieldProps> = ({
           <Plus size={16} /> Add Entry
         </button>
       </div>
-    </div>
+    </FieldWrapper>
   );
 };

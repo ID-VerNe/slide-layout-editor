@@ -4,13 +4,14 @@ import EditorPage from './pages/EditorPage';
 import { UIProvider } from './context/UIContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useEffect } from 'react';
+import { nativeFs } from './utils/native-fs';
 
 // 预加载常用模板
 const preloadCommonTemplates = () => {
   const commonTemplates = [
-    () => import('./components/templates/ModernFeature'),
-    () => import('./components/templates/PlatformHero'),
-    () => import('./components/templates/TableOfContents'),
+    () => import('./templates/schemas/modern-feature'),
+    () => import('./templates/schemas/platform-hero'),
+    () => import('./templates/schemas/table-of-contents'),
   ];
   
   // 使用 requestIdleCallback 或 setTimeout 来在空闲时预加载
@@ -30,11 +31,20 @@ const preloadCommonTemplates = () => {
 export default function App() {
   useEffect(() => {
     preloadCommonTemplates();
+
+    // 核心修复：应用启动时立即同步 Workspace 到主进程
+    // 解决刷新编辑器页面或重启开发服务器后资产路径丢失的问题
+    const savedWorkspace = localStorage.getItem('slidegrid_workspace');
+    if (savedWorkspace && nativeFs.isElectron()) {
+      console.log('[App] Syncing workspace:', savedWorkspace);
+      nativeFs.setActiveWorkspace(savedWorkspace);
+    }
   }, []);
 
   console.log('[App] Rendering main structure');
   return (
     <UIProvider>
+      {/* @ts-ignore */}
       <ErrorBoundary>
         <HashRouter>
           <Routes>

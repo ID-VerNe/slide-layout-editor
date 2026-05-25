@@ -1,25 +1,12 @@
 import { create } from 'zustand';
-import { PageData, AspectRatioType, ProjectTheme, PrintSettings, CustomFont } from '../types';
+import { PageData, AspectRatioType, ProjectTheme, PrintSettings, CustomFont, CounterStyle, DesignSystem } from '../types';
 import { getProject } from '../utils/db';
-
-export const DEFAULT_THEME: ProjectTheme = {
-  colors: { primary: '#0F172A', secondary: '#64748B', accent: '#264376', background: '#ffffff', surface: '#F1F3F5' },
-  typography: { headingFont: "'Playfair Display', serif", bodyFont: "'Playfair Display', serif" }
-};
-
-const DEFAULT_PRINT_SETTINGS: PrintSettings = {
-  enabled: false, widthMm: 100, heightMm: 145, gutterMm: 10,
-  showGutterShadow: true, showTrimShadow: true, showContentFrame: true,
-  configs: {
-    landscape: { bindingSide: 'bottom', trimSide: 'right' },
-    portrait: { bindingSide: 'left', trimSide: 'bottom' },
-    square: { bindingSide: 'left', trimSide: 'bottom' },
-    resume: { bindingSide: 'left', trimSide: 'bottom' }
-  }
-};
+import { nativeFs } from '../utils/native-fs';
+import { migrateToV3 } from '../utils/migrations/v2-to-v3';
+import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
 
 const getDefaultPage = (ratio: AspectRatioType, layoutId: string): PageData => ({
-  id: `slide-${Date.now()}`,
+  id: `slide-${crypto.randomUUID()}`,
   type: layoutId === 'freeform' ? 'freeform' : 'slide',
   layoutId: layoutId as any,
   aspectRatio: ratio,
@@ -39,6 +26,7 @@ interface ProjectState {
   pages: PageData[];
   projectTitle: string;
   theme: ProjectTheme;
+  designSystem: DesignSystem;
   currentPageIndex: number;
   customFonts: CustomFont[];
   imageQuality: number;
@@ -57,15 +45,16 @@ interface ProjectState {
   setPages: (pages: PageData[]) => void;
   setProjectTitle: (title: string) => void;
   setTheme: (themeUpdate: Partial<ProjectTheme>, applyToAll?: boolean) => void;
+  setDesignSystem: (ds: DesignSystem) => void;
   setPrintSettings: (settings: PrintSettings) => void;
-  setImageQuality: (quality: number) => void;
+  setImageQuality: (imageQuality: number) => void;
   setMinimalCounter: (minimal: boolean) => void;
   setCounterStyle: (style: CounterStyle) => void;
   setCustomFonts: (fonts: CustomFont[]) => void;
   setCurrentPageIndex: (index: number) => void;
   setCurrentFilePath: (path: string | null) => void;
   markAsSaved: () => void;
-  updatePage: (updatedPage: PageData) => void;
+  updatePage: (updatedPage: PageData, silent?: boolean) => void;
   addPage: (ratio: AspectRatioType, layoutId: string) => void;
   removePage: (id: string) => void;
   reorderPages: (newPages: PageData[]) => void;
@@ -74,10 +63,25 @@ interface ProjectState {
   pushHistory: () => void;
 }
 
-const deepClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+const deepClone = <T>(obj: T): T => structuredClone(obj);
 
 export const useStore = create<ProjectState>((set, get) => ({
-  pages: [], projectTitle: '', theme: DEFAULT_THEME, currentPageIndex: 0, customFonts: [], imageQuality: 0.95, minimalCounter: false, counterStyle: 'number', printSettings: DEFAULT_PRINT_SETTINGS, isLoaded: false, activeProjectId: null, currentFilePath: null, hasUnsavedChanges: false, past: [], future: [],
+  pages: [], 
+  projectTitle: '', 
+  theme: DEFAULT_THEME, 
+  designSystem: DEFAULT_DESIGN_SYSTEM, 
+  currentPageIndex: 0, 
+  customFonts: [], 
+  imageQuality: 0.95, 
+  minimalCounter: false, 
+  counterStyle: 'number', 
+  printSettings: DEFAULT_PRINT_SETTINGS, 
+  isLoaded: false, 
+  activeProjectId: null, 
+  currentFilePath: null, 
+  hasUnsavedChanges: false, 
+  past: [], 
+  future: [],
 
   createProject: (title, templateId) => {
     const id = crypto.randomUUID();
@@ -86,6 +90,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       projectTitle: title,
       pages: [{ ...getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature'), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
       theme: DEFAULT_THEME,
+      designSystem: DEFAULT_DESIGN_SYSTEM,
       currentPageIndex: 0,
       isLoaded: true,
       currentFilePath: null,
@@ -107,23 +112,31 @@ export const useStore = create<ProjectState>((set, get) => ({
     } else {
       projectData = idOrData;
       projectId = projectData.id || crypto.randomUUID();
-      // 核心修复：如果调用处传了路径，优先使用；否则尝试从数据对象中恢复
       const targetPath = filePath || projectData.filePath || null;
       set({ isLoaded: false, activeProjectId: projectId, currentFilePath: targetPath, hasUnsavedChanges: false });
     }
 
     if (projectData) {
+      // 执行 V3 迁移
+      const migratedData = migrateToV3(projectData);
+
+      if (nativeFs.isElectron()) {
+        const title = migratedData.title || migratedData.projectTitle || 'Untitled Project';
+        console.log('[Store] Syncing project context to Electron:', projectId, title);
+        nativeFs.setCurrentProject(projectId!, title);
+      }
+
       set((state) => ({
-        pages: projectData.pages || [], 
-        projectTitle: projectData.title || projectData.projectTitle || '', 
-        theme: projectData.theme || DEFAULT_THEME, 
-        customFonts: projectData.customFonts || [], 
-        imageQuality: projectData.imageQuality ?? 0.95, 
-        minimalCounter: projectData.minimalCounter ?? false, 
-        counterStyle: projectData.counterStyle || (projectData.pages?.[0]?.counterStyle) || 'number',
-        printSettings: projectData.printSettings || DEFAULT_PRINT_SETTINGS, 
-        // 关键：保留刚才设置好的路径，不要被 JSON 覆盖为空
-        currentFilePath: filePath || projectData.filePath || state.currentFilePath,
+        pages: migratedData.pages || [], 
+        projectTitle: migratedData.title || migratedData.projectTitle || '', 
+        theme: migratedData.theme || DEFAULT_THEME, 
+        designSystem: migratedData.designSystem || DEFAULT_DESIGN_SYSTEM, 
+        customFonts: migratedData.customFonts || [], 
+        imageQuality: migratedData.imageQuality ?? 0.95, 
+        minimalCounter: migratedData.minimalCounter ?? false, 
+        counterStyle: migratedData.counterStyle || (migratedData.pages?.[0]?.counterStyle) || 'number',
+        printSettings: migratedData.printSettings || DEFAULT_PRINT_SETTINGS, 
+        currentFilePath: filePath || migratedData.filePath || state.currentFilePath,
         currentPageIndex: 0, 
         isLoaded: true, 
         past: [], 
@@ -134,6 +147,7 @@ export const useStore = create<ProjectState>((set, get) => ({
         pages: [getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature')], 
         projectTitle: '', 
         theme: DEFAULT_THEME, 
+        designSystem: DEFAULT_DESIGN_SYSTEM, 
         customFonts: [], 
         imageQuality: 0.95, 
         minimalCounter: false, 
@@ -148,10 +162,20 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   pushHistory: () => {
-    const { pages, projectTitle, theme } = get();
+    const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts } = get();
     if (pages.length === 0) return;
     set((state) => ({
-      past: [...state.past, { pages: deepClone(pages), projectTitle, theme: deepClone(theme) }].slice(-50),
+      past: [...state.past, {
+        pages: deepClone(pages),
+        projectTitle,
+        theme: deepClone(theme),
+        designSystem: deepClone(designSystem),
+        printSettings: deepClone(printSettings),
+        minimalCounter,
+        counterStyle,
+        imageQuality,
+        customFonts: deepClone(customFonts),
+      }].slice(-50),
       future: [],
       hasUnsavedChanges: true
     }));
@@ -171,11 +195,12 @@ export const useStore = create<ProjectState>((set, get) => ({
   setCurrentFilePath: (currentFilePath) => set({ currentFilePath }),
   markAsSaved: () => set({ hasUnsavedChanges: false }),
 
-  updatePage: (updatedPage) => {
-    get().pushHistory();
+  updatePage: (updatedPage, silent) => {
+    if (!silent) get().pushHistory();
     const { pages } = get();
     const original = pages.find(p => p.id === updatedPage.id);
-    const GLOBAL_FIELDS: Array<keyof PageData> = ['counterStyle', 'backgroundPattern', 'footer', 'titleFont', 'bodyFont', 'logo', 'logoSize', 'counterColor'];
+    // 全局同步字段：去掉 counterStyle（统一由 setCounterStyle 管理）
+    const GLOBAL_FIELDS: Array<keyof PageData> = ['backgroundPattern', 'footer', 'titleFont', 'bodyFont', 'logo', 'logoSize', 'counterColor'];
     let hasGlobalChange = false;
     if (original) GLOBAL_FIELDS.forEach(f => { if (updatedPage[f] !== (original as any)[f]) hasGlobalChange = true; });
     let nextPages = pages.map(p => p.id === updatedPage.id ? updatedPage : p);
@@ -185,10 +210,6 @@ export const useStore = create<ProjectState>((set, get) => ({
         GLOBAL_FIELDS.forEach(f => { u[f] = (updatedPage as any)[f]; }); 
         return { ...p, ...u }; 
       });
-      // 额外修复：如果是 counterStyle 改变了，同步到全局 store 状态
-      if (updatedPage.counterStyle !== original?.counterStyle) {
-        set({ counterStyle: updatedPage.counterStyle });
-      }
     }
     set({ pages: nextPages, hasUnsavedChanges: true });
   },
@@ -222,17 +243,56 @@ export const useStore = create<ProjectState>((set, get) => ({
     });
   },
 
+  setDesignSystem: (designSystem) => {
+    get().pushHistory();
+    set({ designSystem, hasUnsavedChanges: true });
+  },
+
   undo: () => {
-    const { past, future, pages, projectTitle, theme, currentPageIndex } = get();
+    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
     if (past.length === 0) return;
     const prev = past[past.length - 1];
-    set({ pages: prev.pages, projectTitle: prev.projectTitle, theme: prev.theme, past: past.slice(0, -1), future: [{ pages: deepClone(pages), projectTitle, theme: deepClone(theme) }, ...future], currentPageIndex: Math.min(currentPageIndex, prev.pages.length - 1), hasUnsavedChanges: true });
+    // 构建完整的当前快照（用于 redo）
+    const currentSnapshot = {
+      pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
+      printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
+    };
+    set({ 
+      pages: prev.pages, projectTitle: prev.projectTitle, 
+      theme: prev.theme, designSystem: prev.designSystem,
+      printSettings: prev.printSettings || DEFAULT_PRINT_SETTINGS,
+      minimalCounter: prev.minimalCounter ?? false,
+      counterStyle: prev.counterStyle || 'number',
+      imageQuality: prev.imageQuality ?? 0.95,
+      customFonts: prev.customFonts || [],
+      past: past.slice(0, -1), 
+      future: [currentSnapshot, ...future], 
+      currentPageIndex: Math.min(currentPageIndex, prev.pages.length - 1), 
+      hasUnsavedChanges: true 
+    });
   },
 
   redo: () => {
-    const { past, future, pages, projectTitle, theme, currentPageIndex } = get();
+    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
     if (future.length === 0) return;
     const next = future[0];
-    set({ pages: next.pages, projectTitle: next.projectTitle, theme: next.theme, past: [...past, { pages: deepClone(pages), projectTitle, theme: deepClone(theme) }], future: future.slice(1), currentPageIndex: Math.min(currentPageIndex, next.pages.length - 1), hasUnsavedChanges: true });
+    const currentSnapshot = {
+      pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
+      printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
+    };
+    set({ 
+      pages: next.pages, projectTitle: next.projectTitle, 
+      theme: next.theme, designSystem: next.designSystem,
+      printSettings: next.printSettings || DEFAULT_PRINT_SETTINGS,
+      minimalCounter: next.minimalCounter ?? false,
+      counterStyle: next.counterStyle || 'number',
+      imageQuality: next.imageQuality ?? 0.95,
+      customFonts: next.customFonts || [],
+      past: [...past, currentSnapshot], 
+      future: future.slice(1), 
+      currentPageIndex: Math.min(currentPageIndex, next.pages.length - 1), 
+      hasUnsavedChanges: true 
+    });
   }
 }));
+

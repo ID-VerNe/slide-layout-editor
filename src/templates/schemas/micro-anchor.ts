@@ -1,5 +1,9 @@
 import { TemplateSchema } from './types';
 
+/**
+ * MicroAnchorSchema - 24x24 模块化迁移
+ * 极端留白设计：将锚点控制在网格的关键交汇处
+ */
 export const MicroAnchorSchema: TemplateSchema = {
   id: 'micro-anchor',
   name: 'Micro Anchor',
@@ -7,79 +11,76 @@ export const MicroAnchorSchema: TemplateSchema = {
   supportedRatios: ['2:3'],
   root: {
     type: 'Container',
-    layout: 'absolute',
-    layoutProps: { inset: 0 },
-    className: 'w-full h-full relative p-12 transition-all duration-700 overflow-hidden isolate',
-    style: {
-      backgroundColor: '{page.backgroundColor ?? theme.colors.background ?? "#FAFAF9"}'
-    },
+    layout: 'modular',
+    layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
+    className: 'w-full h-full relative p-0 overflow-hidden',
     children: [
+      // 1. 顶部极简装饰文本
       {
-        type: 'Container',
-        layout: 'absolute',
-        layoutProps: { top: '25%', left: 0, right: 0 },
-        className: 'w-full text-center px-24 pointer-events-none',
-        children: [
-          {
-            type: 'Component',
-            componentType: 'SlideBlockLabel',
-            bind: 'page.title',
-            props: {
-              text: '{page.title ?? "THE SILENCE OF THE FRAME"}',
-              className: '!italic !uppercase !font-bold !tracking-[0.5em] !opacity-40 !border-none',
-              color: '{theme.colors.primary}',
-              style: {
-                fontSize: '{page.styleOverrides?.title?.fontSize ? page.styleOverrides.title.fontSize + "px" : "11px"}',
-                textAlign: 'center'
-              }
-            }
-          }
-        ]
+        type: 'Component',
+        componentType: 'ZineCaption',
+        modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 1 },
+        props: {
+          text: '{page.title || "THE SILENCE OF THE FRAME"}',
+          className: '!italic !font-bold !tracking-[0.6em] !opacity-20 text-center',
+          style: { fontSize: '10px' }
+        }
       },
+
+      // 2. 悬浮媒体容器 (使用 Conditional 处理左右变体)
       {
         type: 'Container',
-        layout: 'flex',
-        layoutProps: {
-          direction: 'column',
-          align: '{page.layoutVariant === "right" ? "end" : "start"}' as any,
-        },
-        className: 'absolute w-fit animate-in fade-in slide-in-from-bottom-4 duration-1000 {page.layoutVariant === "right" ? "right-16" : "left-16"}',
-        style: { bottom: '2.5rem' },
+        layout: 'modular',
+        layoutProps: { columns: 24, rows: 24 },
+        className: 'absolute inset-0',
         children: [
           {
-            type: 'Container',
-            layout: 'flex',
-            className: 'aspect-[3/4] bg-white shadow-[0_30px_100px_rgba(0,0,0,0.06)] overflow-hidden mb-8 border-[1px] border-slate-50',
-            style: { width: '18rem' },
-            children: [
-              {
-                type: 'Component',
-                componentType: 'SlideImage',
-                props: {
-                  className: 'w-full h-full object-cover',
-                  rounded: '0',
-                  backgroundColor: 'transparent'
+            type: 'Conditional',
+            condition: '{page.layoutVariant === "right"}',
+            then: {
+              type: 'Container',
+              layout: 'flex',
+              layoutProps: { direction: 'column', align: 'end' },
+              modular: { colStart: 15, colSpan: 8, rowStart: 10, rowSpan: 13 },
+              children: [
+                {
+                  type: 'Component',
+                  componentType: 'ZineMedia',
+                  props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                },
+                {
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.subtitle',
+                  props: {
+                    className: 'mt-6 !tracking-[0.2em] !font-bold !text-right',
+                    color: 'secondary'
+                  }
                 }
-              }
-            ]
-          },
-          {
-            type: 'Container',
-            layout: 'flex',
-            className: 'relative',
-            style: { width: '18rem' },
-            children: [
-              {
-                type: 'Component',
-                componentType: 'SlideSubHeadline',
-                bind: 'page.subtitle',
-                props: {
-                  className: '!tracking-[0.2em] !font-bold !uppercase !opacity-100 !leading-[1.4] !m-0 !p-0 {page.layoutVariant === "right" ? "!text-right" : "!text-left"}',
-                  color: '{theme.colors.secondary}',
-                  size: '0.75rem'
+              ]
+            },
+            else: {
+              type: 'Container',
+              layout: 'flex',
+              layoutProps: { direction: 'column', align: 'start' },
+              modular: { colStart: 2, colSpan: 8, rowStart: 10, rowSpan: 13 },
+              children: [
+                {
+                  type: 'Component',
+                  componentType: 'ZineMedia',
+                  props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                },
+                {
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.subtitle',
+                  props: {
+                    className: 'mt-6 !tracking-[0.2em] !font-bold !text-left',
+                    color: 'secondary'
+                  }
                 }
-              }
-            ]
+              ]
+            }
           }
         ]
       }

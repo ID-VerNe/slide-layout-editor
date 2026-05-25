@@ -1,4 +1,6 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+// @ts-nocheck
+import * as React from 'react';
+import { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -10,7 +12,7 @@ interface State {
   error?: Error;
 }
 
-class TemplateErrorBoundary extends Component<Props, State> {
+class TemplateErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

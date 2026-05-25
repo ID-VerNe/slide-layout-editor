@@ -46,9 +46,9 @@ export class ExpressionEvaluator {
       return left === right;
     }
 
-    // 处理空值合并 (??)
-    if (cleanExpr.includes('??')) {
-      const parts = cleanExpr.split('??').map(p => p.trim());
+    // 处理空值合并 (??) 或 逻辑或 (||)
+    if (cleanExpr.includes('??') || cleanExpr.includes('||')) {
+      const parts = cleanExpr.split(/\?\?|\|\|/).map(p => p.trim());
       for (const part of parts) {
         const value = this.evaluatePart(part, context);
         if (value !== null && value !== undefined && value !== '') {
@@ -77,12 +77,18 @@ export class ExpressionEvaluator {
     // 处理数字
     if (!isNaN(Number(part)) && part !== '') return Number(part);
 
-    const parts = part.split(/[\.\[\]\?]+/).filter(Boolean);
+    // 路径分割：正确处理 . ?. [ ] 运算符
+    // 将 ?. 替换为特殊标记后统一处理
+    const normalized = part.replace(/\?\./g, '.?.');
+    const segments = normalized.split(/\.(?!\?)|\[|\]/).filter(Boolean);
     
     let current: any = context;
-    for (const part of parts) {
+    let isOptional = false;
+    for (const seg of segments) {
+      if (seg === '?') { isOptional = true; continue; }
       if (current === null || current === undefined) return undefined;
-      current = current[part];
+      current = current[seg];
+      isOptional = false;
     }
 
     return current;
@@ -129,7 +135,9 @@ export class ExpressionEvaluator {
     if (this.hasExpression(obj)) {
       // 如果整个字符串就是一个表达式 e.g. "{page.logoSize}", 尝试保持原始类型
       if (obj.startsWith('{') && obj.endsWith('}') && obj.indexOf('{', 1) === -1) {
-        return this.evaluate(obj, context);
+        const result = this.evaluate(obj, context);
+        // 类型矫正：布尔值保持布尔，避免下游组件收到意外类型
+        return result;
       }
       return this.interpolate(obj, context);
     }

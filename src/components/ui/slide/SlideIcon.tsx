@@ -1,6 +1,9 @@
 import React from 'react';
 import { LUCIDE_ICON_MAP } from '../../../constants/icons';
 import { HelpCircle } from 'lucide-react';
+import { Icon as IconAtom } from './atoms/Icon';
+import { Image as ImageAtom } from './atoms/Image';
+import { useModularStyle } from './hooks/useModularStyle';
 
 interface SlideIconProps {
   name: string;
@@ -13,8 +16,7 @@ interface SlideIconProps {
 }
 
 /**
- * SlideIcon 原子组件
- * 统一处理 Lucide 图标、Material Symbols 和 Base64 图片/URL 资产
+ * SlideIcon - 已重构：支持多种图标源并利用 Modular Hooks
  */
 export const SlideIcon: React.FC<SlideIconProps> = ({ 
   name, 
@@ -23,32 +25,39 @@ export const SlideIcon: React.FC<SlideIconProps> = ({
   color,
   weight,
   strokeWidth = 2.5,
-  style
+  style: customStyle
 }) => {
+  const { style, className: resolvedClassName } = useModularStyle({
+    props: { color },
+    customStyle,
+    className
+  });
+
   if (!name) return null;
 
   // 1. 处理图片/URL
   const isImage = name.startsWith('data:image') || name.includes('http') || name.includes('/') || name.includes('.');
   if (isImage) {
     return (
-      <div 
-        className={`flex items-center justify-center overflow-hidden ${className}`}
+      <ImageAtom 
+        url={name}
+        className={`flex items-center justify-center overflow-hidden ${resolvedClassName}`}
+        imgClassName="object-contain"
         style={{ width: size, height: size, ...style }}
-      >
-        <img src={name} className="w-full h-full object-contain" alt="Icon" crossOrigin="anonymous" />
-      </div>
+      />
     );
   }
 
-  // 2. 处理 Material Symbols (通常包含下划线或小写开头)
+  // 2. 处理 Material Symbols
   const isMaterial = name.includes('_') || /^[a-z]/.test(name);
   if (isMaterial) {
     return (
-      <span 
-        className={`material-symbols-outlined notranslate select-none ${className}`}
-        style={{ 
-          fontSize: `${size}px`, 
-          color: color || 'inherit',
+      <IconAtom
+        name={name.toLowerCase()}
+        size={`${size}px`}
+        color={style.color as string || 'inherit'}
+        className={resolvedClassName}
+        style={{
           fontWeight: weight || 'normal',
           fontVariationSettings: `'FILL' 0, 'wght' ${weight || 400}, 'GRAD' 0, 'opsz' 24`,
           display: 'inline-block',
@@ -56,22 +65,20 @@ export const SlideIcon: React.FC<SlideIconProps> = ({
           textTransform: 'none',
           ...style
         }}
-      >
-        {name.toLowerCase()}
-      </span>
+      />
     );
   }
 
   // 3. 处理 Lucide 图标
   const PascalName = name.charAt(0).toUpperCase() + name.slice(1);
-  const Icon = LUCIDE_ICON_MAP[PascalName] || LUCIDE_ICON_MAP[name] || HelpCircle;
+  const LucideIcon = LUCIDE_ICON_MAP[PascalName] || LUCIDE_ICON_MAP[name] || HelpCircle;
 
   return (
-    <Icon 
+    <LucideIcon 
       size={size} 
       strokeWidth={strokeWidth} 
-      className={className} 
-      style={{ color: color || 'inherit', ...style }} 
+      className={resolvedClassName} 
+      style={{ color: style.color as string || 'inherit', ...style }} 
     />
   );
 };

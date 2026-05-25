@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { PageData, FeatureData, CustomFont } from '../../../types';
 import { Eye, EyeOff, Layout, Plus, X, SlidersHorizontal, RotateCcw, HelpCircle } from 'lucide-react';
 import { LUCIDE_ICON_MAP } from '../../../constants/icons';
@@ -14,16 +14,19 @@ interface FieldProps {
 
 export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
+  const migratedRef = useRef(false);
   const isVisible = page.visibility?.features !== false;
 
-  // Auto-generate IDs for legacy data
+  // Auto-generate IDs for legacy data（仅执行一次）
   React.useEffect(() => {
+    if (migratedRef.current) return;
     const features = page.features || [];
     if (features.some(f => !f.id)) {
+      migratedRef.current = true;
       const migrated = features.map(f => f.id ? f : { ...f, id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
       onUpdate({ ...page, features: migrated });
     }
-  }, [page.features, onUpdate, page]);
+  }, [page.features]);
 
   const toggle = () => {
     onUpdate({
@@ -56,7 +59,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
       features: [...currentFeatures, { 
         id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: 'New Feature', 
-        desc: 'Feature description goes here.', 
+        description: 'Feature description goes here.', 
         icon: 'Globe' 
       }]
     });
@@ -208,9 +211,9 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
                   />
                   <TextArea 
                     placeholder="Description text..." 
-                    value={f.desc || ''} 
+                    value={f.description || f.desc || ''} 
                     rows={2}
-                    onChange={(e) => handleFeatureChange(idx, 'desc', e.target.value)}
+                    onChange={(e) => handleFeatureChange(idx, 'description', e.target.value)}
                     className="text-[11px] bg-white leading-relaxed"
                     style={{ fontFamily: (page.styleOverrides as any)?.featureDesc?.fontFamily }}
                   />

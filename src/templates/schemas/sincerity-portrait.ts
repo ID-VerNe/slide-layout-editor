@@ -1,5 +1,9 @@
 import { TemplateSchema } from './types';
 
+/**
+ * SincerityPortraitSchema - 24x24 模块化迁移
+ * 强调非对称平衡：左侧大面积正文，右下角悬浮肖像
+ */
 export const SincerityPortraitSchema: TemplateSchema = {
   id: 'sincerity-portrait',
   name: 'Sincerity Portrait',
@@ -7,120 +11,77 @@ export const SincerityPortraitSchema: TemplateSchema = {
   supportedRatios: ['2:3'],
   root: {
     type: 'Container',
-    layout: 'absolute',
-    layoutProps: { inset: 0 },
-    className: 'w-full h-full relative p-12 transition-all duration-700 overflow-hidden isolate',
-    style: {
-      backgroundColor: '{page.backgroundColor ?? theme.colors.background ?? "#FFFFFF"}'
-    },
+    layout: 'modular',
+    layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
+    className: 'w-full h-full relative p-0 overflow-hidden',
     children: [
+      // 1. 顶部背景文本 (Decorative Background Title)
       {
-        type: 'Container',
-        layout: 'absolute',
-        layoutProps: { top: '20%', left: 0, right: 0 },
-        className: 'w-full text-center px-24 pointer-events-none z-0',
-        children: [
-          {
-            type: 'Component',
-            componentType: 'SlideBlockLabel',
-            bind: 'page.title',
-            props: {
-              text: '{page.title ?? "THE SILENCE OF THE FRAME"}',
-              className: '!italic !uppercase !font-bold !tracking-[0.5em] !opacity-[0.15] !border-none',
-              color: '{theme.colors.primary}',
-              style: {
-                fontSize: '{page.styleOverrides?.title?.fontSize ? page.styleOverrides.title.fontSize + "px" : "14px"}',
-                textAlign: 'center'
-              }
-            }
-          }
-        ]
+        type: 'Component',
+        componentType: 'ZineCaption',
+        modular: { colStart: 1, colSpan: 24, rowStart: 6, rowSpan: 2 },
+        props: {
+          text: '{page.title || "THE SILENCE OF THE FRAME"}',
+          className: '!italic !font-bold !tracking-[0.8em] !opacity-10 text-center',
+          style: { fontSize: '14px' }
+        }
       },
+
+      // 2. 标题区 (Display)
       {
-        type: 'Container',
-        layout: 'flex',
-        layoutProps: { direction: 'column' },
-        className: 'relative z-10 mt-24 ml-8 max-w-[60%] animate-in fade-in slide-in-from-left-8 duration-1000',
-        children: [
-          {
-            type: 'Component',
-            componentType: 'SlideHeadline',
-            bind: 'page.title',
-            props: {
-              className: '!text-left !tracking-widest !mb-6 !normal-case',
-              maxSize: 42,
-              minSize: 24,
-              color: '{theme.colors.primary}',
-              style: {
-                fontFamily: '{page.styleOverrides?.title?.fontFamily ?? theme.typography.headingFont ?? "\'Playfair Display\', serif"}',
-                fontWeight: 400,
-                lineHeight: 1.2
-              }
-            }
-          },
-          {
-            type: 'Component',
-            componentType: 'SlideSubHeadline',
-            bind: 'page.subtitle',
-            props: {
-              className: '!text-left !tracking-[0.1em] !opacity-90 !mb-8 !italic',
-              color: '{theme.colors.secondary}',
-              size: '1.1rem'
-            }
-          },
-          {
-            type: 'Component',
-            componentType: 'SlideParagraph',
-            bind: 'page.paragraph',
-            props: {
-              className: '!text-left !opacity-70',
-              size: '0.95rem',
-              color: '{theme.colors.secondary}'
-            }
-          }
-        ]
+        type: 'Component',
+        componentType: 'ZineDisplay',
+        modular: { colStart: 3, colSpan: 12, rowStart: 4, rowSpan: 4 },
+        bind: 'page.title',
+        props: {
+          className: '!normal-case !font-normal',
+          color: 'primary'
+        }
       },
+
+      // 3. 副标题 (Caption)
       {
-        type: 'Container',
-        layout: 'absolute',
-        layoutProps: { bottom: 20, right: 12 },
-        className: 'animate-in fade-in slide-in-from-bottom-8 duration-1000 z-10',
-        style: { width: '70%' },
-        children: [
-          {
-            type: 'Container',
-            layout: 'flex',
-            className: 'aspect-[3/4] bg-white shadow-[0_50px_140px_rgba(0,0,0,0.1)] overflow-hidden border-[1px] border-slate-100/30',
-            children: [
-              {
-                type: 'Component',
-                componentType: 'SlideImage',
-                props: {
-                  className: 'w-full h-full object-cover',
-                  rounded: '0',
-                  backgroundColor: 'transparent'
-                }
-              }
-            ]
-          },
-          {
-            type: 'Container',
-            layout: 'flex',
-            layoutProps: { justify: 'end' },
-            className: 'mt-4 opacity-40',
-            children: [
-              {
-                type: 'Component',
-                componentType: 'SlideBlockLabel',
-                props: {
-                  fieldKey: 'imageLabel',
-                  className: '!p-0 !border-none !italic !text-[10px] !tracking-widest',
-                  color: '{theme.colors.secondary}'
-                }
-              }
-            ]
-          }
-        ]
+        type: 'Component',
+        componentType: 'ZineCaption',
+        modular: { colStart: 3, colSpan: 12, rowStart: 8, rowSpan: 1 },
+        bind: 'page.subtitle',
+        props: {
+          className: '!italic !tracking-[0.1em]',
+          color: 'secondary'
+        }
+      },
+
+      // 4. 正文 (Body)
+      {
+        type: 'Component',
+        componentType: 'ZineBody',
+        modular: { colStart: 3, colSpan: 10, rowStart: 10, rowSpan: 10 },
+        bind: 'page.paragraph',
+        props: {
+          color: 'secondary'
+        }
+      },
+
+      // 5. 悬浮肖像 (Media)
+      {
+        type: 'Component',
+        componentType: 'ZineMedia',
+        modular: { colStart: 14, colSpan: 9, rowStart: 10, rowSpan: 12 },
+        props: {
+          className: 'shadow-2xl z-20 border-[0.5px] border-white/20',
+        }
+      },
+
+      // 6. 图片说明 (Caption)
+      {
+        type: 'Component',
+        componentType: 'ZineCaption',
+        modular: { colStart: 14, colSpan: 9, rowStart: 22, rowSpan: 1 },
+        props: {
+          text: '{page.imageLabel || "CATALOG / FIG. 01"}',
+          className: '!p-0 !italic !text-[9px] !tracking-widest opacity-40 text-right',
+          color: 'secondary'
+        }
       }
     ]
   }

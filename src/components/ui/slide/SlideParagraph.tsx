@@ -1,90 +1,71 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
 import { useStore } from '../../../store/useStore';
+import { useDataConnector } from './hooks/useDataConnector';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Text } from './atoms/Text';
 
 interface SlideParagraphProps {
   page: PageData;
-  typography?: TypographySettings; 
-  className?: string;
-  color?: string;
+  typography?: TypographySettings;
   size?: string;
-  dropCap?: boolean; 
+  color?: string;
+  className?: string;
   style?: React.CSSProperties;
+  maxLines?: number;
 }
 
 /**
- * SlideParagraph - 高优先级颜色感应版
+ * SlideParagraph - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
 export const SlideParagraph: React.FC<SlideParagraphProps> = ({ 
   page, 
   typography,
+  size, 
+  color, 
   className = "",
-  color,
-  size,
-  dropCap = false,
-  style = {}
+  style: customStyle,
+  maxLines = 100
 }) => {
   const theme = useStore((state) => state.theme);
-  
-  const text = page.paragraph;
-  if (!text) return null;
 
-  const sanitizedText = DOMPurify.sanitize(text, { 
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'span'],
-    ALLOWED_ATTR: ['style', 'class'] 
+  // 1. 数据连接
+  const { content, overrides, isVisible } = useDataConnector('paragraph', page);
+  
+  // 2. 样式解析
+  const { style, className: resolvedClassName } = useModularStyle({
+    fieldKey: 'paragraph',
+    overrides,
+    props: { color },
+    variant: 'body',
+    customStyle,
+    className
   });
 
-  const overrides = page.styleOverrides?.paragraph || {};
-  const fontSize = overrides.fontSize ? `${overrides.fontSize}px` : (size || '1.15rem');
-  const lineHeight = overrides.lineHeight || 1.8;
-  
-  /**
-   * 核心修复：优先级重排
-   */
-  const textColor = overrides.color || color || theme?.colors?.primary || '#4b5563';
+  if (!isVisible || !content) return null;
 
   const getFontFamily = () => {
-    if (overrides.fontFamily) return overrides.fontFamily;
+    if (style.fontFamily) return style.fontFamily;
     const fieldFont = typography?.fieldOverrides?.['paragraph'];
     if (fieldFont) return fieldFont;
-    const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
-    return `${latin}`;
+    return page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
   };
 
-  const currentFont = getFontFamily();
+  const finalStyle: React.CSSProperties = {
+    ...style,
+    fontSize: style.fontSize || size || '1rem',
+    fontFamily: getFontFamily(),
+    lineHeight: style.lineHeight || 1.6,
+    textAlign: style.textAlign || 'justify',
+  };
 
   return (
-    <div 
-      className={`whitespace-pre-line text-justify ${className}`}
-      style={{ 
-        ...style,
-        fontFamily: currentFont,
-        fontSize,
-        lineHeight,
-        color: textColor
-      }}
-    >
-      {dropCap && text.length > 0 ? (
-        <div className="relative" style={{ fontFamily: currentFont }}>
-          <span 
-            className="float-left font-medium select-none mr-4"
-            style={{ 
-              fontFamily: currentFont,
-              fontSize: '4.2rem',
-              lineHeight: '0.8',
-              marginTop: '0.45rem',
-              marginBottom: '-0.2rem',
-              color: textColor 
-            }} 
-          >
-            {text.charAt(0)}
-          </span>
-          <span className="inline" style={{ fontFamily: currentFont }} dangerouslySetInnerHTML={{ __html: sanitizedText.slice(1) }} />
-        </div>
-      ) : (
-        <span style={{ fontFamily: currentFont }} dangerouslySetInnerHTML={{ __html: sanitizedText }} />
-      )}
-    </div>
+    <Text
+      as="div"
+      content={content}
+      maxLines={maxLines}
+      className={`whitespace-pre-line ${resolvedClassName}`}
+      style={finalStyle}
+    />
   );
 };

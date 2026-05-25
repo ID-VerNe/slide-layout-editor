@@ -3,7 +3,7 @@ import { ImageVariant } from '../src/utils/imageUtils';
 
 export async function processResponsiveImages(
   buffer: Buffer,
-  formats: ('webp' | 'avif' | 'jpg' | 'png')[] = ['webp', 'jpg']
+  formats: ('webp' | 'avif' | 'jpg' | 'jpeg' | 'png')[] = ['webp', 'jpg']
 ): Promise<ImageVariant[]> {
   const variants: ImageVariant[] = [];
   const sizes = [320, 640, 1280, 1920];

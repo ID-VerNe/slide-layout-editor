@@ -3,15 +3,13 @@ import { PageData } from '../../../types';
 import { useAssetUrl } from '../../../hooks/useAssetUrl';
 import { useResponsiveImage } from '../../../hooks/useResponsiveImage';
 import { generateLQIP } from '../../../utils/lqip';
-
-interface ImageConfig {
-  scale: number;
-  x: number;
-  y: number;
-}
+import { useDataConnector } from './hooks/useDataConnector';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Image, ImageConfig } from './atoms/Image';
 
 interface SlideImageProps {
   page: PageData;
+  fieldKey?: string; // 新增
   src?: string;
   config?: ImageConfig;
   className?: string;
@@ -26,11 +24,11 @@ interface SlideImageProps {
 }
 
 /**
- * SlideImage 优化版
- * 核心升级：支持响应式图片、渐进式加载 (LQIP)、布局抖动消除和加载优先级。
+ * SlideImage - 已重构：使用 Atomic Image 组件与 Modular Hooks
  */
 export const SlideImage: React.FC<SlideImageProps> = React.memo(({ 
   page, 
+  fieldKey = 'image', // 默认 fieldKey
   src: overrideSrc,
   config: overrideConfig,
   className = "", 
@@ -39,34 +37,40 @@ export const SlideImage: React.FC<SlideImageProps> = React.memo(({
   border,
   shadow,
   backgroundColor,
-  style,
+  style: customStyle,
   priority = false,
   sizes = "(max-width: 768px) 100vw, 50vw"
 }) => {
-  const isVisible = page.visibility?.image !== false;
-  
-  // 修复路径拼接：避免出现 //example_pic 这种协议相对路径
+  // 1. 数据连接
+  const { content: pageSrc, isVisible } = useDataConnector(fieldKey, page);
+  const { content: pageConfig } = useDataConnector(fieldKey === 'image' ? 'imageConfig' : `${fieldKey}Config`, page);
+
+  // 2. 样式解析 (利用 useModularStyle 处理 Zine Mode 等)
+  const { style, className: resolvedClassName } = useModularStyle({
+    page, // 传入 page
+    fieldKey,
+    props: { backgroundColor },
+    customStyle,
+    className
+  });
+
+  // 3. 资源解析 (保持原有 Hook 逻辑)
   const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//') 
     ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1) 
     : `${baseUrl}/example_pic/example_pic_1.png`;
     
-  const rawSrc = overrideSrc || page.image || placeholderSrc;
+  const rawSrc = overrideSrc || pageSrc || placeholderSrc;
   
-  const { url, isLoading: isAssetLoading, dimensions } = useAssetUrl(rawSrc);
+  const { url, isLoading, dimensions } = useAssetUrl(rawSrc);
   const { srcSet, variants } = useResponsiveImage(rawSrc, { priority, sizes });
-  
-  // 检查是否是 asset 协议，如果是，由于主进程只保存一种最优格式，我们应跳过 picture 变体尝试
   const isAssetProtocol = rawSrc.startsWith('asset://');
   
   const [lqip, setLqip] = useState<string | undefined>(undefined);
-  const [showLqip, setShowLqip] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // 关键修复：当图片源改变时，重置加载状态和占位图状态
   useEffect(() => {
     setIsLoaded(false);
-    setShowLqip(true);
   }, [rawSrc]);
 
   useEffect(() => {
@@ -75,81 +79,40 @@ export const SlideImage: React.FC<SlideImageProps> = React.memo(({
     }
   }, [url, priority, isLoaded]);
 
-  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    if (e.currentTarget.complete) {
-      setIsLoaded(true);
-      setTimeout(() => setShowLqip(false), 300);
-    }
+  const handleLoad = useCallback(() => {
+    setIsLoaded(true);
   }, []);
 
   if (!isVisible) return null;
 
-  const config = overrideConfig || page.imageConfig || { scale: 1, x: 0, y: 0 };
-  const posX = (config.x + 100) / 2;
-  const posY = (config.y + 100) / 2;
-
-  const containerStyle: React.CSSProperties = useMemo(() => ({
-    borderRadius: rounded || '0.125rem',
-    border: border || 'none',
-    boxShadow: shadow || 'none',
-    overflow: 'hidden',
-    backgroundColor: backgroundColor || '#000000', 
-    contain: 'paint layout style', // 优化渲染性能
-    aspectRatio: dimensions.width && dimensions.height 
+  const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
+  
+  const containerStyle: React.CSSProperties = {
+    ...style,
+    borderRadius: rounded || style.borderRadius || '0.125rem',
+    border: border || style.border || 'none',
+    boxShadow: shadow || style.boxShadow || 'none',
+    backgroundColor: backgroundColor || style.backgroundColor || '#000000',
+    aspectRatio: dimensions?.width && dimensions?.height 
       ? `${dimensions.width} / ${dimensions.height}` 
-      : undefined,
-    ...style
-  }), [rounded, border, shadow, backgroundColor, dimensions, style]);
-
-  const imageStyle: React.CSSProperties = useMemo(() => ({
-    transform: `scale(${config.scale})`,
-    objectPosition: `${posX}% ${posY}%`,
-    transformOrigin: `${posX}% ${posY}%`
-  }), [config.scale, posX, posY]);
+      : style.aspectRatio,
+  };
 
   return (
-    <div className={`relative flex items-center justify-center ${className}`} style={containerStyle}>
-      {/* LQIP 占位图 */}
-      {lqip && showLqip && (
-        <img
-          key={`lqip-${rawSrc}`} // 强制重新挂载占位图
-          src={lqip}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-0' : 'opacity-100'}`}
-          style={{ ...imageStyle, filter: 'blur(10px)' }}
-          alt="Loading Placeholder"
-        />
-      )}
-      
-      {url && (
-        <picture className="w-full h-full block">
-          {!isAssetProtocol && variants?.webp && (
-            <source srcSet={variants.webp.srcSet} type="image/webp" sizes={sizes} />
-          )}
-          {!isAssetProtocol && variants?.avif && (
-            <source srcSet={variants.avif.srcSet} type="image/avif" sizes={sizes} />
-          )}
-          <img 
-            key={`img-${rawSrc}`} // 强制重新挂载主图以确保 onLoad 触发
-            src={url} 
-            srcSet={!isAssetProtocol ? srcSet : undefined}
-            sizes={sizes}
-            crossOrigin="anonymous"
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            className={`w-full h-full object-cover transition-all duration-300 ease-out ${imgClassName} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={imageStyle}
-            onLoad={handleLoad}
-          />
-        </picture>
-      )}
-      
-      {/* 基础 Loading 动画（仅在没有 LQIP 且加载中时显示） */}
-      {isAssetLoading && !lqip && (
-        <div className="absolute inset-0 bg-slate-50 animate-pulse flex items-center justify-center">
-           <div className="w-8 h-8 rounded-full border-2 border-[#264376]/20 border-t-[#264376] animate-spin" />
-        </div>
-      )}
-    </div>
+    <Image
+      url={url}
+      srcSet={!isAssetProtocol ? srcSet : undefined}
+      variants={variants}
+      lqip={lqip}
+      config={config}
+      isLoading={isLoading}
+      priority={priority}
+      sizes={sizes}
+      className={resolvedClassName}
+      imgClassName={imgClassName}
+      style={containerStyle}
+      onLoad={handleLoad}
+    />
   );
 }, (prevProps, nextProps) => {
   return (

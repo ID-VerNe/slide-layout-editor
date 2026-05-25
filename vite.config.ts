@@ -26,7 +26,6 @@ export default defineConfig(({ mode }) => {
           {
             // Main-Process entry file of the Electron App.
             entry: 'electron/main.ts',
-            onselect: (on) => on.restart(),
             vite: {
               build: {
                 rollupOptions: {
@@ -37,7 +36,6 @@ export default defineConfig(({ mode }) => {
           },
           {
             entry: 'electron/preload.ts',
-            onselect: (on) => on.reload(),
           },
         ]),
       ],

@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Default Zine Tokens */
+  --zine-color-primary: #0F172A;
+  --zine-color-secondary: #64748B;
+  --zine-color-accent: #264376;
+  --zine-color-background: #ffffff;
+  --zine-color-surface: #F1F3F5;
+  
+  /* Baseline Grid Constant */
+  --zine-baseline: 8px;
+}
+
 /* ==========================================================================
    WIREFRAME BLUEPRINT SYSTEM 
    用于将真实模板组件瞬间转化为抽象预览图

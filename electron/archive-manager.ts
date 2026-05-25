@@ -22,21 +22,46 @@ export class ProjectArchiveManager {
 
   /**
    * 获取物理存储目录
-   * 核心改进：对项目标题进行更彻底的清理，防止路径匹配失败
+   * 核心改进：优先通过 ID 后缀匹配现有文件夹，防止因标题修改导致资产丢失
    */
   private async getProjectFolder() {
     if (!this.workspacePath) {
       this.workspacePath = path.join(app.getPath('userData'), 'DefaultWorkspace');
     }
     
-    // 1. 移除非法字符，将空格替换为下划线以增加路径稳定性
-    const safeName = this.currentProjectName
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '') // 移除控制字符和非法符号
+    if (!existsSync(this.workspacePath)) {
+      await fs.mkdir(this.workspacePath, { recursive: true });
+    }
+
+    const idSuffix = this.currentProjectId?.slice(0, 8) || 'temp';
+    const safeName = (this.currentProjectName || 'Project')
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
       .trim()
-      .replace(/\s+/g, '_'); // 空格转下划线
+      .replace(/\s+/g, '_');
       
-    // 2. 文件夹名格式：标题_ID
-    const folderName = `${safeName || 'Project'}_${this.currentProjectId?.slice(0, 8) || 'temp'}`;
+    // 1. 尝试在 Workspace 中寻找 ID 匹配的现有文件夹
+    const items = await fs.readdir(this.workspacePath);
+    let existingFolder = items.find(item => item.endsWith(`_${idSuffix}`));
+
+    if (existingFolder) {
+      const fullPath = path.join(this.workspacePath, existingFolder);
+      // 如果标题变了，尝试重命名文件夹以保持可读性（可选，但推荐）
+      const newFolderName = `${safeName}_${idSuffix}`;
+      if (existingFolder !== newFolderName) {
+        try {
+          const newPath = path.join(this.workspacePath, newFolderName);
+          await fs.rename(fullPath, newPath);
+          return newPath;
+        } catch (e) {
+          // 重命名失败（可能被占用），则继续使用旧路径
+          return fullPath;
+        }
+      }
+      return fullPath;
+    }
+    
+    // 2. 如果不存在，则创建新文件夹
+    const folderName = `${safeName}_${idSuffix}`;
     const projectPath = path.join(this.workspacePath, folderName);
     
     if (!existsSync(projectPath)) await fs.mkdir(projectPath, { recursive: true });

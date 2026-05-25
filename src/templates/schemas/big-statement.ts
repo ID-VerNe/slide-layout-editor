@@ -1,73 +1,60 @@
 import { TemplateSchema } from './types';
 
+/**
+ * BigStatementSchema - 24x24 模块化迁移
+ * 强调极端的居中对齐与文字张力
+ */
 export const BigStatementSchema: TemplateSchema = {
   id: 'big-statement',
   name: 'Big Statement',
   category: 'General',
-  supportedRatios: ['16:9', '1:1'], // 从现有的支持列表中获取
+  supportedRatios: ['16:9', '1:1', '2:3'],
   root: {
     type: 'Container',
-    layout: 'flex',
-    layoutProps: {
-      direction: 'column',
-      align: 'center',
-      justify: 'center',
-    },
-    // 处理背景图案动态类名和渐变
-    className: 'w-full h-full relative px-48 text-center overflow-hidden transition-all duration-700 isolate bg-pattern-{page.backgroundPattern}',
-    style: {
-      backgroundColor: '{page.backgroundColor ?? theme.colors.background ?? "#ffffff"}'
-    },
+    layout: 'modular',
+    layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
+    className: 'w-full h-full relative p-0 overflow-hidden',
     children: [
-      {
-        type: 'Conditional',
-        condition: '{page.backgroundColor === "#ffffff"}',
-        then: {
-          type: 'Container',
-          layout: 'absolute',
-          layoutProps: { inset: 0 },
-          className: 'bg-gradient-to-br from-slate-50 to-white pointer-events-none',
-          children: []
-        }
-      },
+      // 1. 渐变背景叠加
       {
         type: 'Container',
-        layout: 'flex',
-        layoutProps: {
-          direction: 'column',
-          align: 'center',
-          gap: '2.5rem', // gap-10 = 2.5rem
-        },
-        className: 'max-w-5xl z-10',
-        children: [
-          {
-            type: 'Container',
-            layout: 'flex',
-            className: 'relative',
-            children: [
-              {
-                type: 'Component',
-                componentType: 'SlideHeadline',
-                bind: 'page.title',
-                props: {
-                  maxSize: 84,
-                  minSize: 48,
-                  className: '!font-medium leading-[1.2] tracking-tight'
-                }
-              }
-            ]
-          },
-          {
-            type: 'Component',
-            componentType: 'SlideSubHeadline',
-            bind: 'page.subtitle',
-            props: {
-              size: '1.1rem',
-              color: '{page.styleOverrides?.subtitle?.color ?? theme.colors.secondary}',
-              className: '!font-bold !tracking-[0.3em] !uppercase !opacity-60'
-            }
-          }
-        ]
+        layout: 'absolute',
+        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 24 },
+        className: 'bg-gradient-to-br from-zine-surface/10 to-transparent pointer-events-none',
+        children: []
+      },
+
+      // 2. 居中标题 (Display)
+      {
+        type: 'Component',
+        componentType: 'ZineDisplay',
+        modular: { colStart: 3, colSpan: 20, rowStart: 9, rowSpan: 7 },
+        bind: 'page.title',
+        props: {
+          className: 'text-center !font-medium !tracking-tight',
+          color: 'primary'
+        }
+      },
+
+      // 3. 装饰分割线
+      {
+        type: 'Container',
+        layout: 'absolute',
+        modular: { colStart: 11, colSpan: 4, rowStart: 16, rowSpan: 1 },
+        className: 'border-t-4 border-zine-accent mt-4',
+        children: []
+      },
+
+      // 4. 副标题 (Caption)
+      {
+        type: 'Component',
+        componentType: 'ZineCaption',
+        modular: { colStart: 3, colSpan: 20, rowStart: 18, rowSpan: 1 },
+        bind: 'page.subtitle',
+        props: {
+          className: 'text-center !tracking-[0.4em] !opacity-50',
+          color: 'secondary'
+        }
       }
     ]
   }

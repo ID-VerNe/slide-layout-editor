@@ -1,7 +1,9 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
 import { useStore } from '../../../store/useStore';
+import { useDataConnector } from './hooks/useDataConnector';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Text } from './atoms/Text';
 
 interface SlideSubHeadlineProps {
   page: PageData;
@@ -14,7 +16,7 @@ interface SlideSubHeadlineProps {
 }
 
 /**
- * SlideSubHeadline - 高优先级颜色感应版
+ * SlideSubHeadline - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
 export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({ 
   page, 
@@ -23,53 +25,47 @@ export const SlideSubHeadline: React.FC<SlideSubHeadlineProps> = ({
   color, 
   className = "",
   italic,
-  style 
+  style: customStyle 
 }) => {
   const theme = useStore((state) => state.theme);
   
-  const isVisible = page.visibility?.subtitle !== false;
-  if (!isVisible || !page.subtitle) return null;
-
-  // 1. 获取覆盖数据
-  const overrides = page.styleOverrides?.subtitle || {};
+  // 1. 数据连接
+  const { content, overrides, isVisible } = useDataConnector('subtitle', page);
   
-  const sanitizedText = DOMPurify.sanitize(page.subtitle || '', { 
-    ALLOWED_TAGS: ['br', 'b', 'i', 'strong', 'em'],
-    ALLOWED_ATTR: [] 
+  // 2. 样式解析
+  const { style, className: resolvedClassName } = useModularStyle({
+    fieldKey: 'subtitle',
+    overrides,
+    props: { color, italic },
+    variant: 'caption', // 使用 Caption 作为基础 Variant，或自定义
+    customStyle,
+    className
   });
 
+  if (!isVisible || !content) return null;
+
   const getFontFamily = () => {
-    if (overrides.fontFamily) return overrides.fontFamily;
+    if (style.fontFamily) return style.fontFamily;
     const fieldFont = typography?.fieldOverrides?.['subtitle'];
     if (fieldFont) return fieldFont;
-    const latin = page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
-    return `${latin}`;
+    return page.bodyFont || theme?.typography?.bodyFont || "'Playfair Display', serif";
   };
 
-  /**
-   * 核心修复：优先级重排
-   * 1. overrides.color (编辑器自定义)
-   * 2. color (模板传入)
-   * 3. theme.colors.secondary (全局辅色)
-   */
-  const finalColor = overrides.color || color || theme?.colors?.secondary || '#64748B';
-
-  const combinedStyle: React.CSSProperties = {
-    fontSize: overrides.fontSize ? `${overrides.fontSize}px` : (size || '1.25rem'),
-    color: finalColor,
-    fontStyle: italic ? 'italic' : 'normal',
+  const finalStyle: React.CSSProperties = {
+    ...style,
+    fontSize: style.fontSize || size || '1.25rem',
+    fontFamily: getFontFamily(),
     overflowWrap: 'break-word',
     wordBreak: 'normal',
     textWrap: 'balance',
-    ...style,
-    fontFamily: getFontFamily()
   };
 
   return (
-    <p 
-      className={`font-medium tracking-wide whitespace-pre-line ${className}`}
-      style={combinedStyle}
-      dangerouslySetInnerHTML={{ __html: sanitizedText }}
+    <Text
+      as="p"
+      content={content}
+      className={`font-medium tracking-wide whitespace-pre-line ${resolvedClassName}`}
+      style={finalStyle}
     />
   );
 };

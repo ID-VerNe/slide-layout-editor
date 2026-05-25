@@ -58,14 +58,17 @@ export const nativeFs = {
   },
 
   async saveProject(projectData: ProjectSaveData, filePath?: string, defaultName?: string): Promise<NativeResponse> {
-    return await window.electronAPI!.saveProject(projectData, filePath, defaultName);
+    if (!window.electronAPI) return { success: false, error: "API not found" };
+    return await window.electronAPI.saveProject(projectData, filePath, defaultName);
   },
 
   async openProject(): Promise<NativeResponse> {
-    return await window.electronAPI!.openProject();
+    if (!window.electronAPI) return { success: false, error: "API not found" };
+    return await window.electronAPI.openProject();
   },
 
   async uploadAsset(filename: string, base64Data: string): Promise<NativeResponse> {
-    return await window.electronAPI!.uploadAsset(filename, base64Data);
+    if (!window.electronAPI) return { success: false, error: "API not found" };
+    return await window.electronAPI.uploadAsset(filename, base64Data);
   }
 };

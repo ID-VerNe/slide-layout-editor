@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useStore, DEFAULT_THEME } from './useStore';
+import { useStore } from './useStore';
+import { DEFAULT_THEME } from '../constants/theme';
 
 describe('useStore', () => {
   beforeEach(() => {

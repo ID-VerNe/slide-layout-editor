@@ -10,6 +10,13 @@ import { SlideImageLabel } from '../../components/ui/slide/SlideImageLabel';
 import MetadataOverlay from '../../components/ui/slide/MetadataOverlay';
 import { OutlineText } from '../../components/ui/slide/OutlineText';
 
+// Zine 原子组件 (Phase 3)
+import { ZineDisplay } from '../../components/ui/slide/atoms/ZineDisplay';
+import { ZineBody } from '../../components/ui/slide/atoms/ZineBody';
+import { ZineCaption } from '../../components/ui/slide/atoms/ZineCaption';
+import { ZineMedia } from '../../components/ui/slide/atoms/ZineMedia';
+import { ZineResume } from '../../components/ui/slide/atoms/ZineResume';
+
 export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   SlideHeadline,
   SlideSubHeadline,
@@ -22,6 +29,13 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   SlideImageLabel,
   MetadataOverlay,
   OutlineText,
+  
+  // Zine 新原子
+  ZineDisplay,
+  ZineBody,
+  ZineCaption,
+  ZineMedia,
+  ZineResume,
 };
 
 export type RegisteredComponentType = keyof typeof COMPONENT_REGISTRY;

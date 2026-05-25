@@ -1,54 +1,73 @@
 import React, { useMemo } from 'react';
-import { TemplateNode, ContainerNode, ComponentNode, ConditionalNode } from './types';
+import { TemplateNode, ContainerNode, ComponentNode, BaseNode, RepeaterNode } from './types';
 import { getComponent } from './componentRegistry';
 import { evaluator, EvaluationContext } from './expressionEvaluator';
-import { PageData, ProjectTheme, TypographySettings } from '../../types';
+import { PageData, ProjectTheme, TypographySettings, DesignSystem } from '../../types';
+import { useStore } from '../../store/useStore';
 
 interface LayoutRendererProps {
   node: TemplateNode;
   page: PageData;
   theme: ProjectTheme;
   typography?: TypographySettings;
+  context?: EvaluationContext;
 }
 
 /**
  * LayoutRenderer - 递归渲染 JSON 模板节点
+ * 强制全局 Zine Mode：支持 24x24 模块化网格与 Design System 审美约束
  */
 export const LayoutRenderer: React.FC<LayoutRendererProps> = ({ 
   node, 
   page, 
   theme, 
-  typography 
+  typography,
+  context: parentContext
 }) => {
-  const context: EvaluationContext = useMemo(() => ({ page, theme }), [page, theme]);
+  const context: EvaluationContext = useMemo(() => parentContext || { page, theme }, [page, theme, parentContext]);
+  const ds = useStore(s => s.designSystem);
 
-  // 1. 处理可见性逻辑 (Conditional Node 或 visibleWhen)
-  const isVisible = useMemo(() => {
+  // 1. 处理可见性逻辑
+  const { isActuallyVisible, conditionMet } = useMemo(() => {
+    // A. 基础可见性 (所有节点通用 visibleWhen)
+    if (node.visibleWhen && !evaluator.evaluate(node.visibleWhen, context)) {
+      return { isActuallyVisible: false, conditionMet: false };
+    }
+    
+    // B. 条件判断 (仅限 Conditional 节点)
     if (node.type === 'Conditional') {
-      return !!evaluator.evaluate(node.condition, context);
+      return { 
+        isActuallyVisible: true, 
+        conditionMet: !!evaluator.evaluate(node.condition, context) 
+      };
     }
-    if (node.type === 'Component' && node.visibleWhen) {
-      return !!evaluator.evaluate(node.visibleWhen, context);
-    }
-    return true;
+    
+    return { isActuallyVisible: true, conditionMet: true };
   }, [node, context]);
 
-  if (!isVisible && node.type !== 'Conditional') return null;
+  if (!isActuallyVisible) return null;
 
   // 2. 根据节点类型选择渲染逻辑
   switch (node.type) {
     case 'Container':
-      return renderContainer(node, context, typography);
+      return renderContainer(node, context, ds, typography);
     case 'Component':
-      return renderComponent(node, context, typography);
+      return renderComponent(node, context, ds, typography);
+    case 'Repeater':
+      return renderRepeater(node, context, ds, typography);
+    case 'Text':
+      const content = evaluator.interpolate(node.content, context);
+      const { className, style } = resolveBaseProps(node, context, ds);
+      return <div className={className} style={style}>{content}</div>;
     case 'Conditional':
-      const targetNode = isVisible ? node.then : node.else;
+      const targetNode = conditionMet ? node.then : node.else;
       return targetNode ? (
         <LayoutRenderer 
           node={targetNode} 
           page={page} 
           theme={theme} 
           typography={typography} 
+          context={context}
         />
       ) : null;
     default:
@@ -57,22 +76,132 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
 };
 
 /**
+ * 解析基础节点属性 (Modular Grid, Presets, Styles)
+ */
+function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: DesignSystem): {
+  className: string;
+  style: React.CSSProperties;
+} {
+  let dynamicClassName = evaluator.interpolate(node.className || '', context);
+  const dynamicStyle = evaluator.evaluateObject(node.style || {}, context);
+
+  let finalStyle: React.CSSProperties = { ...dynamicStyle };
+
+  // 1. 处理 24x24 模块化定位
+  if (node.modular) {
+    const { colStart, colSpan, rowStart, rowSpan, align, justify } = node.modular;
+    if (colStart !== undefined) finalStyle.gridColumnStart = colStart;
+    if (colSpan !== undefined) finalStyle.gridColumnEnd = `span ${colSpan}`;
+    if (rowStart !== undefined) finalStyle.gridRowStart = rowStart;
+    if (rowSpan !== undefined) finalStyle.gridRowEnd = `span ${rowSpan}`;
+    
+    // 9宫格对齐逻辑 (Self Alignment)
+    if (align) finalStyle.alignSelf = align;
+    if (justify) finalStyle.justifySelf = justify;
+  }
+
+  // 2. 处理 PresetKey (从 DesignSystem 注入)
+  let presetStyle: React.CSSProperties = {};
+  if (node.presetKey) {
+    const layoutPreset = ds.presets.layout[node.presetKey];
+    const effectsPreset = ds.presets.effects[node.presetKey];
+    
+    if (layoutPreset) {
+      if (layoutPreset.px) {
+        presetStyle.paddingLeft = resolveTokenValue(layoutPreset.px, ds);
+        presetStyle.paddingRight = resolveTokenValue(layoutPreset.px, ds);
+      }
+      if (layoutPreset.py) {
+        presetStyle.paddingTop = resolveTokenValue(layoutPreset.py, ds);
+        presetStyle.paddingBottom = resolveTokenValue(layoutPreset.py, ds);
+      }
+      if (layoutPreset.p) presetStyle.padding = resolveTokenValue(layoutPreset.p, ds);
+    }
+    
+    if (effectsPreset) {
+      presetStyle = { ...presetStyle, ...effectsPreset };
+    }
+  }
+
+  // 3. Zine Mode 审美约束 (强制执行)
+  // A. Style Whitelist: 仅允许几何布局、定位、核心视觉属性
+  const ALLOWED_PROPS = [
+    'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd', 
+    'display', 'flexDirection', 'alignItems', 'justifyContent', 'gap', 'flexWrap',
+    'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 
+    'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
+    'position', 'top', 'left', 'right', 'bottom', 'inset', 'zIndex', 
+    'opacity', 'mixBlendMode', 'transform', 'transition', 'transitionDuration',
+    'width', 'height', 'maxWidth', 'maxHeight', 'minWidth', 'minHeight',
+    'aspectRatio', 'overflow', 'backgroundColor', 'borderColor', 'borderWidth',
+    'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
+    'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
+    'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
+    'fontStyle'
+  ];
+  
+  const filteredStyle: any = {};
+  ALLOWED_PROPS.forEach(p => { 
+    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p]; 
+    if ((presetStyle as any)[p] !== undefined) presetStyle[p] = (presetStyle as any)[p];
+  });
+  
+  finalStyle = filteredStyle;
+
+  // B. ClassName Blacklist: 强制剔除圆角、阴影、模糊等“软审美”类名
+  dynamicClassName = filterZineClassName(dynamicClassName);
+
+  return {
+    className: dynamicClassName,
+    style: { ...presetStyle, ...finalStyle }
+  };
+}
+
+/**
+ * Zine Mode 类名过滤器 - 剔除不符合工业精密感的 Tailwind 类
+ */
+function filterZineClassName(className: string): string {
+  if (!className) return '';
+  
+  const forbiddenPrefixes = [
+    'rounded', 'shadow', 'blur', 'drop-shadow',
+    'animate-bounce', 'animate-pulse', 'animate-wiggle'
+  ];
+
+  return className
+    .split(' ')
+    .filter(c => {
+      const baseClass = c.replace('!', ''); 
+      return !forbiddenPrefixes.some(p => baseClass === p || baseClass.startsWith(`${p}-`));
+    })
+    .join(' ');
+}
+
+/**
+ * 解析 Token 引用 (e.g. "spacing.lg" -> "24px")
+ */
+function resolveTokenValue(val: string, ds: DesignSystem): string {
+  if (val.startsWith('spacing.')) {
+    const key = val.split('.')[1] as keyof typeof ds.tokens.spacing;
+    return ds.tokens.spacing[key] || '0px'; // 安全默认值，避免无效 CSS
+  }
+  return val;
+}
+
+/**
  * 渲染容器节点
  */
 function renderContainer(
   node: ContainerNode, 
   context: EvaluationContext, 
+  ds: DesignSystem,
   typography?: TypographySettings
 ): React.ReactElement {
-  const { layout, layoutProps, children, className, style } = node;
-  
-  // 处理动态样式和类名
-  const dynamicClassName = evaluator.interpolate(className || '', context);
-  const dynamicStyle = evaluator.evaluateObject(style || {}, context);
+  const { layout = 'flex', layoutProps, children } = node;
+  const { className, style: baseStyle } = resolveBaseProps(node, context, ds);
 
-  let layoutStyle: React.CSSProperties = { ...dynamicStyle };
+  let layoutStyle: React.CSSProperties = { ...baseStyle };
 
-  // 根据布局类型应用 CSS
   if (layout === 'flex') {
     const props = layoutProps as any || {};
     layoutStyle = {
@@ -81,7 +210,7 @@ function renderContainer(
       flexDirection: props.direction || 'row',
       alignItems: mapAlign(props.align),
       justifyContent: mapJustify(props.justify),
-      gap: props.gap,
+      gap: resolveTokenValue(props.gap || '', ds) || props.gap,
       flexWrap: props.wrap ? 'wrap' : 'nowrap',
     };
   } else if (layout === 'absolute') {
@@ -103,12 +232,21 @@ function renderContainer(
       display: 'grid',
       gridTemplateColumns: typeof props.columns === 'number' ? `repeat(${props.columns}, minmax(0, 1fr))` : props.columns,
       gridTemplateRows: typeof props.rows === 'number' ? `repeat(${props.rows}, minmax(0, 1fr))` : props.rows,
-      gap: props.gap,
+      gap: resolveTokenValue(props.gap || '', ds) || props.gap,
+    };
+  } else if (layout === 'modular') {
+    const props = layoutProps as any || {};
+    layoutStyle = {
+      ...layoutStyle,
+      display: 'grid',
+      gridTemplateColumns: `repeat(${props.columns || 24}, minmax(0, 1fr))`,
+      gridTemplateRows: `repeat(${props.rows || 24}, minmax(0, 1fr))`,
+      gap: resolveTokenValue(props.gap || 'spacing.none', ds),
     };
   }
 
   return (
-    <div className={dynamicClassName} style={layoutStyle}>
+    <div className={className} style={layoutStyle}>
       {children.map((child, index) => (
         <LayoutRenderer 
           key={child.id || index} 
@@ -116,6 +254,7 @@ function renderContainer(
           page={context.page} 
           theme={context.theme} 
           typography={typography} 
+          context={context}
         />
       ))}
     </div>
@@ -128,6 +267,7 @@ function renderContainer(
 function renderComponent(
   node: ComponentNode, 
   context: EvaluationContext, 
+  ds: DesignSystem,
   typography?: TypographySettings
 ): React.ReactElement | null {
   const Component = getComponent(node.componentType);
@@ -136,23 +276,70 @@ function renderComponent(
     return null;
   }
 
-  // 计算动态 props
+  const { className, style } = resolveBaseProps(node, context, ds);
   const staticProps = node.props || {};
   const dynamicProps = evaluator.evaluateObject(staticProps, context);
   
-  // 基础 props (page, theme, typography)
+  // 1. 尝试从 bind 字段推断 fieldKey 并注入数据
+  let inferredFieldKey: string | undefined = undefined;
+  if (node.bind) {
+    const value = evaluator.evaluate(node.bind, context);
+    inferredFieldKey = node.bind.startsWith('page.') ? node.bind.replace('page.', '') : undefined;
+    
+    // 启发式：如果是媒体类组件注入 src，否则注入 text
+    if (node.componentType.toLowerCase().includes('media') || node.componentType.toLowerCase().includes('image')) {
+      if (dynamicProps.src === undefined) dynamicProps.src = value;
+    } else {
+      if (dynamicProps.text === undefined) dynamicProps.text = value;
+    }
+  }
+
   const baseProps = {
     page: context.page,
+    fieldKey: inferredFieldKey, // 传入推断的 fieldKey
     theme: context.theme,
+    designSystem: ds,
     typography,
-    className: evaluator.interpolate(node.className || '', context),
-    style: evaluator.evaluateObject(node.style || {}, context),
+    className,
+    style,
   };
 
   return <Component {...baseProps} {...dynamicProps} />;
 }
 
-// 辅助工具函数
+/**
+ * 渲染重复节点 (Repeater)
+ */
+function renderRepeater(
+  node: RepeaterNode,
+  context: EvaluationContext,
+  ds: DesignSystem,
+  typography?: TypographySettings
+): React.ReactElement {
+  const items = evaluator.evaluate(node.bind, context) || [];
+  const { className, style } = resolveBaseProps(node, context, ds);
+  const itemVar = node.itemVariable || 'item';
+
+  return (
+    <div className={className} style={style}>
+      {Array.isArray(items) && items.map((item, index) => {
+        // 嵌套 Repeater 支持：$parent 引用外层 item，index 为当前索引
+        const itemContext = { ...context, $parent: context[itemVar], [itemVar]: item, index };
+        return (
+          <LayoutRenderer 
+            key={index}
+            node={node.template}
+            page={context.page}
+            theme={context.theme}
+            typography={typography}
+            context={itemContext}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 function mapAlign(align?: string) {
   switch (align) {
     case 'start': return 'flex-start';

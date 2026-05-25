@@ -1,8 +1,9 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import { PageData, TypographySettings } from '../../../types';
-import AutoFitHeadline from '../../AutoFitHeadline';
 import { useStore } from '../../../store/useStore';
+import { useDataConnector } from './hooks/useDataConnector';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Text } from './atoms/Text';
 
 interface SlideHeadlineProps {
   page: PageData;
@@ -19,7 +20,7 @@ interface SlideHeadlineProps {
 }
 
 /**
- * SlideHeadline - 高优先级颜色感应版
+ * SlideHeadline - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
 export const SlideHeadline: React.FC<SlideHeadlineProps> = ({ 
   page, 
@@ -31,58 +32,56 @@ export const SlideHeadline: React.FC<SlideHeadlineProps> = ({
   weight,
   italic,
   color,
-  style,
+  style: customStyle,
   children
 }) => {
   const theme = useStore((state) => state.theme);
   
-  const isVisible = page.visibility?.title !== false;
-  if (!isVisible || !page.title) return null;
+  // 1. 数据连接
+  const { content, overrides, isVisible } = useDataConnector('title', page);
+  
+  // 2. 样式解析
+  const { style, className: resolvedClassName } = useModularStyle({
+    fieldKey: 'title',
+    overrides,
+    props: { weight, italic, color },
+    variant: 'display',
+    customStyle,
+    className
+  });
 
-  // 1. 获取样式覆盖数据
-  const overrides = page.styleOverrides?.title || {};
-  
-  const sanitizedText = DOMPurify.sanitize(page.title, { ALLOWED_TAGS: [] });
-  
+  if (!isVisible || !content) return null;
+
+  // 字体解析 (保持原有逻辑，但利用 theme)
   const getFontFamily = () => {
-    if (overrides.fontFamily) return overrides.fontFamily;
+    if (style.fontFamily) return style.fontFamily;
     const fieldFont = typography?.fieldOverrides?.['title'];
     if (fieldFont) return fieldFont;
-    const latin = page.titleFont || theme?.typography?.headingFont || "'Playfair Display', serif";
-    return `${latin}`;
+    return page.titleFont || theme?.typography?.headingFont || "'Playfair Display', serif";
   };
 
-  /**
-   * 核心修复：优先级重排
-   * 1. overrides.color (编辑器里刚加的颜色)
-   * 2. color (模板代码里传进来的 props)
-   * 3. theme.colors.primary (全局品牌主色)
-   */
-  const finalColor = overrides.color || color || theme?.colors?.primary || '#0F172A';
-
-  const combinedStyle: React.CSSProperties = {
-    fontWeight: weight || 900,
-    fontStyle: italic ? 'italic' : 'normal',
-    color: finalColor,
+  const finalStyle: React.CSSProperties = {
+    ...style,
+    fontFamily: getFontFamily(),
+    fontWeight: style.fontWeight || 900,
     overflowWrap: 'break-word',
     wordBreak: 'normal',
     textWrap: 'balance',
-    ...style,
-    fontFamily: getFontFamily()
   };
 
   return (
-    <AutoFitHeadline
-      text={sanitizedText}
+    <Text
+      as="h1"
+      content={content}
+      autoFit={true}
       maxSize={overrides.fontSize || maxSize}
       minSize={overrides.fontSize || minSize}
       lineHeight={1.05}
       maxLines={maxLines}
-      fontFamily={getFontFamily()}
-      className={`tracking-tighter uppercase ${className}`}
-      style={combinedStyle}
+      className={`tracking-tighter uppercase ${resolvedClassName}`}
+      style={finalStyle}
     >
       {children}
-    </AutoFitHeadline>
+    </Text>
   );
 };

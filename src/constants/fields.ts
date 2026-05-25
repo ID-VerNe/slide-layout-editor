@@ -12,6 +12,6 @@ export const GLOBAL_FIELDS: Array<keyof PageData> = [
   'bodyFont',
   'logo',
   'logoSize',
-  'themeColor',
+  'accentColor',
   'pageNumber' // 建议页码开关也全局同步
 ];

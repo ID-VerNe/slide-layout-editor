@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   const handleNewProject = () => {
     if (!workspace) { alert("Please set a Workspace directory first."); return; }
-    const id = createProject("New Slide", 'standard');
+    const id = createProject("New Slide", 'modern-feature');
     navigate(`/editor/${id}?new=true`);
   };
 

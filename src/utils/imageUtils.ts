@@ -2,7 +2,7 @@ export interface ImageVariant {
   url: string;
   width: number;
   height: number;
-  format: 'webp' | 'avif' | 'jpg' | 'png';
+  format: 'webp' | 'avif' | 'jpg' | 'png' | 'jpeg';
 }
 
 export interface ResponsiveImageConfig {

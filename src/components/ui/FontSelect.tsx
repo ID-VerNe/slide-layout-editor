@@ -17,31 +17,20 @@ export const FontSelect: React.FC<FontSelectProps> = ({ value, onChange, label, 
       <select 
         value={value || ''} 
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full appearance-none bg-white text-xs font-medium text-slate-700 pr-6 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-[#264376]/20 cursor-pointer border border-transparent hover:border-slate-200
-          ${compact ? 'py-1 pl-1.5 hover:bg-slate-50' : 'py-1.5 pl-2 hover:bg-slate-50'}`}
+        className={`w-full appearance-none bg-white text-xs font-black uppercase tracking-widest text-slate-900 pr-8 rounded-none transition-all focus:outline-none focus:border-slate-950 cursor-pointer border border-slate-200
+          ${compact ? 'py-1 pl-1.5' : 'py-2.5 pl-3'}`}
       >
-        <option value="">Default Font</option>
-        
-        {customFonts && customFonts.length > 0 && (
-          <optgroup label="Uploaded Fonts">
-            {customFonts.map(f => (
-              <option key={f.family} value={f.family}>{f.name}</option>
-            ))}
-          </optgroup>
-        )}
-
-        <optgroup label="Editorial Serif">
+        <optgroup label="Zine Spec: Serif (Han/EN)">
+           <option value="'Noto Serif SC', serif">Noto Serif SC</option>
            <option value="'Playfair Display', serif">Playfair Display</option>
            <option value="'Crimson Pro', serif">Crimson Pro</option>
-           <option value="'Lora', serif">Lora</option>
-           <option value="'Noto Serif SC', serif">Noto Serif SC</option>
         </optgroup>
 
-        <optgroup label="Modern Sans">
+        <optgroup label="Zine Spec: Sans (Latin)">
            <option value="'Inter', sans-serif">Inter</option>
         </optgroup>
       </select>
-      <ChevronDown size={10} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+      <ChevronDown size={14} strokeWidth={3} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-950 pointer-events-none" />
     </div>
   </div>
 );

@@ -6,9 +6,9 @@ import { compressImage } from '../../utils/db';
 import { useProject } from '../../hooks/useProject';
 import { useParams } from 'react-router-dom';
 
-export type AssetTab = 'icons' | 'upload';
+export type AssetTab = 'icons' | 'upload' | 'map';
 
-interface IconPickerProps {
+export interface IconPickerProps {
   value: string;
   onChange: (val: string) => void;
   trigger?: React.ReactNode;
@@ -18,9 +18,9 @@ interface IconPickerProps {
 
 const RECENT_STORAGE_KEY = 'magazine_editor_recent_assets';
 
-export default function IconPicker({ 
-  value, onChange, trigger, allowedTabs = ['icons', 'upload'], className = ""
-}: IconPickerProps) {
+export const IconPicker: React.FC<IconPickerProps> = ({ 
+  value, onChange, trigger, allowedTabs = ['icons', 'upload', 'map'], className = ""
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AssetTab>(allowedTabs[0]);
   const [search, setSearch] = useState('');
@@ -129,4 +129,6 @@ export default function IconPicker({
       </Modal>
     </>
   );
-}
+};
+
+export default IconPicker;

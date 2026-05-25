@@ -63,16 +63,16 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
                 <Label icon={Layout}>Slide Layout & Ratio</Label>
                 <button 
                   onClick={handleOpenBrowser} 
-                  className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl hover:bg-slate-100 hover:border-[#264376]/30 transition-all group"
+                  className="w-full flex items-center justify-between p-4 bg-white border-2 border-slate-950 hover:bg-slate-950 group transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#264376] group-hover:bg-[#264376] group-hover:text-white transition-all"><Layout size={20} /></div>
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 border border-slate-200 bg-white flex items-center justify-center text-slate-950 group-hover:invert transition-all"><Layout size={20} strokeWidth={2.5} /></div>
                      <div className="text-left">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{page.aspectRatio} // {template.category}</p>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">{template.name}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-500">{page.aspectRatio} // {template.category}</p>
+                        <p className="text-xs font-black text-slate-950 uppercase tracking-[0.1em] group-hover:text-white">{template.name}</p>
                      </div>
                   </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-[#264376] transition-colors" />
+                  <ChevronRight size={18} className="text-slate-950 group-hover:text-white transition-colors" />
                 </button>
               </Section>
             ) : (

@@ -1,42 +1,42 @@
-import ModernFeature from '../components/templates/ModernFeature';
-import PlatformHero from '../components/templates/PlatformHero';
-import ComponentMosaic from '../components/templates/ComponentMosaic';
-import TestimonialCard from '../components/templates/TestimonialCard';
-import CommunityHub from '../components/templates/CommunityHub';
-import TableOfContents from '../components/templates/TableOfContents';
-import BigStatement from '../components/templates/BigStatement';
-import StepTimeline from '../components/templates/StepTimeline';
-import GalleryCapsule from '../components/templates/GalleryCapsule';
-import EditorialSplit from '../components/templates/EditorialSplit';
-import BackCoverMovie from '../components/templates/BackCoverMovie';
-import FutureFocus from '../components/templates/FutureFocus';
-import EditorialClassic from '../components/templates/EditorialClassic';
-import CinematicFullBleed from '../components/templates/CinematicFullBleed';
-import EditorialBackCover from '../components/templates/EditorialBackCover';
-import KinfolkFeature from '../components/templates/KinfolkFeature';
-import KinfolkEssay from '../components/templates/KinfolkEssay';
-import KinfolkMontage from '../components/templates/KinfolkMontage';
-import MicroAnchor from '../components/templates/MicroAnchor';
-import TypographyHero from '../components/templates/TypographyHero';
-import FilmDiptych from '../components/templates/FilmDiptych';
-import AppleBentoGrid from '../components/templates/AppleBentoGrid';
-import AcademicHybridResume from '../components/templates/AcademicHybridResume';
-import GravityAnchorIntro from '../components/templates/GravityAnchorIntro';
-import SincerityPortrait from '../components/templates/SincerityPortrait';
-import ArtisticLSpace from '../components/templates/ArtisticLSpace';
-import FloatingGallery from '../components/templates/FloatingGallery';
-import CinematicLetterbox from '../components/templates/CinematicLetterbox';
-import VerticalColumn from '../components/templates/VerticalColumn';
-import HorizonSky from '../components/templates/HorizonSky';
-import EpiloguePillar from '../components/templates/EpiloguePillar';
-
+import React from 'react';
 import { AspectRatioType } from '../constants/layout';
 import { FieldSchema, FieldType } from '../types';
 
-import { BigStatementSchema } from './schemas/big-statement';
-import { MicroAnchorSchema } from './schemas/micro-anchor';
-import { SincerityPortraitSchema } from './schemas/sincerity-portrait';
-import { TemplateSchema } from './schemas/types';
+import { 
+  BigStatementSchema, 
+  MicroAnchorSchema, 
+  SincerityPortraitSchema,
+  ZineClassicSchema,
+  AcademicHybridResumeSchema,
+  AppleBentoGridSchema,
+  GravityAnchorIntroSchema,
+  KinfolkFeatureSchema,
+  KinfolkMontageSchema,
+  FilmDiptychSchema,
+  ArtisticLSpaceSchema,
+  FloatingGallerySchema,
+  CinematicLetterboxSchema,
+  VerticalColumnSchema,
+  HorizonSkySchema,
+  EpiloguePillarSchema,
+  FutureFocusSchema,
+  BackCoverMovieSchema,
+  GalleryCapsuleSchema,
+  EditorialSplitSchema,
+  CinematicFullBleedSchema,
+  EditorialClassicSchema,
+  EditorialBackCoverSchema,
+  KinfolkEssaySchema,
+  TypographyHeroSchema,
+  ModernFeatureSchema,
+  ComponentMosaicSchema,
+  PlatformHeroSchema,
+  TestimonialCardSchema,
+  CommunityHubSchema,
+  StepTimelineSchema,
+  TableOfContentsSchema,
+  TemplateSchema 
+} from './schemas';
 
 export interface TemplateConfig {
   id: string;
@@ -57,14 +57,34 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 };
 
 export const TEMPLATES: TemplateConfig[] = [
+  // --- Zine Modular Series (Phase 4) ---
+  {
+    id: 'zine-classic',
+    name: 'Zine Classic',
+    category: 'Gallery',
+    desc: 'The definitive 24x24 modular grid template. Industrial precision.',
+    tags: ['Zine', 'Modular', 'Precision'],
+    component: () => null, 
+    schema: ZineClassicSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Headline' },
+      { key: 'subtitle', label: 'Sub-Headline' },
+      { key: 'paragraph', label: 'Body Copy' },
+      { key: 'image', label: 'Main Media' },
+      { key: 'imageLabel', label: 'Meta Info' }
+    ]),
+    supportedRatios: ['16:9', '2:3', 'A4']
+  },
+
   // --- 简历 (顶级工具) ---
   {
     id: 'academic-hybrid-resume',
     name: 'Dynamic Resume Pro',
     category: 'Resume',
-    desc: 'Block-based technical resume with smart lists.',
-    tags: ['Resume', 'A4'],
-    component: AcademicHybridResume,
+    desc: 'Block-based technical resume with smart formatting and modular list.',
+    tags: ['Resume', 'A4', 'Industrial'],
+    component: () => null,
+    schema: AcademicHybridResumeSchema,
     fields: withBaseFields([
       { key: 'title', label: 'Candidate Name' },
       { key: 'subtitle', label: 'Header Subtitle' },
@@ -80,7 +100,8 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Gallery',
     desc: 'Professional intro page with heavy bottom imagery.',
     tags: ['Establishing', 'Intro'],
-    component: GravityAnchorIntro,
+    component: () => null,
+    schema: GravityAnchorIntroSchema,
     fields: withBaseFields([
       { key: 'title', label: 'Chapter Header' },
       { key: 'paragraph', label: 'Introductory Verse' },
@@ -90,71 +111,79 @@ export const TEMPLATES: TemplateConfig[] = [
     ]), 
     supportedRatios: ['2:3']
   },
+
+  {
+    id: 'sincerity-portrait',
+    name: 'Sincerity Portrait',
+    category: 'Gallery',
+    desc: 'Large portrait imagery with overlapping typography.',
+    tags: ['Portrait', 'Impact'],
+    component: () => null,
+    schema: SincerityPortraitSchema,
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
+    supportedRatios: ['2:3']
+  },
+
   {
     id: 'kinfolk-feature',
     name: 'Editorial Feature',
     category: 'Gallery',
     desc: 'Vertical typography with imagery.',
     tags: ['Kinfolk', 'Portrait'],
-    component: KinfolkFeature,
+    component: () => null,
+    schema: KinfolkFeatureSchema,
     fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'kinfolk-montage',
     name: 'Art Montage',
     category: 'Gallery',
     desc: 'Staggered dual-image collage.',
     tags: ['Collage'],
-    component: KinfolkMontage,
+    component: () => null,
+    schema: KinfolkMontageSchema,
     fields: withBaseFields(['gallery', 'imageLabel']),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'film-diptych',
     name: 'Film Diptych',
     category: 'Gallery',
     desc: 'Dual images side-by-side.',
     tags: ['Sequence'],
-    component: FilmDiptych,
-    fields: withBaseFields(['variant', 'gallery', 'imageLabel']),
+    component: () => null,
+    schema: FilmDiptychSchema,
+    fields: withBaseFields([
+      { key: 'variant', label: 'Split Direction', props: { options: [{ value: 'horizontal', label: 'Horizontal' }, { value: 'vertical', label: 'Vertical' }] } },
+      { key: 'gallery' },
+      { key: 'imageLabel' }
+    ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'micro-anchor',
     name: 'Micro Anchor',
     category: 'Gallery',
-    desc: 'Extreme negative space.',
+    desc: 'Small centered imagery with metadata anchors.',
     tags: ['Minimalist'],
-    component: MicroAnchor,
+    component: () => null,
     schema: MicroAnchorSchema,
-    fields: withBaseFields(['variant', 'image', 'title', 'subtitle']),
+    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
     supportedRatios: ['2:3']
   },
-  {
-    id: 'sincerity-portrait',
-    name: 'Sincerity Portrait',
-    category: 'Gallery',
-    desc: 'Intimate portrait with asymmetrical balance.',
-    tags: ['Sincerity', 'Portrait'],
-    component: SincerityPortrait,
-    schema: SincerityPortraitSchema,
-    fields: withBaseFields([
-      { key: 'title', label: 'Headline' },
-      { key: 'subtitle', label: 'Sub-Headline' },
-      { key: 'paragraph', label: 'Narrative Verse' },
-      { key: 'image', label: 'Portrait' },
-      { key: 'imageLabel', label: 'Image Meta' }
-    ]),
-    supportedRatios: ['2:3']
-  },
+
   {
     id: 'artistic-l-space',
     name: 'Artistic L-Space',
     category: 'Gallery',
     desc: 'L-shaped negative space with bottom-right bleed imagery.',
     tags: ['Minimalist', 'L-Shape', 'Bleed'],
-    component: ArtisticLSpace,
+    component: () => null,
+    schema: ArtisticLSpaceSchema,
     fields: withBaseFields([
       { key: 'variant', label: 'Image Side', props: { options: [{ value: 'right', label: 'Image Right' }, { value: 'left', label: 'Image Left' }] } },
       { key: 'title', label: 'Vertical Headline' },
@@ -164,13 +193,15 @@ export const TEMPLATES: TemplateConfig[] = [
     ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'floating-gallery',
     name: 'Floating Gallery',
     category: 'Gallery',
     desc: 'Centered floating imagery with wide passepartout margins.',
     tags: ['Gallery', 'Classic', 'Floating'],
-    component: FloatingGallery,
+    component: () => null,
+    schema: FloatingGallerySchema,
     fields: withBaseFields([
       { key: 'title', label: 'Headline (Slanted)' },
       { key: 'subtitle', label: 'Poetic Verse (Under Line)' },
@@ -180,13 +211,15 @@ export const TEMPLATES: TemplateConfig[] = [
     ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'cinematic-letterbox',
     name: 'Cinematic Letterbox',
     category: 'Gallery',
     desc: 'Widescreen cinematic focus with extreme horizontal typography.',
     tags: ['Gallery', 'Cinematic', 'Wide'],
-    component: CinematicLetterbox,
+    component: () => null,
+    schema: CinematicLetterboxSchema,
     fields: withBaseFields([
       { key: 'title', label: 'Scattered Headline (Bottom)' },
       { key: 'subtitle', label: 'Top Teaser (Above Title)' },
@@ -196,13 +229,15 @@ export const TEMPLATES: TemplateConfig[] = [
     ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'vertical-column',
     name: 'Vertical Column',
     category: 'Gallery',
     desc: 'Left-bleed image with a structured white sidebar on the right.',
     tags: ['Gallery', 'Minimalist', 'Sidebar'],
-    component: VerticalColumn,
+    component: () => null,
+    schema: VerticalColumnSchema,
     fields: withBaseFields([
       { 
         key: 'variant', 
@@ -222,19 +257,21 @@ export const TEMPLATES: TemplateConfig[] = [
     ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'horizon-sky',
     name: 'Horizon Sky',
     category: 'Gallery',
     desc: 'Top negative space "sky" with a bottom-aligned image "earth".',
     tags: ['Gallery', 'Minimalist', 'Ethereal'],
-    component: HorizonSky,
+    component: () => null,
+    schema: HorizonSkySchema,
     fields: withBaseFields([
-      { key: 'title', label: 'Sky Headline' },
+      { key: 'title', label: 'Sky Headline (Serif)' },
       { key: 'subtitle', label: 'Top Teaser (Above Title)' },
-      { key: 'paragraph', label: 'Detailed Verse (Below Title)' },
-      { key: 'image', label: 'Bottom Artwork (Earth)' },
-      { key: 'imageLabel', label: 'Info Above Horizon' }
+      { key: 'paragraph', label: 'Minimal Verse (Below Title)' },
+      { key: 'image', label: 'Earthly Image' },
+      { key: 'imageLabel', label: 'Horizon Metadata' }
     ]),
     supportedRatios: ['2:3']
   },
@@ -242,16 +279,17 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'epilogue-pillar',
     name: 'Epilogue Pillar',
     category: 'Gallery',
-    desc: 'Right-aligned pillar image with a left-side colophon and signature.',
-    tags: ['Gallery', 'Minimalist', 'Colophon'],
-    component: EpiloguePillar,
+    desc: 'Centered vertical "pillar" of text for conclusions.',
+    tags: ['Gallery', 'Minimalist', 'Epilogue'],
+    component: () => null,
+    schema: EpiloguePillarSchema,
     fields: withBaseFields([
-      { key: 'title', label: 'End Title (e.g. EPILOGUE)' },
-      { key: 'metrics', label: 'Colophon Details (Character, Gear...)' },
-      { key: 'paragraph', label: 'Extra Copyright Notes' },
+      { key: 'title', label: 'Top Small Headline' },
+      { key: 'paragraph', label: 'Detailed Paragraph (Bottom)' },
+      { key: 'metrics', label: 'Colophon Info (Grid)' },
+      { key: 'signature', label: 'Signature Image' },
       { key: 'image', label: 'Right Pillar Image' },
-      { key: 'signature', label: 'Handwritten Signature' },
-      { key: 'imageLabel', label: 'Page Meta' }
+      { key: 'imageLabel', label: 'Metadata (Bottom Left)' }
     ]),
     supportedRatios: ['2:3']
   },
@@ -261,9 +299,10 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Gallery',
     desc: 'Gold accents and background numbers.',
     tags: ['Impact'],
-    component: FutureFocus,
+    component: () => null,
+    schema: FutureFocusSchema,
     fields: withBaseFields(['title', 'subtitle', 'image', 'gallery', 'imageLabel']), 
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'back-cover-movie',
@@ -271,9 +310,10 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Gallery',
     desc: 'Movie credits style back cover.',
     tags: ['Cinematic'],
-    component: BackCoverMovie,
+    component: () => null,
+    schema: BackCoverMovieSchema,
     fields: withBaseFields(['image', 'logoSize', 'title', 'subtitle']),
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'gallery-capsule',
@@ -281,19 +321,27 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Gallery',
     desc: 'Vertical capsule gallery.',
     tags: ['Modern'],
-    component: GalleryCapsule,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'gallery', 'imageLabel']),
-    supportedRatios: ['16:9']
+    component: () => null,
+    schema: GalleryCapsuleSchema,
+    fields: withBaseFields([
+      { key: 'variant', label: 'Visual Scheme', props: { options: [{ value: 'under', label: 'Under' }, { value: 'over', label: 'Over' }, { value: 'minimal', label: 'Minimal' }] } },
+      { key: 'title' },
+      { key: 'subtitle' },
+      { key: 'gallery' },
+      { key: 'imageLabel' }
+    ]),
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'editorial-split',
     name: 'Editorial Split',
     category: 'Gallery',
-    desc: 'Minimalist split layout.',
-    tags: ['Editorial'],
-    component: EditorialSplit,
-    fields: withBaseFields(['variant', 'title', 'subtitle', 'image', 'bullets', 'paragraph']), 
-    supportedRatios: ['16:9']
+    desc: 'Balanced split between image and structured text.',
+    tags: ['Gallery', 'Editorial', 'Split'],
+    component: () => null,
+    schema: EditorialSplitSchema,
+    fields: withBaseFields(['variant', 'title', 'subtitle', 'paragraph', 'image', 'imageLabel', 'imageSubLabel', 'actionText', 'bullets' as any]),
+    supportedRatios: ['16:9', '2:3']
   },
 
   // --- 封面系列 ---
@@ -303,7 +351,8 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Cover',
     desc: 'Full-screen cinematic cover.',
     tags: ['Cinematic', 'Impact'],
-    component: CinematicFullBleed,
+    component: () => null,
+    schema: CinematicFullBleedSchema,
     fields: withBaseFields([
       { key: 'variant', label: 'Layout Orientation', props: { options: [{ value: 'bottom', label: 'Bottom Stack' }, { value: 'top', label: 'Headline on Top' }] } },
       { key: 'titleY', label: 'Headline Position' },
@@ -312,28 +361,43 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'image', label: 'Background Image' },
       { key: 'imageLabel', label: 'Copyright Text' }
     ]), 
-    supportedRatios: ['2:3']
+    supportedRatios: ['16:9', '2:3']
   },
+
   {
     id: 'editorial-classic',
     name: 'Editorial Classic',
     category: 'Cover',
-    desc: 'Kinfolk style magazine cover.',
-    tags: ['Magazine', 'Minimalist'],
-    component: EditorialClassic,
-    fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel', 'imageSubLabel']),
+    desc: 'Kinfolk style magazine cover with large central image.',
+    tags: ['Cover', 'Editorial', 'Classic'],
+    component: () => null,
+    schema: EditorialClassicSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Magazine Masthead' },
+      { key: 'subtitle', label: 'Issue Theme/Tagline' },
+      { key: 'image', label: 'Cover Image' },
+      { key: 'imageLabel', label: 'Issue Month' },
+      { key: 'imageSubLabel', label: 'Issue Volume' },
+      { key: 'actionText', label: 'Year/Edition' }
+    ]),
     supportedRatios: ['2:3']
   },
+
   {
     id: 'editorial-back-cover',
     name: 'Editorial Back',
     category: 'Cover',
-    desc: 'Magazine back cover.',
-    tags: ['Back Cover'],
-    component: EditorialBackCover,
-    fields: withBaseFields(['title', 'subtitle']),
+    desc: 'Minimalist magazine back cover.',
+    tags: ['Cover', 'Editorial', 'Minimalist'],
+    component: () => null,
+    schema: EditorialBackCoverSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Back Title (e.g. THANKS)' },
+      { key: 'subtitle', label: 'Copyright / Publisher Line' }
+    ]),
     supportedRatios: ['2:3']
   },
+
 
   // --- 其他通用模板 ---
   {
@@ -342,7 +406,8 @@ export const TEMPLATES: TemplateConfig[] = [
     category: 'Product',
     desc: 'Apple-style modular grid.',
     tags: ['Bento', 'Grid'],
-    component: AppleBentoGrid,
+    component: () => null,
+    schema: AppleBentoGridSchema,
     fields: withBaseFields(['title', 'subtitle', 'logo', 'bentoItems']),
     supportedRatios: ['16:9']
   },
@@ -350,107 +415,123 @@ export const TEMPLATES: TemplateConfig[] = [
     id: 'kinfolk-essay',
     name: 'Editorial Essay',
     category: 'General',
-    desc: 'Text-heavy narrative layout.',
-    tags: ['Narrative'],
-    component: KinfolkEssay,
+    desc: 'Editorial narrative layout with drop cap and structured meta.',
+    tags: ['General', 'Editorial', 'Narrative'],
+    component: () => null,
+    schema: KinfolkEssaySchema,
     fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
-    supportedRatios: ['2:3']
+    supportedRatios: ['2:3', 'A4']
   },
   {
     id: 'typography-hero',
     name: 'Typography Hero',
     category: 'General',
-    desc: 'Typography-focused divider.',
-    tags: ['Typography'],
-    component: TypographyHero,
-    fields: withBaseFields(['title', 'subtitle', 'imageLabel']),
-    supportedRatios: ['2:3']
+    desc: 'Oversized typography focused layout.',
+    tags: ['Impact', 'Typography', 'Minimalist'],
+    component: () => null,
+    schema: TypographyHeroSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Headline' },
+      { key: 'paragraph', label: 'Body Copy' },
+      { key: 'subtitle', label: 'Sub-Headline' }
+    ]),
+    supportedRatios: ['16:9', '2:3']
   },
+
   {
     id: 'modern-feature',
     name: 'Modern Feature',
     category: 'Product',
     desc: 'Bold text with large visual.',
     tags: ['Bold'],
-    component: ModernFeature,
+    component: () => null,
+    schema: ModernFeatureSchema,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'actionText', 'image', 'imageLabel']),
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'component-mosaic',
     name: 'Component Mosaic',
     category: 'Product',
-    desc: 'Icon grid showcase.',
-    tags: ['Mosaic'],
-    component: ComponentMosaic,
-    fields: withBaseFields(['title', 'subtitle', 'mosaic']),
-    supportedRatios: ['16:9']
+    desc: 'Icon grid showcase with editorial sidebar.',
+    tags: ['Mosaic', 'Product', 'Commercial'],
+    component: () => null,
+    schema: ComponentMosaicSchema,
+    fields: withBaseFields(['title', 'subtitle', 'imageLabel', 'mosaicItems' as any]),
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'platform-hero',
     name: 'Platform Hero',
     category: 'Marketing',
-    desc: 'Centered hero with feature grid.',
-    tags: ['Branding'],
-    component: PlatformHero,
+    desc: 'Centralized product announcement with feature grid.',
+    tags: ['Branding', 'Platform', 'Hero'],
+    component: () => null,
+    schema: PlatformHeroSchema,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'features']),
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'testimonial-card',
     name: 'Testimonial Card',
     category: 'Marketing',
-    desc: 'Profile with quote and data.',
-    tags: ['Review'],
-    component: TestimonialCard,
+    desc: 'Professional profile with quote and verified metrics.',
+    tags: ['Review', 'Testimonial', 'Marketing'],
+    component: () => null,
+    schema: TestimonialCardSchema,
     fields: withBaseFields(['image', 'imageLabel', 'title', 'subtitle', 'metrics']),
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'community-hub',
     name: 'Community Hub',
     category: 'Marketing',
-    desc: 'Call to action with testimonials.',
-    tags: ['Social'],
-    component: CommunityHub,
-    fields: withBaseFields(['title', 'subtitle', 'partnersTitle', 'partners', 'testimonials']),
-    supportedRatios: ['16:9']
+    desc: 'Call to action with testimonials and partner grid.',
+    tags: ['Community', 'Social', 'Marketing'],
+    component: () => null,
+    schema: CommunityHubSchema,
+    fields: withBaseFields(['title', 'subtitle', 'imageLabel', 'partnersTitle' as any, 'partners' as any, 'testimonials' as any]),
+    supportedRatios: ['16:9', '2:3']
   },
+
   {
     id: 'big-statement',
     name: 'Big Statement',
     category: 'General',
-    desc: 'Centered minimalist slogan.',
-    tags: ['Slogan'],
-    component: BigStatement,
+    desc: 'Centered minimalist slogan with high-impact typography.',
+    tags: ['Slogan', 'Minimalist', 'Statement'],
+    component: () => null,
     schema: BigStatementSchema,
-    fields: withBaseFields(['title', 'subtitle']),
-    supportedRatios: ['16:9']
+    fields: withBaseFields(['title', 'subtitle', 'paragraph']),
+    supportedRatios: ['16:9', '2:3']
   },
   {
     id: 'step-timeline',
     name: 'Step Timeline',
     category: 'General',
-    desc: 'Vertical process flow.',
-    tags: ['Process'],
-    component: StepTimeline,
-    fields: withBaseFields(['title', 'subtitle', 'features']),
-    supportedRatios: ['16:9']
+    desc: 'Sequential timeline process flow.',
+    tags: ['Timeline', 'Process', 'Sequential'],
+    component: () => null,
+    schema: StepTimelineSchema,
+    fields: withBaseFields(['title', 'subtitle', 'features' as any]),
+    supportedRatios: ['16:9', '2:3']
   },
+
   {
     id: 'table-of-contents',
     name: 'Table of Contents',
     category: 'General',
-    desc: 'Card-based overview.',
-    tags: ['Agenda'],
-    component: TableOfContents,
+    desc: 'Card-based navigational overview of the document.',
+    tags: ['Agenda', 'Index'],
+    component: () => null,
+    schema: TableOfContentsSchema,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda']),
-    supportedRatios: ['16:9']
+    supportedRatios: ['16:9', '2:3']
   }
 ];
 
 export type TemplateId = typeof TEMPLATES[number]['id'];
 
 export const getTemplateById = (id: string) => {
-  return TEMPLATES.find(t => t.id === id) || TEMPLATES[0];
+  return TEMPLATES.find(t => t.id === id);
 };

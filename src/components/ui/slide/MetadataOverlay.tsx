@@ -54,33 +54,35 @@ const MetadataOverlay: React.FC<MetadataOverlayProps> = ({ page, pageIndex, mini
   };
 
   // 3. 构建容器类名：彻底分离 Minimal 样式
-  // 普通模式：有背景、有模糊、有边框、有阴影
-  const standardCounterClass = "gap-4 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/50 shadow-sm";
-  // 极简模式：完全透明，无任何装饰
+  // 普通模式：硬核工业感
+  const standardCounterClass = "px-1 border-b border-slate-900/10";
+  // 极简模式：完全透明
   const minimalCounterClass = "";
 
-  const containerClass = `text-[10px] font-black uppercase tracking-widest flex items-center transition-all duration-500 ${isMinimal ? minimalCounterClass : standardCounterClass}`;
+  const containerClass = `text-[9px] font-black uppercase tracking-[0.4em] flex items-center transition-all duration-300 font-sans ${isMinimal ? minimalCounterClass : standardCounterClass}`;
 
   return (
     <>
       {/* Layer 1: Background Pattern (最底层) */}
       {renderBackgroundPattern()}
 
-      {/* Layer 2: Metadata Footer (最顶层悬浮) */}
-      <div className={`absolute bottom-10 left-16 right-16 flex justify-between items-center z-50 pointer-events-none ${page.layoutVariant === 'right' ? 'flex-row-reverse' : 'flex-row'}`}>
+      {/* Layer 2: Metadata Footer (最顶层悬浮) - 绝对锁定锚点模式 */}
+      <div className="absolute inset-0 z-50 pointer-events-none select-none">
         
-        {/* Footer Text */}
+        {/* Folio Anchor: Left (FIG. XX or Footer Text) */}
         <div 
-          className={`text-[10px] font-black uppercase tracking-[0.2em] whitespace-pre-line transition-all duration-500 ${page.layoutVariant === 'right' ? 'text-right' : 'text-left'}`} 
-          style={{ color: customCounterColor, opacity: 0.4 }}
+          className="absolute bottom-8 left-8 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-500 font-sans" 
+          style={{ color: customCounterColor, opacity: 0.6 }}
         >
-          {page.footer}
+          {page.footer || `FIG. ${pageIndex + 1}`}
         </div>
 
-        {/* Page Number Counter */}
+        {/* Folio Anchor: Right (Roman or Numeric Page Number) */}
         {page.pageNumber !== false && (
-          <div className={containerClass} style={{ color: customCounterColor }}>
-            {renderCounter()}
+          <div className="absolute bottom-8 right-8 flex items-baseline gap-2">
+            <div className={containerClass} style={{ color: customCounterColor }}>
+              {renderCounter()}
+            </div>
           </div>
         )}
         

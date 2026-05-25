@@ -1,43 +1,53 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, CustomFont } from '../../../types';
 import { Copyright } from 'lucide-react';
-import { Input } from '../../ui/Base';
+import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldWrapper } from './FieldWrapper';
-import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
+  label?: string;
+  customFonts: CustomFont[];
 }
 
-export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+/**
+ * FooterField - 已重构：基于 FieldWrapper 与 ZineStylePanel
+ * 适配最新的 Zine 模块化架构
+ */
+export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, customFonts }) => {
   const handleChange = (val: string) => {
     onUpdate({ ...page, footer: val });
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.footer?.fontSize;
-    onUpdate({
-      ...page,
-      styleOverrides: {
-        ...(page.styleOverrides || {}),
-        footer: {
-          ...(page.styleOverrides?.footer || {}),
-          fontSize: Math.max(6, (currentSize || 10) + delta)
-        }
-      }
-    });
+  const handleImmediateChange = (val: string) => {
+    onUpdate({ ...page, footer: val }, true);
   };
 
+  const style = page.styleOverrides?.footer || {};
+
   return (
-    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="footer" label="Footer Metadata" icon={Copyright}>
+    <FieldWrapper
+      page={page}
+      onUpdate={onUpdate}
+      fieldKey="footer"
+      label={label || 'Footer Metadata'}
+      icon={Copyright}
+      showStyleConfig={true}
+      customFonts={customFonts}
+    >
       <div className="relative group/field">
-        <FieldToolbar onIncrease={() => updateFontSize(1)} onDecrease={() => updateFontSize(-1)} />
-        <Input 
-          value={page.footer || ''} 
-          onChange={(e) => handleChange(e.target.value)} 
-          placeholder="e.g. All Rights Reserved // 2026"
-          className="text-[10px] uppercase font-bold bg-white/50"
+        <DebouncedInput 
+            value={page.footer || ''} 
+            onChange={handleChange} 
+            onImmediateChange={handleImmediateChange}
+            placeholder="e.g. All Rights Reserved // 2026" 
+            className="text-[10px] font-black uppercase tracking-widest border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
+            style={{ 
+              fontFamily: style.fontFamily || page.bodyFont || "'Inter', sans-serif",
+              textAlign: style.textAlign,
+              color: '#0F172A'
+            }} 
         />
       </div>
     </FieldWrapper>

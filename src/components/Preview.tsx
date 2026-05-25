@@ -2,42 +2,10 @@ import React from 'react';
 import { PageData, PrintSettings, TypographySettings } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { LAYOUT_CONFIG } from '../constants/layout';
-import MetadataOverlay from './ui/slide/MetadataOverlay';
-import { getTemplateById } from '../templates/registry';
+// 引入标准模板矩阵 - 已迁移至 JSON Schema，此处仅保留必要的特殊逻辑（如有）
 import { JsonTemplateRenderer } from './JsonTemplateRenderer';
-
-// 引入标准模板矩阵
-import ModernFeature from './templates/ModernFeature';
-import PlatformHero from './templates/PlatformHero';
-import ComponentMosaic from './templates/ComponentMosaic';
-import TestimonialCard from './templates/TestimonialCard';
-import CommunityHub from './templates/CommunityHub';
-import TableOfContents from './templates/TableOfContents';
-import BigStatement from './templates/BigStatement';
-import StepTimeline from './templates/StepTimeline';
-import GalleryCapsule from './templates/GalleryCapsule';
-import EditorialSplit from './templates/EditorialSplit';
-import BackCoverMovie from './templates/BackCoverMovie';
-import FutureFocus from './templates/FutureFocus';
-import EditorialClassic from './templates/EditorialClassic';
-import CinematicFullBleed from './templates/CinematicFullBleed';
-import EditorialBackCover from './templates/EditorialBackCover';
-import KinfolkFeature from './templates/KinfolkFeature';
-import KinfolkEssay from './templates/KinfolkEssay';
-import KinfolkMontage from './templates/KinfolkMontage';
-import MicroAnchor from './templates/MicroAnchor';
-import TypographyHero from './templates/TypographyHero';
-import FilmDiptych from './templates/FilmDiptych';
-import AppleBentoGrid from './templates/AppleBentoGrid';
-import AcademicHybridResume from './templates/AcademicHybridResume';
-import GravityAnchorIntro from './templates/GravityAnchorIntro';
-import SincerityPortrait from './templates/SincerityPortrait';
-import ArtisticLSpace from './templates/ArtisticLSpace';
-import FloatingGallery from './templates/FloatingGallery';
-import CinematicLetterbox from './templates/CinematicLetterbox';
-import VerticalColumn from './templates/VerticalColumn';
-import HorizonSky from './templates/HorizonSky';
-import EpiloguePillar from './templates/EpiloguePillar';
+import { getTemplateById } from '../templates/registry';
+import { PageFrame } from './PageFrame';
 
 interface PreviewProps {
   page: PageData;
@@ -53,8 +21,8 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
   const renderTemplate = () => {
-    // 1. 尝试使用 JSON Schema 渲染器 (Phase 1)
     const templateConfig = getTemplateById(page.layoutId);
+    
     if (templateConfig?.schema) {
       return (
         <JsonTemplateRenderer 
@@ -65,43 +33,12 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
       );
     }
 
-    // 2. 否则回退到原有的 React 组件映射 (Hybrid Mode)
-    const commonProps = { page, typography, pageIndex, totalPages, onUpdate }; 
-
-    switch (page.layoutId) {
-      case 'gravity-anchor-intro': return <GravityAnchorIntro {...commonProps} />;
-      case 'academic-hybrid-resume': return <AcademicHybridResume {...commonProps} />;
-      case 'modern-feature': return <ModernFeature {...commonProps} />;
-      case 'platform-hero': return <PlatformHero {...commonProps} />;
-      case 'component-mosaic': return <ComponentMosaic {...commonProps} />;
-      case 'testimonial-card': return <TestimonialCard {...commonProps} />;
-      case 'community-hub': return <CommunityHub {...commonProps} />;
-      case 'table-of-contents': return <TableOfContents {...commonProps} />;
-      case 'big-statement': return <BigStatement {...commonProps} />;
-      case 'step-timeline': return <StepTimeline {...commonProps} />;
-      case 'gallery-capsule': return <GalleryCapsule {...commonProps} />;
-      case 'editorial-split': return <EditorialSplit {...commonProps} />;
-      case 'back-cover-movie': return <BackCoverMovie {...commonProps} />;
-      case 'future-focus': return <FutureFocus {...commonProps} />;
-      case 'editorial-classic': return <EditorialClassic {...commonProps} />;
-      case 'cinematic-full-bleed': return <CinematicFullBleed {...commonProps} />;
-      case 'editorial-back-cover': return <EditorialBackCover {...commonProps} />;
-      case 'kinfolk-feature': return <KinfolkFeature {...commonProps} />;
-      case 'artistic-l-space': return <ArtisticLSpace {...commonProps} />;
-      case 'floating-gallery': return <FloatingGallery {...commonProps} />;
-      case 'cinematic-letterbox': return <CinematicLetterbox {...commonProps} />;
-      case 'vertical-column': return <VerticalColumn {...commonProps} />;
-      case 'horizon-sky': return <HorizonSky {...commonProps} />;
-      case 'epilogue-pillar': return <EpiloguePillar {...commonProps} />;
-      case 'kinfolk-essay': return <KinfolkEssay {...commonProps} />;
-      case 'kinfolk-montage': return <KinfolkMontage {...commonProps} />;
-      case 'micro-anchor': return <MicroAnchor {...commonProps} />;
-      case 'sincerity-portrait': return <SincerityPortrait {...commonProps} />;
-      case 'typography-hero': return <TypographyHero {...commonProps} />;
-      case 'film-diptych': return <FilmDiptych {...commonProps} />;
-      case 'apple-bento-grid': return <AppleBentoGrid {...commonProps} />;
-      default: return <ModernFeature {...commonProps} />;
-    }
+    // 理论上所有模板都已迁移，此处仅作为兜底
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300 text-xs font-black uppercase tracking-[0.5em]">
+        Template Not Found: {page.layoutId}
+      </div>
+    );
   };
 
   const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
@@ -135,14 +72,15 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         backgroundColor: page.backgroundColor || '#ffffff',
       }}
     >
-      <MetadataOverlay page={page} pageIndex={pageIndex} minimalCounter={isMinimal} />
       <div 
         className="w-full h-full relative transition-all duration-700 isolate"
         style={isPrintEnabled ? { transform: `scale(${scaleFactor})`, transformOrigin: `${getOriginX()} ${getOriginY()}`, outline: printSettings?.showContentFrame ? '0.5px solid rgba(0,0,0,0.15)' : 'none', outlineOffset: '-0.5px' } : {}}
       >
         <AnimatePresence mode="wait">
           <motion.div key={page.id + page.layoutId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative z-10">
-            {renderTemplate()}
+            <PageFrame page={page} pageIndex={pageIndex} totalPages={totalPages}>
+              {renderTemplate()}
+            </PageFrame>
           </motion.div>
         </AnimatePresence>
       </div>

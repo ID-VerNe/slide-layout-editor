@@ -1,46 +1,53 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, CustomFont } from '../../../types';
 import { Type } from 'lucide-react';
-import { Input } from '../../ui/Base';
+import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldWrapper } from './FieldWrapper';
-import { FieldToolbar } from './FieldToolbar';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
+  label?: string;
+  customFonts: CustomFont[];
 }
 
 /**
- * ImageSubLabelField - 二级标注编辑器
- * 专门用于 Editorial Classic 的刊号等辅助信息控制。
+ * ImageSubLabelField - 已重构：基于 FieldWrapper 与 ZineStylePanel
+ * 适配最新的 Zine 模块化架构
  */
-export const ImageSubLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+export const ImageSubLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, customFonts }) => {
   const handleChange = (val: string) => {
     onUpdate({ ...page, imageSubLabel: val });
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.imageSubLabel?.fontSize;
-    onUpdate({
-      ...page,
-      styleOverrides: {
-        ...(page.styleOverrides || {}),
-        imageSubLabel: {
-          ...(page.styleOverrides?.imageSubLabel || {}),
-          fontSize: Math.max(6, (currentSize || 10) + delta)
-        }
-      }
-    });
+  const handleImmediateChange = (val: string) => {
+    onUpdate({ ...page, imageSubLabel: val }, true);
   };
 
+  const style = page.styleOverrides?.imageSubLabel || {};
+
   return (
-    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="imageSubLabel" label="Secondary Caption / Vol." icon={Type}>
+    <FieldWrapper
+      page={page}
+      onUpdate={onUpdate}
+      fieldKey="imageSubLabel"
+      label={label || 'Secondary Caption / Vol.'}
+      icon={Type}
+      showStyleConfig={true}
+      customFonts={customFonts}
+    >
       <div className="relative group/field">
-        <FieldToolbar onIncrease={() => updateFontSize(1)} onDecrease={() => updateFontSize(-1)} />
-        <Input 
-          value={page.imageSubLabel || ''} 
-          onChange={(e) => handleChange(e.target.value)} 
-          placeholder="e.g. VOL. 01" 
+        <DebouncedInput 
+            value={page.imageSubLabel || ''} 
+            onChange={handleChange} 
+            onImmediateChange={handleImmediateChange}
+            placeholder="e.g. VOL. 01" 
+            className="text-xs font-medium border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
+            style={{ 
+              fontFamily: style.fontFamily || page.bodyFont,
+              textAlign: style.textAlign,
+              color: '#0F172A'
+            }} 
         />
       </div>
     </FieldWrapper>

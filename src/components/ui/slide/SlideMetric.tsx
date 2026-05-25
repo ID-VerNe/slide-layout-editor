@@ -3,6 +3,8 @@ import { MetricData, PageData, TypographySettings } from '../../../types';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { useStore } from '../../../store/useStore';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Text } from './atoms/Text';
 
 interface SlideMetricProps {
   data: MetricData;
@@ -17,7 +19,7 @@ interface SlideMetricProps {
 }
 
 /**
- * SlideMetric - 主题感应版
+ * SlideMetric - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
 export const SlideMetric: React.FC<SlideMetricProps> = ({ 
   data, 
@@ -28,35 +30,41 @@ export const SlideMetric: React.FC<SlideMetricProps> = ({
   labelClassName = "",
   unitClassName = "",
   subLabelClassName = "",
-  style
+  style: customStyle
 }) => {
   const theme = useStore((state) => state.theme);
   const overrides = page?.styleOverrides?.metrics || {};
   
+  // 1. 样式解析
+  const { style, className: resolvedClassName } = useModularStyle({
+    fieldKey: 'metrics',
+    overrides,
+    customStyle,
+    className
+  });
+
   const getFontFamily = () => {
+    if (style.fontFamily) return style.fontFamily;
     const fieldFont = typography?.fieldOverrides?.['metrics'];
     if (fieldFont) return fieldFont;
-    const latin = typography?.defaultLatin || theme?.typography?.headingFont || "'Inter', sans-serif";
-    const cjk = typography?.defaultCJK || "'Noto Serif SC', serif";
-    return `${latin}, ${cjk}`;
+    return theme?.typography?.headingFont || "'Inter', sans-serif";
   };
 
-  const finalValueSize = overrides.fontSize ? `${overrides.fontSize}px` : '4.5rem';
-  
-  // 颜色 Token 映射
-  const valueColor = overrides.color || theme?.colors?.primary || '#0F172A';
+  const finalValueSize = style.fontSize || '4.5rem';
+  const valueColor = style.color || theme?.colors?.primary || '#0F172A';
   const labelColor = theme?.colors?.accent || '#264376';
   const subLabelColor = theme?.colors?.secondary || '#64748B';
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`} style={{ ...style, fontFamily: getFontFamily() }}>
+    <div className={`flex flex-col gap-2 ${resolvedClassName}`} style={{ ...style, fontFamily: getFontFamily() }}>
       <div className="flex items-baseline gap-1">
-        <span 
+        <Text
+          as="span"
+          content={data.value}
           className={`font-[1000] tracking-[-0.05em] leading-none ${valueClassName}`}
           style={{ fontSize: finalValueSize, color: valueColor }}
-        >
-          {data.value}
-        </span>
+          sanitize={false}
+        />
         {data.unit && (
           <span 
             className={`font-bold opacity-60 ${unitClassName}`}
@@ -68,19 +76,19 @@ export const SlideMetric: React.FC<SlideMetricProps> = ({
         )}
       </div>
       <div className="space-y-0.5">
-        <p 
+        <Text
+          as="p"
+          content={data.label}
           className={`text-[10px] font-black uppercase tracking-widest ${labelClassName}`}
           style={{ color: labelColor }}
-        >
-          {data.label}
-        </p>
-        {data.subLabel && (
-          <p 
+        />
+        {(data as any).subLabel && (
+          <Text
+            as="p"
+            content={(data as any).subLabel}
             className={`text-[9px] font-medium ${subLabelClassName}`}
             style={{ color: subLabelColor }}
-          >
-            {data.subLabel}
-          </p>
+          />
         )}
       </div>
     </div>

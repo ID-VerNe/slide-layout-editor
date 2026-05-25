@@ -194,8 +194,8 @@ export default function EditorPage() {
   const handleExport = async (format: 'png' | 'pdf') => {
     if (!previewRef.current) return;
     setIsExporting(true); setShowExportModal(false); setExportProgress(0);
+    const prevZoom = previewZoom; const prevIdx = currentPageIndex;
     try {
-      const prevZoom = previewZoom; const prevIdx = currentPageIndex;
       setPreviewZoom(1); await document.fonts.ready;
       const exportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
       const opt = { pixelRatio: 2, backgroundColor: '#ffffff', filter: (n: any) => !(n.tagName === 'LINK' && n.rel === 'stylesheet' && !n.href.includes(window.location.origin)) };
@@ -231,8 +231,15 @@ export default function EditorPage() {
           const link = document.createElement('a'); link.download = `${projectTitle}_${idx + 1}.png`; link.href = dataUrl; link.click();
         }
       }
-      setPreviewZoom(prevZoom); setCurrentPageIndex(prevIdx);
-    } finally { setIsExporting(false); setExportProgress(0); }
+    } finally {
+      try {
+        setPreviewZoom(prevZoom);
+        setCurrentPageIndex(prevIdx);
+      } catch (recoveryError) {
+        console.error('Failed to restore preview state after export:', recoveryError);
+      }
+      setIsExporting(false); setExportProgress(0);
+    }
   };
 
   const handleSelectOrientation = (ori: OrientationType) => {
@@ -252,7 +259,26 @@ export default function EditorPage() {
         </motion.div>
         <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} /></motion.div>
       </div>
-      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl"><GlobalSettings page={currentPage || pages[0]} onUpdate={updatePage} customFonts={customFonts} setCustomFonts={setCustomFonts} theme={theme} setTheme={setTheme} imageQuality={imageQuality} setImageQuality={setImageQuality} minimalCounter={minimalCounter || false} setMinimalCounter={setMinimalCounter} counterStyle={counterStyle} setCounterStyle={setCounterStyle} counterColor="" setCounterColor={()=>{}} printSettings={printSettings} setPrintSettings={setPrintSettings} /></Modal>
+      <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl">
+        <GlobalSettings 
+          page={currentPage || pages[0]} 
+          onUpdate={updatePage} 
+          customFonts={customFonts} 
+          setCustomFonts={setCustomFonts} 
+          theme={theme} 
+          setTheme={setTheme} 
+          imageQuality={imageQuality} 
+          setImageQuality={setImageQuality} 
+          minimalCounter={minimalCounter || false} 
+          setMinimalCounter={setMinimalCounter} 
+          counterStyle={counterStyle} 
+          setCounterStyle={setCounterStyle} 
+          counterColor="" 
+          setCounterColor={()=>{}} 
+          printSettings={printSettings} 
+          setPrintSettings={setPrintSettings} 
+        />
+      </Modal>
       
       <Modal isOpen={showLayoutModal} onClose={() => setShowLayoutModal(false)} title={modalMode === 'create' ? "Add New Slide" : "Change Layout"} type="custom" maxWidth="max-w-6xl">
         <div className="min-h-[70vh] flex flex-col p-6">

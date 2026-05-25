@@ -1,12 +1,15 @@
 import React from 'react';
 import { PageData, TypographySettings } from '../../../types';
 import { useStore } from '../../../store/useStore';
+import { useDataConnector } from './hooks/useDataConnector';
+import { useModularStyle } from './hooks/useModularStyle';
+import { Text } from './atoms/Text';
 
 interface SlideBlockLabelProps {
   page?: PageData;
   typography?: TypographySettings;
   text?: string;
-  fieldKey?: 'imageLabel' | 'actionText'; // 新增：显式指定字段键
+  fieldKey?: 'imageLabel' | 'actionText';
   className?: string;
   color?: string;
   style?: React.CSSProperties;
@@ -14,8 +17,7 @@ interface SlideBlockLabelProps {
 }
 
 /**
- * SlideBlockLabel - 核心增强版
- * 支持显式指定 fieldKey 以准确应用 styleOverrides。
+ * SlideBlockLabel - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
 export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({ 
   page, 
@@ -24,50 +26,60 @@ export const SlideBlockLabel: React.FC<SlideBlockLabelProps> = ({
   fieldKey: explicitFieldKey,
   className = "", 
   color,
-  style,
+  style: customStyle,
   noBorder = false
 }) => {
   const theme = useStore((state) => state.theme);
   
+  if (!page) return null;
+
   // 智能识别或使用显式指定的 Key
-  const isImageLabelMatch = text && text === page?.imageLabel;
+  const isImageLabelMatch = text && text === page.imageLabel;
   const fieldKey = explicitFieldKey || (isImageLabelMatch ? 'imageLabel' : 'actionText');
 
-  const content = text !== undefined ? text : (fieldKey === 'imageLabel' ? page?.imageLabel : page?.actionText);
-  const isVisible = page?.visibility?.[fieldKey] !== false;
+  // 1. 数据连接
+  const { content: pageContent, overrides, isVisible } = useDataConnector(fieldKey, page);
+  const content = text !== undefined ? text : pageContent;
+
+  // 2. 样式解析
+  const { style, className: resolvedClassName } = useModularStyle({
+    fieldKey,
+    overrides,
+    props: { color },
+    variant: 'caption',
+    customStyle,
+    className
+  });
 
   if (!content || !isVisible) return null;
 
-  const overrides = page?.styleOverrides?.[fieldKey] || {};
-  
   const getFontFamily = () => {
+    if (style.fontFamily) return style.fontFamily;
     const fieldFont = typography?.fieldOverrides?.[fieldKey];
     if (fieldFont) return fieldFont;
-    const latin = theme?.typography?.headingFont || "'Inter', sans-serif";
-    return `${latin}`;
+    return theme?.typography?.headingFont || "'Inter', sans-serif";
   };
 
-  const finalColor = overrides.color || color || theme?.colors?.accent || '#264376';
+  const finalColor = style.color || theme?.colors?.accent || '#264376';
 
   return (
     <div 
-      className={`inline-flex items-center justify-center ${noBorder ? '' : 'px-6 py-2 border rounded-full'} transition-all duration-300 ${className}`}
+      className={`inline-flex items-center justify-center ${noBorder ? '' : 'px-6 py-2 border rounded-full'} transition-all duration-300 ${resolvedClassName}`}
       style={{ 
+        ...style,
         borderColor: noBorder ? 'transparent' : `${finalColor}44`,
         color: finalColor,
-        fontSize: overrides.fontSize ? `${overrides.fontSize}px` : undefined,
-        ...style
       }}
     >
-      <span 
+      <Text
+        as="span"
+        content={content}
         className="font-black uppercase tracking-widest"
         style={{ 
           fontFamily: getFontFamily(),
-          fontSize: 'inherit'
+          fontSize: style.fontSize || 'inherit'
         }}
-      >
-        {content}
-      </span>
+      />
     </div>
   );
 };

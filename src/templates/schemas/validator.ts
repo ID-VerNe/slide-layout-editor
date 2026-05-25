@@ -35,7 +35,7 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
   z.discriminatedUnion('type', [
     BaseNodeSchema.extend({
       type: z.literal('Container'),
-      layout: z.enum(['flex', 'grid', 'absolute']),
+      layout: z.enum(['flex', 'grid', 'absolute', 'modular']),
       layoutProps: z.union([
         FlexLayoutPropsSchema,
         GridLayoutPropsSchema,
@@ -55,6 +55,16 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
       condition: z.string(),
       then: TemplateNodeSchema,
       else: TemplateNodeSchema.optional(),
+    }),
+    BaseNodeSchema.extend({
+      type: z.literal('Repeater'),
+      bind: z.string(),
+      itemVariable: z.string().optional(),
+      template: TemplateNodeSchema,
+    }),
+    BaseNodeSchema.extend({
+      type: z.literal('Text'),
+      content: z.string(),
     })
   ])
 );

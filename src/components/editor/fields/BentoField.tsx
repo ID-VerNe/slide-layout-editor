@@ -43,7 +43,7 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
   };
 
   return (
-    <FieldWrapper page={page} onUpdate={onUpdate} label="Bento Grid" icon={LayoutGrid} fieldKey="features">
+    <FieldWrapper page={page} onUpdate={onUpdate} label="Bento Grid" icon={LayoutGrid} fieldKey="bentoItems">
       <div className="space-y-4">
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-4">
            <Grid3X3 size={16} className="text-slate-400" />

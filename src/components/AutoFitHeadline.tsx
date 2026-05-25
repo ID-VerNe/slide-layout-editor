@@ -56,6 +56,11 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
       workerRef.current = new Worker(new URL('../workers/fontCalculator.ts', import.meta.url), {
         type: 'module'
       });
+      workerRef.current.onerror = (e) => {
+        console.error('Worker error:', e);
+        workerRef.current?.terminate();
+        workerRef.current = null;
+      };
     } catch (e) {
       console.error('Failed to initialize font calculator worker', e);
     }

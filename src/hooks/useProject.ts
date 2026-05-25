@@ -43,6 +43,14 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const undo = useStore(s => s.undo);
   const redo = useStore(s => s.redo);
 
+  const handleExportProject = useCallback(() => {
+    console.log('Export project');
+  }, []);
+
+  const handleImportProject = useCallback(() => {
+    console.log('Import project');
+  }, []);
+
   const previewRefLocal = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef({ projectId, isLoaded, pages });
   
@@ -61,7 +69,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
       try {
         let base64 = null;
-        if (nativeFs.isElectron) {
+        if (nativeFs.isElectron()) {
           // Electron: 极速截图，宽 240px
           const pageEl = previewRefLocal.current.querySelector('.magazine-page');
           if (pageEl) {
@@ -151,7 +159,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
     pages, projectTitle, setProjectTitle, theme, setTheme,
     currentPageIndex, setCurrentPageIndex,
     currentPage: pages[currentPageIndex], isLoaded, 
-    updatePage, addPage, removePage, reorderPages, loadProject,
+    updatePage, addPage, removePage, reorderPages, 
+    handleExportProject, handleImportProject, loadProject,
     saveToDB, undo, redo, canUndo: past.length > 0, canRedo: future.length > 0,
     printSettings, setPrintSettings, imageQuality, setImageQuality, 
     minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,

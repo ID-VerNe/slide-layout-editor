@@ -14,9 +14,14 @@ interface VirtualPageListProps {
   onRemovePage: (id: string) => void;
   onReorderPages: (newPages: PageData[]) => void;
   onClearAll: () => void;
+  onImport: () => void;
+  onExport: () => void;
   onToggleFontManager: () => void;
   showFontManager: boolean;
   onNavigateHome: () => void;
+  onNativeSave: () => void;
+  onNativeSaveAs: () => void;
+  onNativeOpen: () => void;
 }
 
 const ITEM_HEIGHT = 72; // 每个页面的高度 (w-24 minus px-3 on both sides)

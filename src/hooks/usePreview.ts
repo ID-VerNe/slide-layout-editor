@@ -7,6 +7,7 @@ interface UsePreviewOptions {
   currentPageIndex: number;
   printSettings: PrintSettings;
   isLoaded?: boolean; // 新增：感知加载状态
+  minimalCounter?: boolean; // 新增
 }
 
 export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = true }: UsePreviewOptions) {

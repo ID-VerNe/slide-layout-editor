@@ -56,58 +56,60 @@ const TopNav: React.FC<TopNavProps> = ({
   }, [showExportMenu, setShowExportMenu, exportMenuRef, showSaveMenu]);
 
   return (
-    <div className="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6 shrink-0 z-40 relative shadow-sm">
+    <div className="h-16 bg-white border-b border-zine-accent flex items-center justify-between px-6 shrink-0 z-40 relative">
       <div className="flex items-center gap-6 flex-1 min-w-0">
         <div className="flex items-center gap-3 w-64 group">
-          <div className="p-2 bg-slate-50 rounded-lg text-slate-400 group-hover:text-[#264376] transition-colors"><Monitor size={16} /></div>
+          <div className="p-2 bg-zine-surface border border-zine-accent rounded-none text-zine-accent"><Monitor size={16} strokeWidth={3} /></div>
           <div className="flex-1 min-w-0">
-            <DebouncedInput value={projectTitle} onChange={setProjectTitle} placeholder={fallbackTitle} className="font-black text-sm text-slate-900 placeholder:text-slate-400 bg-transparent border-none p-0 focus:ring-0 w-full uppercase tracking-tight truncate" />
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Slide {currentPageIndex + 1} of {totalPages}</p>
+            <DebouncedInput value={projectTitle} onChange={setProjectTitle} placeholder={fallbackTitle} className="font-black text-sm text-zine-accent placeholder:text-slate-300 bg-transparent border-none p-0 focus:ring-0 w-full uppercase tracking-tight truncate" />
+            <p className="text-[9px] font-black text-zine-secondary uppercase tracking-[0.2em] leading-none mt-1">Slide {currentPageIndex + 1} // {totalPages}</p>
           </div>
         </div>
-        <div className="h-8 w-px bg-slate-100" />
+        <div className="h-8 w-[2px] bg-zine-accent/10" />
         <div className="flex items-center gap-1">
-          <button onClick={onUndo} disabled={!canUndo} className={`p-2 rounded-lg transition-all ${canUndo ? 'text-slate-500 hover:text-[#264376] hover:bg-slate-50' : 'text-slate-200 cursor-not-allowed'}`} title="Undo (Ctrl+Z)"><RotateCcw size={16} /></button>
-          <button onClick={onRedo} disabled={!canRedo} className={`p-2 rounded-lg transition-all ${canRedo ? 'text-slate-500 hover:text-[#264376] hover:bg-slate-50' : 'text-slate-200 cursor-not-allowed'}`} title="Redo (Ctrl+Y)"><RotateCw size={16} /></button>
+          <button onClick={onUndo} disabled={!canUndo} className={`p-2 rounded-none transition-all border ${canUndo ? 'text-zine-accent border-zine-accent hover:bg-zine-accent hover:text-white' : 'text-slate-200 border-slate-100 cursor-not-allowed'}`} title="Undo (Ctrl+Z)"><RotateCcw size={16} strokeWidth={3} /></button>
+          <button onClick={onRedo} disabled={!canRedo} className={`p-2 rounded-none transition-all border ${canRedo ? 'text-zine-accent border-zine-accent hover:bg-zine-accent hover:text-white' : 'text-slate-200 border-slate-100 cursor-not-allowed'}`} title="Redo (Ctrl+Y)"><RotateCw size={16} strokeWidth={3} /></button>
         </div>
       </div>
 
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-100 shadow-sm">
-        <button onClick={() => onZoomChange(Math.max(0.1, previewZoom - 0.1))} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white rounded-lg transition-all"><ZoomOut size={14} /></button>
-        <div className="w-24 px-2 flex items-center gap-2"><input type="range" min="0.1" max="1.5" step="0.05" value={previewZoom} onChange={(e) => onZoomChange(parseFloat(e.target.value))} className="w-full h-1 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#264376]" /></div>
-        <button onClick={() => onZoomChange(Math.min(1.5, previewZoom + 0.1))} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white rounded-lg transition-all"><ZoomIn size={14} /></button>
-        <div className="w-px h-4 bg-slate-200 mx-1" />
-        <button onClick={onToggleAutoFit} className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${isAutoFit ? 'bg-[#264376] text-white shadow-md' : 'text-slate-400 hover:bg-white hover:text-slate-600'}`}><Move size={10} /> {isAutoFit ? 'Fit' : 'Free'}</button>
-        <span className="text-[9px] font-mono font-bold text-slate-300 w-8 text-center">{Math.round(previewZoom * 100)}%</span>
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white p-1 rounded-none border border-zine-accent">
+        <button onClick={() => onZoomChange(Math.max(0.1, previewZoom - 0.1))} className="p-1.5 text-zine-accent hover:bg-zine-surface rounded-none transition-all"><ZoomOut size={14} strokeWidth={3} /></button>
+        <div className="w-24 px-2 flex items-center gap-2"><input type="range" min="0.1" max="1.5" step="0.05" value={previewZoom} onChange={(e) => onZoomChange(parseFloat(e.target.value))} className="w-full h-[2px] bg-slate-200 appearance-none cursor-pointer accent-zine-accent" /></div>
+        <button onClick={() => onZoomChange(Math.min(1.5, previewZoom + 0.1))} className="p-1.5 text-zine-accent hover:bg-zine-surface rounded-none transition-all"><ZoomIn size={14} strokeWidth={3} /></button>
+        <div className="w-px h-4 bg-zine-accent mx-1" />
+        <button onClick={onToggleAutoFit} className={`flex items-center gap-1.5 px-3 py-1 rounded-none text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${isAutoFit ? 'bg-zine-accent text-white border-zine-accent' : 'text-slate-400 border-transparent hover:border-zine-accent hover:text-zine-accent'}`}><Move size={10} strokeWidth={3} /> {isAutoFit ? 'Fit' : 'Free'}</button>
+        <span className="text-[9px] font-mono font-black text-zine-accent w-10 text-center">{Math.round(previewZoom * 100)}%</span>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex items-center bg-slate-50 rounded-lg p-1">
-          <button onClick={() => onPageChange(Math.max(0, currentPageIndex - 1))} disabled={currentPageIndex === 0} className="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-colors"><ChevronLeft size={16} /></button>
-          <button onClick={() => onPageChange(Math.min(totalPages - 1, currentPageIndex + 1))} disabled={currentPageIndex === totalPages - 1} className="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 transition-colors"><ChevronRight size={16} /></button>
+        <div className="flex items-center bg-white border border-zine-accent rounded-none p-0.5">
+          <button onClick={() => onPageChange(Math.max(0, currentPageIndex - 1))} disabled={currentPageIndex === 0} className="p-1.5 text-zine-accent hover:bg-zine-surface disabled:opacity-20 transition-colors"><ChevronLeft size={16} strokeWidth={3} /></button>
+          <div className="w-px h-4 bg-zine-accent/20" />
+          <button onClick={() => onPageChange(Math.min(totalPages - 1, currentPageIndex + 1))} disabled={currentPageIndex === totalPages - 1} className="p-1.5 text-zine-accent hover:bg-zine-surface disabled:opacity-20 transition-colors"><ChevronRight size={16} strokeWidth={3} /></button>
         </div>
 
-        <button onClick={() => onToggleEditor()} className={`p-2 rounded-xl border-2 transition-all ${!showEditor ? 'border-[#264376] bg-[#264376]/5 text-[#264376] shadow-lg' : 'border-slate-100 text-slate-300 hover:border-slate-200 hover:bg-slate-50'}`} title={showEditor ? "Fullscreen Mode" : "Show Editor"}>{showEditor ? <Maximize size={18} /> : <Minimize size={18} />}</button>
+        <button onClick={() => onToggleEditor()} className={`p-2 rounded-none border-2 transition-all ${!showEditor ? 'border-zine-accent bg-zine-surface text-zine-accent' : 'border-slate-100 text-slate-300 hover:border-zine-accent hover:text-zine-accent'}`} title={showEditor ? "Fullscreen Mode" : "Show Editor"}>{showEditor ? <Maximize size={18} strokeWidth={3} /> : <Minimize size={18} strokeWidth={3} />}</button>
 
         {/* 保存菜单 */}
         <div className="relative" ref={saveMenuRef}>
-          <div className="flex items-center gap-px bg-slate-50 rounded-xl p-0.5 border border-slate-100">
-            <button onClick={onSave} className="p-2 text-slate-400 hover:text-[#264376] hover:bg-white rounded-lg transition-all" title="Quick Save (Ctrl+S)"><Save size={18} /></button>
-            <button onClick={() => setShowSaveMenu(!showSaveMenu)} className="p-1 text-slate-300 hover:text-[#264376] hover:bg-white rounded-lg transition-all"><ChevronDown size={12} /></button>
+          <div className="flex items-center gap-px bg-white rounded-none p-0.5 border border-zine-accent">
+            <button onClick={onSave} className="p-2 text-zine-accent hover:bg-zine-surface rounded-none transition-all" title="Quick Save (Ctrl+S)"><Save size={18} strokeWidth={3} /></button>
+            <div className="w-px h-6 bg-zine-accent/20" />
+            <button onClick={() => setShowSaveMenu(!showSaveMenu)} className="p-1 text-zine-accent hover:bg-zine-surface rounded-none transition-all"><ChevronDown size={12} strokeWidth={3} /></button>
           </div>
           <AnimatePresence>
             {showSaveMenu && (
-              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-100 p-1.5 z-50">
-                <button onClick={() => { onSave(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 transition-all text-xs font-bold"><Save size={14} className="text-blue-500" /> Save <span className="ml-auto text-[9px] opacity-30">Ctrl+S</span></button>
-                <button onClick={() => { onSaveAs(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 transition-all text-xs font-bold"><Copy size={14} className="text-amber-500" /> Save As... <span className="ml-auto text-[9px] opacity-30">Ctrl+Shift+S</span></button>
+              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute top-full right-0 mt-1 w-48 bg-white rounded-none border-2 border-zine-accent p-1 z-50 shadow-none">
+                <button onClick={() => { onSave(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-none hover:bg-zine-accent hover:text-white text-zine-accent transition-all text-[10px] font-black uppercase tracking-widest"><Save size={14} strokeWidth={3} /> Save <span className="ml-auto text-[9px] opacity-40">Ctrl+S</span></button>
+                <button onClick={() => { onSaveAs(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-none hover:bg-zine-accent hover:text-white text-zine-accent transition-all text-[10px] font-black uppercase tracking-widest"><Copy size={14} strokeWidth={3} /> Save As <span className="ml-auto text-[9px] opacity-40">Shift+S</span></button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
         <div className="relative" ref={exportMenuRef}>
-          <button onClick={() => setShowExportMenu(!showExportMenu)} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${isExporting ? 'bg-slate-100 text-slate-400 cursor-wait' : 'bg-[#264376] text-white shadow-lg shadow-[#264376]/20 hover:brightness-110 active:scale-95'}`}>{isExporting ? 'Exporting...' : 'Export'}<ChevronDown size={14} className={`transition-transform duration-300 ${showExportMenu ? 'rotate-180' : ''}`} /></button>
-          <AnimatePresence>{showExportMenu && (<motion.div initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }} className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 overflow-hidden"><div className="space-y-1"><p className="px-3 py-2 text-[9px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-50 mb-1">Export Options</p><button onClick={() => onExportPng(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-50 text-slate-600 transition-colors group"><div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-colors"><Download size={14}/></div><span className="text-xs font-bold">Current Slide</span></button><button onClick={() => onExportPng(true)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-50 text-slate-600 transition-colors group"><div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition-colors"><Download size={14}/></div><span className="text-xs font-bold">All Slides (Zip)</span></button></div></motion.div>)}</AnimatePresence>
+          <button onClick={() => setShowExportMenu(!showExportMenu)} className={`flex items-center gap-3 px-6 py-2.5 rounded-none font-black text-[11px] uppercase tracking-[0.2em] transition-all border-2 ${isExporting ? 'bg-zine-surface text-slate-400 border-slate-200 cursor-wait' : 'bg-zine-accent text-white border-zine-accent hover:brightness-110'}`}>{isExporting ? 'Exporting' : 'Export'}<ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-300 ${showExportMenu ? 'rotate-180' : ''}`} /></button>
+          <AnimatePresence>{showExportMenu && (<motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute top-full right-0 mt-1 w-48 bg-white rounded-none border-2 border-zine-accent p-1 z-50 shadow-none overflow-hidden"><div className="space-y-1"><p className="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] border-b border-slate-100 mb-1">Scope Options</p><button onClick={() => onExportPng(false)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-left hover:bg-zine-accent hover:text-white text-zine-accent transition-all group"><Download size={14} strokeWidth={3}/><span className="text-[10px] font-black uppercase tracking-widest">Single Slide</span></button><button onClick={() => onExportPng(true)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-left hover:bg-zine-accent hover:text-white text-zine-accent transition-all group"><Download size={14} strokeWidth={3}/><span className="text-[10px] font-black uppercase tracking-widest">Full Archive</span></button></div></motion.div>)}</AnimatePresence>
         </div>
       </div>
     </div>
