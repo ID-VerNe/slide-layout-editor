@@ -54,6 +54,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     imageSubLabel: ImageSubLabelField,
     features: FeaturesField,
     mosaic: MosaicField,
+    mosaicItems: MosaicField,
     metrics: MetricsField,
     partnersTitle: PartnersTitleField,
     partners: PartnersField,
@@ -68,6 +69,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     pageNumber: PageNumberField,
     resumeSections: ResumeSectionsField,
     titleY: TitleYField,
+    logoSize: GenericNumberField,
   };
 
   // 2. 匹配组件：优先找具名组件，如果是 number 类型则使用通用调节控件

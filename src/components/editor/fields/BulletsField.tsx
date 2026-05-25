@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, CustomFont } from '../../../types';
 import { List, Plus, X } from 'lucide-react';
 import { DebouncedInput } from '../../ui/DebouncedBase';
 import { FieldToolbar } from './FieldToolbar';
@@ -8,6 +8,7 @@ import { FieldWrapper } from './FieldWrapper';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  customFonts?: CustomFont[];
 }
 
 /**

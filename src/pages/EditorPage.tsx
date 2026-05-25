@@ -45,7 +45,7 @@ export default function EditorPage() {
     }
   }, [projectId, activeProjectId, loadProject, templateId]);
 
-  const { previewZoom, setPreviewZoom, isAutoFit, setIsAutoFit, previewRef, previewContainerRef, handleManualZoom, toggleFit, handleOverflowChange } = usePreview({ pages, currentPageIndex, printSettings, minimalCounter });
+  const { previewZoom, setPreviewZoom, isAutoFit, setIsAutoFit, previewRef, previewContainerRef, handleManualZoom, toggleFit, handleOverflowChange } = usePreview({ pages, currentPageIndex, printSettings, minimalCounter, isLoaded });
 
   const [showSettings, setShowSettings] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
@@ -273,8 +273,8 @@ export default function EditorPage() {
           setMinimalCounter={setMinimalCounter} 
           counterStyle={counterStyle} 
           setCounterStyle={setCounterStyle} 
-          counterColor="" 
-          setCounterColor={()=>{}} 
+          counterColor={currentPage?.counterColor || ''}
+          setCounterColor={(value) => currentPage && updatePage({ ...currentPage, counterColor: value })} 
           printSettings={printSettings} 
           setPrintSettings={setPrintSettings} 
         />

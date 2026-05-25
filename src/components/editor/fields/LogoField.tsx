@@ -1,11 +1,12 @@
 import React from 'react';
-import { PageData } from '../../../types';
+import { PageData, CustomFont } from '../../../types';
 import { Eye, EyeOff, Image } from 'lucide-react';
 import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  customFonts?: CustomFont[];
 }
 
 /**

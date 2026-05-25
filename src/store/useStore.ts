@@ -4,6 +4,14 @@ import { getProject } from '../utils/db';
 import { nativeFs } from '../utils/native-fs';
 import { migrateToV3 } from '../utils/migrations/v2-to-v3';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
+import { TEMPLATES } from '../templates/registry';
+
+/** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
+const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
+  if (!templateId) return '16:9';
+  const template = (TEMPLATES as any[]).find((t: any) => t.id === templateId);
+  return template?.supportedRatios?.[0] || '16:9';
+};
 
 const getDefaultPage = (ratio: AspectRatioType, layoutId: string): PageData => ({
   id: `slide-${crypto.randomUUID()}`,
@@ -88,7 +96,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     set({
       activeProjectId: id,
       projectTitle: title,
-      pages: [{ ...getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature'), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
+      pages: [{ ...getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature'), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
       theme: DEFAULT_THEME,
       designSystem: DEFAULT_DESIGN_SYSTEM,
       currentPageIndex: 0,
@@ -144,7 +152,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       }));
     } else {
       set({
-        pages: [getDefaultPage(templateId?.includes('2:3') ? '2:3' : '16:9', templateId || 'modern-feature')], 
+        pages: [getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature')], 
         projectTitle: '', 
         theme: DEFAULT_THEME, 
         designSystem: DEFAULT_DESIGN_SYSTEM, 
@@ -162,7 +170,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   pushHistory: () => {
-    const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts } = get();
+    const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
     if (pages.length === 0) return;
     set((state) => ({
       past: [...state.past, {
@@ -175,6 +183,7 @@ export const useStore = create<ProjectState>((set, get) => ({
         counterStyle,
         imageQuality,
         customFonts: deepClone(customFonts),
+        currentPageIndex,
       }].slice(-50),
       future: [],
       hasUnsavedChanges: true
@@ -187,6 +196,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   setImageQuality: (imageQuality) => set({ imageQuality, hasUnsavedChanges: true }),
   setMinimalCounter: (minimalCounter) => set({ minimalCounter, hasUnsavedChanges: true }),
   setCounterStyle: (counterStyle) => {
+    get().pushHistory();
     const { pages } = get();
     const updatedPages = pages.map(p => ({ ...p, counterStyle }));
     set({ counterStyle, pages: updatedPages, hasUnsavedChanges: true });
@@ -216,8 +226,18 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   addPage: (ratio, layoutId) => {
     get().pushHistory();
-    const { pages } = get();
-    set({ pages: [...pages, getDefaultPage(ratio, layoutId)], currentPageIndex: pages.length, hasUnsavedChanges: true });
+    const { pages, theme, counterStyle } = get();
+    const defaultPage = getDefaultPage(ratio, layoutId);
+    // 继承当前全局样式到新页面
+    const newPage: PageData = {
+      ...defaultPage,
+      backgroundColor: theme.colors.background,
+      accentColor: theme.colors.accent,
+      titleFont: theme.typography.headingFont,
+      bodyFont: theme.typography.bodyFont,
+      counterStyle,
+    };
+    set({ pages: [...pages, newPage], currentPageIndex: pages.length, hasUnsavedChanges: true });
   },
 
   removePage: (id) => {
@@ -249,14 +269,16 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   undo: () => {
-    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
+    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts } = get();
     if (past.length === 0) return;
     const prev = past[past.length - 1];
-    // 构建完整的当前快照（用于 redo）
+    // 构建完整的当前快照（用于 redo），包含 currentPageIndex
     const currentSnapshot = {
       pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
       printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
+      currentPageIndex: get().currentPageIndex,
     };
+    const restoredIndex = prev.currentPageIndex !== undefined ? Math.min(prev.currentPageIndex, prev.pages.length - 1) : 0;
     set({ 
       pages: prev.pages, projectTitle: prev.projectTitle, 
       theme: prev.theme, designSystem: prev.designSystem,
@@ -267,19 +289,21 @@ export const useStore = create<ProjectState>((set, get) => ({
       customFonts: prev.customFonts || [],
       past: past.slice(0, -1), 
       future: [currentSnapshot, ...future], 
-      currentPageIndex: Math.min(currentPageIndex, prev.pages.length - 1), 
+      currentPageIndex: restoredIndex, 
       hasUnsavedChanges: true 
     });
   },
 
   redo: () => {
-    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
+    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts } = get();
     if (future.length === 0) return;
     const next = future[0];
     const currentSnapshot = {
       pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
       printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
+      currentPageIndex: get().currentPageIndex,
     };
+    const restoredIndex = next.currentPageIndex !== undefined ? Math.min(next.currentPageIndex, next.pages.length - 1) : 0;
     set({ 
       pages: next.pages, projectTitle: next.projectTitle, 
       theme: next.theme, designSystem: next.designSystem,
@@ -290,7 +314,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       customFonts: next.customFonts || [],
       past: [...past, currentSnapshot], 
       future: future.slice(1), 
-      currentPageIndex: Math.min(currentPageIndex, next.pages.length - 1), 
+      currentPageIndex: restoredIndex, 
       hasUnsavedChanges: true 
     });
   }

@@ -23,6 +23,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const counterStyle = useStore(s => s.counterStyle);
   const customFonts = useStore(s => s.customFonts);
   const currentFilePath = useStore(s => s.currentFilePath);
+  const designSystem = useStore(s => s.designSystem);
   const hasUnsavedChanges = useStore(s => s.hasUnsavedChanges);
 
   const loadProject = useStore(s => s.loadProject);
@@ -130,7 +131,8 @@ export function useProject(projectId: string | undefined, templateId: string | n
       customFonts, 
       imageQuality, 
       printSettings, 
-      theme, 
+      theme,
+      designSystem,
       minimalCounter,
       counterStyle,
       filePath: currentFilePath || undefined // 保存当前路径
@@ -153,7 +155,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
     else index.unshift(summary);
     
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
-  }, [pages, projectId, isLoaded, activeProjectId, projectTitle, theme, customFonts, imageQuality, printSettings, minimalCounter]);
+  }, [pages, projectId, isLoaded, activeProjectId, projectTitle, theme, designSystem, customFonts, imageQuality, printSettings, minimalCounter, counterStyle, currentFilePath]);
 
   return {
     pages, projectTitle, setProjectTitle, theme, setTheme,

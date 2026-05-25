@@ -14,19 +14,20 @@ interface FieldProps {
 
 export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
-  const migratedRef = useRef(false);
+  // 用 Set 跟踪已迁移的页面 ID，避免跨页面迁移被跳过
+  const migratedRef = useRef<Set<string>>(new Set());
   const isVisible = page.visibility?.features !== false;
 
-  // Auto-generate IDs for legacy data（仅执行一次）
+  // Auto-generate IDs for legacy data（每个页面仅执行一次）
   React.useEffect(() => {
-    if (migratedRef.current) return;
+    if (migratedRef.current.has(page.id)) return;
     const features = page.features || [];
     if (features.some(f => !f.id)) {
-      migratedRef.current = true;
+      migratedRef.current.add(page.id);
       const migrated = features.map(f => f.id ? f : { ...f, id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
       onUpdate({ ...page, features: migrated });
     }
-  }, [page.features]);
+  }, [page.id, page.features]);
 
   const toggle = () => {
     onUpdate({
