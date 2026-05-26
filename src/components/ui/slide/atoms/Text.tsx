@@ -53,7 +53,10 @@ export const Text: React.FC<TextProps> = ({
         maxLines={maxLines}
         fontFamily={style.fontFamily}
         className={className}
-        style={style}
+        style={{
+          ...style,
+          textWrap: style.transform?.includes('rotate') ? 'nowrap' : (textContent.includes('\n') ? 'unset' : 'balance')
+        }}
       />
     );
   }
@@ -61,7 +64,10 @@ export const Text: React.FC<TextProps> = ({
   return (
     <Component 
       className={className} 
-      style={style}
+      style={{
+        ...style,
+        textWrap: style.transform?.includes('rotate') ? 'nowrap' : (textContent.includes('\n') ? 'unset' : 'balance')
+      }}
       dangerouslySetInnerHTML={sanitize ? { __html: sanitizedContent } : undefined}
     >
       {!sanitize ? children || textContent : undefined}

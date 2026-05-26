@@ -21,13 +21,13 @@ export const FontSelect: React.FC<FontSelectProps> = ({ value, onChange, label, 
           ${compact ? 'py-1 pl-1.5' : 'py-2.5 pl-3'}`}
       >
         <optgroup label="Zine Spec: Serif (Han/EN)">
-           <option value="'Noto Serif SC', serif">Noto Serif SC</option>
+           <option value="'STFangsong', 'FangSong', 'Noto Serif SC', serif">仿宋 (FangSong)</option>
            <option value="'Playfair Display', serif">Playfair Display</option>
-           <option value="'Crimson Pro', serif">Crimson Pro</option>
+           <option value="'Noto Serif SC', serif">Noto Serif SC (Backup)</option>
         </optgroup>
 
         <optgroup label="Zine Spec: Sans (Latin)">
-           <option value="'Inter', sans-serif">Inter</option>
+           <option value="'Inter', sans-serif">Inter (Sans-Serif)</option>
         </optgroup>
       </select>
       <ChevronDown size={14} strokeWidth={3} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-950 pointer-events-none" />

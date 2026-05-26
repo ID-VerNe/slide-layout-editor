@@ -10,10 +10,10 @@ export const DEFAULT_THEME: ProjectTheme = {
   },
   typography: { 
     headingFont: "'Playfair Display', serif", 
-    bodyFont: "'Crimson Pro', serif",
+    bodyFont: "'Playfair Display', serif",
     captionFont: "'Inter', sans-serif",
-    headingFontZH: "'Noto Serif SC', serif", 
-    bodyFontZH: "'Noto Serif SC', serif" 
+    headingFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif", 
+    bodyFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif" 
   }
 };
 
@@ -37,15 +37,36 @@ export const DEFAULT_DESIGN_SYSTEM: DesignSystem = {
     },
     typography: {
       scales: {
-        display: '72px',
-        h1: '48px',
-        h2: '32px',
-        body: '16px',
-        caption: '10px'
+        display: '64pt',
+        h1: '48pt',
+        h2: '32pt',
+        body: '10pt',
+        caption: '7pt'
       },
-      body: { fontSize: '16px', lineHeight: '1.8', fontWeight: '400', letterSpacing: '0.01em' },
-      caption: { fontSize: '10px', lineHeight: '1.5', fontWeight: '900', letterSpacing: '0.25em', textTransform: 'uppercase' },
-      display: { fontSize: '72px', lineHeight: '0.85', fontWeight: '900', letterSpacing: '-0.04em' }
+      // 引言/诗歌 (Lead/Poem): Playfair Display Italic, 9pt-11pt, Leading 1.6x
+      body: { 
+        fontSize: '10pt', 
+        lineHeight: '1.6', 
+        fontWeight: '400', 
+        letterSpacing: '0',
+        fontStyle: 'italic'
+      },
+      // 元数据/图注 (Metadata/Caption): Inter Bold/Medium, 6.5pt-7.5pt, ALL CAPS, Tracking +150 to +200, Leading 12pt-14pt
+      caption: { 
+        fontSize: '7pt', 
+        lineHeight: '1.8', // 12.6pt if fontSize is 7pt
+        fontWeight: '700', 
+        letterSpacing: '0.2em', 
+        textTransform: 'uppercase' 
+      },
+      // 主标题 (Title): Playfair Display, 32pt-48pt, Tracking +150 to +250 (AllCaps)
+      display: { 
+        fontSize: '48pt', 
+        lineHeight: '1.1', 
+        fontWeight: '400', 
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase'
+      }
     }
   },
   presets: {

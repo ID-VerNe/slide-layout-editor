@@ -20,6 +20,41 @@ export class ProjectArchiveManager {
     this.currentProjectName = name || 'Untitled';
   }
 
+  public async listProjects() {
+    if (!this.workspacePath || !existsSync(this.workspacePath)) return [];
+    
+    const entries = await fs.readdir(this.workspacePath, { withFileTypes: true });
+    const projects = [];
+    
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const projectJsonPath = path.join(this.workspacePath, entry.name, 'project.json');
+        if (existsSync(projectJsonPath)) {
+          try {
+            const content = await fs.readFile(projectJsonPath, 'utf-8');
+            const data = JSON.parse(content);
+            const stats = await fs.stat(projectJsonPath);
+            
+            projects.push({
+              id: data.id || entry.name.split('_').pop(),
+              title: data.projectTitle || data.title || 'Untitled',
+              date: new Date(stats.mtime).toLocaleDateString(),
+              lastModified: stats.mtimeMs,
+              type: data.pages?.[0]?.layoutId || 'standard',
+              aspectRatio: data.pages?.[0]?.aspectRatio || '16:9',
+              thumbnail: data.thumbnail || null,
+              filePath: path.join(this.workspacePath, entry.name)
+            });
+          } catch (e) {
+            console.error(`Failed to read project.json in ${entry.name}`, e);
+          }
+        }
+      }
+    }
+    
+    return projects.sort((a, b) => b.lastModified - a.lastModified);
+  }
+
   /**
    * 获取物理存储目录
    * 核心改进：优先通过 ID 后缀匹配现有文件夹，防止因标题修改导致资产丢失
@@ -76,6 +111,21 @@ export class ProjectArchiveManager {
   }
 
   public async openProject(filePath: string) {
+    const stats = await fs.stat(filePath);
+    
+    if (stats.isDirectory()) {
+      // 如果是目录，读取目录下的 project.json
+      const jsonPath = path.join(filePath, 'project.json');
+      if (!existsSync(jsonPath)) throw new Error("Project metadata not found in directory");
+      const content = await fs.readFile(jsonPath, 'utf-8');
+      const projectData = JSON.parse(content);
+      
+      this.currentProjectId = projectData.id || crypto.randomUUID();
+      this.currentProjectName = projectData.projectTitle || projectData.title || 'Imported';
+      
+      return projectData;
+    }
+
     const fileBuffer = await fs.readFile(filePath);
     const isZip = fileBuffer.length > 4 && fileBuffer[0] === 0x50 && fileBuffer[1] === 0x4B;
 
@@ -131,8 +181,24 @@ export class ProjectArchiveManager {
     const projectFolder = await this.getProjectFolder();
     const assetsDir = path.join(projectFolder, 'assets');
 
+    // 1. 无论如何，先更新项目文件夹内的 project.json
     await fs.writeFile(path.join(projectFolder, 'project.json'), JSON.stringify(data, null, 2), 'utf-8');
 
+    // 2. 检查 filePath 是否指向文件夹
+    let isDirectory = false;
+    try {
+      const stats = await fs.stat(filePath);
+      isDirectory = stats.isDirectory();
+    } catch (e) {
+      // 路径不存在（新文件保存），isDirectory 保持 false
+    }
+
+    // 3. 如果是文件夹（Workspace 模式），任务已完成
+    if (isDirectory || filePath === projectFolder) {
+      return;
+    }
+
+    // 4. 如果是文件路径（Export 模式 / .slgrid），则打包 ZIP
     const zip = new AdmZip();
     zip.addLocalFile(path.join(projectFolder, 'project.json'));
     if (existsSync(assetsDir)) {

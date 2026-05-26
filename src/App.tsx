@@ -9,9 +9,9 @@ import { nativeFs } from './utils/native-fs';
 // 预加载常用模板
 const preloadCommonTemplates = () => {
   const commonTemplates = [
-    () => import('./templates/schemas/modern-feature'),
-    () => import('./templates/schemas/platform-hero'),
-    () => import('./templates/schemas/table-of-contents'),
+    () => import('./templates/schemas/Universal-Product/modern-feature'),
+    () => import('./templates/schemas/Universal-Marketing/platform-hero'),
+    () => import('./templates/schemas/Universal-General/table-of-contents'),
   ];
   
   // 使用 requestIdleCallback 或 setTimeout 来在空闲时预加载

@@ -6,9 +6,10 @@ import { Text } from './Text';
 
 interface ZineDisplayProps {
   page: PageData;
-  fieldKey?: string; // 新增
+  fieldKey?: string; 
   text?: string;
   color?: keyof DesignSystem['tokens']['colors'];
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -19,9 +20,10 @@ interface ZineDisplayProps {
  */
 export const ZineDisplay: React.FC<ZineDisplayProps> = ({ 
   page,
-  fieldKey, // 新增
+  fieldKey, 
   text, 
   color = 'primary', 
+  orientation = 'horizontal', // 新增
   className = '', 
   style: customStyle,
   children 
@@ -30,10 +32,11 @@ export const ZineDisplay: React.FC<ZineDisplayProps> = ({
   const ds = useStore(s => s.designSystem);
   
   const { style, className: resolvedClassName } = useModularStyle({
-    page, // 传入 page
-    fieldKey, // 传入 fieldKey
+    page, 
+    fieldKey, 
     props: { color: ds.tokens.colors[color as string] || color },
     variant: 'display',
+    orientation: orientation as any, // 传入方向
     customStyle,
     className
   });

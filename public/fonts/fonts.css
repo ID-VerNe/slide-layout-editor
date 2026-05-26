@@ -38,6 +38,7 @@
   src: url('./crimson-pro/CrimsonPro-Regular.woff2') format('woff2');
 }
 
+/* Missing weights - commenting out to avoid OTS parsing errors (404 returning HTML)
 @font-face {
   font-family: 'Crimson Pro';
   font-style: italic;
@@ -61,6 +62,7 @@
   font-display: swap;
   src: url('./crimson-pro/CrimsonPro-Bold.woff2') format('woff2');
 }
+*/
 
 /* Noto Serif SC (Source Han Serif) - Local */
 @font-face {

@@ -127,6 +127,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
   // A. Style Whitelist: 仅允许几何布局、定位、核心视觉属性
   const ALLOWED_PROPS = [
     'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd', 
+    'alignSelf', 'justifySelf',
     'display', 'flexDirection', 'alignItems', 'justifyContent', 'gap', 'flexWrap',
     'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 
     'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
@@ -137,18 +138,18 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
     'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
     'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
     'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
-    'fontStyle'
+    'fontStyle', 'borderRadius'
   ];
   
   const filteredStyle: any = {};
   ALLOWED_PROPS.forEach(p => { 
     if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p]; 
-    if ((presetStyle as any)[p] !== undefined) presetStyle[p] = (presetStyle as any)[p];
+    if ((presetStyle as any)[p] !== undefined) filteredStyle[p] = (presetStyle as any)[p];
   });
   
   finalStyle = filteredStyle;
 
-  // B. ClassName Blacklist: 强制剔除圆角、阴影、模糊等“软审美”类名
+  // B. ClassName Blacklist: 强制剔除阴影、模糊等“软审美”类名 (保留 rounded 以支持圆角)
   dynamicClassName = filterZineClassName(dynamicClassName);
 
   return {
@@ -164,7 +165,7 @@ function filterZineClassName(className: string): string {
   if (!className) return '';
   
   const forbiddenPrefixes = [
-    'rounded', 'shadow', 'blur', 'drop-shadow',
+    'shadow', 'blur', 'drop-shadow',
     'animate-bounce', 'animate-pulse', 'animate-wiggle'
   ];
 
@@ -280,13 +281,13 @@ function renderComponent(
   const staticProps = node.props || {};
   const dynamicProps = evaluator.evaluateObject(staticProps, context);
   
-  // 1. 尝试从 bind 字段推断 fieldKey 并注入数据
-  let inferredFieldKey: string | undefined = undefined;
-  if (node.bind) {
-    const value = evaluator.evaluate(node.bind, context);
+  // 1. 优先使用显式指定的 fieldKey，否则尝试从 bind 字段推断
+  let inferredFieldKey: string | undefined = node.fieldKey;
+  if (!inferredFieldKey && node.bind) {
     inferredFieldKey = node.bind.startsWith('page.') ? node.bind.replace('page.', '') : undefined;
     
     // 启发式：如果是媒体类组件注入 src，否则注入 text
+    const value = evaluator.evaluate(node.bind, context);
     if (node.componentType.toLowerCase().includes('media') || node.componentType.toLowerCase().includes('image')) {
       if (dynamicProps.src === undefined) dynamicProps.src = value;
     } else {
@@ -294,17 +295,27 @@ function renderComponent(
     }
   }
 
+  // 2. 合并基础样式与动态 Props 中的样式，防止 grid 定位被覆盖
+  const mergedStyle = { 
+    zIndex: 1, 
+    ...style, 
+    ...(dynamicProps.style || {}) 
+  };
+
   const baseProps = {
     page: context.page,
-    fieldKey: inferredFieldKey, // 传入推断的 fieldKey
+    fieldKey: inferredFieldKey, 
     theme: context.theme,
     designSystem: ds,
     typography,
     className,
-    style,
+    style: mergedStyle,
   };
 
-  return <Component {...baseProps} {...dynamicProps} />;
+  // 3. 从 dynamicProps 中移除 style，因为它已经合并到了 baseProps 中
+  const { style: _unused, ...remainingProps } = dynamicProps;
+
+  return <Component {...baseProps} {...remainingProps} />;
 }
 
 /**

@@ -26,7 +26,11 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const designSystem = useStore(s => s.designSystem);
   const hasUnsavedChanges = useStore(s => s.hasUnsavedChanges);
 
-  const loadProject = useStore(s => s.loadProject);
+  const loadProjectSync = useStore(s => s.loadProject);
+  const loadProject = useCallback(async (idOrData: any, templateId?: string | null, filePath?: string | null) => {
+    await loadProjectSync(idOrData, templateId, filePath);
+  }, [loadProjectSync]);
+
   const updatePage = useStore(s => s.updatePage);
   const addPage = useStore(s => s.addPage);
   const removePage = useStore(s => s.removePage);

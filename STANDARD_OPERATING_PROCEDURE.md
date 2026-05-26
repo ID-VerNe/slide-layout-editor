@@ -74,7 +74,19 @@
 
 ---
 
-## 5. 性能与样式约束
+## 6. 动态数组组件与自动排版 (Dynamic Components)
+
+**原则**：对于需要用户“手工创建”并希望“自动排版”的信息矩阵（如指标列表、功能清单、时间轴），应使用 **Repeater** 模式。
+
+### 核心机制：
+- **手动录入**：在 `src/components/editor/fields/` 创建支持 `addItem/removeItem` 的表单组件。
+- **自动布局**：在模板 Schema 中使用 `Repeater` 节点，配合外层的 `grid` 或 `modular` 布局实现流式排版。
+
+**详细开发规范请参考**：`docs/guides/dynamic-components.md`
+
+---
+
+## 7. 性能与样式约束
 
 1. **绝对间距**：由于画布采用整体缩放（Scale），请优先使用像素（px）或 Tailwind 间距类（如 `p-16`）。
 2. **色彩同步**：严禁硬编码颜色。必须使用 `theme.colors` 中的 Token。

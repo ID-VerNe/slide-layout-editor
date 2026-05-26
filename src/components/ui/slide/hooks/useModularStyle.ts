@@ -7,6 +7,7 @@ interface UseModularStyleProps {
   overrides?: Record<string, any>;
   props?: Record<string, any>;
   variant?: 'display' | 'body' | 'caption';
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增方向支持
   customStyle?: React.CSSProperties;
   className?: string;
   page?: PageData; // 传入 page 以自动获取 styleOverrides
@@ -14,13 +15,13 @@ interface UseModularStyleProps {
 
 /**
  * useModularStyle - 统一处理样式优先级与 Zine Mode 约束
- * 优先级：Page Overrides > Template Props > Design System Tokens > Theme Defaults
  */
 export const useModularStyle = ({
   fieldKey,
   overrides: directOverrides = {},
   props = {},
   variant,
+  orientation = 'horizontal', // 默认为水平
   customStyle = {},
   className = '',
   page
@@ -44,33 +45,65 @@ export const useModularStyle = ({
       const token = ds.tokens.typography[variant];
       finalStyle.fontSize = token.fontSize;
       
-      // Zine Mode 基线吸附逻辑 (强制执行)
-      const fontSizePx = parseInt(token.fontSize);
-      const rawLineHeight = fontSizePx * parseFloat(token.lineHeight);
-      finalStyle.lineHeight = `${Math.ceil(rawLineHeight / 8) * 8}px`;
+      // Zine Mode 基线吸附逻辑
+      if (token.lineHeight && !isNaN(Number(token.lineHeight))) {
+        const fontSizeVal = parseFloat(token.fontSize);
+        const unit = token.fontSize.includes('pt') ? 'pt' : 'px';
+        const rawLineHeight = fontSizeVal * parseFloat(token.lineHeight);
+        
+        if (unit === 'px' && variant !== 'body') {
+          finalStyle.lineHeight = `${Math.ceil(rawLineHeight / 8) * 8}px`;
+        } else {
+          finalStyle.lineHeight = `${rawLineHeight}${unit}`;
+        }
+      } else {
+        finalStyle.lineHeight = token.lineHeight;
+      }
       
       finalStyle.letterSpacing = token.letterSpacing;
       finalStyle.fontWeight = token.fontWeight;
       finalStyle.textTransform = token.textTransform as any;
+      if (token.fontStyle) finalStyle.fontStyle = token.fontStyle;
     }
 
-    // 2. 合并 Props 传入的样式 (来自模板定义)
+    // 2. 处理方向性逻辑 (Vertical Red Lines)
+    if (orientation === 'vertical-stack') {
+      // 竖排堆叠：强制全大写，加宽字距，使用 CSS 竖排模式
+      finalStyle.writingMode = 'vertical-rl';
+      finalStyle.textOrientation = 'upright';
+      finalStyle.textTransform = 'uppercase';
+      // 竖排间距补偿
+      const currentLetterSpacing = parseFloat(finalStyle.letterSpacing as string) || 0;
+      finalStyle.letterSpacing = `${Math.max(currentLetterSpacing, 0.2)}em`;
+    } else if (orientation === 'vertical-rotate') {
+      // 侧边栏旋转：逆时针旋转 90 度
+      finalStyle.transform = finalStyle.transform 
+        ? `${finalStyle.transform} rotate(-90deg)` 
+        : 'rotate(-90deg)';
+      finalStyle.whiteSpace = 'nowrap';
+      finalStyle.transformOrigin = 'center';
+    }
+
+    // 3. 合并 Props 传入的样式
     const { color, weight, italic, ...otherProps } = props;
     if (color) finalStyle.color = color;
     if (weight) finalStyle.fontWeight = weight;
     if (italic) finalStyle.fontStyle = 'italic';
     Object.assign(finalStyle, otherProps.style || {});
 
-    // 3. 合并 Page Overrides (编辑器覆盖)
+    // 4. 合并 Page Overrides (编辑器覆盖)
     if (overrides) {
-      if (overrides.color) finalStyle.color = overrides.color;
-      if (overrides.fontSize) finalStyle.fontSize = typeof overrides.fontSize === 'number' ? `${overrides.fontSize}px` : overrides.fontSize;
-      if (overrides.fontFamily) finalStyle.fontFamily = overrides.fontFamily;
-      if (overrides.fontWeight) finalStyle.fontWeight = overrides.fontWeight;
-      if (overrides.lineHeight) finalStyle.lineHeight = overrides.lineHeight;
-      if (overrides.textAlign) finalStyle.textAlign = overrides.textAlign;
-      if (overrides.fontStyle) finalStyle.fontStyle = overrides.fontStyle;
-      if (overrides.letterSpacing) finalStyle.letterSpacing = overrides.letterSpacing;
+      // 基础属性直接合并 (如 color, fontSize, fontFamily, zIndex, height 等)
+      Object.keys(overrides).forEach(key => {
+        if (key === 'translateY') return; // 特殊处理
+        
+        let val = overrides[key];
+        // 自动补齐像素单位
+        if (['fontSize', 'width', 'height', 'padding', 'margin', 'top', 'left', 'right', 'bottom'].includes(key)) {
+          if (typeof val === 'number') val = `${val}px`;
+        }
+        (finalStyle as any)[key] = val;
+      });
 
       // 特殊处理 translateY -> transform
       if (overrides.translateY !== undefined) {
@@ -81,16 +114,17 @@ export const useModularStyle = ({
       }
     }
 
-    // 4. 修复 Letter Spacing 导致的视觉偏移 (在居中对齐时尤为明显)
+    // 5. 修复 Letter Spacing 导致的视觉偏移 (在居中对齐时尤为明显)
     // CSS 的 letter-spacing 会在最后一个字符后也添加间距，导致整体向右偏移。
     // 我们通过负的 margin-right 来抵消这个偏移。
     if (finalStyle.letterSpacing) {
       finalStyle.marginRight = `-${finalStyle.letterSpacing}`;
     }
 
-    // 5. Zine Mode 约束 (强制执行)
+    // 6. Zine Mode 约束 (强制执行)
     const ALLOWED_PROPS = [
       'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd',
+      'alignSelf', 'justifySelf',
       'display', 'flexDirection', 'alignItems', 'justifyContent', 'gap', 'flexWrap',
       'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 
       'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
@@ -101,7 +135,7 @@ export const useModularStyle = ({
       'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
       'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
       'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
-      'fontStyle'
+      'fontStyle', 'borderRadius'
     ];
     
     const filteredStyle: any = {};
@@ -114,8 +148,8 @@ export const useModularStyle = ({
   }, [ds, theme, variant, overrides, props, customStyle]);
 
   const resolvedClassName = useMemo(() => {
-    // Zine 审美过滤：剔除圆角、阴影、模糊、动画以及冲突的样式类
-    const forbiddenPrefixes = ['rounded', 'shadow', 'blur', 'drop-shadow', 'animate-'];
+    // Zine 审美过滤：剔除阴影、模糊、动画以及冲突的样式类 (保留 rounded 以支持圆角)
+    const forbiddenPrefixes = ['shadow', 'blur', 'drop-shadow', 'animate-'];
     
     // 颜色类关键字
     const colorKeywords = [

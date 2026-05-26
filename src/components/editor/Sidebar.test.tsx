@@ -49,7 +49,7 @@ describe('Sidebar Hybrid Rendering', () => {
     // Should show BrandLogo (part of full rendering Sidebar)
     expect(screen.getByTestId('brand-logo')).toBeInTheDocument();
     // Should show page numbers (part of full rendering Sidebar)
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('01')).toBeInTheDocument();
     expect(screen.getByText('20')).toBeInTheDocument();
   });
 

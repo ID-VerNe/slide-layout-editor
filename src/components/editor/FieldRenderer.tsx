@@ -28,6 +28,41 @@ import { PageNumberField } from './fields/PageNumberField';
 import { ResumeSectionsField } from './fields/ResumeSectionsField';
 import { TitleYField } from './fields/TitleYField';
 import { GenericNumberField } from './fields/GenericNumberField';
+import { SeparatorField } from './fields/SeparatorField';
+import { ArtFontField } from './fields/ArtFontField';
+
+// 1. 定义具名组件映射 - 移到组件外部以保持引用稳定
+const componentMap: Record<string, React.FC<any>> = {
+  logo: LogoField,
+  title: TitleField,
+  subtitle: SubtitleField,
+  actionText: ActionTextField,
+  paragraph: ParagraphField,
+  signature: SignatureField,
+  image: ImageField,
+  imageLabel: ImageLabelField,
+  imageSubLabel: ImageSubLabelField,
+  features: FeaturesField,
+  mosaic: MosaicField,
+  mosaicItems: MosaicField,
+  metrics: MetricsField,
+  partnersTitle: PartnersTitleField,
+  partners: PartnersField,
+  testimonials: TestimonialsField,
+  agenda: AgendaField,
+  bentoItems: BentoField,
+  gallery: GalleryField,
+  variant: VariantField,
+  bullets: BulletsField,
+  backgroundColor: ColorField,
+  footer: FooterField,
+  pageNumber: PageNumberField,
+  resumeSections: ResumeSectionsField,
+  titleY: TitleYField,
+  logoSize: GenericNumberField,
+  separator: SeparatorField,
+  artFont: ArtFontField,
+};
 
 interface FieldRendererProps {
   schema: FieldSchema;
@@ -41,40 +76,10 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
 }) => {
   const { key, label, type, props = {} } = schema;
 
-  // 1. 定义具名组件映射
-  const componentMap: Record<string, React.FC<any>> = {
-    logo: LogoField,
-    title: TitleField,
-    subtitle: SubtitleField,
-    actionText: ActionTextField,
-    paragraph: ParagraphField,
-    signature: SignatureField,
-    image: ImageField,
-    imageLabel: ImageLabelField,
-    imageSubLabel: ImageSubLabelField,
-    features: FeaturesField,
-    mosaic: MosaicField,
-    mosaicItems: MosaicField,
-    metrics: MetricsField,
-    partnersTitle: PartnersTitleField,
-    partners: PartnersField,
-    testimonials: TestimonialsField,
-    agenda: AgendaField,
-    bentoItems: BentoField,
-    gallery: GalleryField,
-    variant: VariantField,
-    bullets: BulletsField,
-    backgroundColor: ColorField,
-    footer: FooterField,
-    pageNumber: PageNumberField,
-    resumeSections: ResumeSectionsField,
-    titleY: TitleYField,
-    logoSize: GenericNumberField,
-  };
-
-  // 2. 匹配组件：优先找具名组件，如果是 number 类型则使用通用调节控件
+  // 2. 匹配组件：优先找具名组件
   let Component = componentMap[key];
-  
+
+  // 3. Fallback 逻辑
   if (!Component && type === 'number') {
     return (
       <GenericNumberField 
@@ -87,6 +92,11 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     );
   }
 
+  // 特殊处理 separator 类型，如果 key 没匹配到，看 type
+  if (!Component && type === 'separator') {
+    Component = SeparatorField;
+  }
+
   if (!Component) return null;
 
   return (
@@ -95,6 +105,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
       onUpdate={onUpdate} 
       customFonts={customFonts} 
       label={label}
+      fieldKey={key}
       {...props} 
     />
   );

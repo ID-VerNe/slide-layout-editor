@@ -327,6 +327,7 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'variant', label: 'Visual Scheme', props: { options: [{ value: 'under', label: 'Under' }, { value: 'over', label: 'Over' }, { value: 'minimal', label: 'Minimal' }] } },
       { key: 'title' },
       { key: 'subtitle' },
+      { key: 'artFont', label: 'Art Typography (Year/ID)' },
       { key: 'gallery' },
       { key: 'imageLabel' }
     ]),
@@ -431,8 +432,10 @@ export const TEMPLATES: TemplateConfig[] = [
     component: () => null,
     schema: TypographyHeroSchema,
     fields: withBaseFields([
+      { key: 'topDivider' as any, label: 'Top Divider', type: 'separator' },
       { key: 'title', label: 'Headline' },
       { key: 'paragraph', label: 'Body Copy' },
+      { key: 'bottomDivider' as any, label: 'Bottom Divider', type: 'separator' },
       { key: 'subtitle', label: 'Sub-Headline' }
     ]),
     supportedRatios: ['16:9', '2:3']

@@ -15,11 +15,13 @@ interface ElectronAPI {
   captureThumbnail: (projectId: string, rect: { x: number; y: number; width: number; height: number }) => Promise<string | null>;
   saveProject: (content: ProjectSaveData, filePath?: string, defaultName?: string) => Promise<NativeResponse>;
   openProject: () => Promise<NativeResponse>;
+  readProject: (filePath: string) => Promise<NativeResponse>;
   uploadAsset: (filename: string, base64Data: string) => Promise<NativeResponse>;
   selectDirectory: () => Promise<NativeResponse>;
   saveFileBuffer: (filePath: string, base64Data: string) => Promise<NativeResponse>;
   openExternal: (url: string) => Promise<void>;
   setActiveWorkspace: (path: string) => Promise<void>;
+  listProjects: () => Promise<any[]>;
   setCurrentProject: (id: string, name: string) => Promise<void>;
 }
 
@@ -36,6 +38,11 @@ export const nativeFs = {
 
   async setActiveWorkspace(path: string) {
     await window.electronAPI?.setActiveWorkspace(path);
+  },
+
+  async listProjects(): Promise<any[]> {
+    if (!window.electronAPI) return [];
+    return await window.electronAPI.listProjects();
   },
 
   async setCurrentProject(id: string, name: string) {
@@ -65,6 +72,11 @@ export const nativeFs = {
   async openProject(): Promise<NativeResponse> {
     if (!window.electronAPI) return { success: false, error: "API not found" };
     return await window.electronAPI.openProject();
+  },
+
+  async readProject(filePath: string): Promise<NativeResponse> {
+    if (!window.electronAPI) return { success: false, error: "API not found" };
+    return await window.electronAPI.readProject(filePath);
   },
 
   async uploadAsset(filename: string, base64Data: string): Promise<NativeResponse> {

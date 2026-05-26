@@ -75,6 +75,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('open-external', async (event, url) => { await shell.openExternal(url); });
   ipcMain.handle('setActiveWorkspace', (event, path) => { archiveManager.setActiveWorkspace(path); });
+  ipcMain.handle('list-projects', async () => { return await archiveManager.listProjects(); });
   ipcMain.handle('setCurrentProject', (event, { id, name }) => { archiveManager.setCurrentProject(id, name); });
   ipcMain.handle('get-app-paths', () => ({ userData: app.getPath('userData'), thumbnails: THUMBNAIL_DIR }));
 
@@ -123,6 +124,13 @@ app.whenReady().then(async () => {
       if (canceled || filePaths.length === 0) return { canceled: true };
       const projectData = await archiveManager.openProject(filePaths[0]);
       return { success: true, filePath: filePaths[0], content: JSON.stringify(projectData) };
+    } catch (error: any) { return { success: false, error: error.message }; }
+  });
+
+  ipcMain.handle('read-project', async (event, filePath) => {
+    try {
+      const projectData = await archiveManager.openProject(filePath);
+      return { success: true, content: JSON.stringify(projectData) };
     } catch (error: any) { return { success: false, error: error.message }; }
   });
 

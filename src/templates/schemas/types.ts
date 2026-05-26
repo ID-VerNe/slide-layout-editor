@@ -67,8 +67,9 @@ export interface AbsoluteLayoutProps {
 
 export interface ComponentNode extends BaseNode {
   type: 'Component';
-  componentType: string;                 // e.g., "SlideHeadline", "SlideImage"
+  componentType: string;                 // e.g., "ZineDisplay", "ZineMedia"
   bind?: string;                         // e.g., "page.title"
+  fieldKey?: string;                     // 显式绑定 PageData 中的字段键 (用于 styleOverrides)
   props?: Record<string, any>;           // 传递给组件的静态 props
 }
 

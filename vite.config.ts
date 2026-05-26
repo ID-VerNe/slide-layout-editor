@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     return {
       base,
       server: {
-        port: 13100,
+        port: 43101,
         host: '0.0.0.0',
       },
       plugins: [

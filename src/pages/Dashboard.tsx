@@ -12,17 +12,49 @@ export default function Dashboard() {
   const [workspace, setWorkspace] = useState<string | null>(localStorage.getItem('slidegrid_workspace'));
   const [projects, setProjects] = useState<any[]>([]);
 
-  const refreshProjects = () => {
+  const refreshProjects = async () => {
+    // 1. 如果有 Workspace，优先从物理目录扫描
+    if (workspace && nativeFs.isElectron()) {
+      try {
+        const workspaceProjects = await nativeFs.listProjects();
+        if (workspaceProjects && workspaceProjects.length > 0) {
+          // 去重：如果同一 Workspace 下存在相同 ID 的项目文件夹（可能是手动复制的），仅保留最近修改的那个
+          const uniqueMap = new Map();
+          workspaceProjects.forEach(p => {
+            const existing = uniqueMap.get(p.id);
+            if (!existing || p.lastModified > existing.lastModified) {
+              uniqueMap.set(p.id, p);
+            }
+          });
+          setProjects(Array.from(uniqueMap.values()));
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to scan workspace:", e);
+      }
+    }
+
+    // 2. 回退到 LocalStorage 记录 (兼容 Web 或 空目录)
     const saved = localStorage.getItem(RECENT_KEY);
     if (saved) {
-      try { setProjects(JSON.parse(saved)); } catch (e) { setProjects([]); }
+      try { 
+        const recent = JSON.parse(saved);
+        const uniqueMap = new Map();
+        recent.forEach((p: any) => {
+          if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p);
+        });
+        setProjects(Array.from(uniqueMap.values()));
+      } catch (e) { setProjects([]); }
     }
   };
 
   useEffect(() => {
-    refreshProjects();
-    if (workspace) nativeFs.setActiveWorkspace(workspace);
-  }, []);
+    const init = async () => {
+      if (workspace) await nativeFs.setActiveWorkspace(workspace);
+      await refreshProjects();
+    };
+    init();
+  }, [workspace]);
 
   const handleSetWorkspace = async () => {
     const result = await nativeFs.selectDirectory();
@@ -30,6 +62,16 @@ export default function Dashboard() {
       setWorkspace(result.path);
       localStorage.setItem('slidegrid_workspace', result.path);
       await nativeFs.setActiveWorkspace(result.path);
+      // 切换目录后立即刷新
+      const workspaceProjects = await nativeFs.listProjects();
+      const uniqueMap = new Map();
+      workspaceProjects.forEach(p => {
+        const existing = uniqueMap.get(p.id);
+        if (!existing || p.lastModified > existing.lastModified) {
+          uniqueMap.set(p.id, p);
+        }
+      });
+      setProjects(Array.from(uniqueMap.values()));
     }
   };
 
@@ -86,7 +128,22 @@ export default function Dashboard() {
   };
 
   const handleProjectClick = async (project: any) => {
-    // 关键修复：直接调用 loadProject 并在跳转前锁定路径
+    // 如果是 Electron 环境且有物理路径，优先从物理路径加载最新的 project.json
+    if (nativeFs.isElectron() && project.filePath) {
+      const result = await nativeFs.readProject(project.filePath);
+      if (result.success && result.content) {
+        try {
+          const projectData = JSON.parse(result.content);
+          await loadProject(projectData, null, project.filePath);
+          navigate(`/editor/${projectData.id}`);
+          return;
+        } catch (e) {
+          console.error("Failed to parse project from disk", e);
+        }
+      }
+    }
+    
+    // 回退到 IDB 加载
     await loadProject(project.id, null, project.filePath);
     navigate(`/editor/${project.id}`);
   };

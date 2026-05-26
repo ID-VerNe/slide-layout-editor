@@ -6,9 +6,10 @@ import { Text } from './Text';
 
 interface ZineCaptionProps {
   page: PageData;
-  fieldKey?: string; // 新增
+  fieldKey?: string; 
   text?: string;
   color?: keyof DesignSystem['tokens']['colors'];
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增
   className?: string;
   style?: React.CSSProperties;
 }
@@ -18,9 +19,10 @@ interface ZineCaptionProps {
  */
 export const ZineCaption: React.FC<ZineCaptionProps> = ({ 
   page,
-  fieldKey, // 新增
+  fieldKey, 
   text, 
   color = 'secondary', 
+  orientation = 'horizontal', // 新增
   className = '', 
   style: customStyle
 }) => {
@@ -28,10 +30,11 @@ export const ZineCaption: React.FC<ZineCaptionProps> = ({
   const theme = useStore(s => s.theme);
   
   const { style, className: resolvedClassName } = useModularStyle({
-    page, // 传入 page
-    fieldKey, // 传入 fieldKey
+    page, 
+    fieldKey, 
     props: { color: ds.tokens.colors[color as string] || color },
     variant: 'caption',
+    orientation: orientation as any, // 传入方向
     customStyle,
     className
   });

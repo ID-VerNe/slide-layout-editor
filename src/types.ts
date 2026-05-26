@@ -133,7 +133,7 @@ export type FieldType =
   | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
   | 'gallery' | 'variant' | 'footer' | 'bullets' 
   | 'backgroundColor' | 'pageNumber' | 'logoSize' | 'titleY'
-  | 'group' | 'separator' | 'resumeSections';
+  | 'group' | 'separator' | 'resumeSections' | 'artFont';
 
 export interface FieldSchema {
   key: FieldType;
@@ -195,6 +195,7 @@ export interface PageData {
   bodyFont?: string;
   footer?: string;
   pageNumber?: boolean;
+  artFont?: string;
   minimalCounter?: boolean;
   counterStyle?: CounterStyle;
 
@@ -247,6 +248,7 @@ export interface TypographyToken {
   letterSpacing?: string;
   fontWeight?: string | number;
   textTransform?: string;
+  fontStyle?: string;
 }
 
 export interface DesignTokens {
