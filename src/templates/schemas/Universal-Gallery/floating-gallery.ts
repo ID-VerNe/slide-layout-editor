@@ -67,9 +67,9 @@ export const FloatingGallerySchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.imageLabel',
         modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
         props: {
-          text: '{page.imageLabel}',
           align: 'left',
           color: 'secondary',
           sans: true,

@@ -19,9 +19,10 @@ export const MicroAnchorSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.title',
         modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 1 },
         props: {
-          text: '{page.title || "THE SILENCE OF THE FRAME"}',
+          text: "THE SILENCE OF THE FRAME",
           className: '!opacity-20 text-center',
           italic: true,
           bold: true,

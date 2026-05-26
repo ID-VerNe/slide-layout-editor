@@ -109,8 +109,8 @@ export const GalleryCapsuleSchema: TemplateSchema = {
                 { 
                   type: 'Component', 
                   componentType: 'ZineCaption', 
+                  bind: 'page.imageSubLabel',
                   props: { 
-                    text: '{page.imageSubLabel}', 
                     size: 1.25, 
                     tracking: 0.5,
                     opacity: 0.3
@@ -159,8 +159,8 @@ export const GalleryCapsuleSchema: TemplateSchema = {
                 { 
                   type: 'Component', 
                   componentType: 'ZineCaption', 
+                  bind: 'page.imageLabel',
                   props: { 
-                    text: '{page.imageLabel}', 
                     size: 1.25, 
                     opacity: 0.4,
                     tracking: 0.3

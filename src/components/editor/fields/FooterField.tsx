@@ -34,6 +34,7 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, l
       label={label || 'Footer Metadata'}
       icon={Copyright}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

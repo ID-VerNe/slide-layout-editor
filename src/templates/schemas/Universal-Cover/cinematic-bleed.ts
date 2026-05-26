@@ -38,7 +38,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-              modular: { colStart: 4, colSpan: 18, rowStart: 4, rowSpan: 6 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 4, rowSpan: 6 },
               className: 'pt-8',
               children: [
                 {
@@ -53,7 +53,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
             {
               type: 'Component',
               componentType: 'ZineCaption',
-              modular: { colStart: 4, colSpan: 18, rowStart: 20, rowSpan: 1 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 20, rowSpan: 1 },
               bind: 'page.subtitle',
               props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'text-white uppercase opacity-80', color: 'surface' }
             }
@@ -70,7 +70,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'end' },
-              modular: { colStart: 4, colSpan: 18, rowStart: 16, rowSpan: 6 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 16, rowSpan: 6 },
               className: 'pb-8',
               children: [
                 {
@@ -91,19 +91,27 @@ export const CinematicFullBleedSchema: TemplateSchema = {
         }
       },
 
-      // 3. 通用页脚 (Row 22)
+      // 3. 通用页脚 (Row 23) - 降低位置防止遮挡，并绑定正确字段
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'center' },
-        modular: { colStart: 5, colSpan: 16, rowStart: 22, rowSpan: 1 },
+        modular: { colStart: 0, colSpan: 24, rowStart: 22, rowSpan: 1 },
         style: { position: 'relative', zIndex: 10 },
         children: [
           {
             type: 'Component',
-            componentType: 'ZineCaption',
+            componentType: 'ZineBody',
             bind: 'page.imageLabel',
-            props: { text: '{page.imageLabel || "© 2026"}', italic: true, tracking: 0.4, sans: true, bold: true, color: 'accent' }
+            props: { 
+              align: 'center', 
+              sans: true, 
+              size: 0.9, 
+              italic: true, 
+              tracking: 0.2, 
+              color: 'surface',
+              className: 'opacity-60'
+            }
           }
         ]
       }

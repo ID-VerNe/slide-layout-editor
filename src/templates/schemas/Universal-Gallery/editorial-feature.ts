@@ -39,9 +39,9 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                 {
                   type: 'Component',
                   componentType: 'ZineCaption',
+                  bind: 'page.imageLabel',
                   style: { position: 'absolute', bottom: '16px', right: '16px', mixBlendMode: 'difference' },
                   props: {
-                    text: '{page.imageLabel}',
                     className: '!text-white opacity-60',
                     size: 1,
                     sans: true
@@ -115,9 +115,9 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                 {
                   type: 'Component',
                   componentType: 'ZineCaption',
+                  bind: 'page.imageLabel',
                   style: { position: 'absolute', bottom: '16px', left: '16px', mixBlendMode: 'difference' },
                   props: {
-                    text: '{page.imageLabel}',
                     className: '!text-white opacity-60',
                     size: 1,
                     sans: true

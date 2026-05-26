@@ -40,8 +40,9 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.paragraph',
                       props: {
-                        text: '{page.paragraph || "EDITORIAL METADATA"}',
+                        text: 'EDITORIAL METADATA',
                         className: 'opacity-40 uppercase',
                         size: 1,
                         tracking: 0.2,
@@ -124,8 +125,9 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.imageSubLabel',
                       props: {
-                        text: '{page.imageSubLabel || "Information"}',
+                        text: 'Information',
                         className: 'uppercase',
                         size: 1.375,
                         bold: true,
@@ -136,8 +138,8 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.imageLabel',
                       props: {
-                        text: '{page.imageLabel}',
                         className: '',
                         size: 1.75,
                         bold: true,
@@ -174,8 +176,9 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.paragraph',
                       props: {
-                        text: '{page.paragraph || "EDITORIAL METADATA"}',
+                        text: 'EDITORIAL METADATA',
                         className: 'opacity-40 uppercase',
                         size: 1,
                         tracking: 0.2,
@@ -258,8 +261,9 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.imageSubLabel',
                       props: {
-                        text: '{page.imageSubLabel || "Information"}',
+                        text: 'Information',
                         className: 'uppercase',
                         size: 1.375,
                         bold: true,
@@ -270,8 +274,8 @@ export const EditorialSplitSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.imageLabel',
                       props: {
-                        text: '{page.imageLabel}',
                         className: '',
                         size: 1.75,
                         bold: true,
@@ -290,3 +294,5 @@ export const EditorialSplitSchema: TemplateSchema = {
     ]
   }
 };
+
+export default EditorialSplitSchema;

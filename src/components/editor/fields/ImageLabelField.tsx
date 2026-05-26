@@ -34,6 +34,7 @@ export const ImageLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdat
       label={label || 'Visual Caption / Fig.'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

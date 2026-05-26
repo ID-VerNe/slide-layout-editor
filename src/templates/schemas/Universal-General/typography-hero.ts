@@ -33,7 +33,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineDisplay',
         bind: 'page.title',
-        modular: { colStart: 4, colSpan: 18, rowStart: 11, rowSpan: 2, align: 'center' },
+        modular: { colStart: 4, colSpan: 18, rowStart: 10, rowSpan: 1, align: 'center' },
         props: {
           size: 6.5,
           align: 'center',
@@ -48,7 +48,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineBody',
         bind: 'page.paragraph',
-        modular: { colStart: 5, colSpan: 16, rowStart: 14, rowSpan: 3, align: 'start' },
+        modular: { colStart: 5, colSpan: 16, rowStart: 12, rowSpan: 2, align: 'start' },
         props: {
           size: 2.25,
           align: 'center',
@@ -65,7 +65,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineDivider',
         fieldKey: 'bottomDivider',
-        modular: { colStart: 3, colSpan: 20, rowStart: 18, rowSpan: 1, align: 'center' },
+        modular: { colStart: 3, colSpan: 20, rowStart: 14, rowSpan: 1, align: 'center' },
         props: { 
           color: 'secondary', 
           thickness: '1px', 
@@ -78,7 +78,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineCaption',
         bind: 'page.subtitle',
-        modular: { colStart: 4, colSpan: 18, rowStart: 20, rowSpan: 1, align: 'start' },
+        modular: { colStart: 4, colSpan: 18, rowStart: 16, rowSpan: 1, align: 'start' },
         props: {
           size: 1.25,
           align: 'center',

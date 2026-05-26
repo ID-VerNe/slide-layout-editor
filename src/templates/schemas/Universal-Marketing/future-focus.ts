@@ -19,9 +19,10 @@ export const FutureFocusSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineDisplay',
+        bind: 'page.actionText',
         modular: { colStart: 18, colSpan: 12, rowStart: 20, rowSpan: 8 },
         props: {
-          text: '{page.actionText || "26"}',
+          text: '26',
           size: 50,
           bold: true,
           italic: true,
@@ -164,8 +165,9 @@ export const FutureFocusSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
+                      bind: 'page.gallery[1].caption',
                       modular: { colStart: 1, colSpan: 4, rowStart: 5, rowSpan: 1 },
-                      props: { text: '{page.gallery[1]?.caption || "ARTWORK // 2026"}', className: 'text-center !italic opacity-60', color: 'secondary' }
+                      props: { text: 'ARTWORK // 2026', className: 'text-center !italic opacity-60', color: 'secondary' }
                     }
                   ]
                 }

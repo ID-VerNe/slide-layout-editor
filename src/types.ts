@@ -195,6 +195,7 @@ export interface PageData {
   bodyFont?: string;
   footer?: string;
   pageNumber?: boolean;
+  folioAlignment?: 'left' | 'right' | 'auto'; // 新增：手动控制页码左右位置
   artFont?: string;
   minimalCounter?: boolean;
   counterStyle?: CounterStyle;

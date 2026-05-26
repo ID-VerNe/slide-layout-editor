@@ -98,7 +98,6 @@ export const CinematicLetterboxSchema: TemplateSchema = {
         modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
         style: { position: 'relative', zIndex: 10 },
         props: {
-          text: '{page.imageLabel}',
           className: 'text-left opacity-40',
           sans: true,
           color: 'secondary'

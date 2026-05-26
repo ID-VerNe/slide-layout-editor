@@ -188,8 +188,9 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'variant', label: 'Image Side', props: { options: [{ value: 'right', label: 'Image Right' }, { value: 'left', label: 'Image Left' }] } },
       { key: 'title', label: 'Vertical Headline' },
       { key: 'subtitle', label: 'Handwritten Notes (Top)' },
+      { key: 'topDivider' as any, label: 'Top Accent Line', type: 'separator' },
       { key: 'image', label: 'Main Image' },
-      { key: 'imageLabel', label: 'Metadata' }
+      { key: 'paragraph', label: 'Metadata / Description' }
     ]),
     supportedRatios: ['2:3']
   },

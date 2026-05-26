@@ -72,9 +72,13 @@ export const useModularStyle = ({
       finalStyle.writingMode = 'vertical-rl';
       finalStyle.textOrientation = 'upright';
       finalStyle.textTransform = 'uppercase';
-      // 竖排间距补偿
-      const currentLetterSpacing = parseFloat(finalStyle.letterSpacing as string) || 0;
-      finalStyle.letterSpacing = `${Math.max(currentLetterSpacing, 0.2)}em`;
+      
+      // Spec 细节控制 (v1.0): 
+      // Display All Caps: !tracking-[0.2em] !leading-none
+      // Metadata/Caption: !tracking-widest (0.2em+)
+      const specTracking = variant === 'display' ? '0.2em' : '0.2em'; 
+      finalStyle.letterSpacing = specTracking;
+      finalStyle.lineHeight = '1'; // 保持竖排“柱状”精密感
     } else if (orientation === 'vertical-rotate') {
       // 侧边栏旋转：逆时针旋转 90 度
       finalStyle.transform = finalStyle.transform 
@@ -86,10 +90,12 @@ export const useModularStyle = ({
 
     // 3. 语义化排版处理 (Abstract Typography Configuration)
     // 优先级：overrides > semantic props > variant tokens
+    // 将 overrides 中的语义化属性合并到 props 中进行解析
+    const finalProps = { ...props, ...overrides };
     const { 
       size, serif, sans, caption, zh, align, bold, italic, leading, tracking,
       color, weight, ...otherProps 
-    } = props;
+    } = finalProps;
 
     // A. 字号与行高 (Size & Leading)
     if (size !== undefined) {
@@ -106,9 +112,12 @@ export const useModularStyle = ({
     }
 
     // B. 字体族解析 (Font Family)
+    // 优先级：overrides.fontFamily > serif/sans/caption semantic props > variant tokens
     const isZH = zh || props.lang === 'zh';
     
-    if (serif) {
+    if (overrides.fontFamily) {
+      finalStyle.fontFamily = overrides.fontFamily;
+    } else if (serif) {
       finalStyle.fontFamily = isZH ? theme.typography.headingFontZH : theme.typography.headingFont;
     } else if (sans) {
       finalStyle.fontFamily = isZH ? theme.typography.bodyFontZH : theme.typography.bodyFont;
@@ -124,29 +133,33 @@ export const useModularStyle = ({
     if (color) finalStyle.color = color;
     if (weight) finalStyle.fontWeight = weight;
 
-    Object.assign(finalStyle, otherProps.style || {});
+    // 4. 合并直接 CSS Overrides (从 overrides 或 otherProps.style)
+    // 优先级：overrides (直传 CSS) > otherProps.style
+    const directCssStyles = { ...(otherProps.style || {}), ...overrides };
 
-    // 4. 合并 Page Overrides (编辑器覆盖)
-    if (overrides) {
-      // 基础属性直接合并 (如 color, fontSize, fontFamily, zIndex, height 等)
-      Object.keys(overrides).forEach(key => {
-        if (key === 'translateY') return; // 特殊处理
-        
-        let val = overrides[key];
-        // 自动补齐像素单位
-        if (['fontSize', 'width', 'height', 'padding', 'margin', 'top', 'left', 'right', 'bottom'].includes(key)) {
-          if (typeof val === 'number') val = `${val}px`;
-        }
-        (finalStyle as any)[key] = val;
-      });
+    Object.keys(directCssStyles).forEach(key => {
+      // 排除掉已经处理过的语义化属性和特殊属性
+      // 同时排除对应的目标 CSS 属性，防止旧的 Overrides (如 fontSize) 覆盖新的语义化逻辑 (如 size)
+      const semanticKeys = [
+        'size', 'serif', 'sans', 'caption', 'zh', 'align', 'bold', 'italic', 'leading', 'tracking', 'color', 'weight', 'lang', 'translateY',
+        'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'letterSpacing', 'lineHeight', 'textAlign'
+      ];
+      if (semanticKeys.includes(key)) return;
 
-      // 特殊处理 translateY -> transform
-      if (overrides.translateY !== undefined) {
-        const y = typeof overrides.translateY === 'number' ? `${overrides.translateY}px` : overrides.translateY;
-        finalStyle.transform = finalStyle.transform 
-          ? `${finalStyle.transform} translateY(${y})` 
-          : `translateY(${y})`;
+      let val = directCssStyles[key];
+      // 自动补齐像素单位
+      if (['fontSize', 'width', 'height', 'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'top', 'left', 'right', 'bottom', 'borderRadius'].includes(key)) {
+        if (typeof val === 'number') val = `${val}px`;
       }
+      (finalStyle as any)[key] = val;
+    });
+
+    // 特殊处理 translateY -> transform
+    if (overrides.translateY !== undefined) {
+      const y = typeof overrides.translateY === 'number' ? `${overrides.translateY}px` : overrides.translateY;
+      finalStyle.transform = finalStyle.transform 
+        ? `${finalStyle.transform} translateY(${y})` 
+        : `translateY(${y})`;
     }
 
     // 5. 修复 Letter Spacing 导致的视觉偏移 (在居中对齐时尤为明显)
@@ -170,7 +183,7 @@ export const useModularStyle = ({
       'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
       'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
       'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
-      'fontStyle', 'borderRadius'
+      'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin'
     ];
     
     const filteredStyle: any = {};

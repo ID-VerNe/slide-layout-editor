@@ -33,6 +33,7 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
       label={label || 'Subtitle'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

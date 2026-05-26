@@ -18,6 +18,7 @@ interface ZineMediaProps {
   priority?: boolean;
   sizes?: string;
   rounded?: string | number; // 新增：支持圆角 (e.g., "9999px", 20)
+  [key: string]: any;
 }
 
 /**
@@ -34,7 +35,8 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   style: customStyle,
   priority = false,
   sizes = "(max-width: 768px) 100vw, 50vw",
-  rounded
+  rounded,
+  ...otherProps
 }) => {
   // 1. 数据连接
   const { content: pageSrc, isVisible } = useDataConnector(fieldKey, page);
@@ -44,7 +46,10 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   const { style, className: resolvedClassName } = useModularStyle({
     page, 
     fieldKey,
-    props: { backgroundColor: '#000000' },
+    props: { 
+      backgroundColor: '#000000',
+      ...otherProps
+    },
     customStyle,
     className: `zine-media ${className}` // 移除强制 w-full h-full，让 align/justify 生效
   });

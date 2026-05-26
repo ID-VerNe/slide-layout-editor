@@ -138,7 +138,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
     'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
     'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
     'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
-    'fontStyle', 'borderRadius'
+    'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin'
   ];
   
   const filteredStyle: any = {};
@@ -302,15 +302,18 @@ function renderComponent(
     ...(dynamicProps.style || {}) 
   };
 
-  const baseProps = {
+  const baseProps: any = {
     page: context.page,
-    fieldKey: inferredFieldKey, 
     theme: context.theme,
     designSystem: ds,
     typography,
     className,
     style: mergedStyle,
   };
+
+  if (inferredFieldKey) {
+    baseProps.fieldKey = inferredFieldKey;
+  }
 
   // 3. 从 dynamicProps 中移除 style，因为它已经合并到了 baseProps 中
   const { style: _unused, ...remainingProps } = dynamicProps;

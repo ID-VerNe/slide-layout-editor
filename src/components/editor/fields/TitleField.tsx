@@ -33,6 +33,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, la
       label={label || 'Headline'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

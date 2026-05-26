@@ -10,7 +10,7 @@ export const DEFAULT_THEME: ProjectTheme = {
   },
   typography: { 
     headingFont: "'Playfair Display', serif", 
-    bodyFont: "'Playfair Display', serif",
+    bodyFont: "'Inter', sans-serif",
     captionFont: "'Inter', sans-serif",
     headingFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif", 
     bodyFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif" 

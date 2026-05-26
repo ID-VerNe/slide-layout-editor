@@ -31,7 +31,7 @@ export const CommunityHubSchema: TemplateSchema = {
             children: [
               { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 7, bold: true, tracking: -0.05, serif: true } },
               { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, color: 'secondary', sans: true } },
-              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent', sans: true } }
+              { type: 'Component', componentType: 'ZineCaption', bind: 'page.imageLabel', props: { className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent', sans: true } }
             ]
           },
           // 合作伙伴 (Partners)
@@ -41,7 +41,7 @@ export const CommunityHubSchema: TemplateSchema = {
             layoutProps: { direction: 'column', gap: 'spacing.md' },
             className: 'pt-12 border-t border-zine-accent/10 w-full',
             children: [
-              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.partnersTitle || "POWERED BY"}', size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase', sans: true } },
+              { type: 'Component', componentType: 'ZineCaption', bind: 'page.partnersTitle', props: { text: 'POWERED BY', size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase', sans: true } },
               {
                 type: 'Repeater',
                 bind: 'page.partners',

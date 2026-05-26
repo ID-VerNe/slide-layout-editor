@@ -46,7 +46,8 @@ export const ModernFeatureSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', tracking: 0.4, sans: true, bold: true, className: 'mt-4 opacity-40 uppercase', color: 'accent' }
+            bind: 'page.imageLabel',
+            props: { tracking: 0.4, sans: true, bold: true, className: 'mt-4 opacity-40 uppercase', color: 'accent' }
           }
         ]
       },
@@ -67,7 +68,8 @@ export const ModernFeatureSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageSubLabel}', italic: true, sans: true, bold: true, tracking: 0.2, className: 'mt-6 opacity-30', color: 'secondary' }
+            bind: 'page.imageSubLabel',
+            props: { italic: true, sans: true, bold: true, tracking: 0.2, className: 'mt-6 opacity-30', color: 'secondary' }
           }
         ]
       }

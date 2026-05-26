@@ -22,6 +22,7 @@ export const SeparatorField: React.FC<FieldProps> = React.memo(({ page, onUpdate
       label={label || 'Divider'}
       icon={Minus}
       showStyleConfig={true}
+      styleMode="divider"
     >
       <div className="h-10 w-full flex items-center justify-center bg-slate-50 border border-dashed border-slate-200 rounded-lg group">
         <div 

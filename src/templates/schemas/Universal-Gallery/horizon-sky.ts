@@ -53,7 +53,8 @@ export const HorizonSkySchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', tracking: 0.2, color: 'secondary', sans: true, className: 'opacity-40 mb-4' }
+            bind: 'page.imageLabel',
+            props: { tracking: 0.2, color: 'secondary', sans: true, className: 'opacity-40 mb-4' }
           },
           { type: 'Container', className: 'w-full h-px bg-zine-accent/20', children: [] }
         ]

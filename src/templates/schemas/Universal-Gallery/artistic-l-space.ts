@@ -50,33 +50,29 @@ export const ArtisticLSpaceSchema: TemplateSchema = {
                 }
               ]
             },
-            // 3. 顶部信息区 (Cols 1-6)
+            // 3. 顶部信息区 (Handwritten Notes) - 镜像至左上角
             {
-              type: 'Container',
-              layout: 'flex',
-              layoutProps: { direction: 'column', align: 'start' },
-              modular: { colStart: 2, colSpan: 6, rowStart: 2, rowSpan: 4 },
-              children: [
-                {
-                  type: 'Component',
-                  componentType: 'ZineCaption',
-                  bind: 'page.subtitle',
-                  props: { 
-                    orientation: 'vertical-stack',
-                    className: '!italic !tracking-normal', 
-                    color: 'secondary' 
-                  }
-                },
-                { 
-                  type: 'Component', 
-                  componentType: 'ZineDivider', 
-                  props: { 
-                    thickness: '1px', 
-                    color: 'accent',
-                    style: { width: '24px', marginTop: '16px' }
-                  } 
-                }
-              ]
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              modular: { colStart: 2, colSpan: 6, rowStart: 2, rowSpan: 1 },
+              props: { 
+                className: '!italic !tracking-normal text-left', 
+                color: 'secondary',
+                justifySelf: 'start'
+              }
+            },
+            { 
+              type: 'Component', 
+              componentType: 'ZineDivider', 
+              fieldKey: 'topDivider',
+              modular: { colStart: 2, colSpan: 1, rowStart: 3, rowSpan: 1 },
+              props: { 
+                thickness: '1px', 
+                color: 'accent',
+                justifySelf: 'start', // 对齐到第 2 列的左侧
+                style: { width: '85%' }
+              } 
             }
           ]
         },
@@ -112,48 +108,46 @@ export const ArtisticLSpaceSchema: TemplateSchema = {
                 }
               ]
             },
-            // 3. 顶部信息区 (Cols 19-24)
+            // 3. 顶部信息区 (Handwritten Notes) - 统一移至右上角
             {
-              type: 'Container',
-              layout: 'flex',
-              layoutProps: { direction: 'column', align: 'end' },
-              modular: { colStart: 18, colSpan: 6, rowStart: 2, rowSpan: 4 },
-              children: [
-                {
-                  type: 'Component',
-                  componentType: 'ZineCaption',
-                  bind: 'page.subtitle',
-                  props: { 
-                    orientation: 'vertical-stack',
-                    className: '!italic !tracking-normal text-right', 
-                    color: 'secondary' 
-                  }
-                },
-                { 
-                  type: 'Component', 
-                  componentType: 'ZineDivider', 
-                  props: { 
-                    thickness: '1px', 
-                    color: 'accent',
-                    style: { width: '24px', marginTop: '16px' }
-                  } 
-                }
-              ]
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              modular: { colStart: 18, colSpan: 6, rowStart: 2, rowSpan: 1 },
+              props: { 
+                className: '!italic !tracking-normal text-right', 
+                color: 'secondary',
+                justifySelf: 'end'
+              }
+            },
+            { 
+              type: 'Component', 
+              componentType: 'ZineDivider', 
+              fieldKey: 'topDivider',
+              modular: { colStart: 23, colSpan: 1, rowStart: 3, rowSpan: 1 },
+              props: { 
+                thickness: '1px', 
+                color: 'accent',
+                justifySelf: 'end', 
+                style: { width: '85%' }
+              } 
             }
           ]
         }
       },
-      // 底部标签
+      // 底部标签 (Metadata) - 压低至与页码 (Folio) 相同的高度
       {
         type: 'Component',
         componentType: 'ZineCaption',
-        modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 1 },
+        bind: 'page.paragraph',
+        modular: { colStart: 2, colSpan: 22, rowStart: 23, rowSpan: 1 },
         props: {
-          text: '{page.imageLabel}',
-          className: '{page.layoutVariant === "left" ? "text-left pl-12" : "text-right pr-12"} opacity-40',
-          color: 'secondary'
+          className: '{page.layoutVariant === "left" ? "text-left" : "text-right"}',
+          opacity: 0.4,
+          align: '{page.layoutVariant === "left" ? "left" : "right"}',
+          alignSelf: 'end' // 强制沉底
         }
       }
-    ]
-  }
-};
+      ]
+      }
+      };

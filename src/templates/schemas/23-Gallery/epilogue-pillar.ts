@@ -27,9 +27,10 @@ export const EpiloguePillarSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
+            bind: 'page.title',
             modular: { colStart: 1, colSpan: 12, rowStart: 1, rowSpan: 1 },
             props: {
-              text: '{page.title || "P I L O G U E"}',
+              text: "P I L O G U E",
               tracking: 1,
               size: 1.5,
               bold: true,
@@ -116,9 +117,9 @@ export const EpiloguePillarSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.imageLabel',
         modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
         props: {
-          text: '{page.imageLabel}',
           align: 'left',
           size: 1.125,
           sans: true,

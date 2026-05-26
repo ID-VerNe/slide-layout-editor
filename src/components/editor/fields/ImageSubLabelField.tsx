@@ -34,6 +34,7 @@ export const ImageSubLabelField: React.FC<FieldProps> = React.memo(({ page, onUp
       label={label || 'Secondary Caption / Vol.'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

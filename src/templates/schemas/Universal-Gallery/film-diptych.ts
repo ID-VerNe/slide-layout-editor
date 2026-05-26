@@ -118,8 +118,9 @@ export const FilmDiptychSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
+            bind: 'page.imageLabel',
             props: {
-              text: '{page.imageLabel || "SEQUENCE 04 · MOVEMENT STUDY"}',
+              text: 'SEQUENCE 04 · MOVEMENT STUDY',
               tracking: 0.2,
               bold: true,
               color: 'secondary',

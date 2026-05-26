@@ -15,6 +15,7 @@ interface FieldWrapperProps {
   actions?: React.ReactNode;
   className?: string;
   showStyleConfig?: boolean;
+  styleMode?: 'text' | 'image' | 'divider';
   customFonts?: CustomFont[];
 }
 
@@ -33,6 +34,7 @@ export const FieldWrapper: React.FC<FieldWrapperProps> = ({
   actions,
   className = "",
   showStyleConfig = false,
+  styleMode,
   customFonts = []
 }) => {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -126,6 +128,7 @@ export const FieldWrapper: React.FC<FieldWrapperProps> = ({
                       fieldKey={fieldKey as string} 
                       onUpdate={onUpdate}
                       customFonts={customFonts}
+                      mode={styleMode}
                     />
                     <button 
                       onClick={() => setIsPanelOpen(false)}

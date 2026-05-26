@@ -27,7 +27,7 @@ export const EditorialBackCoverSchema: TemplateSchema = {
             componentType: 'ZineDisplay',
             bind: 'page.title',
             props: {
-              text: '{page.title || "THANKS"}',
+              text: 'THANKS',
               className: 'text-center',
               size: 4,
               italic: true,
@@ -52,7 +52,7 @@ export const EditorialBackCoverSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
             props: {
-              text: '{page.subtitle || "SlideGrid Studio // All Rights Reserved"}',
+              text: 'SlideGrid Studio // All Rights Reserved',
               className: 'uppercase text-center',
               size: 0.875,
               tracking: 0.5,

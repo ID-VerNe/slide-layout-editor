@@ -51,9 +51,10 @@ export const ZineClassicSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.subtitle',
         modular: { colStart: 2, colSpan: 10, rowStart: 10, rowSpan: 1 },
         props: {
-          text: '{page.subtitle || "EDITORIAL DESIGN SYSTEM"}',
+          text: 'EDITORIAL DESIGN SYSTEM',
           color: 'accent'
         }
       },
@@ -84,9 +85,10 @@ export const ZineClassicSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.imageLabel',
         modular: { colStart: 13, colSpan: 11, rowStart: 23, rowSpan: 1 },
         props: {
-          text: '{page.imageLabel || "ARCHIVE / NO. 24"}',
+          text: 'ARCHIVE / NO. 24',
           className: 'text-right opacity-30',
           color: 'secondary'
         }

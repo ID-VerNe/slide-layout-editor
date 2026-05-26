@@ -4,7 +4,7 @@ import { useStore } from '../../../store/useStore';
 import { FontSelect } from '../../ui/FontSelect';
 import { 
   Type, AlignLeft, AlignCenter, AlignJustify, Italic, Palette, 
-  MousePointer2, RotateCcw, Move, Maximize2 
+  MousePointer2, RotateCcw, Move, Maximize2, Type as TypeIcon
 } from 'lucide-react';
 
 interface ZineStylePanelProps {
@@ -12,17 +12,20 @@ interface ZineStylePanelProps {
   fieldKey: string;
   onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
+  mode?: 'text' | 'image' | 'divider';
 }
 
 /**
  * ZineStylePanel - 受控的样式实验室
- * 已增强：支持所有组件的 9 点对齐、图片圆角与长度控制
+ * 已更新：支持语义化排版 (size as 8px multiplier, serif/sans toggles)
+ * 已增强：支持显式模式切换 (text/image/divider)
  */
 export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   page,
   fieldKey,
   onUpdate,
-  customFonts
+  customFonts,
+  mode
 }) => {
   const ds = useStore(s => s.designSystem);
   const overrides = page.styleOverrides?.[fieldKey] || {};
@@ -49,19 +52,22 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
     }, true);
   };
 
-  const isDivider = fieldKey.toLowerCase().includes('divider') || fieldKey === 'separator' || fieldKey.toLowerCase().includes('line');
-  const isImage = fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('logo') || fieldKey.toLowerCase().includes('media');
+  // 默认模式启发式 (Fallback)
+  const isDivider = mode === 'divider' || (!mode && (fieldKey.toLowerCase().includes('divider') || fieldKey === 'separator' || fieldKey.toLowerCase().includes('line')));
+  const isImage = mode === 'image' || (!mode && (fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('logo') || fieldKey.toLowerCase().includes('media')) && !fieldKey.toLowerCase().includes('label') && !fieldKey.toLowerCase().includes('text'));
+  const isText = mode === 'text' || (!isDivider && !isImage);
   
-  // 基础属性
-  const currentSize = overrides.fontSize || (fieldKey === 'title' ? 72 : 16);
-  const currentThickness = overrides.height || overrides.thickness || 1;
+  // 语义化属性解析
+  const currentSize = overrides.size !== undefined ? overrides.size : (fieldKey === 'title' ? 4 : 1.5);
+  const currentThickness = overrides.thickness || 1;
   const currentLength = overrides.width || '100%';
   const currentColor = overrides.color || ds.tokens.colors.primary;
   const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
   
   // 对齐属性 (9点定位支持)
-  const currentAlign = overrides.alignSelf || (isDivider ? 'center' : undefined);
-  const currentJustify = overrides.justifySelf || (isDivider ? 'stretch' : undefined);
+  const currentAlign = overrides.alignSelf;
+  const currentJustify = overrides.justifySelf;
+  const currentTextAlign = overrides.align || 'left';
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -84,12 +90,12 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
         )}
       </div>
 
-      {/* 1. 字体选择 (仅限非分割线、非图片) */}
-      {!isDivider && !isImage && (
-        <div className="space-y-2">
+      {/* 1. 字体族选择 (仅限文本模式) */}
+      {isText && (
+        <div className="space-y-3">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            <Type size={12} />
-            <span>Typography Pair</span>
+            <TypeIcon size={12} />
+            <span>Font Family</span>
           </div>
           <FontSelect 
             value={overrides.fontFamily} 
@@ -105,14 +111,14 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <MousePointer2 size={12} />
-            <span>{isDivider ? 'Thickness' : (isImage ? 'Rounding' : 'Size')}</span>
+            <span>{isDivider ? 'Thickness' : (isImage ? 'Rounding' : 'Size (x8)')}</span>
           </div>
           <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg p-1">
             <button 
               onClick={() => {
-                if (isDivider) updateOverride('height', (Math.max(0.5, (parseFloat(currentThickness as string) || 1) - 0.5)) + 'px');
+                if (isDivider) updateOverride('thickness', Math.max(0.5, (parseFloat(currentThickness as string) || 1) - 0.5));
                 else if (isImage) updateOverride('borderRadius', (Math.max(0, (parseFloat(currentRounded as string) || 0) - 4)) + 'px');
-                else updateOverride('fontSize', Math.max(8, currentSize - 8));
+                else updateOverride('size', Math.max(0.5, currentSize - 0.5));
               }}
               className="w-full py-1 text-xs font-black hover:bg-white rounded transition-all active:scale-90"
             >-</button>
@@ -121,9 +127,9 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
             </span>
             <button 
               onClick={() => {
-                if (isDivider) updateOverride('height', ((parseFloat(currentThickness as string) || 1) + 0.5) + 'px');
+                if (isDivider) updateOverride('thickness', ((parseFloat(currentThickness as string) || 1) + 0.5));
                 else if (isImage) updateOverride('borderRadius', ((parseFloat(currentRounded as string) || 0) + 4) + 'px');
-                else updateOverride('fontSize', currentSize + 8);
+                else updateOverride('size', currentSize + 0.5);
               }}
               className="w-full py-1 text-xs font-black hover:bg-white rounded transition-all active:scale-90"
             >+</button>
@@ -154,7 +160,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
               >+</button>
             </div>
           </div>
-        ) : (!isImage && (
+        ) : (isText && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
               <AlignLeft size={12} />
@@ -162,18 +168,18 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
             </div>
             <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
               <button 
-                onClick={() => updateOverride('textAlign', 'left')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${overrides.textAlign === 'left' || (!overrides.textAlign && fieldKey === 'title') ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateOverride('align', 'left')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'left' ? 'bg-white shadow-sm' : 'opacity-40'}`}
                 title="Align Left"
               ><AlignLeft size={12} /></button>
               <button 
-                onClick={() => updateOverride('textAlign', 'center')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${overrides.textAlign === 'center' ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateOverride('align', 'center')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'center' ? 'bg-white shadow-sm' : 'opacity-40'}`}
                 title="Align Center"
               ><AlignCenter size={12} /></button>
               <button 
-                onClick={() => updateOverride('textAlign', 'justify')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${overrides.textAlign === 'justify' ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateOverride('align', 'justify')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'justify' ? 'bg-white shadow-sm' : 'opacity-40'}`}
                 title="Justify"
               ><AlignJustify size={12} /></button>
             </div>
@@ -234,8 +240,6 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
             >RGT</button>
           </div>
         </div>
-        
-        <p className="text-[8px] text-slate-400 italic">Docking disables "Fill" mode for the component.</p>
       </div>
 
       {/* 4. 调色盘 (仅限 DS Tokens) */}
@@ -259,13 +263,20 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
 
       {/* 5. 辅助开关 (仅限非分割线) */}
       {!isDivider && !isImage && (
-        <div className="pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
           <button
-            onClick={() => updateOverride('fontStyle', overrides.fontStyle === 'italic' ? 'normal' : 'italic')}
-            className={`w-full py-2 flex items-center justify-center gap-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${overrides.fontStyle === 'italic' ? 'bg-zine-accent text-white' : 'bg-slate-50 text-slate-400'}`}
+            onClick={() => updateOverride('bold', !overrides.bold)}
+            className={`py-2 flex items-center justify-center gap-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${overrides.bold ? 'bg-zine-accent text-white' : 'bg-slate-50 text-slate-400'}`}
+          >
+            <TypeIcon size={12} />
+            <span>Bold</span>
+          </button>
+          <button
+            onClick={() => updateOverride('italic', !overrides.italic)}
+            className={`py-2 flex items-center justify-center gap-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${overrides.italic ? 'bg-zine-accent text-white' : 'bg-slate-50 text-slate-400'}`}
           >
             <Italic size={12} />
-            <span>Italic Mode</span>
+            <span>Italic</span>
           </button>
         </div>
       )}

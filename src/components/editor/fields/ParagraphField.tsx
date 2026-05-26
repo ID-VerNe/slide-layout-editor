@@ -33,6 +33,7 @@ export const ParagraphField: React.FC<FieldProps> = React.memo(({ page, onUpdate
       label={label || 'Body Text'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

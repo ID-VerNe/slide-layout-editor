@@ -45,7 +45,8 @@ export const ComponentMosaicSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', tracking: 0.4, color: 'accent', sans: true, className: 'opacity-40 uppercase' }
+            bind: 'page.imageLabel',
+            props: { tracking: 0.4, color: 'accent', sans: true, className: 'opacity-40 uppercase' }
           }
         ]
       },

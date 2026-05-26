@@ -34,7 +34,7 @@ export const KinfolkEssaySchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
             props: {
-              text: '{page.subtitle || "SHENZHEN / 2026"}',
+              text: 'SHENZHEN / 2026',
               size: 1.25,
               bold: true,
               tracking: 0.3,

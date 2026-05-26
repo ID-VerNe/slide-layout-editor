@@ -121,7 +121,9 @@ const GlobalFolio: React.FC<{
   counterStyle: string;
 }> = ({ page, pageIndex, ds, counterStyle }) => {
   const customCounterColor = page.counterColor || ds.tokens.colors.secondary;
-  const isRight = page.layoutVariant === 'right';
+  
+  const alignment = page.folioAlignment || 'auto';
+  const isRight = alignment === 'auto' ? page.layoutVariant === 'right' : alignment === 'right';
 
   const renderCounter = () => {
     const style = counterStyle || page.counterStyle || 'number';
@@ -145,26 +147,40 @@ const GlobalFolio: React.FC<{
 
   if (page.pageNumber === false) return null;
 
-  // Zine Mode 下强制执行的工业样式：无圆角、无阴影、无模糊
-  const folioClass = `flex items-center gap-2 border-t border-zine-accent/20 pt-1`;
-
+  // 使用 24x24 网格进行数学对齐：离开边框一个格子即 row: 23, col: 2 (左) 或 23 (右)
   return (
-    <div 
-      className={`absolute bottom-8 left-8 right-8 flex justify-between items-end z-50 pointer-events-none transition-all duration-700
-        ${isRight ? 'flex-row-reverse' : 'flex-row'}`}
-      style={{ color: customCounterColor }}
-    >
-      {/* 档案号/页脚文字 (FIG. XX) */}
+    <div className="absolute inset-0 grid grid-cols-24 grid-rows-24 z-50 pointer-events-none p-0">
+      {/* 档案号/页脚文字 (FIG. XX) - 默认放置在页码对面 */}
       <div 
-        className={`text-[9px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-pre-line
-          ${isRight ? 'text-right' : 'text-left'}`}
+        className={`text-[9px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-pre-line flex items-end
+          ${isRight ? 'text-left' : 'text-right'}`}
+        style={{ 
+          color: customCounterColor,
+          gridRow: '23 / 24',
+          gridColumn: isRight ? '2 / 8' : '18 / 24',
+          justifyContent: isRight ? 'flex-start' : 'flex-end'
+        }}
       >
-        {page.footer || `FIG. ${String(pageIndex + 1).padStart(2, '0')}`}
+        {page.footer || ''}
       </div>
 
       {/* 页码显示 (Roman/Dots/Number) */}
-      <div className={folioClass}>
-        <span className="text-[10px] font-black tracking-[0.3em] font-sans">
+      <div 
+        className={`flex items-end`}
+        style={{ 
+          color: customCounterColor,
+          gridRow: '23 / 24',
+          gridColumn: isRight ? '23 / 24' : '2 / 3',
+          justifyContent: isRight ? 'flex-end' : 'flex-start'
+        }}
+      >
+        <span 
+          className="font-black tracking-[0.3em]"
+          style={{ 
+            fontSize: '12px',
+            fontFamily: "'Inter', sans-serif"
+          }}
+        >
           {renderCounter()}
         </span>
       </div>

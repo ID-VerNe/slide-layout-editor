@@ -29,7 +29,7 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.title',
             props: {
-              text: '{page.title || "CASE FILE : AKO"}',
+              text: 'CASE FILE : AKO',
               tracking: 0.6,
               bold: true,
               align: 'center',
@@ -70,13 +70,14 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
+            bind: 'page.imageLabel',
             modular: { colStart: 2, colSpan: 12, rowStart: 12, rowSpan: 1 }, // 这里的 rowStart 是相对于 Container 的，但 LayoutRenderer 处理 modular 是全局还是局部的？
             // 修正：resolveBaseProps 处理 modular。如果父容器是 absolute，子容器的 modular 是基于父容器的网格还是全局？
             // LayoutRenderer 中 Container layout === 'modular' 会创建网格。
             // 这里我们直接用 absolute 定位在图片容器内。
             style: { position: 'absolute', bottom: '24px', left: '24px', mixBlendMode: 'difference' },
             props: {
-              text: '{page.imageLabel || "08:42 AM · CROWNE PLAZA"}',
+              text: '08:42 AM · CROWNE PLAZA',
               color: 'secondary',
               sans: true,
               className: '!text-white !opacity-70'

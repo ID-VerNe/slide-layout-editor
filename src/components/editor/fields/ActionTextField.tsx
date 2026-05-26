@@ -34,6 +34,7 @@ export const ActionTextField: React.FC<FieldProps> = React.memo(({ page, onUpdat
       label={label || 'Action Text / Button'}
       icon={Type}
       showStyleConfig={true}
+      styleMode="text"
       customFonts={customFonts}
     >
       <div className="relative group/field">

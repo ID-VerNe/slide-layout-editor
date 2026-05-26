@@ -121,9 +121,9 @@ export const VerticalColumnSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.imageLabel',
         modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 1 },
         props: {
-          text: '{page.imageLabel}',
           align: '{page.layoutVariant === "right" ? "right" : "left"}',
           color: 'surface',
           sans: true,

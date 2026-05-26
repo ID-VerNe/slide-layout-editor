@@ -38,7 +38,8 @@ export const PlatformHeroSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 border border-zine-accent/20 rounded-full', color: 'accent', sans: true }
+            bind: 'page.imageLabel',
+            props: { className: 'mt-4 px-8 py-3 border border-zine-accent/20 rounded-full', color: 'accent', sans: true }
           }
         ]
       },
