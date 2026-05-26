@@ -95,8 +95,8 @@ LayoutRenderer(node, page, theme)
 1. **表达式求值**: `className` 和 `style` 中的 `{...}` 表达式被求值
 2. **Modular 网格映射**: `modular.colStart/colSpan/rowStart/rowSpan` → CSS Grid 属性
 3. **Preset 注入**: `presetKey` 从 `ds.presets.layout` 和 `ds.presets.effects` 获取预设样式
-4. **属性白名单过滤** (`ALLOWED_PROPS`): **Zine Mode 关键步骤** — 仅允许几何布局、定位、核心视觉属性通过，剔除任何可能破坏工业精密感的 CSS 属性
-5. **类名黑名单过滤**: 强制剔除 `rounded-*`、`shadow-*`、`blur-*`、`animate-*` 等"软审美" Tailwind 类名
+4. **属性白名单过滤** (`ALLOWED_PROPS`): **Zine Mode 关键步骤** — 仅允许几何布局、定位、核心视觉属性通过，目前已支持 `borderRadius` 以实现胶囊形状等高级审美。
+5. **类名黑名单过滤**: 强制剔除 `shadow-*`、`blur-*`、`animate-*` 等"软审美" Tailwind 类名。**注意**: `rounded-*` 类名现在已被允许，以便配合 `ZineMedia` 的新圆角特性。
 
 ---
 
@@ -133,8 +133,9 @@ style = {
 
 ### 3.3 9 宫格对齐 (Self Alignment)
 
-`modular.align` 和 `modular.justify` 允许子元素在网格单元内精确定位。这在分割线 (Divider) 模拟单元格边框时尤为重要：
+`modular.align` 和 `modular.justify` 允许子元素在网格单元内精确定位。目前所有 Zine 原子组件均已标准化支持此特性，允许它们在网格内“贴靠”：
 
+- **组件感知**: `ZineMedia`, `ZineDisplay` 等内部会根据对齐属性自动调整宽高策略。如果没有对齐指令，则默认撑满；如果有，则收缩至内容大小并贴靠。
 - `alignSelf`: 控制垂直方向 (`start` 置顶 / `center` 居中 / `end` 置底 / `stretch` 拉伸)
 - `justifySelf`: 控制水平方向 (`start` 靠左 / `center` 居中 / `end` 靠右 / `stretch` 拉伸)
 

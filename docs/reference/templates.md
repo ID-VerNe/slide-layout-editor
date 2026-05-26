@@ -24,14 +24,16 @@ interface TemplateConfig {
 ```
 
 ### 1.2 `TemplateSchema` 定义
-每个模板的布局由 [src/templates/schemas/](src/templates/schemas/) 下的 TS 文件定义。Schema 使用 `Container`、`Component`、`Repeater`、`Conditional`、`Text` 五种节点类型构建渲染树。详见 [模板引擎文档](../architecture/template-engine.md)。
+每个模板的布局由 [src/templates/schemas/](src/templates/schemas/) 下按 **“比例-分类”** 组织的 TS 文件定义。Schema 使用 `Container`、`Component`、`Repeater`、`Conditional`、`Text` 五种节点类型构建渲染树。详见 [模板引擎文档](../architecture/template-engine.md)。目前所有 Zine 原子组件均支持 **9 点网格对齐 (9-point docking)**，极大地增强了布局的灵活性。
 
 ---
 
-## 2. 模板分类与完整目录
+## 2. 模板分类与物理结构
+
+为了方便开发者快速匹配代码与界面显示名称，模板 Schema 现在按照 `[Ratio]-[Category]` 模式存储在物理子目录中。
 
 ### 2.1 封面类 (Cover)
-用于开篇、章节首页的大张力排版。
+目录：`src/templates/schemas/Universal-Cover` (多比例) 或 `src/templates/schemas/23-Cover` (2:3)
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |
@@ -40,7 +42,7 @@ interface TemplateConfig {
 | `editorial-back-cover` | Editorial Back | 极简杂志封底排版 | 2:3 |
 
 ### 2.2 画册类 (Gallery)
-面向摄影、时尚、艺术出版的内页排版。**这是最大的分类**，涵盖 Zine 美学体系的核心模板。
+目录：`src/templates/schemas/Universal-Gallery` 或 `src/templates/schemas/23-Gallery`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |
@@ -59,11 +61,11 @@ interface TemplateConfig {
 | `epilogue-pillar` | Epilogue Pillar | 居中竖排"柱状"结语文案 + 版权信息 | 2:3 |
 | `future-focus` | Future Focus | 金色强调色 + 背景大数字 | 16:9, 2:3 |
 | `back-cover-movie` | Back Cover Movie | 电影片尾字幕风格封底 | 16:9, 2:3 |
-| `gallery-capsule` | Capsule Mosaic | 胶囊形状多图裁剪展示，支持 Under/Over/Minimal 变体 | 16:9, 2:3 |
+| `gallery-capsule` | Capsule Mosaic | 胶囊形状多图裁剪展示，支持圆角特性 | 16:9, 2:3 |
 | `editorial-split` | Editorial Split | 图片与结构化文本的平衡分割布局 | 16:9, 2:3 |
 
 ### 2.3 产品与营销 (Product & Marketing)
-面向商业展示、品牌宣传的排版。
+目录：`src/templates/schemas/169-Product` 或 `src/templates/schemas/Universal-Product`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |
@@ -75,7 +77,7 @@ interface TemplateConfig {
 | `community-hub` | Community Hub | 行动号召 + 推荐语 + 合作伙伴网格 | 16:9, 2:3 |
 
 ### 2.4 通用类 (General)
-跨场景使用的排版方案。
+目录：`src/templates/schemas/Universal-General`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |
@@ -86,7 +88,7 @@ interface TemplateConfig {
 | `table-of-contents` | Table of Contents | 卡片式导航目录页 | 16:9, 2:3 |
 
 ### 2.5 简历类 (Resume)
-专为 A4 纸张设计的专业简历。
+目录：`src/templates/schemas/A4-Resume`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |

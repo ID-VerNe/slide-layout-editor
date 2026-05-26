@@ -16,12 +16,14 @@ SlideGrid Studio 作为一个跨平台应用 (Web + Electron)，通过 `src/util
 | :--- | :--- | :--- |
 | `isElectron()` | `boolean` | 检测当前运行环境是否为 Electron |
 | `setActiveWorkspace(path)` | `Promise<void>` | 同步工作区路径到主进程 |
+| `listProjects()` | `Promise<any[]>` | **新增**: 扫描工作区物理目录，返回包含 metadata 的项目列表 |
 | `setCurrentProject(id, name)` | `Promise<void>` | 同步当前项目上下文 (用于资产路径解析) |
 | `openExternal(url)` | `Promise<void>` | 外部链接打开 (Electron: shell.openExternal, Web: window.open) |
 | `selectDirectory()` | `Promise<NativeResponse>` | 打开原生文件夹选择对话框 |
 | `saveFileBuffer(path, base64)` | `Promise<NativeResponse>` | 将 Base64 数据写入指定路径 |
-| `saveProject(data, path?, name?)` | `Promise<NativeResponse>` | 触发主进程保存项目 (.slgrid) |
-| `openProject()` | `Promise<NativeResponse>` | 触发主进程打开项目 |
+| `saveProject(data, path?, name?)` | `Promise<NativeResponse>` | 触发主进程保存项目。**智能逻辑**: 如果 path 是文件夹 (Workspace)，则仅更新 project.json；如果是文件，则打包 .slgrid |
+| `openProject()` | `Promise<NativeResponse>` | 触发主进程打开项目 (支持文件选择) |
+| `readProject(path)` | `Promise<NativeResponse>` | **新增**: 从指定物理路径 (文件夹或文件) 加载项目数据 |
 | `uploadAsset(name, base64)` | `Promise<NativeResponse>` | 将图片发送至主进程 Sharp 流水线 |
 
 ### 1.2 接口定义
