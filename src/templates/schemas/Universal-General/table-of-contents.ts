@@ -22,9 +22,9 @@ export const TableOfContentsSchema: TemplateSchema = {
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
         modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 5 },
         children: [
-          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20 mb-2' } },
-          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { className: '!text-[3rem] !font-black text-center' } },
-          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { className: 'text-lg opacity-60 text-center', color: 'secondary' } }
+          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20 mb-2', sans: true } },
+          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 6, bold: true, align: 'center', serif: true } },
+          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, align: 'center', color: 'secondary', sans: true, className: 'opacity-60' } }
         ]
       },
 
@@ -52,9 +52,9 @@ export const TableOfContentsSchema: TemplateSchema = {
                   layoutProps: { direction: 'column', gap: 'spacing.sm' },
                   className: 'p-8 pb-5',
                   children: [
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: 'ICON', className: 'opacity-30' } },
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', className: '!text-lg !font-black' } },
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.desc}', className: '!text-[0.65rem] opacity-50 uppercase tracking-widest' } }
+                    { type: 'Component', componentType: 'ZineCaption', props: { text: 'ICON', className: 'opacity-30', sans: true } },
+                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', size: 2.25, bold: true, sans: true } },
+                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.desc}', size: 1.3, tracking: 0.1, sans: true, className: 'opacity-50 uppercase' } }
                   ]
                 },
                 // 章节号
@@ -62,7 +62,7 @@ export const TableOfContentsSchema: TemplateSchema = {
                   type: 'Container',
                   className: 'px-8 py-4 bg-white/40 border-y border-white/60',
                   children: [
-                    { type: 'Component', componentType: 'ZineDisplay', props: { text: '{item.number}', className: '!text-[2rem] !font-black !tracking-tighter', color: 'primary' } }
+                    { type: 'Component', componentType: 'ZineDisplay', props: { text: '{item.number}', size: 4, bold: true, tracking: -0.05, color: 'primary', serif: true } }
                   ]
                 },
                 // 子项目列表
@@ -82,7 +82,7 @@ export const TableOfContentsSchema: TemplateSchema = {
                         className: 'mb-1',
                         children: [
                           { type: 'Container', className: 'w-1.5 h-1.5 rounded-full bg-zine-accent/30', children: [] },
-                          { type: 'Component', componentType: 'ZineCaption', props: { text: '{item}', className: '!text-[0.8rem] font-semibold' } }
+                          { type: 'Component', componentType: 'ZineCaption', props: { text: '{item}', size: 1.6, bold: true, sans: true } }
                         ]
                       }
                     }

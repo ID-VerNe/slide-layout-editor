@@ -19,16 +19,23 @@
 | :--- | :--- | :--- | :--- |
 | `page` | `PageData` | (必需) | 当前页面数据 |
 | `fieldKey` | `string` | `undefined` | 绑定的 PageData 字段名 |
+| `size` | `number` | - | **语义化**: 8px 的倍数 (如 `size: 10` 为 80px) |
+| `serif / sans` | `boolean` | - | **语义化**: 切换衬线/无衬线体 |
+| `bold / italic` | `boolean` | - | **语义化**: 加粗/斜体开关 |
+| `align` | `string` | `'left'` | **语义化**: `'left' \| 'center' \| 'right' \| 'justify'` |
+| `leading` | `number` | `1.1` | **语义化**: 行高倍数，自动基线吸附 |
+| `tracking` | `number` | `0.2` | **语义化**: 字距 (em) |
 | `text` | `string` | `page.title` | 显示的文本内容 |
-| `color` | `keyof DesignSystem['tokens']['colors']` | `'primary'` | 文字颜色 Token |
+| `color` | `string` | `'primary'` | 颜色 Token 或 Hex |
 | `orientation` | `'horizontal' \| 'vertical-stack' \| 'vertical-rotate'` | `'horizontal'` | 文字排版方向 |
-| `className` | `string` | `''` | 额外的 CSS 类名 |
+| `className` | `string` | `''` | 额外的 CSS 类名 (受 Zine Mode 过滤) |
 | `style` | `React.CSSProperties` | - | 自定义内联样式 |
 
 **特性**:
+- **意图化驱动**: 组件内部不再硬编码字体名称。所有排版意图通过语义化 Props 表达，由渲染引擎统一解析。
+- **基线吸附**: 自动确保行高为 8px 的整数倍。
 - **竖排红线 (Red Lines)**: 设为 `vertical-stack` 时，强制执行 **全大写 (ALL CAPS)** 和加宽字距，严禁小写字母竖向堆叠。
 - **侧边旋转**: `vertical-rotate` 模式下文字逆时针旋转 90 度，适用于窄边栏标注。
-- **9 点对齐**: 标准化支持 `alignSelf` 和 `justifySelf`。如果不指定对齐，默认占据 100% 宽度。
 
 ---
 
@@ -152,20 +159,119 @@
 
 ---
 
-## 3. 专用原子组件
+## 3. 数据驱动原子组件
 
-### 3.1 `ZineResume`
+### 3.1 `ZineMetric`
+KPI 度量指标展示组件。将 `MetricData` 对象渲染为"大数字 + 单位 + 标签"的三段式布局，支持 KaTeX 数学公式渲染单位。
+
+- **文件**: `src/components/ui/slide/atoms/ZineMetric.tsx`
+- **数据来源**: `MetricData` (通过 `data` 属性直接传入)
+
+**Props:**
+
+| 属性 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `data` | `MetricData` | (必需) | 度量数据对象 (`{ value, label, unit?, subLabel? }`) |
+| `page` | `PageData` | `undefined` | 当前页面数据 (用于 styleOverrides) |
+| `typography` | `TypographySettings` | `undefined` | 排版设置 |
+| `className` | `string` | `''` | 额外 CSS 类名 |
+| `valueClassName` | `string` | `''` | 数值区域的额外类名 |
+| `labelClassName` | `string` | `''` | 标签区域的额外类名 |
+| `unitClassName` | `string` | `''` | 单位区域的额外类名 |
+| `subLabelClassName` | `string` | `''` | 副标签区域的额外类名 |
+| `style` | `React.CSSProperties` | - | 自定义内联样式 |
+
+**特性**:
+- **KaTeX 单位渲染**: `data.unit` 通过 `katex.renderToString()` 渲染，支持数学公式（如 `"10^6"`, `"\\%"`）
+- **三段式布局**: 大数值 (font-weight 1000, tight tracking) + 单位 (35% 字号) + 标签行 (标签 + 可选副标签)
+- **颜色语义**: 数值使用 `theme.colors.primary`，标签使用 `theme.colors.accent`，副标签使用 `theme.colors.secondary`
+- **9 点对齐**: 标准化支持网格贴靠
+
+**MetricData 结构**:
+```typescript
+interface MetricData {
+  id: string;
+  value: string;   // 大数字 (如 "24.8B", "98%")
+  label: string;   // 标签文本 (如 "年营收")
+  icon?: string;   // 可选图标
+  unit?: string;   // 单位 (支持 LaTeX, 如 "\\text{USD}")
+}
+```
+
+---
+## 4. 多媒体与图标原子组件
+
+### 4.1 `ZineIcon`
+通用图标渲染器，支持三种图标源：Lucide React 图标、Material Symbols 字体图标、以及图片 URL / DataURL。
+
+- **文件**: `src/components/ui/slide/atoms/ZineIcon.tsx`
+
+**Props:**
+
+| 属性 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `name` | `string` | (必需) | 图标名称/URL。自动检测源类型 |
+| `page` | `PageData` | `undefined` | 当前页面数据 |
+| `fieldKey` | `string` | `undefined` | 绑定的字段名 |
+| `size` | `number` | `24` | 图标尺寸 (px) |
+| `color` | `string` | `undefined` | 图标颜色 (Token 或 Hex) |
+| `weight` | `number \| string` | `undefined` | 字体粗细 (Material Symbols) |
+| `strokeWidth` | `number` | `2.5` | 描边宽度 (Lucide 图标) |
+| `className` | `string` | `''` | 额外 CSS 类名 |
+| `style` | `React.CSSProperties` | - | 自定义内联样式 |
+
+**图标源自动检测逻辑**:
+
+| 检测条件 | 渲染方式 | 示例 |
+| :--- | :--- | :--- |
+| `name` 以 `data:image` 开头，或包含 `http`、`/`、`.` | `<ImageAtom>` 图片渲染 | `"data:image/png;...""`, `"asset://logo.svg"` |
+| `name` 包含 `_` 或以小写字母开头 | Material Symbols 字体图标 (`fontVariationSettings`) | `"settings"`, `"play_arrow"` |
+| 其他情况 (PascalCase) | `LUCIDE_ICON_MAP` 查找 → Lucide React 组件 | `"Zap"`, `"Star"` |
+
+**特性**:
+- **多源统一接口**: 同一个组件处理图片、Material Symbols、Lucide 三种图标源
+- **容错回退**: Lucide 查找失败时回退到 `HelpCircle` 图标
+- **9 点对齐**: 标准化支持网格贴靠
+
+### 4.2 `ZineLogo`
+品牌 Logo 渲染组件。通过 `useAssetUrl` 解析 Logo 资源路径，支持可见性开关和尺寸控制。
+
+- **文件**: `src/components/ui/slide/atoms/ZineLogo.tsx`
+
+**Props:**
+
+| 属性 | 类型 | 默认值 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `page` | `PageData` | (必需) | 当前页面数据 (读取 `logo`, `logoSize`, `visibility.logo`) |
+| `className` | `string` | `''` | 额外 CSS 类名 |
+| `style` | `React.CSSProperties` | - | 自定义内联样式 |
+
+**特性**:
+- **可见性控制**: `page.visibility?.logo !== false` 时渲染，无数据时返回 `null`
+- **尺寸配置**: 使用 `page.logoSize` (默认 48px)
+- **渐进加载**: `useAssetUrl` 提供加载状态，加载中 `opacity-0`，完成后淡入
+- **跨域支持**: `crossOrigin="anonymous"` 确保 Canvas 导出兼容
+- **9 点对齐**: 标准化支持网格贴靠
+
+---
+## 5. 专用原子组件
+
+### 5.1 `ZineResume`
 简历专用原子组件，封装了简历区块的完整渲染逻辑。
 
 - **文件**: `src/components/ui/slide/atoms/ZineResume.tsx`
 - **数据来源**: `page.resumeSections: ResumeSection[]`
+- **核心功能**:
+  - 逐区块渲染：标题 + 条目列表（职位、时间、描述）
+  - 支持 Markdown 格式描述文本（`description` 字段）
+  - 自动排版间距与分割线
+  - 多页简历的页码连续性支持（`resumePageIndex`）
 
 ---
-
-## 4. 内部原子构建块
+## 6. 内部原子构建块
 
 以下组件位于 `src/components/ui/slide/atoms/`，为原子组件内部使用的基础构建块：
 
-- **`Text`**: 最基础的文本渲染单元 (`atoms/Text.tsx`)。
-- **`Icon`**: 原子化图标渲染器 (`atoms/Icon.tsx`)。
-- **`Image`**: 原子化图片渲染器基础级别 (`atoms/Image.tsx`)。
+- **`Text`** (`atoms/Text.tsx`): 最基础的文本渲染单元。支持 `content` (HTML/纯文本)、`sanitize` (DOMPurify 清理)、`as` (HTML 标签) 等属性。
+- **`Icon`** (`atoms/Icon.tsx`): 原子化图标渲染器，基于 Material Symbols Outlined 字体图标。支持 `name`、`size`、`color`、`weight` 参数。
+- **`Image`** (`atoms/Image.tsx`): 原子化图片渲染器基础级别。支持 `url`、`objectFit`、`className` 等属性，提供加载状态和错误处理。

@@ -45,7 +45,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  props: { className: '!text-white !italic !font-light !tracking-[0.4em] text-center drop-shadow-2xl', color: 'surface' }
+                  props: { italic: true, tracking: 0.4, align: 'center', serif: true, className: 'text-white drop-shadow-2xl', color: 'surface' }
                 }
               ]
             },
@@ -55,7 +55,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               componentType: 'ZineCaption',
               modular: { colStart: 4, colSpan: 18, rowStart: 20, rowSpan: 1 },
               bind: 'page.subtitle',
-              props: { className: 'text-center !text-white !tracking-[0.5em] uppercase opacity-80', color: 'surface' }
+              props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'text-white uppercase opacity-80', color: 'surface' }
             }
           ]
         },
@@ -77,13 +77,13 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { className: '!text-white !tracking-[0.6em] uppercase !font-black mb-4', color: 'surface' }
+                  props: { tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase mb-4', color: 'surface' }
                 },
                 {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  props: { className: '!text-white !italic !font-light !tracking-[0.3em] text-center drop-shadow-2xl', color: 'surface' }
+                  props: { italic: true, tracking: 0.3, align: 'center', serif: true, className: 'text-white drop-shadow-2xl', color: 'surface' }
                 }
               ]
             }
@@ -103,7 +103,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.imageLabel',
-            props: { text: '{page.imageLabel || "© 2026"}', className: '!italic !tracking-[0.4em]', color: 'accent' }
+            props: { text: '{page.imageLabel || "© 2026"}', italic: true, tracking: 0.4, sans: true, bold: true, color: 'accent' }
           }
         ]
       }

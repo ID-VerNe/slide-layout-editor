@@ -46,7 +46,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
     fieldKey,
     props: { backgroundColor: '#000000' },
     customStyle,
-    className: `zine-media w-full h-full ${className}`
+    className: `zine-media ${className}` // 移除强制 w-full h-full，让 align/justify 生效
   });
 
   // 3. 资源解析
@@ -83,10 +83,13 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
   
   const containerStyle: React.CSSProperties = {
+    // 默认行为：如果没有 align/justify，则铺满容器
+    width: style.width || (style.justifySelf ? undefined : '100%'),
+    height: style.height || (style.alignSelf ? undefined : '100%'),
     ...style,
     borderRadius: rounded !== undefined 
       ? (typeof rounded === 'number' ? `${rounded}px` : rounded) 
-      : (style.borderRadius || '0'), // 允许通过 style 覆盖，否则默认 0
+      : (style.borderRadius || '0'), 
     aspectRatio: dimensions?.width && dimensions?.height 
       ? `${dimensions.width} / ${dimensions.height}` 
       : style.aspectRatio,

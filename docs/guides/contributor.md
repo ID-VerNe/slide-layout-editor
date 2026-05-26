@@ -32,12 +32,13 @@ pnpm typecheck
 
 | 技术 | 用途 |
 | :--- | :--- |
-| React 18 + TypeScript | UI 框架 |
+| React 19 + TypeScript 5.8 | UI 框架 |
 | Vite | 构建工具 |
 | Zustand | 状态管理 |
 | Framer Motion | 交互动画 |
 | Tailwind CSS v3 | 样式框架 |
 | TanStack Virtual | 虚拟滚动 |
+| React Router v7 | 路由 |
 | Lucide React | 图标库 |
 | html-to-image | DOM → 图片导出 |
 | jsPDF | PDF 导出 |

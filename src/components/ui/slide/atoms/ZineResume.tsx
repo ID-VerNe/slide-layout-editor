@@ -2,18 +2,33 @@ import React from 'react';
 import { PageData } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
 import DOMPurify from 'dompurify';
+import { useModularStyle } from '../hooks/useModularStyle';
 
 /**
  * ZineResume - 简历原子组件
  * 封装了 AcademicHybridResume 的核心渲染逻辑，使其可在 JSON Schema 中作为原子使用。
  */
-export const ZineResume: React.FC<{ page: PageData }> = ({ page }) => {
+export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({ 
+  page, 
+  className = "", 
+  style: customStyle,
+  ...otherProps 
+}) => {
   const theme = useStore((state) => state.theme);
-  const accentColor = theme.colors.accent || '#264376';
+  
+  const { style, className: resolvedClassName } = useModularStyle({
+    page,
+    fieldKey: 'resume',
+    props: otherProps,
+    customStyle,
+    className: `zine-resume ${className}`
+  });
+
+  const accentColor = style.color || theme.colors.accent || '#264376';
 
   const parseContent = (text: string) => {
     let html = text
-      .replace(/.*\[(.*?)\].*\((.*?)\)/g, '<a href="$2" class="resume-link text-[#264376] hover:underline" data-url="$2">$1</a>')
+      .replace(/.*\[(.*?)\].*\((.*?)\)/g, `<a href="$2" class="resume-link hover:underline" data-url="$2" style="color: ${accentColor}">$1</a>`)
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-950">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
       .replace(/`(.*?)`/g, '<code class="bg-slate-100 px-1 rounded-none text-[0.9em] font-mono">$1</code>');
@@ -36,7 +51,7 @@ export const ZineResume: React.FC<{ page: PageData }> = ({ page }) => {
           const cleanText = isBullet ? trimmed.substring(1).trim() : trimmed;
           return (
             <li key={i} className="flex items-start gap-4 text-slate-600 text-justify leading-[16px] mb-2 font-zine-body">
-              {isBullet && <div className="mt-1.5 w-1 h-1 bg-slate-950 shrink-0" style={{ backgroundColor: accentColor }} />}
+              {isBullet && <div className="mt-1.5 w-1 h-1 shrink-0" style={{ backgroundColor: accentColor }} />}
               <span className="text-[11px] tracking-tight" dangerouslySetInnerHTML={{ __html: parseContent(cleanText) }} />
             </li>
           );
@@ -46,7 +61,7 @@ export const ZineResume: React.FC<{ page: PageData }> = ({ page }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col gap-16 overflow-y-auto no-scrollbar py-2">
+    <div className={`w-full h-full flex flex-col gap-16 overflow-y-auto no-scrollbar py-2 ${resolvedClassName}`} style={style}>
       {(page.resumeSections || []).map((section) => (
         <section key={section.id} className="space-y-8">
           <div className="flex items-center gap-6">
@@ -77,3 +92,5 @@ export const ZineResume: React.FC<{ page: PageData }> = ({ page }) => {
     </div>
   );
 };
+
+export default ZineResume;

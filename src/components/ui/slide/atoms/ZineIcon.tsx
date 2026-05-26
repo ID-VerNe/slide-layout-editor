@@ -4,15 +4,19 @@ import { HelpCircle } from 'lucide-react';
 import { Icon as IconAtom } from './Icon';
 import { Image as ImageAtom } from './Image';
 import { useModularStyle } from '../hooks/useModularStyle';
+import { PageData } from '../../../../types';
 
 interface ZineIconProps {
   name: string;
+  page?: PageData;
+  fieldKey?: string;
   size?: number;
   className?: string;
   color?: string;
-  weight?: number;
+  weight?: number | string;
   strokeWidth?: number;
   style?: React.CSSProperties;
+  [key: string]: any;
 }
 
 /**
@@ -20,15 +24,20 @@ interface ZineIconProps {
  */
 export const ZineIcon: React.FC<ZineIconProps> = ({ 
   name, 
+  page,
+  fieldKey,
   size = 24, 
   className = "", 
   color,
   weight,
   strokeWidth = 2.5,
-  style: customStyle
+  style: customStyle,
+  ...otherProps
 }) => {
   const { style, className: resolvedClassName } = useModularStyle({
-    props: { color },
+    page,
+    fieldKey,
+    props: { color, weight, ...otherProps },
     customStyle,
     className: `zine-icon ${className}`
   });
@@ -51,6 +60,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
   // 2. 处理 Material Symbols
   const isMaterial = name.includes('_') || /^[a-z]/.test(name);
   if (isMaterial) {
+    const resolvedWeight = style.fontWeight || weight || 400;
     return (
       <IconAtom
         name={name.toLowerCase()}
@@ -58,8 +68,8 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
         color={style.color as string || 'inherit'}
         className={resolvedClassName}
         style={{
-          fontWeight: weight || 'normal',
-          fontVariationSettings: `'FILL' 0, 'wght' ${weight || 400}, 'GRAD' 0, 'opsz' 24`,
+          fontWeight: resolvedWeight,
+          fontVariationSettings: `'FILL' 0, 'wght' ${resolvedWeight}, 'GRAD' 0, 'opsz' 24`,
           display: 'inline-block',
           lineHeight: 1,
           textTransform: 'none',

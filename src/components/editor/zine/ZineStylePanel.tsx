@@ -4,7 +4,7 @@ import { useStore } from '../../../store/useStore';
 import { FontSelect } from '../../ui/FontSelect';
 import { 
   Type, AlignLeft, AlignCenter, AlignJustify, Italic, Palette, 
-  MousePointer2, RotateCcw, Move, Maximize2, Layers 
+  MousePointer2, RotateCcw, Move, Maximize2 
 } from 'lucide-react';
 
 interface ZineStylePanelProps {
@@ -16,7 +16,7 @@ interface ZineStylePanelProps {
 
 /**
  * ZineStylePanel - 受控的样式实验室
- * 已增强：支持分割线的 9 点对齐与长度控制
+ * 已增强：支持所有组件的 9 点对齐、图片圆角与长度控制
  */
 export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   page,
@@ -50,16 +50,18 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   };
 
   const isDivider = fieldKey.toLowerCase().includes('divider') || fieldKey === 'separator' || fieldKey.toLowerCase().includes('line');
+  const isImage = fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('logo') || fieldKey.toLowerCase().includes('media');
   
   // 基础属性
   const currentSize = overrides.fontSize || (fieldKey === 'title' ? 72 : 16);
   const currentThickness = overrides.height || overrides.thickness || 1;
   const currentLength = overrides.width || '100%';
   const currentColor = overrides.color || ds.tokens.colors.primary;
+  const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
   
   // 对齐属性 (9点定位支持)
-  const currentAlign = overrides.alignSelf || 'center';
-  const currentJustify = overrides.justifySelf || 'stretch';
+  const currentAlign = overrides.alignSelf || (isDivider ? 'center' : undefined);
+  const currentJustify = overrides.justifySelf || (isDivider ? 'stretch' : undefined);
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -82,8 +84,8 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
         )}
       </div>
 
-      {/* 1. 字体选择 (仅限非分割线) */}
-      {!isDivider && (
+      {/* 1. 字体选择 (仅限非分割线、非图片) */}
+      {!isDivider && !isImage && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <Type size={12} />
@@ -98,27 +100,31 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
         </div>
       )}
 
-      {/* 2. 核心数值控制 (Size/Thickness) */}
+      {/* 2. 核心数值控制 (Size/Thickness/Rounding) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <MousePointer2 size={12} />
-            <span>{isDivider ? 'Thickness' : 'Size'}</span>
+            <span>{isDivider ? 'Thickness' : (isImage ? 'Rounding' : 'Size')}</span>
           </div>
           <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg p-1">
             <button 
-              onClick={() => isDivider 
-                ? updateOverride('height', (Math.max(0.5, (parseFloat(currentThickness as string) || 1) - 0.5)) + 'px')
-                : updateOverride('fontSize', Math.max(8, currentSize - 8))}
+              onClick={() => {
+                if (isDivider) updateOverride('height', (Math.max(0.5, (parseFloat(currentThickness as string) || 1) - 0.5)) + 'px');
+                else if (isImage) updateOverride('borderRadius', (Math.max(0, (parseFloat(currentRounded as string) || 0) - 4)) + 'px');
+                else updateOverride('fontSize', Math.max(8, currentSize - 8));
+              }}
               className="w-full py-1 text-xs font-black hover:bg-white rounded transition-all active:scale-90"
             >-</button>
-            <span className="w-full text-center text-[10px] font-black">
-               {isDivider ? currentThickness : currentSize}
+            <span className="w-full text-center text-[10px] font-black truncate px-1">
+               {isDivider ? currentThickness : (isImage ? currentRounded : currentSize)}
             </span>
             <button 
-              onClick={() => isDivider
-                ? updateOverride('height', ((parseFloat(currentThickness as string) || 1) + 0.5) + 'px')
-                : updateOverride('fontSize', currentSize + 8)}
+              onClick={() => {
+                if (isDivider) updateOverride('height', ((parseFloat(currentThickness as string) || 1) + 0.5) + 'px');
+                else if (isImage) updateOverride('borderRadius', ((parseFloat(currentRounded as string) || 0) + 4) + 'px');
+                else updateOverride('fontSize', currentSize + 8);
+              }}
               className="w-full py-1 text-xs font-black hover:bg-white rounded transition-all active:scale-90"
             >+</button>
           </div>
@@ -148,11 +154,11 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
               >+</button>
             </div>
           </div>
-        ) : (
+        ) : (!isImage && (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
               <AlignLeft size={12} />
-              <span>Align</span>
+              <span>Text Align</span>
             </div>
             <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
               <button 
@@ -172,54 +178,65 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
               ><AlignJustify size={12} /></button>
             </div>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* 3. 9点定位控制 (仅限分割线) */}
-      {isDivider && (
-        <div className="space-y-3 pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              <Move size={12} />
-              <span>9-Point Alignment</span>
-            </div>
+      {/* 3. 全球 9点定位控制 (9-Point Grid Docking) */}
+      <div className="space-y-3 pt-2 border-t border-slate-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Move size={12} />
+            <span>9-Point Docking</span>
+          </div>
+          {(currentAlign || currentJustify) && (
+             <button 
+               onClick={() => {
+                 const next = { ...overrides };
+                 delete next.alignSelf;
+                 delete next.justifySelf;
+                 onUpdate({ ...page, styleOverrides: { ...page.styleOverrides, [fieldKey]: next } }, true);
+               }}
+               className="text-[8px] font-black text-zine-accent hover:underline"
+             >FILL</button>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          {/* 垂直对齐 (Top/Middle/Bottom) */}
+          <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
+            <button 
+              onClick={() => updateOverride('alignSelf', 'start')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'start' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >TOP</button>
+            <button 
+              onClick={() => updateOverride('alignSelf', 'center')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'center' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >MID</button>
+            <button 
+              onClick={() => updateOverride('alignSelf', 'end')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'end' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >BOT</button>
           </div>
           
-          <div className="grid grid-cols-2 gap-2">
-            {/* 垂直对齐 (Top/Middle/Bottom) */}
-            <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
-              <button 
-                onClick={() => updateOverride('alignSelf', 'start')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'start' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >TOP</button>
-              <button 
-                onClick={() => updateOverride('alignSelf', 'center')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'center' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >MID</button>
-              <button 
-                onClick={() => updateOverride('alignSelf', 'end')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'end' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >BOT</button>
-            </div>
-            
-            {/* 水平对齐 (Left/Center/Right) */}
-            <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
-              <button 
-                onClick={() => updateOverride('justifySelf', 'start')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'start' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >LFT</button>
-              <button 
-                onClick={() => updateOverride('justifySelf', 'center')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'center' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >CTR</button>
-              <button 
-                onClick={() => updateOverride('justifySelf', 'end')}
-                className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'end' ? 'bg-white shadow-sm' : 'opacity-40'}`}
-              >RGT</button>
-            </div>
+          {/* 水平对齐 (Left/Center/Right) */}
+          <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
+            <button 
+              onClick={() => updateOverride('justifySelf', 'start')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'start' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >LFT</button>
+            <button 
+              onClick={() => updateOverride('justifySelf', 'center')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'center' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >CTR</button>
+            <button 
+              onClick={() => updateOverride('justifySelf', 'end')}
+              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'end' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
+            >RGT</button>
           </div>
         </div>
-      )}
+        
+        <p className="text-[8px] text-slate-400 italic">Docking disables "Fill" mode for the component.</p>
+      </div>
 
       {/* 4. 调色盘 (仅限 DS Tokens) */}
       <div className="space-y-2">
@@ -241,7 +258,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
       </div>
 
       {/* 5. 辅助开关 (仅限非分割线) */}
-      {!isDivider && (
+      {!isDivider && !isImage && (
         <div className="pt-2 border-t border-slate-100">
           <button
             onClick={() => updateOverride('fontStyle', overrides.fontStyle === 'italic' ? 'normal' : 'italic')}

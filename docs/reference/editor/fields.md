@@ -81,6 +81,27 @@ interface FieldProps {
 - **绑定字段**: `page.footer`
 - **图标**: `MessageSquare`
 
+### 1.8 `ArtFontField`
+高级艺术字编辑器。用于编辑 `page.artFont` 字段，控制 ZineArtFont 组件的 SVG 渲染参数。
+
+- **文件**: `fields/ArtFontField.tsx`
+- **绑定字段**: `page.artFont`
+- **图标**: `Type`
+
+**编辑项**:
+
+| 控件 | 绑定 | 说明 |
+| :--- | :--- | :--- |
+| Input | `page.artFont` | 艺术字文本内容 (大号粗体输入) |
+| -/+ 按钮 | `styleOverrides.artFont.fontSize` | 字号控制 (步长 ±20px) |
+| -/+ 按钮 | `styleOverrides.artFont.strokeWidth` | 描边粗细控制 (步长 ±0.5px) |
+| Solid/Outline 按钮 | `styleOverrides.artFont.mode` | 切换 `'solid'` (实心) / `'outline'` (空心描边) |
+| Range Slider | `styleOverrides.artFont.opacity` | 不透明度 (0.1 ~ 1.0) |
+
+**特性**:
+- **SVG 渲染**: 艺术字由 `ZineArtFont` 组件以 SVG 方式渲染，支持描边和透明度叠加
+- **实时预览**: 样式变更直接反映到预览区
+
 ---
 
 ## 2. 媒体类字段
@@ -277,7 +298,7 @@ Bento Grid 网格编辑。
 
 ## 6. 布局/选择类字段
 
-### 5.1 `VariantField`
+### 6.1 `VariantField`
 模板变体切换器。将 `layoutVariant` 渲染为单选按钮组。
 
 - **文件**: `fields/VariantField.tsx`
@@ -294,14 +315,14 @@ Bento Grid 网格编辑。
 
 ---
 
-### 5.2 `ColorField`
+### 6.2 `ColorField`
 颜色选择器。用 `Base.Input type="color"` 渲染。
 
 - **文件**: `fields/ColorField.tsx`
 - **绑定字段**: 取决于映射 (如 `backgroundColor` → `page.backgroundColor`)
 - **图标**: `Palette`
 
-### 5.3 `PageNumberField`
+### 6.3 `PageNumberField`
 页码开关 (Toggle) + 样式选择。
 
 - **文件**: `fields/PageNumberField.tsx`
@@ -309,7 +330,7 @@ Bento Grid 网格编辑。
 - **额外控件**: `counterStyle` (下拉选择 `number` / `alpha` / `roman` / `dots`)
 - **图标**: `Hash`
 
-### 5.4 `TitleYField`
+### 6.4 `TitleYField`
 标题 Y 轴偏移滑块。
 
 - **文件**: `fields/TitleYField.tsx`
@@ -319,9 +340,9 @@ Bento Grid 网格编辑。
 
 ---
 
-## 6. 共享工具组件
+## 7. 共享工具组件
 
-### 6.1 `FieldWrapper`
+### 7.1 `FieldWrapper`
 所有字段控件的通用包装器。
 
 - **文件**: `fields/FieldWrapper.tsx`
@@ -341,7 +362,7 @@ Bento Grid 网格编辑。
 | `onToggle` | `() => void` | 切换可见性 |
 | `children` | `ReactNode` | 字段内容 |
 
-### 6.2 `FieldToolbar`
+### 7.2 `FieldToolbar`
 字段级工具栏。操作按钮行。
 
 - **文件**: `fields/FieldToolbar.tsx`
@@ -354,7 +375,7 @@ Bento Grid 网格编辑。
 
 ---
 
-## 7. 完整字段映射表
+## 8. 完整字段映射表
 
 | fieldKey | 组件 | 绑定字段 | 类型 |
 | :--- | :--- | :--- | :--- |
@@ -362,7 +383,6 @@ Bento Grid 网格编辑。
 | `subtitle` | `SubtitleField` | `page.subtitle` | string |
 | `paragraph` | `ParagraphField` | `page.paragraph` | string |
 | `actionText` | `ActionTextField` | `page.actionText` | string |
-| `actionTextZh` | `ActionTextField` | `page.actionTextZh` | string |
 | `signature` | `SignatureField` | `page.signature` | string |
 | `partnersTitle` | `PartnersTitleField` | `page.partnersTitle` | string |
 | `footer` | `FooterField` | `page.footer` | string |
@@ -380,6 +400,7 @@ Bento Grid 网格编辑。
 | `mosaic` | `MosaicField` | `page.mosaic` | array |
 | `partners` | `PartnersField` | `page.partners` | array |
 | `resumeSections` | `ResumeSectionsField` | `page.resumeSections` | structured |
+| `artFont` | `ArtFontField` | `page.artFont` | string |
 | `variant` | `VariantField` | `page.layoutVariant` | enum |
 | `backgroundColor` | `ColorField` | `page.backgroundColor` | color |
 | `pageNumber` | `PageNumberField` | `page.pageNumber` | boolean |
@@ -387,7 +408,7 @@ Bento Grid 网格编辑。
 
 ---
 
-## 8. 数据流
+## 9. 数据流
 
 ```text
 FieldRenderer

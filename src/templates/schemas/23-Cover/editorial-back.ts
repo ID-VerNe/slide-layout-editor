@@ -28,7 +28,11 @@ export const EditorialBackCoverSchema: TemplateSchema = {
             bind: 'page.title',
             props: {
               text: '{page.title || "THANKS"}',
-              className: '!text-[2rem] !italic !font-light !tracking-[0.4em] text-center',
+              className: 'text-center',
+              size: 4,
+              italic: true,
+              tracking: 0.4,
+              serif: true,
               color: 'accent'
             }
           }
@@ -49,7 +53,11 @@ export const EditorialBackCoverSchema: TemplateSchema = {
             bind: 'page.subtitle',
             props: {
               text: '{page.subtitle || "SlideGrid Studio // All Rights Reserved"}',
-              className: '!text-[7px] !tracking-[0.5em] uppercase text-center leading-loose',
+              className: 'uppercase text-center',
+              size: 0.875,
+              tracking: 0.5,
+              leading: 2,
+              sans: true,
               color: 'secondary'
             }
           }

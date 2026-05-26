@@ -8,10 +8,11 @@ interface ZineCaptionProps {
   page: PageData;
   fieldKey?: string; 
   text?: string;
-  color?: keyof DesignSystem['tokens']['colors'];
-  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增
+  color?: keyof DesignSystem['tokens']['colors'] | string;
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate';
   className?: string;
   style?: React.CSSProperties;
+  [key: string]: any;
 }
 
 /**
@@ -22,19 +23,22 @@ export const ZineCaption: React.FC<ZineCaptionProps> = ({
   fieldKey, 
   text, 
   color = 'secondary', 
-  orientation = 'horizontal', // 新增
+  orientation = 'horizontal',
   className = '', 
-  style: customStyle
+  style: customStyle,
+  ...otherProps
 }) => {
   const ds = useStore(s => s.designSystem);
-  const theme = useStore(s => s.theme);
   
   const { style, className: resolvedClassName } = useModularStyle({
     page, 
     fieldKey, 
-    props: { color: ds.tokens.colors[color as string] || color },
+    props: { 
+      color: ds.tokens.colors[color as string] || color,
+      ...otherProps
+    },
     variant: 'caption',
-    orientation: orientation as any, // 传入方向
+    orientation: orientation as any,
     customStyle,
     className
   });
@@ -47,7 +51,8 @@ export const ZineCaption: React.FC<ZineCaptionProps> = ({
   if (!content) return null;
 
   const finalStyle: React.CSSProperties = {
-    fontFamily: theme.typography.captionFont || "'Inter', sans-serif",
+    // 默认不占据 100%（针对小标注，对齐生效）
+    width: style.width || (style.justifySelf ? undefined : '100%'),
     ...style,
   };
 

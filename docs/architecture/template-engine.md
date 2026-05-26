@@ -241,9 +241,11 @@ letterSpacing, textTransform, color, verticalAlign, visibility, fontStyle
 ### 5.2 禁止的类名前缀
 
 ```
-rounded-, shadow-, blur-, drop-shadow-,
+shadow-, blur-, drop-shadow-,
 animate-bounce, animate-pulse, animate-wiggle
 ```
+
+> **注意**: `rounded-*` 类名现已允许，以便配合 `ZineMedia` 的新圆角特性和 `ZineDivider` 的胶囊形状效果。
 
 ---
 
@@ -253,23 +255,16 @@ animate-bounce, animate-pulse, animate-wiggle
 
 | 组件名 | React 组件 | 职责 |
 | :--- | :--- | :--- |
-| `SlideHeadline` | `SlideHeadline` | 自动缩放标题 |
-| `SlideSubHeadline` | `SlideSubHeadline` | 副标题 |
-| `SlideParagraph` | `SlideParagraph` | 段落正文 |
-| `SlideImage` | `SlideImage` | 资产引用图像 |
-| `SlideLogo` | `SlideLogo` | Logo 渲染 |
-| `SlideIcon` | `SlideIcon` | Lucide 图标渲染 |
-| `SlideMetric` | `SlideMetric` | KPI 度量指标 |
-| `SlideBlockLabel` | `SlideBlockLabel` | 模块标签 |
-| `SlideImageLabel` | `SlideImageLabel` | 图片元数据标签 |
-| `MetadataOverlay` | `MetadataOverlay` | 悬浮页码与页脚 |
-| `OutlineText` | `OutlineText` | 描边轮廓文字 |
 | `ZineDisplay` | `ZineDisplay` | 工业感大标题 (Zine) |
 | `ZineBody` | `ZineBody` | 诗性正文字体 (Zine) |
 | `ZineCaption` | `ZineCaption` | 小字标注/元数据 (Zine) |
 | `ZineMedia` | `ZineMedia` | 模块化网格图像 (Zine) |
 | `ZineResume` | `ZineResume` | 简历区块渲染 (Zine) |
 | `ZineDivider` | `ZineDivider` | 精密刻度线 (Zine) |
+| `ZineIcon` | `ZineIcon` | 多源图标渲染器 (Lucide / Material Symbols / 图片) |
+| `ZineMetric` | `ZineMetric` | KPI 度量指标 (大数字 + 单位 + 标签) |
+| `ZineLogo` | `ZineLogo` | 品牌 Logo 渲染 |
+| `ZineArtFont` | `ZineArtFont` | SVG 高级艺术字 (实心/空心描边) |
 
 ---
 

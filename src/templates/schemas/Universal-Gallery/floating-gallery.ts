@@ -35,14 +35,14 @@ export const FloatingGallerySchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!tracking-[0.4em] !uppercase !italic !font-light text-center' }
+            props: { tracking: 0.4, italic: true, align: 'center', className: 'uppercase', serif: true }
           },
           { type: 'Container', className: 'w-8 h-px bg-zine-accent my-6 opacity-30', children: [] },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: 'text-center !tracking-widest opacity-60', color: 'secondary' }
+            props: { align: 'center', tracking: 0.1, color: 'secondary', sans: true, className: 'opacity-60' }
           }
         ]
       },
@@ -58,7 +58,7 @@ export const FloatingGallerySchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineBody',
             bind: 'page.paragraph',
-            props: { className: 'text-center !text-[0.8rem] opacity-40', color: 'secondary' }
+            props: { align: 'center', size: 1.6, color: 'secondary', className: 'opacity-40', serif: true }
           }
         ]
       },
@@ -70,8 +70,10 @@ export const FloatingGallerySchema: TemplateSchema = {
         modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
         props: {
           text: '{page.imageLabel}',
-          className: 'text-left opacity-40',
-          color: 'secondary'
+          align: 'left',
+          color: 'secondary',
+          sans: true,
+          className: 'opacity-40'
         }
       }
     ]

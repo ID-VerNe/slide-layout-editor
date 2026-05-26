@@ -16,6 +16,7 @@ interface ZineMetricProps {
   unitClassName?: string;
   subLabelClassName?: string;
   style?: React.CSSProperties;
+  [key: string]: any;
 }
 
 /**
@@ -30,25 +31,19 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
   labelClassName = "",
   unitClassName = "",
   subLabelClassName = "",
-  style: customStyle
+  style: customStyle,
+  ...otherProps
 }) => {
   const theme = useStore((state) => state.theme);
-  const overrides = page?.styleOverrides?.metrics || {};
   
   // 1. 样式解析
   const { style, className: resolvedClassName } = useModularStyle({
     fieldKey: 'metrics',
-    overrides,
+    page,
+    props: otherProps,
     customStyle,
     className: `zine-metric ${className}`
   });
-
-  const getFontFamily = () => {
-    if (style.fontFamily) return style.fontFamily;
-    const fieldFont = typography?.fieldOverrides?.['metrics'];
-    if (fieldFont) return fieldFont;
-    return theme?.typography?.headingFont || "'Inter', sans-serif";
-  };
 
   const finalValueSize = style.fontSize || '4.5rem';
   const valueColor = style.color || theme?.colors?.primary || '#0F172A';
@@ -56,7 +51,7 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
   const subLabelColor = theme?.colors?.secondary || '#64748B';
 
   return (
-    <div className={`flex flex-col gap-2 ${resolvedClassName}`} style={{ ...style, fontFamily: getFontFamily() }}>
+    <div className={`flex flex-col gap-2 ${resolvedClassName}`} style={style}>
       <div className="flex items-baseline gap-1">
         <Text
           as="span"

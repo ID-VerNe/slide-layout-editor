@@ -20,7 +20,7 @@ export const ComponentMosaicSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineCaption',
         modular: { colStart: 1, colSpan: 6, rowStart: 2, rowSpan: 1 },
-        props: { text: 'BRAND LOGO', className: '!font-black !tracking-widest opacity-20' }
+        props: { text: 'BRAND LOGO', bold: true, tracking: 0.1, className: 'opacity-20 uppercase', sans: true }
       },
 
       // 2. 左侧文字区 (Cols 1-10)
@@ -34,18 +34,18 @@ export const ComponentMosaicSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!text-[4rem] !font-black !tracking-tighter' }
+            props: { size: 8, bold: true, tracking: -0.05, serif: true }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: 'max-w-md', color: 'secondary' }
+            props: { color: 'secondary', sans: true, className: 'max-w-md' }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', className: 'opacity-40 uppercase !tracking-[0.4em]', color: 'accent' }
+            props: { text: '{page.imageLabel}', tracking: 0.4, color: 'accent', sans: true, className: 'opacity-40 uppercase' }
           }
         ]
       },
@@ -73,7 +73,7 @@ export const ComponentMosaicSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
-                      props: { text: 'ICON', className: '!text-[8px] opacity-20' }
+                      props: { text: 'ICON', size: 1, className: 'opacity-20', sans: true }
                     }
                   ]
                 }

@@ -6,33 +6,38 @@ import { Text } from './Text';
 
 interface ZineBodyProps {
   page: PageData;
-  fieldKey?: string; // 新增
+  fieldKey?: string; 
   text?: string;
-  color?: keyof DesignSystem['tokens']['colors'];
+  color?: keyof DesignSystem['tokens']['colors'] | string;
   className?: string;
   style?: React.CSSProperties;
   dropCap?: boolean;
+  [key: string]: any;
 }
 
 /**
  * ZineBody - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
-export const ZineBody: React.FC<ZineBodyProps> = ({ 
+export const ZineBody: React.FC<ZineBodyProps> = ({
   page,
-  fieldKey, // 新增
-  text, 
-  color = 'primary', 
-  className = '', 
+  fieldKey, 
+  text,
+  color = 'primary',
+  className = '',
   style: customStyle,
-  dropCap = false
+  dropCap = false,
+  ...otherProps
 }) => {
   const theme = useStore(s => s.theme);
   const ds = useStore(s => s.designSystem);
-  
+
   const { style, className: resolvedClassName } = useModularStyle({
-    page, // 传入 page
-    fieldKey, // 传入 fieldKey
-    props: { color: ds.tokens.colors[color as string] || color },
+    page,
+    fieldKey,
+    props: { 
+      color: ds.tokens.colors[color as string] || color,
+      ...otherProps
+    },
     variant: 'body',
     customStyle,
     className
@@ -46,23 +51,23 @@ export const ZineBody: React.FC<ZineBodyProps> = ({
   if (!content) return null;
 
   const finalStyle: React.CSSProperties = {
-    fontFamily: page.bodyFont || theme.typography.bodyFont,
+    // 默认占据 100%（针对多行文本，对齐更多作用于块本身）
+    width: style.width || (style.justifySelf ? undefined : '100%'),
     ...style,
-    textAlign: style.textAlign || 'justify',
   };
 
   if (dropCap) {
     return (
       <div className={`zine-body whitespace-pre-line ${resolvedClassName}`} style={finalStyle}>
         <div className="relative">
-          <span 
+          <span
             className="float-left font-black select-none mr-4"
-            style={{ 
+            style={{
               fontSize: '4.2rem',
               lineHeight: '0.8',
               marginTop: '0.45rem',
-              color: ds.tokens.colors.accent 
-            }} 
+              color: ds.tokens.colors.accent
+            }}
           >
             {content.charAt(0)}
           </span>
@@ -75,7 +80,7 @@ export const ZineBody: React.FC<ZineBodyProps> = ({
   return (
     <Text
       content={content}
-      className={`zine-body whitespace-pre-line ${resolvedClassName}`} 
+      className={`zine-body whitespace-pre-line ${resolvedClassName}`}
       style={finalStyle}
     />
   );

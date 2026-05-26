@@ -8,7 +8,6 @@ import { ZineDivider } from '../../components/ui/slide/atoms/ZineDivider';
 import { ZineIcon } from '../../components/ui/slide/atoms/ZineIcon';
 import { ZineMetric } from '../../components/ui/slide/atoms/ZineMetric';
 import { ZineLogo } from '../../components/ui/slide/atoms/ZineLogo';
-import { ZineOutlineText } from '../../components/ui/slide/atoms/ZineOutlineText';
 import { ZineArtFont } from '../../components/ui/slide/atoms/ZineArtFont';
 
 /**
@@ -25,7 +24,6 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   ZineIcon,
   ZineMetric,
   ZineLogo,
-  ZineOutlineText,
   ZineArtFont,
 };
 

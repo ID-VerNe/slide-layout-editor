@@ -38,7 +38,7 @@ export const TestimonialCardSchema: TemplateSchema = {
                 type: 'Component',
                 componentType: 'ZineCaption',
                 bind: 'page.imageLabel',
-                props: { className: '!text-[10px] opacity-40 uppercase !tracking-widest', color: 'secondary' }
+                props: { size: 1.25, tracking: 0.1, color: 'secondary', sans: true, className: 'opacity-40 uppercase' }
               }
             ]
           },
@@ -54,15 +54,15 @@ export const TestimonialCardSchema: TemplateSchema = {
                 layout: 'flex',
                 layoutProps: { direction: 'row', align: 'center', gap: 'spacing.md' },
                 children: [
-                  { type: 'Component', componentType: 'ZineCaption', props: { text: 'LOGO', className: 'opacity-20' } },
-                  { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { className: '!text-[2rem] !font-black !tracking-tight' } }
+                  { type: 'Component', componentType: 'ZineCaption', props: { text: 'LOGO', className: 'opacity-20', sans: true } },
+                  { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 4, bold: true, tracking: -0.025, serif: true } }
                 ]
               },
               {
                 type: 'Component',
                 componentType: 'ZineDisplay',
                 bind: 'page.subtitle',
-                props: { className: '!text-[2.75rem] !leading-[1.3] !tracking-tight !font-black' }
+                props: { size: 5.5, leading: 1.3, tracking: -0.025, bold: true, serif: true }
               },
               { type: 'Container', className: 'h-px w-full bg-zine-accent/10 my-8', children: [] },
               {
@@ -78,8 +78,8 @@ export const TestimonialCardSchema: TemplateSchema = {
                       layout: 'flex',
                       layoutProps: { direction: 'column' },
                       children: [
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', className: '!text-[9px] opacity-30 uppercase' } },
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', className: '!text-lg !font-bold' } }
+                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', size: 1.125, className: 'opacity-30 uppercase', sans: true } },
+                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 2.25, bold: true, sans: true } }
                       ]
                     }
                   }

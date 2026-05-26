@@ -47,7 +47,10 @@ export const BackCoverMovieSchema: TemplateSchema = {
             bind: 'page.title',
             props: {
               text: '{page.title || "THANKS FOR WATCHING"}',
-              className: '!tracking-[0.5em] !text-[2rem] uppercase !text-white/80',
+              className: 'uppercase !text-white/80',
+              tracking: 0.5,
+              size: 4,
+              serif: true,
               color: 'surface'
             }
           },
@@ -58,7 +61,9 @@ export const BackCoverMovieSchema: TemplateSchema = {
             bind: 'page.subtitle',
             props: {
               text: '{page.subtitle || "SEE YOU NEXT YEAR"}',
-              className: '!tracking-[0.8em] uppercase opacity-60',
+              className: 'uppercase opacity-60',
+              tracking: 0.8,
+              sans: true,
               color: 'surface'
             }
           }

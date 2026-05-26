@@ -22,8 +22,8 @@ export const StepTimelineSchema: TemplateSchema = {
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
         modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 4 },
         children: [
-          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { className: '!text-[2.5rem] !font-black text-center' } },
-          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { className: 'text-center opacity-60 max-w-2xl', color: 'secondary' } }
+          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 5, bold: true, align: 'center', serif: true } },
+          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { align: 'center', color: 'secondary', sans: true, className: 'opacity-60 max-w-2xl' } }
         ]
       },
 
@@ -56,7 +56,7 @@ export const StepTimelineSchema: TemplateSchema = {
                 {
                   type: 'Container',
                   className: 'w-16 h-16 rounded-full bg-white border border-zine-accent/20 flex items-center justify-center shrink-0 shadow-sm',
-                  children: [{ type: 'Component', componentType: 'ZineCaption', props: { text: '{index + 1}', className: '!font-black', color: 'accent' } }]
+                  children: [{ type: 'Component', componentType: 'ZineCaption', props: { text: '{index + 1}', bold: true, color: 'accent', sans: true } }]
                 },
                 // 文本描述
                 {
@@ -65,8 +65,8 @@ export const StepTimelineSchema: TemplateSchema = {
                   layoutProps: { direction: 'column' },
                   className: 'flex-1',
                   children: [
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', className: '!text-[1.2rem] !font-bold' } },
-                    { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', className: '!text-[0.75rem] opacity-60 leading-relaxed', color: 'secondary' } }
+                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', size: 2.4, bold: true, sans: true } },
+                    { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', size: 1.5, leading: 1.625, color: 'secondary', serif: true, className: 'opacity-60' } }
                   ]
                 },
                 // 视觉卡片

@@ -22,23 +22,23 @@ export const PlatformHeroSchema: TemplateSchema = {
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.lg' },
         modular: { colStart: 3, colSpan: 18, rowStart: 2, rowSpan: 11 },
         children: [
-          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20' } },
+          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20', sans: true } },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: '!text-[10px] !font-black uppercase !tracking-[0.4em]', color: 'secondary' }
+            props: { size: 1.25, bold: true, tracking: 0.4, color: 'secondary', sans: true, className: 'uppercase' }
           },
           {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!text-[4.5rem] !font-black !tracking-tighter text-center leading-tight' }
+            props: { size: 9, bold: true, tracking: -0.05, align: 'center', leading: 1.25, serif: true }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 border border-zine-accent/20 rounded-full', color: 'accent' }
+            props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 border border-zine-accent/20 rounded-full', color: 'accent', sans: true }
           }
         ]
       },
@@ -60,9 +60,9 @@ export const PlatformHeroSchema: TemplateSchema = {
               layoutProps: { direction: 'column', align: 'start', gap: 'spacing.md' },
               className: 'p-10 border-r border-zine-accent/15 last:border-r-0',
               children: [
-                { type: 'Component', componentType: 'ZineCaption', props: { text: 'ICON', className: '!text-[12px] opacity-30', color: 'accent' } },
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', className: '!text-[1.2rem] !font-bold' } },
-                { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', className: '!text-[0.875rem] !font-medium opacity-60', color: 'secondary' } }
+                { type: 'Component', componentType: 'ZineCaption', props: { text: 'ICON', size: 1.5, color: 'accent', sans: true, className: 'opacity-30' } },
+                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', size: 2.4, bold: true, sans: true } },
+                { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', size: 1.75, bold: true, color: 'secondary', serif: true, className: 'opacity-60' } }
               ]
             }
           }

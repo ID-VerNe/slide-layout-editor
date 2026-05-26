@@ -45,7 +45,7 @@ export const VerticalColumnSchema: TemplateSchema = {
                   componentType: 'ZineBody',
                   bind: 'page.paragraph',
                   style: { writingMode: 'vertical-rl', maxHeight: '60%' },
-                  props: { className: '!text-[0.7rem] !italic opacity-40', color: 'secondary' }
+                  props: { size: 1.4, italic: true, color: 'secondary', serif: true, className: 'opacity-40' }
                 },
                 { type: 'Container', className: 'w-px h-32 bg-zine-accent/20', children: [] },
                 {
@@ -53,15 +53,15 @@ export const VerticalColumnSchema: TemplateSchema = {
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
                   style: { writingMode: 'vertical-rl' },
-                  props: { className: '!tracking-[0.4em] opacity-60', color: 'secondary' }
+                  props: { tracking: 0.4, color: 'secondary', sans: true, className: 'opacity-60' }
                 },
                 { type: 'Container', className: 'w-px h-32 bg-zine-accent/30', children: [] },
                 {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  style: { writingMode: 'vertical-rl', fontSize: '2.2rem' },
-                  props: { className: '!font-black !tracking-tighter' }
+                  style: { writingMode: 'vertical-rl' },
+                  props: { size: 4.4, bold: true, tracking: -0.05, serif: true }
                 }
               ]
             }
@@ -94,7 +94,7 @@ export const VerticalColumnSchema: TemplateSchema = {
                   componentType: 'ZineBody',
                   bind: 'page.paragraph',
                   style: { writingMode: 'vertical-rl', maxHeight: '60%' },
-                  props: { className: '!text-[0.7rem] !italic opacity-40', color: 'secondary' }
+                  props: { size: 1.4, italic: true, color: 'secondary', serif: true, className: 'opacity-40' }
                 },
                 { type: 'Container', className: 'w-px h-32 bg-zine-accent/20', children: [] },
                 {
@@ -102,15 +102,15 @@ export const VerticalColumnSchema: TemplateSchema = {
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
                   style: { writingMode: 'vertical-rl' },
-                  props: { className: '!tracking-[0.4em] opacity-60', color: 'secondary' }
+                  props: { tracking: 0.4, color: 'secondary', sans: true, className: 'opacity-60' }
                 },
                 { type: 'Container', className: 'w-px h-32 bg-zine-accent/30', children: [] },
                 {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  style: { writingMode: 'vertical-rl', fontSize: '2.2rem' },
-                  props: { className: '!font-black !tracking-tighter' }
+                  style: { writingMode: 'vertical-rl' },
+                  props: { size: 4.4, bold: true, tracking: -0.05, serif: true }
                 }
               ]
             }
@@ -124,8 +124,10 @@ export const VerticalColumnSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 1 },
         props: {
           text: '{page.imageLabel}',
-          className: '{page.layoutVariant === "right" ? "text-right pr-12" : "text-left pl-12"} opacity-60 mix-blend-difference !text-white',
-          color: 'surface'
+          align: '{page.layoutVariant === "right" ? "right" : "left"}',
+          color: 'surface',
+          sans: true,
+          className: '{page.layoutVariant === "right" ? "pr-12" : "pl-12"} opacity-60 mix-blend-difference !text-white'
         }
       }
     ]

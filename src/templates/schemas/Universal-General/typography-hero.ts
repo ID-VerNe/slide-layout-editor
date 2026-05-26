@@ -35,8 +35,11 @@ export const TypographyHeroSchema: TemplateSchema = {
         bind: 'page.title',
         modular: { colStart: 4, colSpan: 18, rowStart: 11, rowSpan: 2, align: 'center' },
         props: {
-          className: 'text-center !tracking-[0.5em] !text-[3.2rem] !font-medium',
-          color: 'accent'
+          size: 6.5,
+          align: 'center',
+          tracking: 0.5,
+          color: 'accent',
+          serif: true
         }
       },
 
@@ -47,8 +50,13 @@ export const TypographyHeroSchema: TemplateSchema = {
         bind: 'page.paragraph',
         modular: { colStart: 5, colSpan: 16, rowStart: 14, rowSpan: 3, align: 'start' },
         props: {
-          className: 'text-center !italic !font-light !tracking-[0.1em] !text-[1.1rem] !leading-[1.8]',
-          color: 'secondary'
+          size: 2.25,
+          align: 'center',
+          italic: true,
+          tracking: 0.1,
+          leading: 1.8,
+          color: 'secondary',
+          serif: true
         }
       },
 
@@ -72,8 +80,12 @@ export const TypographyHeroSchema: TemplateSchema = {
         bind: 'page.subtitle',
         modular: { colStart: 4, colSpan: 18, rowStart: 20, rowSpan: 1, align: 'start' },
         props: {
-          className: 'text-center !font-medium !tracking-[0.4em] uppercase opacity-40 !text-[7pt]',
-          color: 'secondary'
+          size: 1.25,
+          align: 'center',
+          tracking: 0.4,
+          opacity: 0.4,
+          color: 'secondary',
+          sans: true
         }
       }
     ]

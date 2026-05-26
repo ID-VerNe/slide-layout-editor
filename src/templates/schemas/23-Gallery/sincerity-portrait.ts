@@ -22,8 +22,12 @@ export const SincerityPortraitSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 24, rowStart: 6, rowSpan: 2 },
         props: {
           text: '{page.title || "THE SILENCE OF THE FRAME"}',
-          className: '!italic !font-bold !tracking-[0.8em] !opacity-10 text-center',
-          style: { fontSize: '14px' }
+          className: '!opacity-10 text-center',
+          italic: true,
+          bold: true,
+          tracking: 0.8,
+          size: 1.75,
+          sans: true
         }
       },
 
@@ -34,7 +38,9 @@ export const SincerityPortraitSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 12, rowStart: 4, rowSpan: 4 },
         bind: 'page.title',
         props: {
-          className: '!normal-case !font-normal',
+          className: '!normal-case',
+          bold: false,
+          serif: true,
           color: 'primary'
         }
       },
@@ -46,7 +52,10 @@ export const SincerityPortraitSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 12, rowStart: 8, rowSpan: 1 },
         bind: 'page.subtitle',
         props: {
-          className: '!italic !tracking-[0.1em]',
+          className: '',
+          italic: true,
+          tracking: 0.1,
+          sans: true,
           color: 'secondary'
         }
       },
@@ -58,6 +67,7 @@ export const SincerityPortraitSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 10, rowStart: 10, rowSpan: 10 },
         bind: 'page.paragraph',
         props: {
+          serif: true,
           color: 'secondary'
         }
       },
@@ -79,7 +89,11 @@ export const SincerityPortraitSchema: TemplateSchema = {
         modular: { colStart: 14, colSpan: 9, rowStart: 22, rowSpan: 1 },
         props: {
           text: '{page.imageLabel || "CATALOG / FIG. 01"}',
-          className: '!p-0 !italic !text-[9px] !tracking-widest opacity-40 text-right',
+          className: '!p-0 opacity-40 text-right',
+          italic: true,
+          size: 1.125,
+          tracking: 0.1,
+          sans: true,
           color: 'secondary'
         }
       }

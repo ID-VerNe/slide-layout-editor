@@ -22,7 +22,12 @@ export const FutureFocusSchema: TemplateSchema = {
         modular: { colStart: 18, colSpan: 12, rowStart: 20, rowSpan: 8 },
         props: {
           text: '{page.actionText || "26"}',
-          className: '!text-[25rem] !font-black !italic !opacity-[0.03] !tracking-tighter !leading-none pointer-events-none'
+          size: 50,
+          bold: true,
+          italic: true,
+          tracking: -0.05,
+          leading: 1,
+          className: 'opacity-[0.03] pointer-events-none'
         }
       },
 
@@ -56,13 +61,26 @@ export const FutureFocusSchema: TemplateSchema = {
                 type: 'Component',
                 componentType: 'ZineCaption',
                 bind: 'page.subtitle',
-                props: { className: '!text-white !italic !font-medium !text-[1.8rem] mb-2', color: 'surface' }
+                props: { 
+                  size: 3.6, 
+                  italic: true, 
+                  bold: true,
+                  className: '!text-white mb-2', 
+                  color: 'surface' 
+                }
               },
               {
                 type: 'Component',
                 componentType: 'ZineDisplay',
                 bind: 'page.title',
-                props: { className: '!text-white !font-black !text-[5rem] !leading-[0.85] !tracking-tighter uppercase', color: 'surface' }
+                props: { 
+                  size: 10, 
+                  bold: true,
+                  leading: 0.85,
+                  tracking: -0.05,
+                  className: '!text-white uppercase', 
+                  color: 'surface' 
+                }
               }
             ]
           }
@@ -89,13 +107,19 @@ export const FutureFocusSchema: TemplateSchema = {
                 type: 'Component',
                 componentType: 'ZineCaption',
                 bind: 'page.imageSubLabel',
-                props: { className: '!text-xl !italic opacity-40 mb-1', color: 'secondary' }
+                props: { size: 2.5, italic: true, className: 'opacity-40 mb-1', color: 'secondary' }
               },
               {
                 type: 'Component',
                 componentType: 'ZineDisplay',
                 bind: 'page.imageLabel',
-                props: { className: '!text-[3rem] !font-black !tracking-tighter !leading-none uppercase' }
+                props: { 
+                  size: 6, 
+                  bold: true,
+                  tracking: -0.05,
+                  leading: 1,
+                  className: 'uppercase' 
+                }
               }
             ]
           },

@@ -43,7 +43,9 @@ export const CinematicLetterboxSchema: TemplateSchema = {
             bind: 'page.paragraph',
             style: { position: 'absolute', bottom: '24px', left: '48px', right: '48px' },
             props: {
-              className: '!text-white !normal-case !text-[0.85rem] drop-shadow-md',
+              className: '!text-white !normal-case drop-shadow-md',
+              size: 1.7,
+              serif: true,
               color: 'surface'
             }
           }
@@ -62,7 +64,12 @@ export const CinematicLetterboxSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: '!tracking-[0.6em] opacity-60 mb-6', color: 'secondary' }
+            props: {
+              className: 'opacity-60 mb-6',
+              tracking: 0.6,
+              sans: true,
+              color: 'secondary'
+            }
           },
           // 细线
           { type: 'Container', className: 'w-full h-px bg-zine-accent/30 mb-8', children: [] },
@@ -72,7 +79,11 @@ export const CinematicLetterboxSchema: TemplateSchema = {
             componentType: 'ZineDisplay',
             bind: 'page.title',
             props: {
-              className: 'text-center !uppercase !italic !font-medium !text-[1.35rem] !tracking-[1.5em]',
+              className: 'text-center !uppercase',
+              italic: true,
+              size: 2.7,
+              tracking: 1.5,
+              serif: true,
               color: 'primary'
             }
           }
@@ -89,6 +100,7 @@ export const CinematicLetterboxSchema: TemplateSchema = {
         props: {
           text: '{page.imageLabel}',
           className: 'text-left opacity-40',
+          sans: true,
           color: 'secondary'
         }
       }

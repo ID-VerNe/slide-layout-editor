@@ -282,3 +282,40 @@ document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
 
 - 有未保存修改: `● My Project.slgrid | SlideGrid Studio`
 - 已保存: `My Project.slgrid | SlideGrid Studio`
+
+---
+## 11. 样式实验室 (ZineStylePanel)
+
+`ZineStylePanel` 是编辑器中的"样式实验室"浮层组件，为每个字段提供精细化的样式微调能力。
+
+- **文件**: `src/components/editor/zine/ZineStylePanel.tsx`
+- **触发方式**: 在 `FieldToolbar` 中点击调整图标 (Adjustments)
+
+### 11.1 控制面板功能
+
+| 分区 | 功能 | 适用范围 |
+| :--- | :--- | :--- |
+| **字体选择** (Typography Pair) | 切换当前字段的 `fontFamily` | 非分割线、非图片字段 |
+| **核心数值** (Size/Thickness/Rounding) | 字号/线条粗细/圆角 ± 步进控制 | 所有字段 (自适应类型) |
+| **分割线长度** (Length) | 控制分割线相对单元格长度的百分比 | 仅分割线字段 |
+| **文本对齐** (Text Align) | 左对齐/居中/两端对齐 | 非图片、非分割线字段 |
+| **9 点对齐** (9-Point Docking) | 垂直 (TOP/MID/BOT) + 水平 (LFT/CTR/RGT) | 所有字段 |
+| **调色盘** (Color Palette) | 从 `ds.tokens.colors` 中选择颜色 Token | 所有字段 |
+| **斜体模式** (Italic Mode) | 切换 `fontStyle: 'italic'` | 非分割线、非图片字段 |
+
+### 11.2 状态管理
+
+- 所有修改写入 `page.styleOverrides[fieldKey]`，以静默模式 (`silent=true`) 更新 Store，不触发历史记录
+- 支持一键重置 (`RESET`) 恢复默认样式
+- 字段类型智能识别：自动判断当前字段属于分割线、图片还是文本类型，展示对应控件
+
+### 11.3 字段类型识别逻辑
+
+```typescript
+const isDivider = fieldKey.toLowerCase().includes('divider') 
+  || fieldKey === 'separator' 
+  || fieldKey.toLowerCase().includes('line');
+const isImage = fieldKey.toLowerCase().includes('image') 
+  || fieldKey.toLowerCase().includes('logo') 
+  || fieldKey.toLowerCase().includes('media');
+```

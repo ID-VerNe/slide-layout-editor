@@ -22,8 +22,12 @@ export const MicroAnchorSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 1 },
         props: {
           text: '{page.title || "THE SILENCE OF THE FRAME"}',
-          className: '!italic !font-bold !tracking-[0.6em] !opacity-20 text-center',
-          style: { fontSize: '10px' }
+          className: '!opacity-20 text-center',
+          italic: true,
+          bold: true,
+          tracking: 0.6,
+          size: 1.25,
+          sans: true
         }
       },
 
@@ -53,7 +57,10 @@ export const MicroAnchorSchema: TemplateSchema = {
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
                   props: {
-                    className: 'mt-6 !tracking-[0.2em] !font-bold !text-right',
+                    className: 'mt-6 text-right',
+                    tracking: 0.2,
+                    bold: true,
+                    sans: true,
                     color: 'secondary'
                   }
                 }
@@ -75,7 +82,10 @@ export const MicroAnchorSchema: TemplateSchema = {
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
                   props: {
-                    className: 'mt-6 !tracking-[0.2em] !font-bold !text-left',
+                    className: 'mt-6 text-left',
+                    tracking: 0.2,
+                    bold: true,
+                    sans: true,
                     color: 'secondary'
                   }
                 }

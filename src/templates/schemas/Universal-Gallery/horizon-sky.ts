@@ -26,19 +26,19 @@ export const HorizonSkySchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: '!tracking-[0.5em] opacity-50 mb-4', color: 'secondary' }
+            props: { tracking: 0.5, color: 'secondary', sans: true, className: 'opacity-50 mb-4' }
           },
           {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: 'text-center !tracking-[0.5em] !font-medium !text-[2.4rem]' }
+            props: { align: 'center', tracking: 0.5, size: 4.8, serif: true }
           },
           {
             type: 'Component',
             componentType: 'ZineBody',
             bind: 'page.paragraph',
-            props: { className: 'text-center !italic opacity-50 mt-6 !text-[0.75rem]', color: 'secondary' }
+            props: { align: 'center', italic: true, size: 1.5, color: 'secondary', serif: true, className: 'opacity-50 mt-6' }
           }
         ]
       },
@@ -53,7 +53,7 @@ export const HorizonSkySchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', className: '!tracking-[0.2em] opacity-40 mb-4', color: 'secondary' }
+            props: { text: '{page.imageLabel}', tracking: 0.2, color: 'secondary', sans: true, className: 'opacity-40 mb-4' }
           },
           { type: 'Container', className: 'w-full h-px bg-zine-accent/20', children: [] }
         ]

@@ -31,7 +31,7 @@ export const EditorialClassicSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineCaption',
             style: { position: 'absolute', top: '40px', right: '40px', mixBlendMode: 'difference' },
-            props: { text: '{page.imageSubLabel || "From Yuu\'s Lens"}', className: '!text-[7.5px] !tracking-[0.6em] !italic opacity-40', color: 'surface' }
+            props: { text: '{page.imageSubLabel || "From Yuu\'s Lens"}', size: 0.9375, tracking: 0.6, italic: true, className: 'opacity-40', color: 'surface' }
           }
         ]
       },
@@ -47,13 +47,13 @@ export const EditorialClassicSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: 'text-center !italic !font-light !tracking-[0.2em] !text-[3rem]', color: 'accent' }
+            props: { align: 'center', italic: true, tracking: 0.2, size: 6, color: 'accent' }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: 'text-center !tracking-[0.8em] uppercase !font-bold opacity-30 mt-4', color: 'accent' }
+            props: { align: 'center', tracking: 0.8, bold: true, className: 'uppercase opacity-30 mt-4', color: 'accent' }
           }
         ]
       },
@@ -73,8 +73,8 @@ export const EditorialClassicSchema: TemplateSchema = {
             layoutProps: { direction: 'column', align: 'start', justify: 'end' },
             modular: { colStart: 1, colSpan: 10, rowStart: 1, rowSpan: 2 },
             children: [
-              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageSubLabel || "VOL.01"}', className: '!text-[10px] opacity-40 uppercase !tracking-widest' } },
-              { type: 'Component', componentType: 'ZineDisplay', props: { text: '{page.imageLabel || "JANUARY"}', className: '!text-[1.5rem] !font-medium !tracking-[0.1em] uppercase', color: 'accent' } }
+              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageSubLabel || "VOL.01"}', size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase' } },
+              { type: 'Component', componentType: 'ZineDisplay', props: { text: '{page.imageLabel || "JANUARY"}', size: 3, tracking: 0.1, className: 'uppercase', color: 'accent' } }
             ]
           },
           // 右侧：年份 (Ghost)
@@ -84,7 +84,7 @@ export const EditorialClassicSchema: TemplateSchema = {
             layoutProps: { align: 'end', justify: 'end' },
             modular: { colStart: 18, colSpan: 7, rowStart: 1, rowSpan: 2 },
             children: [
-              { type: 'Component', componentType: 'ZineDisplay', props: { text: '{page.actionText || "2026"}', className: '!text-[4rem] !font-light !italic !opacity-10 !tracking-tighter leading-none' } }
+              { type: 'Component', componentType: 'ZineDisplay', props: { text: '{page.actionText || "2026"}', size: 8, italic: true, tracking: -0.05, className: 'opacity-10 leading-none' } }
             ]
           }
         ]

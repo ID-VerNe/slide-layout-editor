@@ -40,7 +40,13 @@ export const GalleryCapsuleSchema: TemplateSchema = {
               type: 'Component',
               componentType: 'ZineDisplay',
               bind: 'page.title',
-              props: { className: '!text-[15rem] !font-black !tracking-tighter text-center leading-[0.8]' }
+              props: { 
+                size: 30, 
+                align: 'center',
+                leading: 0.8,
+                tracking: -0.05,
+                bold: true
+              }
             }
           ]
         }
@@ -100,8 +106,26 @@ export const GalleryCapsuleSchema: TemplateSchema = {
               layoutProps: { direction: 'column', align: 'start' },
               modular: { colStart: 2, colSpan: 10, rowStart: 2, rowSpan: 4 },
               children: [
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageSubLabel}', className: '!text-[10px] !tracking-[0.5em] opacity-30 uppercase mb-1' } },
-                { type: 'Component', componentType: 'ZineDisplay', bind: 'page.subtitle', props: { className: '!text-[2.5rem] !font-black !tracking-tight' } }
+                { 
+                  type: 'Component', 
+                  componentType: 'ZineCaption', 
+                  props: { 
+                    text: '{page.imageSubLabel}', 
+                    size: 1.25, 
+                    tracking: 0.5,
+                    opacity: 0.3
+                  } 
+                },
+                { 
+                  type: 'Component', 
+                  componentType: 'ZineDisplay', 
+                  bind: 'page.subtitle', 
+                  props: { 
+                    size: 5, 
+                    bold: true,
+                    tracking: -0.02
+                  } 
+                }
               ]
             },
             {
@@ -132,9 +156,29 @@ export const GalleryCapsuleSchema: TemplateSchema = {
               layoutProps: { direction: 'column', align: 'end', justify: 'end' },
               modular: { colStart: 12, colSpan: 11, rowStart: 20, rowSpan: 4 },
               children: [
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageLabel}', className: '!text-[10px] opacity-40 uppercase !tracking-[0.3em] mb-4' } },
+                { 
+                  type: 'Component', 
+                  componentType: 'ZineCaption', 
+                  props: { 
+                    text: '{page.imageLabel}', 
+                    size: 1.25, 
+                    opacity: 0.4,
+                    tracking: 0.3
+                  } 
+                },
                 { type: 'Container', className: 'w-12 h-0.5 bg-zine-accent mb-6', children: [] },
-                { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { className: '!text-[4rem] !font-black !tracking-tighter text-right leading-[0.9]' } }
+                { 
+                  type: 'Component', 
+                  componentType: 'ZineDisplay', 
+                  bind: 'page.title', 
+                  props: { 
+                    size: 8, 
+                    bold: true,
+                    align: 'right',
+                    leading: 0.9,
+                    tracking: -0.05
+                  } 
+                }
               ]
             }
           ]

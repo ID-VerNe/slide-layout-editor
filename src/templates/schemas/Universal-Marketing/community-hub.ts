@@ -23,15 +23,15 @@ export const CommunityHubSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 11, rowStart: 1, rowSpan: 24 },
         className: 'bg-white shadow-2xl px-16 relative z-10',
         children: [
-          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20' } },
+          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20', sans: true } },
           {
             type: 'Container',
             layout: 'flex',
             layoutProps: { direction: 'column', gap: 'spacing.lg' },
             children: [
-              { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { className: '!text-[3.5rem] !font-black !tracking-tighter' } },
-              { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { className: 'text-lg', color: 'secondary' } },
-              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent' } }
+              { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 7, bold: true, tracking: -0.05, serif: true } },
+              { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, color: 'secondary', sans: true } },
+              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.imageLabel}', className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent', sans: true } }
             ]
           },
           // 合作伙伴 (Partners)
@@ -41,14 +41,14 @@ export const CommunityHubSchema: TemplateSchema = {
             layoutProps: { direction: 'column', gap: 'spacing.md' },
             className: 'pt-12 border-t border-zine-accent/10 w-full',
             children: [
-              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.partnersTitle || "POWERED BY"}', className: '!text-[10px] opacity-40 uppercase !tracking-widest' } },
+              { type: 'Component', componentType: 'ZineCaption', props: { text: '{page.partnersTitle || "POWERED BY"}', size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase', sans: true } },
               {
                 type: 'Repeater',
                 bind: 'page.partners',
                 template: {
                   type: 'Component',
                   componentType: 'ZineCaption',
-                  props: { text: '{item.name}', className: '!text-xs font-black' }
+                  props: { text: '{item.name}', size: 1.5, bold: true, sans: true }
                 }
               }
             ]
@@ -82,8 +82,8 @@ export const CommunityHubSchema: TemplateSchema = {
                   layout: 'flex',
                   layoutProps: { direction: 'column', gap: 'spacing.xs' },
                   children: [
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.name}', className: '!font-black' } },
-                    { type: 'Component', componentType: 'ZineBody', props: { text: '"{item.quote}"', className: '!text-[0.75rem] opacity-60' } }
+                    { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.name}', bold: true, sans: true } },
+                    { type: 'Component', componentType: 'ZineBody', props: { text: '"{item.quote}"', size: 1.5, serif: true, className: 'opacity-60' } }
                   ]
                 }
               ]

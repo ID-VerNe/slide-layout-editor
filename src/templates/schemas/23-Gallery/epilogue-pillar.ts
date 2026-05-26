@@ -30,7 +30,11 @@ export const EpiloguePillarSchema: TemplateSchema = {
             modular: { colStart: 1, colSpan: 12, rowStart: 1, rowSpan: 1 },
             props: {
               text: '{page.title || "P I L O G U E"}',
-              className: '!tracking-[1em] opacity-30 !font-black !text-[12px]',
+              tracking: 1,
+              size: 1.5,
+              bold: true,
+              sans: true,
+              className: 'opacity-30',
               color: 'primary'
             }
           },
@@ -55,8 +59,8 @@ export const EpiloguePillarSchema: TemplateSchema = {
                       layout: 'flex',
                       layoutProps: { direction: 'column', gap: 'spacing.xs' },
                       children: [
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', className: '!text-[9px] opacity-25 !tracking-[0.3em] font-black' } },
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', className: '!text-[12px] !font-medium font-mono' } }
+                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', size: 1.125, tracking: 0.3, bold: true, sans: true, className: 'opacity-25' } },
+                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 1.5, bold: true, sans: true, className: 'font-mono' } }
                       ]
                     }
                   }
@@ -67,7 +71,7 @@ export const EpiloguePillarSchema: TemplateSchema = {
                 type: 'Component',
                 componentType: 'ZineBody',
                 bind: 'page.paragraph',
-                props: { className: 'mt-6 !text-[14px] !italic opacity-60 font-mono text-justify', color: 'secondary' }
+                props: { size: 1.75, italic: true, align: 'justify', serif: true, className: 'mt-6 opacity-60 font-mono', color: 'secondary' }
               },
               // 签名 (If exists)
               {
@@ -115,7 +119,11 @@ export const EpiloguePillarSchema: TemplateSchema = {
         modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
         props: {
           text: '{page.imageLabel}',
-          className: 'text-left opacity-30 !text-[9px]',
+          align: 'left',
+          size: 1.125,
+          sans: true,
+          bold: true,
+          className: 'opacity-30',
           color: 'secondary'
         }
       }

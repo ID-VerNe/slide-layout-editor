@@ -20,7 +20,7 @@ export const ModernFeatureSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineCaption',
         modular: { colStart: 1, colSpan: 6, rowStart: 2, rowSpan: 1 },
-        props: { text: 'BRAND LOGO', className: '!font-black !tracking-widest opacity-20' }
+        props: { text: 'BRAND LOGO', bold: true, tracking: 0.1, sans: true, className: 'opacity-20' }
       },
 
       // 2. 左侧文字区 (Cols 1-8)
@@ -35,18 +35,18 @@ export const ModernFeatureSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!text-[4rem] !font-black !tracking-tighter leading-tight' }
+            props: { size: 8, bold: true, tracking: -0.05, leading: 1.1, serif: true }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: 'max-w-sm', color: 'secondary' }
+            props: { sans: true, bold: true, tracking: 0.2, className: 'max-w-sm', color: 'secondary' }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageLabel}', className: 'mt-4 opacity-40 uppercase !tracking-[0.4em]', color: 'accent' }
+            props: { text: '{page.imageLabel}', tracking: 0.4, sans: true, bold: true, className: 'mt-4 opacity-40 uppercase', color: 'accent' }
           }
         ]
       },
@@ -67,7 +67,7 @@ export const ModernFeatureSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: '{page.imageSubLabel}', className: 'mt-6 opacity-30 italic', color: 'secondary' }
+            props: { text: '{page.imageSubLabel}', italic: true, sans: true, bold: true, tracking: 0.2, className: 'mt-6 opacity-30', color: 'secondary' }
           }
         ]
       }

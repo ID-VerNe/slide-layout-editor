@@ -8,35 +8,40 @@ interface ZineDisplayProps {
   page: PageData;
   fieldKey?: string; 
   text?: string;
-  color?: keyof DesignSystem['tokens']['colors'];
-  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增
+  color?: keyof DesignSystem['tokens']['colors'] | string;
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate';
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  [key: string]: any;
 }
 
 /**
  * ZineDisplay - 已重构：使用 Atomic Text 组件与 Modular Hooks
  */
-export const ZineDisplay: React.FC<ZineDisplayProps> = ({ 
+export const ZineDisplay: React.FC<ZineDisplayProps> = ({
   page,
-  fieldKey, 
-  text, 
-  color = 'primary', 
-  orientation = 'horizontal', // 新增
-  className = '', 
+  fieldKey,
+  text,
+  color = 'primary',
+  orientation = 'horizontal',
+  className = '',
   style: customStyle,
-  children 
+  children,
+  ...otherProps
 }) => {
   const theme = useStore(s => s.theme);
   const ds = useStore(s => s.designSystem);
-  
+
   const { style, className: resolvedClassName } = useModularStyle({
-    page, 
-    fieldKey, 
-    props: { color: ds.tokens.colors[color as string] || color },
+    page,
+    fieldKey,
+    props: { 
+      color: ds.tokens.colors[color as string] || color,
+      ...otherProps
+    },
     variant: 'display',
-    orientation: orientation as any, // 传入方向
+    orientation: orientation as any,
     customStyle,
     className
   });
@@ -49,7 +54,8 @@ export const ZineDisplay: React.FC<ZineDisplayProps> = ({
   if (!content && !children) return null;
 
   const finalStyle: React.CSSProperties = {
-    fontFamily: page.titleFont || theme.typography.headingFont,
+    // 如果没有明确对齐方式，则默认占据 100%（兼容旧模板）
+    width: style.width || (style.justifySelf ? undefined : '100%'),
     ...style,
   };
 

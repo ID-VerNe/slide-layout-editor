@@ -26,6 +26,19 @@
 - **SlideMetric**: 数据指标。支持 KaTeX 公式与单位格式化。
 - **MetadataOverlay**: **[重要]** 严禁在模板内私自渲染页码/页脚。必须确保模板容器为 `relative`，由顶层 `Preview.tsx` 统一注入 Overlay。
 
+### 2.1 语义化排版 (Abstract Typography)
+
+**原则**：严禁在模板 Schema 的 `props.className` 中硬编码 `!text-[...]` 字号。所有排版意图必须通过语义化 Props 表达：
+
+- **size**: 使用 8px 的倍数（如 `size: 2` 为 16px, `size: 10` 为 80px）。
+- **serif / sans**: 强制切换衬线体或无衬线体。
+- **lang**: 指定 `'en'` 或 `'zh'`，渲染器会自动匹配对应的中西文字体 Token。
+- **align**: `'left' | 'center' | 'right'` 语义化对齐。
+- **leading**: 行高倍数（如 `1.2`），渲染器会自动吸附到 8px 基线。
+- **tracking**: 字距调整（em）。
+
+**详细开发规范请参考**：`docs/guides/typography.md`
+
 ---
 
 ## 3. 配置翼：Schema 驱动编辑器

@@ -27,7 +27,7 @@ export const KinfolkEssaySchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!text-[3rem] !italic !font-light !tracking-tight text-left' }
+            props: { size: 6, italic: true, tracking: -0.025, align: 'left', serif: true }
           },
           {
             type: 'Component',
@@ -35,7 +35,11 @@ export const KinfolkEssaySchema: TemplateSchema = {
             bind: 'page.subtitle',
             props: {
               text: '{page.subtitle || "SHENZHEN / 2026"}',
-              className: '!text-[10px] !font-black uppercase !tracking-[0.3em] opacity-40 mb-2'
+              size: 1.25,
+              bold: true,
+              tracking: 0.3,
+              sans: true,
+              className: 'uppercase opacity-40 mb-2'
             }
           }
         ]
@@ -59,7 +63,7 @@ export const KinfolkEssaySchema: TemplateSchema = {
                 type: 'Component',
                 componentType: 'ZineBody',
                 bind: 'page.paragraph',
-                props: { className: 'text-justify leading-[1.8]', dropCap: true }
+                props: { align: 'justify', leading: 1.8, serif: true, dropCap: true }
               },
               // 签名
               {
@@ -99,8 +103,8 @@ export const KinfolkEssaySchema: TemplateSchema = {
               layoutProps: { direction: 'column', gap: 'spacing.xs' },
               className: 'mb-8',
               children: [
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', className: '!text-[9px] !font-black opacity-30 !tracking-[0.4em] uppercase' } },
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', className: '!text-xs !font-bold !tracking-tight' } }
+                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', size: 1.125, bold: true, tracking: 0.4, sans: true, className: 'opacity-30 uppercase' } },
+                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 1.5, bold: true, tracking: -0.025, sans: true } }
               ]
             }
           }

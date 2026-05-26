@@ -15,7 +15,7 @@ interface ZineLogoProps {
 export const ZineLogo: React.FC<ZineLogoProps> = ({ page, className = "", style: customStyle }) => {
   const { url, isLoading } = useAssetUrl(page.logo);
   const isVisible = page.visibility?.logo !== false;
-  
+
   const { style, className: resolvedClassName } = useModularStyle({
     page,
     fieldKey: 'logo',
@@ -28,14 +28,16 @@ export const ZineLogo: React.FC<ZineLogoProps> = ({ page, className = "", style:
 
   const size = page.logoSize || 48;
 
+  const finalStyle: React.CSSProperties = {
+    width: `${size}px`,
+    height: `${size}px`,
+    ...style
+  };
+
   return (
-    <div 
+    <div
       className={`${resolvedClassName} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-      style={{ 
-        width: `${size}px`, 
-        height: `${size}px`,
-        ...style 
-      }}
+      style={finalStyle}
     >
       {url && <img src={url} crossOrigin="anonymous" loading="lazy" decoding="async" className="w-full h-full object-contain" alt="Logo" />}
     </div>

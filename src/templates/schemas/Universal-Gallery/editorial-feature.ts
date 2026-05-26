@@ -40,7 +40,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   style: { position: 'absolute', bottom: '16px', right: '16px', mixBlendMode: 'difference' },
-                  props: { text: '{page.imageLabel}', className: '!text-[8px] !text-white opacity-60' }
+                  props: {
+                    text: '{page.imageLabel}',
+                    className: '!text-white opacity-60',
+                    size: 1,
+                    sans: true
+                  }
                 }
               ]
             },
@@ -57,7 +62,11 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
                   style: { writingMode: 'vertical-rl' },
-                  props: { className: '!normal-case !tracking-[0.15em]' }
+                  props: {
+                    className: '!normal-case',
+                    tracking: 0.15,
+                    serif: true
+                  }
                 }
               ]
             },
@@ -74,7 +83,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { className: 'text-right !tracking-[0.2em]', color: 'secondary' }
+                  props: {
+                    className: 'text-right',
+                    tracking: 0.2,
+                    sans: true,
+                    color: 'secondary'
+                  }
                 }
               ]
             }
@@ -102,7 +116,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   style: { position: 'absolute', bottom: '16px', left: '16px', mixBlendMode: 'difference' },
-                  props: { text: '{page.imageLabel}', className: '!text-[8px] !text-white opacity-60' }
+                  props: {
+                    text: '{page.imageLabel}',
+                    className: '!text-white opacity-60',
+                    size: 1,
+                    sans: true
+                  }
                 }
               ]
             },
@@ -119,7 +138,11 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
                   style: { writingMode: 'vertical-rl' },
-                  props: { className: '!normal-case !tracking-[0.15em]' }
+                  props: {
+                    className: '!normal-case',
+                    tracking: 0.15,
+                    serif: true
+                  }
                 }
               ]
             },
@@ -136,7 +159,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { className: 'text-left !tracking-[0.2em]', color: 'secondary' }
+                  props: {
+                    className: 'text-left',
+                    tracking: 0.2,
+                    sans: true,
+                    color: 'secondary'
+                  }
                 }
               ]
             }

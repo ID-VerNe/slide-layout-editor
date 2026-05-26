@@ -27,13 +27,26 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineDisplay',
             bind: 'page.title',
-            props: { className: '!text-[38px] !font-black !tracking-tighter uppercase mb-4' }
+            props: {
+              className: 'uppercase mb-4',
+              size: 4.75,
+              bold: true,
+              tracking: -0.05,
+              serif: true
+            }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: '!text-[11px] !font-bold text-slate-500 uppercase !tracking-widest leading-relaxed' }
+            props: {
+              className: 'text-slate-500 uppercase',
+              size: 1.375,
+              bold: true,
+              tracking: 0.1,
+              leading: 1.625,
+              sans: true
+            }
           }
         ]
       },
@@ -65,12 +78,25 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: 'CV — {page.title || "NAME"}', className: '!text-[10px] uppercase font-black tracking-[0.4em]' }
+            props: {
+              text: 'CV — {page.title || "NAME"}',
+              className: 'uppercase',
+              size: 1.25,
+              bold: true,
+              tracking: 0.4,
+              sans: true
+            }
           },
           {
             type: 'Component',
             componentType: 'ZineCaption',
-            props: { text: 'Academic Edition', className: '!text-[10px] uppercase font-black' }
+            props: {
+              text: 'Academic Edition',
+              className: 'uppercase',
+              size: 1.25,
+              bold: true,
+              sans: true
+            }
           }
         ]
       }

@@ -30,8 +30,11 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
             bind: 'page.title',
             props: {
               text: '{page.title || "CASE FILE : AKO"}',
-              className: '!tracking-[0.6em] !text-zine-secondary !font-black text-center',
-              color: 'secondary'
+              tracking: 0.6,
+              bold: true,
+              align: 'center',
+              color: 'secondary',
+              sans: true
             }
           },
           // 序言文本
@@ -40,8 +43,12 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
             componentType: 'ZineBody',
             bind: 'page.paragraph',
             props: {
-              className: '!text-center !italic !leading-loose !max-w-xl',
-              color: 'primary'
+              align: 'center',
+              italic: true,
+              leading: 2,
+              color: 'primary',
+              serif: true,
+              className: '!max-w-xl'
             }
           }
         ]
@@ -70,8 +77,9 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
             style: { position: 'absolute', bottom: '24px', left: '24px', mixBlendMode: 'difference' },
             props: {
               text: '{page.imageLabel || "08:42 AM · CROWNE PLAZA"}',
-              className: '!font-mono !text-white !opacity-70',
-              color: 'secondary'
+              color: 'secondary',
+              sans: true,
+              className: '!text-white !opacity-70'
             }
           }
         ]

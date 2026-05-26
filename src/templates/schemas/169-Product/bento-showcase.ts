@@ -27,7 +27,7 @@ export const AppleBentoGridSchema: TemplateSchema = {
             componentType: 'ZineDisplay',
             modular: { colStart: 2, colSpan: 20, rowStart: 2, rowSpan: 6 },
             bind: 'page.title',
-            props: { className: '!text-5xl !normal-case', color: 'primary' }
+            props: { size: 6, color: 'primary' }
           },
           {
             type: 'Component',
@@ -54,7 +54,7 @@ export const AppleBentoGridSchema: TemplateSchema = {
           {
             type: 'Component',
             componentType: 'ZineDisplay',
-            props: { text: '99%', className: '!text-6xl text-white' }
+            props: { text: '99%', size: 7.5, className: 'text-white' }
           }
         ]
       },
@@ -92,7 +92,7 @@ export const AppleBentoGridSchema: TemplateSchema = {
             type: 'Component',
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
-            props: { className: '!tracking-[0.5em] font-black', color: 'primary' }
+            props: { tracking: 0.5, bold: true, sans: true, color: 'primary' }
           }
         ]
       }

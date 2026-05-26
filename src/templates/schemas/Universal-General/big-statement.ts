@@ -31,7 +31,9 @@ export const BigStatementSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 20, rowStart: 9, rowSpan: 7 },
         bind: 'page.title',
         props: {
-          className: 'text-center !font-medium !tracking-tight',
+          align: 'center',
+          tracking: -0.025,
+          serif: true,
           color: 'primary'
         }
       },
@@ -52,7 +54,11 @@ export const BigStatementSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 20, rowStart: 18, rowSpan: 1 },
         bind: 'page.subtitle',
         props: {
-          className: 'text-center !tracking-[0.4em] !opacity-50',
+          align: 'center',
+          tracking: 0.4,
+          sans: true,
+          bold: true,
+          className: 'opacity-50',
           color: 'secondary'
         }
       }

@@ -84,11 +84,46 @@ export const useModularStyle = ({
       finalStyle.transformOrigin = 'center';
     }
 
-    // 3. 合并 Props 传入的样式
-    const { color, weight, italic, ...otherProps } = props;
+    // 3. 语义化排版处理 (Abstract Typography Configuration)
+    // 优先级：overrides > semantic props > variant tokens
+    const { 
+      size, serif, sans, caption, zh, align, bold, italic, leading, tracking,
+      color, weight, ...otherProps 
+    } = props;
+
+    // A. 字号与行高 (Size & Leading)
+    if (size !== undefined) {
+      const fontSizePx = typeof size === 'number' ? size * 8 : parseFloat(size);
+      finalStyle.fontSize = `${fontSizePx}px`;
+      
+      // 如果手动指定了 size，默认行高也按 8px 基线自动对齐
+      const baseLeading = leading !== undefined ? leading : 1.2;
+      finalStyle.lineHeight = `${Math.ceil((fontSizePx * baseLeading) / 8) * 8}px`;
+    } else if (leading !== undefined) {
+      // 仅指定了行高倍数
+      const currentFontSize = parseFloat(finalStyle.fontSize as string || '16');
+      finalStyle.lineHeight = `${Math.ceil((currentFontSize * leading) / 8) * 8}px`;
+    }
+
+    // B. 字体族解析 (Font Family)
+    const isZH = zh || props.lang === 'zh';
+    
+    if (serif) {
+      finalStyle.fontFamily = isZH ? theme.typography.headingFontZH : theme.typography.headingFont;
+    } else if (sans) {
+      finalStyle.fontFamily = isZH ? theme.typography.bodyFontZH : theme.typography.bodyFont;
+    } else if (caption) {
+      finalStyle.fontFamily = theme.typography.captionFont;
+    }
+
+    // C. 核心视觉属性
+    if (align) finalStyle.textAlign = align;
+    if (bold) finalStyle.fontWeight = 'bold';
+    if (italic) finalStyle.fontStyle = 'italic';
+    if (tracking !== undefined) finalStyle.letterSpacing = typeof tracking === 'number' ? `${tracking}em` : tracking;
     if (color) finalStyle.color = color;
     if (weight) finalStyle.fontWeight = weight;
-    if (italic) finalStyle.fontStyle = 'italic';
+
     Object.assign(finalStyle, otherProps.style || {});
 
     // 4. 合并 Page Overrides (编辑器覆盖)

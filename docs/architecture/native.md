@@ -48,14 +48,43 @@ project.slgrid (ZIP)
 
 ## 4. 工作区同步 (Workspace Sync)
 
-SlideGrid Studio 支持“零负担”的项目迁移：
+SlideGrid Studio 支持"零负担"的项目迁移：
 - **解压态运行**: 当项目打开时，它会被静默解压到 `userData` 临时目录。
 - **实时同步**: 每次 `Ctrl+S` 不仅保存 ZIP，还会同步物理文件夹内的文件。
-- **外部工作区**: 用户可以关联一个外部目录作为“工作区”，应用会自动将该目录下的文件变动映射到 Store 中。
+- **外部工作区**: 用户可以关联一个外部目录作为"工作区"，应用会自动将该目录下的文件变动映射到 Store 中。
 
 ---
+## 5. ProjectArchiveManager 核心类
 
-## 5. 迁移与兼容性逻辑 (`v2-to-v3.ts`)
+`electron/archive-manager.ts` 中的 `ProjectArchiveManager` 是所有文件 I/O 操作的中枢控制器。
+
+### 5.1 核心方法
+
+| 方法 | 说明 |
+| :--- | :--- |
+| `setActiveWorkspace(path)` | 设置当前工作区根目录路径 |
+| `setCurrentProject(id, name)` | 设置当前活跃项目的 ID 和名称 |
+| `getProjectFolder()` | 获取/创建项目的物理存储文件夹。通过 ID 后缀匹配已有文件夹，支持标题变更时自动重命名 |
+| `getAssetRoot()` | 获取项目资产目录 (`assets/`)，不存在则自动创建 |
+| `listProjects()` | 扫描工作区目录下的所有项目文件夹，读取 `project.json` 并返回项目列表 |
+| `openProject(filePath)` | 打开项目。支持 ZIP (`.slgrid`)、文件夹、旧版 JSON 三种格式 |
+| `saveProject(filePath, data)` | 保存项目。文件夹模式仅更新 `project.json`；文件模式打包为 ZIP |
+| `saveAsset(filename, buffer)` | 保存资产文件。经 Sharp 压缩为 WebP，MD5 哈希命名去重 |
+| `compressImage(buffer)` | Sharp 驱动图片压缩：宽度限制 2000px，输出 WebP (quality 85)，SVG 原样保留 |
+
+### 5.2 文件夹命名规则
+
+项目物理文件夹命名格式为 `{SafeName}_{idSuffix}`，其中：
+- `SafeName`: 项目标题经路径安全清洗后替换空格为下划线
+- `idSuffix`: 项目 UUID 前 8 位
+- 路径变更时通过 ID 后缀匹配已有文件夹，避免资产丢失
+
+### 5.3 旧版资产迁移
+
+`migrateLegacyAssets(projectData)` 递归扫描项目 JSON 中的 `data:image` 前缀引用，将其提取为物理文件 (`asset://` 协议)，将原本 50MB+ 的 JSON 缩小至 500KB 以内。
+
+---
+## 6. 迁移与兼容性逻辑 (`v2-to-v3.ts`)
 
 随着 Zine Mode 的引入，资产管理还负责旧版本数据的“平滑降级”：
 - **提取器**: 自动扫描旧 JSON，将所有 DataURL 提取出来存入磁盘，并将 JSON 中的引用改为 `asset://`。
