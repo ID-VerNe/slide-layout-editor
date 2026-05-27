@@ -2,6 +2,11 @@ import { AspectRatioType } from '../../constants/layout';
 
 export type NodeType = 'Container' | 'Component' | 'Conditional' | 'Text' | 'Repeater';
 
+// --- Z-Index 层叠声明系统 ---
+export type ZIndexKeyword = 'page.top' | 'bottom';
+export type ZIndexReference = `${string}.top` | `${string}.bottom`;
+export type ZIndexDeclaration = ZIndexKeyword | ZIndexReference;
+
 export interface BaseNode {
   id?: string;
   className?: string;
@@ -19,6 +24,7 @@ export interface BaseNode {
   
   presetKey?: string;  // 引用 DesignSystem 中的预设样式 (e.g., "safe-area", "glass-card")
   visibleWhen?: string; // e.g., "page.visibility.logo"
+  zIndex?: ZIndexDeclaration; // 层叠声明，默认 = 'page.top'
 }
 
 export interface ContainerNode extends BaseNode {

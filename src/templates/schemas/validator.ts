@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
+const ZIndexDeclarationSchema = z.union([
+  z.literal('page.top'),
+  z.literal('bottom'),
+  z.string().regex(/^.+\.(top|bottom)$/, '必须是 "组件id.top" 或 "组件id.bottom" 格式'),
+]);
+
 const BaseNodeSchema = z.object({
   id: z.string().optional(),
+  zIndex: ZIndexDeclarationSchema.optional(),
   className: z.string().optional(),
   style: z.record(z.string(), z.any()).optional(),
 });

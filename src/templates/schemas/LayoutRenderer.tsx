@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { TemplateNode, ContainerNode, ComponentNode, BaseNode, RepeaterNode } from './types';
 import { getComponent } from './componentRegistry';
 import { evaluator, EvaluationContext } from './expressionEvaluator';
+import { ZIndexResolverFn } from './zIndexResolver';
 import { PageData, ProjectTheme, TypographySettings, DesignSystem } from '../../types';
 import { useStore } from '../../store/useStore';
 
@@ -11,6 +12,7 @@ interface LayoutRendererProps {
   theme: ProjectTheme;
   typography?: TypographySettings;
   context?: EvaluationContext;
+  resolveZIndex?: ZIndexResolverFn; // zIndex 解析器，由 JsonTemplateRenderer 注入
 }
 
 /**
@@ -22,7 +24,8 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   page, 
   theme, 
   typography,
-  context: parentContext
+  context: parentContext,
+  resolveZIndex
 }) => {
   const context: EvaluationContext = useMemo(() => parentContext || { page, theme }, [page, theme, parentContext]);
   const ds = useStore(s => s.designSystem);
@@ -50,14 +53,14 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   // 2. 根据节点类型选择渲染逻辑
   switch (node.type) {
     case 'Container':
-      return renderContainer(node, context, ds, typography);
+      return renderContainer(node, context, ds, typography, resolveZIndex);
     case 'Component':
-      return renderComponent(node, context, ds, typography);
+      return renderComponent(node, context, ds, typography, resolveZIndex);
     case 'Repeater':
-      return renderRepeater(node, context, ds, typography);
+      return renderRepeater(node, context, ds, typography, resolveZIndex);
     case 'Text':
       const content = evaluator.interpolate(node.content, context);
-      const { className, style } = resolveBaseProps(node, context, ds);
+      const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
       return <div className={className} style={style}>{content}</div>;
     case 'Conditional':
       const targetNode = conditionMet ? node.then : node.else;
@@ -68,6 +71,7 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
           theme={theme} 
           typography={typography} 
           context={context}
+          resolveZIndex={resolveZIndex}
         />
       ) : null;
     default:
@@ -78,7 +82,7 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
 /**
  * 解析基础节点属性 (Modular Grid, Presets, Styles)
  */
-function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: DesignSystem): {
+function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: DesignSystem, resolveZIndex?: ZIndexResolverFn): {
   className: string;
   style: React.CSSProperties;
 } {
@@ -152,6 +156,12 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
   // B. ClassName Blacklist: 强制剔除阴影、模糊等“软审美”类名 (保留 rounded 以支持圆角)
   dynamicClassName = filterZineClassName(dynamicClassName);
 
+  // 4. 处理 Z-Index 声明 (全局分层系统)
+  if (resolveZIndex) {
+    const declaredZIndex = (node as any).zIndex;
+    finalStyle.zIndex = resolveZIndex(declaredZIndex);
+  }
+
   return {
     className: dynamicClassName,
     style: { ...presetStyle, ...finalStyle }
@@ -196,10 +206,11 @@ function renderContainer(
   node: ContainerNode, 
   context: EvaluationContext, 
   ds: DesignSystem,
-  typography?: TypographySettings
+  typography?: TypographySettings,
+  resolveZIndex?: ZIndexResolverFn
 ): React.ReactElement {
   const { layout = 'flex', layoutProps, children } = node;
-  const { className, style: baseStyle } = resolveBaseProps(node, context, ds);
+  const { className, style: baseStyle } = resolveBaseProps(node, context, ds, resolveZIndex);
 
   let layoutStyle: React.CSSProperties = { ...baseStyle };
 
@@ -256,6 +267,7 @@ function renderContainer(
           theme={context.theme} 
           typography={typography} 
           context={context}
+          resolveZIndex={resolveZIndex}
         />
       ))}
     </div>
@@ -269,7 +281,8 @@ function renderComponent(
   node: ComponentNode, 
   context: EvaluationContext, 
   ds: DesignSystem,
-  typography?: TypographySettings
+  typography?: TypographySettings,
+  resolveZIndex?: ZIndexResolverFn
 ): React.ReactElement | null {
   const Component = getComponent(node.componentType);
   if (!Component) {
@@ -277,7 +290,7 @@ function renderComponent(
     return null;
   }
 
-  const { className, style } = resolveBaseProps(node, context, ds);
+  const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
   const staticProps = node.props || {};
   const dynamicProps = evaluator.evaluateObject(staticProps, context);
   
@@ -296,8 +309,12 @@ function renderComponent(
   }
 
   // 2. 合并基础样式与动态 Props 中的样式，防止 grid 定位被覆盖
+  //    使用 zIndex 解析器替代硬编码的默认值
+  const resolvedZIndex = resolveZIndex
+    ? resolveZIndex((node as any).zIndex)
+    : 1;
   const mergedStyle = { 
-    zIndex: 1, 
+    zIndex: resolvedZIndex, 
     ...style, 
     ...(dynamicProps.style || {}) 
   };
@@ -328,10 +345,11 @@ function renderRepeater(
   node: RepeaterNode,
   context: EvaluationContext,
   ds: DesignSystem,
-  typography?: TypographySettings
+  typography?: TypographySettings,
+  resolveZIndex?: ZIndexResolverFn
 ): React.ReactElement {
   const items = evaluator.evaluate(node.bind, context) || [];
-  const { className, style } = resolveBaseProps(node, context, ds);
+  const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
   const itemVar = node.itemVariable || 'item';
 
   return (
@@ -347,6 +365,7 @@ function renderRepeater(
             theme={context.theme}
             typography={typography}
             context={itemContext}
+            resolveZIndex={resolveZIndex}
           />
         );
       })}

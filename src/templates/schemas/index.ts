@@ -2,6 +2,7 @@ export * from './types';
 export * from './componentRegistry';
 export * from './expressionEvaluator';
 export * from './validator';
+export * from './zIndexResolver';
 export * from './LayoutRenderer';
 export * from './Universal-Editorial/zine-classic';
 export * from './A4-Resume/dynamic-resume-pro';
