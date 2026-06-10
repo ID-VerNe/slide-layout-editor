@@ -23,6 +23,7 @@ interface ElectronAPI {
   setActiveWorkspace: (path: string) => Promise<void>;
   listProjects: () => Promise<any[]>;
   setCurrentProject: (id: string, name: string) => Promise<void>;
+  deleteProject: (projectPath: string) => Promise<NativeResponse>;
 }
 
 declare global {
@@ -82,5 +83,10 @@ export const nativeFs = {
   async uploadAsset(filename: string, base64Data: string): Promise<NativeResponse> {
     if (!window.electronAPI) return { success: false, error: "API not found" };
     return await window.electronAPI.uploadAsset(filename, base64Data);
+  },
+
+  async deleteProject(projectPath: string): Promise<NativeResponse> {
+    if (!window.electronAPI) return { success: false, error: "API not found" };
+    return await window.electronAPI.deleteProject(projectPath);
   }
 };
