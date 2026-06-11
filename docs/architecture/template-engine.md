@@ -131,6 +131,11 @@ style = {
 }
 ```
 
+**重要说明**：CSS Grid 的列线（grid lines）编号从 1 开始到 25 结束（共 25 条线形成 24 个格子）。因此：
+- `colStart` 和 `rowStart` 的有效范围是 **1-24**（不是 0-23）
+- 要使元素水平居中，使用公式：`colStart = (24 - colSpan) / 2 + 1`
+- 例如：12 列宽的元素居中应设置 `colStart: 7`（即 (24-12)/2+1=7）
+
 ### 3.3 9 宫格对齐 (Self Alignment)
 
 `modular.align` 和 `modular.justify` 允许子元素在网格单元内精确定位。目前所有 Zine 原子组件均已标准化支持此特性，允许它们在网格内“贴靠”：

@@ -15,11 +15,11 @@ export const EditorialClassicSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 顶部大图 (Rows 1-16)
+      // 1. 顶部大图 (Rows 1-15) - 遵循天头原则
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 16 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 15 },
         children: [
           {
             type: 'Component',
@@ -37,12 +37,12 @@ export const EditorialClassicSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 底部标题组 (Rows 18-20)
+      // 2. 底部标题组 (Rows 17-19)
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 4, colSpan: 18, rowStart: 18, rowSpan: 3 },
+        modular: { colStart: 4, colSpan: 18, rowStart: 17, rowSpan: 3 },
         children: [
           {
             type: 'Container',
@@ -65,12 +65,12 @@ export const EditorialClassicSchema: TemplateSchema = {
         ]
       },
 
-      // 3. 底部信息栏 (Rows 22-23)
+      // 3. 底部信息栏 (Rows 21-22) - 确保地脚留白
       {
         type: 'Container',
         layout: 'modular',
         layoutProps: { columns: 24, rows: 2 },
-        modular: { colStart: 3, colSpan: 20, rowStart: 22, rowSpan: 2 },
+        modular: { colStart: 3, colSpan: 20, rowStart: 21, rowSpan: 2 },
         className: 'border-t border-zine-accent/15 pt-4',
         children: [
           // 左侧：刊号与月份

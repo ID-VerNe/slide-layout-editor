@@ -15,21 +15,21 @@ export const FloatingGallerySchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 居中图像 (Cols 5-20, Rows 3-13)
+      // 1. 居中图像 (Cols 5-20, Rows 3-12) - 遵循天头 2.5格原则
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 5, colSpan: 16, rowStart: 3, rowSpan: 11 },
+        modular: { colStart: 5, colSpan: 16, rowStart: 3, rowSpan: 10 },
         className: 'bg-white shadow-2xl p-0 overflow-hidden border-[1px] border-black/5',
         children: [{ type: 'Component', componentType: 'ZineMedia', props: { className: 'w-full h-full' } }]
       },
 
-      // 2. 标题区 (Cols 5-20, Rows 15-18)
+      // 2. 标题区 (Cols 5-20, Rows 15-18) - 增加间距
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-        modular: { colStart: 5, colSpan: 16, rowStart: 15, rowSpan: 4 },
+        modular: { colStart: 5, colSpan: 16, rowStart: 19, rowSpan: 4 },
         children: [
           {
             type: 'Component',
@@ -47,12 +47,12 @@ export const FloatingGallerySchema: TemplateSchema = {
         ]
       },
 
-      // 3. 底部正文 (Cols 6-19, Rows 20-22)
+      // 3. 底部正文 (Cols 6-19, Rows 19-20) - 确保地脚留白 4格
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 6, colSpan: 13, rowStart: 20, rowSpan: 3 },
+        modular: { colStart: 6, colSpan: 13, rowStart: 19, rowSpan: 2 },
         children: [
           {
             type: 'Component',
@@ -61,20 +61,6 @@ export const FloatingGallerySchema: TemplateSchema = {
             props: { align: 'center', size: 1.6, color: 'secondary', className: 'opacity-40', serif: true }
           }
         ]
-      },
-
-      // 4. 底部标签
-      {
-        type: 'Component',
-        componentType: 'ZineCaption',
-        bind: 'page.imageLabel',
-        modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
-        props: {
-          align: 'left',
-          color: 'secondary',
-          sans: true,
-          className: 'opacity-40'
-        }
       }
     ]
   }

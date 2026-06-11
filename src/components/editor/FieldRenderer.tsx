@@ -7,13 +7,13 @@ import { TitleField } from './fields/TitleField';
 import { SubtitleField } from './fields/SubtitleField';
 import { ActionTextField } from './fields/ActionTextField';
 import { ParagraphField } from './fields/ParagraphField';
-import { SignatureField } from './fields/SignatureField';
 import { ImageField } from './fields/ImageField';
 import { ImageLabelField } from './fields/ImageLabelField';
 import { ImageSubLabelField } from './fields/ImageSubLabelField';
 import { FeaturesField } from './fields/FeaturesField';
 import { MosaicField } from './fields/MosaicField';
 import { MetricsField } from './fields/MetricsField';
+import { BigDataMetricsField } from './fields/BigDataMetricsField';
 import { PartnersField } from './fields/PartnersField';
 import { PartnersTitleField } from './fields/PartnersTitleField';
 import { TestimonialsField } from './fields/TestimonialsField';
@@ -38,7 +38,7 @@ const componentMap: Record<string, React.FC<any>> = {
   subtitle: SubtitleField,
   actionText: ActionTextField,
   paragraph: ParagraphField,
-  signature: SignatureField,
+  signature: ImageField,  // 签名现在使用 ImageField
   image: ImageField,
   imageLabel: ImageLabelField,
   imageSubLabel: ImageSubLabelField,
@@ -46,6 +46,7 @@ const componentMap: Record<string, React.FC<any>> = {
   mosaic: MosaicField,
   mosaicItems: MosaicField,
   metrics: MetricsField,
+  bigDataMetrics: BigDataMetricsField,
   partnersTitle: PartnersTitleField,
   partners: PartnersField,
   testimonials: TestimonialsField,

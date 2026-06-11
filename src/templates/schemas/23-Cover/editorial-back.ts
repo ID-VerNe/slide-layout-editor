@@ -20,7 +20,7 @@ export const EditorialBackCoverSchema: TemplateSchema = {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 6, colSpan: 12, rowStart: 11, rowSpan: 3 },
+        modular: { colStart: 7, colSpan: 12, rowStart: 11, rowSpan: 3 },
         children: [
           {
             type: 'Component',
@@ -38,12 +38,12 @@ export const EditorialBackCoverSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 底部版权信息 (Rows 21-23)
+      // 2. 底部版权信息 (Rows 20-21) - 确保地脚留白
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
-        modular: { colStart: 4, colSpan: 16, rowStart: 21, rowSpan: 3 },
+        modular: { colStart: 5, colSpan: 16, rowStart: 20, rowSpan: 2 },
         children: [
           { type: 'Container', className: 'w-6 h-px bg-zine-accent/30', children: [] },
           {

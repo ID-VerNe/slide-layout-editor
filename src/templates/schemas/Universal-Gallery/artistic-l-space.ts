@@ -24,11 +24,11 @@ export const ArtisticLSpaceSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0',
           children: [
-            // 1. 左侧大图 (Cols 1-18, Rows 7-24)
+            // 1. 左侧大图 (Cols 1-18, Rows 5-20) - 遵循天头地脚原则
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 1, colSpan: 18, rowStart: 7, rowSpan: 18 },
+              modular: { colStart: 1, colSpan: 18, rowStart: 5, rowSpan: 16 },
               children: [{ type: 'Component', componentType: 'ZineMedia', props: { className: 'w-full h-full' } }]
             },
             // 2. 右侧垂直标题 (Cols 19-24)
@@ -82,11 +82,11 @@ export const ArtisticLSpaceSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0',
           children: [
-            // 1. 右侧大图 (Cols 7-24, Rows 7-24)
+            // 1. 右侧大图 (Cols 7-24, Rows 5-20) - 遵循天头地脚原则
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 7, colSpan: 18, rowStart: 7, rowSpan: 18 },
+              modular: { colStart: 7, colSpan: 18, rowStart: 5, rowSpan: 16 },
               children: [{ type: 'Component', componentType: 'ZineMedia', props: { className: 'w-full h-full' } }]
             },
             // 2. 左侧垂直标题 (Cols 1-6)
@@ -133,19 +133,6 @@ export const ArtisticLSpaceSchema: TemplateSchema = {
               } 
             }
           ]
-        }
-      },
-      // 底部标签 (Metadata) - 压低至与页码 (Folio) 相同的高度
-      {
-        type: 'Component',
-        componentType: 'ZineCaption',
-        bind: 'page.paragraph',
-        modular: { colStart: 2, colSpan: 22, rowStart: 23, rowSpan: 1 },
-        props: {
-          className: '{page.layoutVariant === "left" ? "text-left" : "text-right"}',
-          opacity: 0.4,
-          align: '{page.layoutVariant === "left" ? "left" : "right"}',
-          alignSelf: 'end' // 强制沉底
         }
       }
       ]

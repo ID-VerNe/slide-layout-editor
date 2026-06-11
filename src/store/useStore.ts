@@ -245,7 +245,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     const { pages } = get();
     const original = pages.find(p => p.id === updatedPage.id);
     // 全局同步字段：去掉 counterStyle（统一由 setCounterStyle 管理）
-    const GLOBAL_FIELDS: Array<keyof PageData> = ['backgroundPattern', 'footer', 'titleFont', 'bodyFont', 'logo', 'logoSize', 'counterColor'];
+    const GLOBAL_FIELDS: Array<keyof PageData> = ['backgroundPattern', 'titleFont', 'bodyFont', 'logo', 'logoSize', 'counterColor'];
     let hasGlobalChange = false;
     if (original) GLOBAL_FIELDS.forEach(f => { if (updatedPage[f] !== (original as any)[f]) hasGlobalChange = true; });
     let nextPages = pages.map(p => p.id === updatedPage.id ? updatedPage : p);

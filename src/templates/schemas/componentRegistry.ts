@@ -9,6 +9,7 @@ import { ZineIcon } from '../../components/ui/slide/atoms/ZineIcon';
 import { ZineMetric } from '../../components/ui/slide/atoms/ZineMetric';
 import { ZineLogo } from '../../components/ui/slide/atoms/ZineLogo';
 import { ZineArtFont } from '../../components/ui/slide/atoms/ZineArtFont';
+import { BigDataMetrics } from '../../components/ui/slide/atoms/BigDataMetrics';
 
 /**
  * Zine V3 组件注册表
@@ -25,6 +26,7 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   ZineMetric,
   ZineLogo,
   ZineArtFont,
+  BigDataMetrics,
 };
 
 export type RegisteredComponentType = keyof typeof COMPONENT_REGISTRY;

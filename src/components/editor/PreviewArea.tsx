@@ -15,6 +15,8 @@ interface PreviewAreaProps {
   minimalCounter?: boolean; 
   onOverflowChange: (pageId: string, isOverflowing: boolean) => void;
   onUpdatePage?: (page: PageData) => void;
+  handleManualZoom?: (zoom: number) => void;
+  toggleFit?: () => void;
 }
 
 const PreviewArea: React.FC<PreviewAreaProps> = ({
@@ -27,7 +29,9 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   setIsAutoFit,
   printSettings,
   minimalCounter,
-  onUpdatePage
+  onUpdatePage,
+  handleManualZoom,
+  toggleFit
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -41,9 +45,22 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') return;
+    
+    // Ctrl + 滚轮：缩放
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (handleManualZoom) {
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newZoom = Math.min(Math.max(0.1, previewZoom + delta), 2);
+        handleManualZoom(newZoom);
+      }
+      return;
+    }
+    
+    // 普通滚轮：拖动画布
     if (isAutoFit) setIsAutoFit(false);
     setDragOffset(prev => ({ x: prev.x - e.deltaX, y: prev.y - e.deltaY }));
-  }, [isAutoFit, setIsAutoFit]);
+  }, [isAutoFit, setIsAutoFit, previewZoom, handleManualZoom]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isAutoFit) setIsAutoFit(false);
@@ -59,6 +76,19 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
     setLastPos({ x: e.clientX, y: e.clientY });
   };
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    // Ctrl + 双击：切换 fit mode
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (toggleFit) {
+        toggleFit();
+      }
+    } else {
+      // 普通双击：重置位置
+      setDragOffset({ x: 0, y: 0 });
+    }
+  };
+
   return (
     <div 
       className={`flex-1 overflow-hidden no-scrollbar bg-neutral-200/50 flex items-center justify-center select-none relative
@@ -69,7 +99,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       onMouseUp={() => setIsDragging(false)}
       onMouseLeave={() => setIsDragging(false)}
       onWheel={handleWheel}
-      onDoubleClick={() => setDragOffset({ x: 0, y: 0 })}
+      onDoubleClick={handleDoubleClick}
     >
       <div 
         className="magazine-canvas-scaler relative"

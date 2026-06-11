@@ -31,11 +31,11 @@ export const SincerityPortraitSchema: TemplateSchema = {
         }
       },
 
-      // 2. 标题区 (Display)
+      // 2. 标题区 (Display) - 遵循天头原则
       {
         type: 'Component',
         componentType: 'ZineDisplay',
-        modular: { colStart: 3, colSpan: 12, rowStart: 4, rowSpan: 4 },
+        modular: { colStart: 3, colSpan: 12, rowStart: 3, rowSpan: 4 },
         bind: 'page.title',
         props: {
           className: '!normal-case',
@@ -82,12 +82,12 @@ export const SincerityPortraitSchema: TemplateSchema = {
         }
       },
 
-      // 6. 图片说明 (Caption)
+      // 6. 图片说明 (Caption) - 位于地脚区域
       {
         type: 'Component',
         componentType: 'ZineCaption',
         bind: 'page.imageLabel',
-        modular: { colStart: 14, colSpan: 9, rowStart: 22, rowSpan: 1 },
+        modular: { colStart: 14, colSpan: 9, rowStart: 21, rowSpan: 1 },
         props: {
           className: '!p-0 opacity-40 text-right',
           italic: true,

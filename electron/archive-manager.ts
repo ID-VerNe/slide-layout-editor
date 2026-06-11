@@ -93,9 +93,10 @@ export class ProjectArchiveManager {
 
     const idSuffix = this.currentProjectId?.slice(0, 8) || 'temp';
     const safeName = (this.currentProjectName || 'Project')
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+      .replace(/[<>:"/\\|?*\x00-\x1F·]/g, '') // 添加 · 等特殊字符
       .trim()
-      .replace(/\s+/g, '_');
+      .replace(/\s+/g, '_')
+      .slice(0, 100); // 限制长度，避免路径过长
       
     // 1. 尝试在 Workspace 中寻找 ID 匹配的现有文件夹
     const items = await fs.readdir(this.workspacePath);

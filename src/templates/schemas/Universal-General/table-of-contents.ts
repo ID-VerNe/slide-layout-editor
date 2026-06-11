@@ -15,12 +15,12 @@ export const TableOfContentsSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg px-24',
     children: [
-      // 1. 顶部标题组 (Rows 2-6)
+      // 1. 顶部标题组 (Rows 3-6) - 遵循天头原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
-        modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 5 },
+        modular: { colStart: 4, colSpan: 16, rowStart: 3, rowSpan: 4 },
         children: [
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20 mb-2', sans: true } }] },
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 6, bold: true, align: 'center', serif: true } }] },
@@ -28,12 +28,12 @@ export const TableOfContentsSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 目录卡片矩阵 (Rows 8-23)
+      // 2. 目录卡片矩阵 (Rows 8-20) - 确保地脚留白
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'row', wrap: true, justify: 'center', align: 'center', gap: 'spacing.lg' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 8, rowSpan: 16 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 8, rowSpan: 13 },
         className: 'overflow-y-auto no-scrollbar pb-20',
         children: [
           {

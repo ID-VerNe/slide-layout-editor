@@ -15,24 +15,24 @@ export const StepTimelineSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg px-24',
     children: [
-      // 1. 顶部标题组 (Rows 2-5)
+      // 1. 顶部标题组 (Rows 3-5) - 遵循天头原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
-        modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 4 },
+        modular: { colStart: 4, colSpan: 16, rowStart: 3, rowSpan: 3 },
         children: [
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 5, bold: true, align: 'center', serif: true } }] },
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { align: 'center', color: 'secondary', sans: true, className: 'opacity-60 max-w-2xl' } }] }
         ]
       },
 
-      // 2. 时间轴区域 (Rows 7-23)
+      // 2. 时间轴区域 (Rows 7-20) - 确保地脚留白
       {
         type: 'Container',
         layout: 'modular',
         layoutProps: { columns: 24, rows: 16 },
-        modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 17 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 14 },
         children: [
           // 垂直轴线
           {

@@ -15,11 +15,11 @@ export const KinfolkMontageSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 底层大图 (Gallery[1])
+      // 1. 底层大图 (Gallery[1]) - 遵循版心原则
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 6, colSpan: 18, rowStart: 6, rowSpan: 18 },
+        modular: { colStart: 6, colSpan: 16, rowStart: 5, rowSpan: 15 },
         className: 'bg-white border-[6px] border-white shadow-2xl z-10 overflow-hidden p-0',
         children: [
           {
@@ -53,12 +53,12 @@ export const KinfolkMontageSchema: TemplateSchema = {
         ]
       },
 
-      // 3. 垂直注脚
+      // 3. 垂直注脚 - 确保地脚留白
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'start', justify: 'end' },
-        modular: { colStart: 1, colSpan: 2, rowStart: 1, rowSpan: 23 },
+        modular: { colStart: 1, colSpan: 2, rowStart: 3, rowSpan: 17 },
         className: 'pb-8 pl-4',
         children: [
           {

@@ -117,12 +117,12 @@ export const VerticalColumnSchema: TemplateSchema = {
           ]
         }
       },
-      // 底部标签
+      // 底部标签 - 位于地脚区域
       {
         type: 'Component',
         componentType: 'ZineCaption',
         bind: 'page.imageLabel',
-        modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 1 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 21, rowSpan: 1 },
         props: {
           align: '{page.layoutVariant === "right" ? "right" : "left"}',
           color: 'surface',

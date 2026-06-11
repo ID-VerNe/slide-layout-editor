@@ -183,7 +183,8 @@ export const useModularStyle = ({
       'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
       'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
       'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
-      'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin'
+      'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin',
+      'objectFit', 'objectPosition'
     ];
     
     const filteredStyle: any = {};

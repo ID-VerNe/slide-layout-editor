@@ -24,11 +24,11 @@ export const KinfolkFeatureSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0',
           children: [
-            // 1. 右侧大图 (Cols 7-24, Rows 2-18)
+            // 1. 右侧大图 (Cols 7-24, Rows 3-18) - 遵循天头原则
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 7, colSpan: 17, rowStart: 2, rowSpan: 16 },
+              modular: { colStart: 7, colSpan: 17, rowStart: 3, rowSpan: 16 },
               className: 'bg-white shadow-xl p-2 border-[0.5px] border-black/5',
               children: [
                 {
@@ -54,7 +54,7 @@ export const KinfolkFeatureSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { justify: 'center', align: 'start' },
-              modular: { colStart: 1, colSpan: 6, rowStart: 2, rowSpan: 16 },
+              modular: { colStart: 1, colSpan: 6, rowStart: 3, rowSpan: 16 },
               className: 'pt-8',
               children: [
                 {
@@ -70,12 +70,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                 }
               ]
             },
-            // 3. 底部信息区
+            // 3. 底部信息区 - 确保地脚留白
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'end' },
-              modular: { colStart: 7, colSpan: 16, rowStart: 19, rowSpan: 5 },
+              modular: { colStart: 7, colSpan: 16, rowStart: 20, rowSpan: 2 },
               className: 'pr-8 pt-4',
               children: [
                 { type: 'Container', className: 'w-10 h-px bg-zine-accent mb-6', children: [] },
@@ -100,11 +100,11 @@ export const KinfolkFeatureSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0',
           children: [
-            // 1. 左侧大图 (Cols 1-18, Rows 2-18)
+            // 1. 左侧大图 (Cols 1-18, Rows 3-18) - 遵循天头原则
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 2, colSpan: 17, rowStart: 2, rowSpan: 16 },
+              modular: { colStart: 2, colSpan: 17, rowStart: 3, rowSpan: 16 },
               className: 'bg-white shadow-xl p-2 border-[0.5px] border-black/5',
               children: [
                 {
@@ -130,7 +130,7 @@ export const KinfolkFeatureSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { justify: 'center', align: 'start' },
-              modular: { colStart: 19, colSpan: 6, rowStart: 2, rowSpan: 16 },
+              modular: { colStart: 19, colSpan: 6, rowStart: 3, rowSpan: 16 },
               className: 'pt-8',
               children: [
                 {
@@ -146,12 +146,12 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                 }
               ]
             },
-            // 3. 底部信息区
+            // 3. 底部信息区 - 确保地脚留白
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'start' },
-              modular: { colStart: 2, colSpan: 16, rowStart: 19, rowSpan: 5 },
+              modular: { colStart: 2, colSpan: 16, rowStart: 20, rowSpan: 2 },
               className: 'pl-8 pt-4',
               children: [
                 { type: 'Container', className: 'w-10 h-px bg-zine-accent mb-6', children: [] },

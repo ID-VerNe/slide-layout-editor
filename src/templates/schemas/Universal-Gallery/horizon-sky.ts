@@ -15,12 +15,12 @@ export const HorizonSkySchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 上半部分：天空 (Rows 1-11)
+      // 1. 上半部分：天空 (Rows 3-10) - 遵循天头 2.5格原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 4, colSpan: 18, rowStart: 2, rowSpan: 9 },
+        modular: { colStart: 4, colSpan: 18, rowStart: 3, rowSpan: 8 },
         children: [
           {
             type: 'Container',
@@ -52,12 +52,12 @@ export const HorizonSkySchema: TemplateSchema = {
         ]
       },
 
-      // 2. 地平线 (Rows 12-13)
+      // 2. 地平线 (Rows 11-12)
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 12, rowSpan: 2 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 11, rowSpan: 2 },
         children: [
           {
             type: 'Component',
@@ -69,12 +69,12 @@ export const HorizonSkySchema: TemplateSchema = {
         ]
       },
 
-      // 3. 下半部分：大地 (Rows 14-24)
+      // 3. 下半部分：大地 (Rows 13-19) - 确保地脚留白 5格
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { justify: 'center', align: 'start' },
-        modular: { colStart: 4, colSpan: 18, rowStart: 15, rowSpan: 9 },
+        modular: { colStart: 4, colSpan: 18, rowStart: 13, rowSpan: 7 },
         children: [
           {
             type: 'Component',

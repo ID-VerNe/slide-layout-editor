@@ -18,7 +18,7 @@ const FlexLayoutPropsSchema = z.object({
   align: z.enum(['start', 'center', 'end', 'baseline', 'stretch']).optional(),
   justify: z.enum(['start', 'center', 'end', 'between', 'around', 'evenly']).optional(),
   gap: z.union([z.number(), z.string()]).optional(),
-  wrap: z.boolean().optional(),
+  wrap: z.union([z.boolean(), z.literal('wrap-reverse')]).optional(),
 });
 
 const GridLayoutPropsSchema = z.object({
@@ -77,6 +77,12 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
       type: z.literal('Repeater'),
       bind: z.string(),
       itemVariable: z.string().optional(),
+      layout: z.enum(['flex', 'grid', 'absolute', 'modular']).optional(),
+      layoutProps: z.union([
+        FlexLayoutPropsSchema,
+        GridLayoutPropsSchema,
+        AbsoluteLayoutPropsSchema
+      ]).optional(),
       template: TemplateNodeSchema,
     }),
     BaseNodeSchema.extend({

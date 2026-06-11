@@ -15,11 +15,11 @@ export const CinematicLetterboxSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 宽画幅图像容器 (Rows 4-13)
+      // 1. 宽画幅图像容器 (Rows 5-14) - 遵循天头 2.5格原则
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 1, colSpan: 24, rowStart: 4, rowSpan: 10 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 5, rowSpan: 10 },
         className: 'bg-black shadow-lg overflow-hidden p-0 relative',
         children: [
           {
@@ -52,12 +52,12 @@ export const CinematicLetterboxSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 底部标题组 (Rows 16-22)
+      // 2. 底部标题组 (Rows 16-19)
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-        modular: { colStart: 4, colSpan: 18, rowStart: 16, rowSpan: 6 },
+        modular: { colStart: 4, colSpan: 18, rowStart: 16, rowSpan: 4 },
         children: [
           // SubHeadline (Top Teaser)
           {
@@ -88,20 +88,6 @@ export const CinematicLetterboxSchema: TemplateSchema = {
             }
           }
         ]
-      },
-
-      // 3. 底部标签
-      {
-        type: 'Component',
-        componentType: 'ZineCaption',
-        bind: 'page.imageLabel',
-        modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
-        style: { position: 'relative', zIndex: 10 },
-        props: {
-          className: 'text-left opacity-40',
-          sans: true,
-          color: 'secondary'
-        }
       }
     ]
   }

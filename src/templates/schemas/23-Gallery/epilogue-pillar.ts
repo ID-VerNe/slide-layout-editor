@@ -46,48 +46,45 @@ export const EpiloguePillarSchema: TemplateSchema = {
             modular: { colStart: 1, colSpan: 12, rowStart: 12, rowSpan: 12 },
             className: 'pb-10 pr-8',
             children: [
-              // Metrics (这里采用自定义 Container 模拟网格)
+              // 1. Metrics (使用 BigDataMetrics 组件，从右下到左上填充)
               {
                 type: 'Container',
-                className: 'grid grid-cols-2 gap-x-12 gap-y-6 border-b pb-8 border-zine-accent/15 w-full',
+                className: 'border-b pb-8 mb-8 border-zine-accent/15 w-full mt-auto',
                 children: [
                   {
-                    type: 'Repeater',
+                    type: 'Component',
+                    componentType: 'BigDataMetrics',
                     bind: 'page.metrics',
-                    template: {
-                      type: 'Container',
-                      layout: 'flex',
-                      layoutProps: { direction: 'column', gap: 'spacing.xs' },
-                      children: [
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', size: 1.125, tracking: 0.3, bold: true, sans: true, className: 'opacity-25' } },
-                        { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 1.5, bold: true, sans: true, className: 'font-mono' } }
-                      ]
+                    props: {
+                      fillOrder: 'bottom-right-to-top-left',
+                      gap: '1.5rem'
                     }
                   }
                 ]
               },
-              // 段落
+              // 2. 段落
               {
                 type: 'Component',
                 componentType: 'ZineBody',
                 bind: 'page.paragraph',
-                props: { size: 1.75, italic: true, align: 'justify', serif: true, className: 'mt-6 opacity-60 font-mono', color: 'secondary' }
+                props: { size: 1.75, italic: true, align: 'justify', serif: true, className: 'mb-8 opacity-60 font-mono', color: 'secondary' }
               },
-              // 签名 (If exists)
+              // 3. 签名 (If exists)
               {
                 type: 'Conditional',
                 condition: '{page.signature}',
                 then: {
                   type: 'Container',
-                  className: 'mt-8 self-end',
+                  className: 'self-end',
                   children: [
                     {
-                      type: 'Component',
-                      componentType: 'ZineMedia',
-                      props: {
-                        src: '{page.signature}',
-                        className: 'h-16 w-auto mix-blend-multiply opacity-80'
-                      }
+                        type: 'Component',
+                        componentType: 'ZineMedia',
+                        props: {
+                          fieldKey: 'signature',
+                          className: 'mix-blend-multiply opacity-80',
+                          style: { width: '15rem', height: '8rem', objectFit: 'contain' }
+                        }
                     }
                   ]
                 }
@@ -97,34 +94,24 @@ export const EpiloguePillarSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 右侧立柱图像 (Rows 1-24, Cols 13-24)
-      {
-        type: 'Container',
-        layout: 'absolute',
-        modular: { colStart: 13, colSpan: 12, rowStart: 3, rowSpan: 20 },
-        className: 'bg-white p-4',
-        children: [
-          {
-            type: 'Component',
-            componentType: 'ZineMedia',
-            props: { className: 'w-full h-full object-cover shadow-lg' }
-          }
-        ]
-      },
-
-      // 3. 底部标签
+      // 2. 右侧立柱图像 (Rows 3-22, Cols 13-24)
       {
         type: 'Component',
-        componentType: 'ZineCaption',
-        bind: 'page.imageLabel',
-        modular: { colStart: 2, colSpan: 10, rowStart: 23, rowSpan: 1 },
+        componentType: 'ZineMedia',
+        modular: { colStart: 13, colSpan: 12, rowStart: 3, rowSpan: 20 },
+        props: { className: 'w-full h-full object-cover' }
+      },
+
+      // 3. Footer (底部元数据)
+      {
+        type: 'Component',
+        componentType: 'ZineFooter',
+        bind: 'page.footer',
+        modular: { colStart: 1, colSpan: 24, rowStart: 24, rowSpan: 1 },
         props: {
           align: 'left',
-          size: 1.125,
-          sans: true,
-          bold: true,
-          className: 'opacity-30',
-          color: 'secondary'
+          size: 1,
+          className: 'px-16'
         }
       }
     ]

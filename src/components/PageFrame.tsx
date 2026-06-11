@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { PageData, DesignSystem } from '../types';
+import { getTemplateById } from '../templates/registry';
 
 interface PageFrameProps {
   page: PageData;
@@ -128,6 +129,10 @@ const GlobalFolio: React.FC<{
   const alignment = page.folioAlignment || 'auto';
   const isRight = alignment === 'auto' ? page.layoutVariant === 'right' : alignment === 'right';
 
+  // 检查当前模板是否注册了 footer 字段
+  const templateConfig = getTemplateById(page.layoutId);
+  const hasFooterField = templateConfig?.fields?.some((f: any) => f.key === 'footer');
+
   const renderCounter = () => {
     const style = counterStyle || page.counterStyle || 'number';
     const current = pageIndex + 1;
@@ -154,18 +159,20 @@ const GlobalFolio: React.FC<{
   return (
     <div className="absolute inset-0 grid grid-cols-24 grid-rows-24 z-50 pointer-events-none p-0">
       {/* 档案号/页脚文字 (FIG. XX) - 默认放置在页码对面 */}
-      <div 
-        className={`text-[9px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-pre-line flex items-end
-          ${isRight ? 'text-left' : 'text-right'}`}
-        style={{ 
-          color: customCounterColor,
-          gridRow: '23 / 24',
-          gridColumn: isRight ? '2 / 8' : '18 / 24',
-          justifyContent: isRight ? 'flex-start' : 'flex-end'
-        }}
-      >
-        {page.footer || ''}
-      </div>
+      {page.footer && hasFooterField && (
+        <div 
+          className={`text-[9px] font-black uppercase tracking-[0.3em] opacity-40 whitespace-pre-line flex items-end
+            ${isRight ? 'text-left' : 'text-right'}`}
+          style={{ 
+            color: customCounterColor,
+            gridRow: '23 / 24',
+            gridColumn: isRight ? '2 / 8' : '18 / 24',
+            justifyContent: isRight ? 'flex-start' : 'flex-end'
+          }}
+        >
+          {page.footer}
+        </div>
+      )}
 
       {/* 页码显示 (Roman/Dots/Number) */}
       <div 

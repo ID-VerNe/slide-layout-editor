@@ -24,11 +24,11 @@ export const FilmDiptychSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24, gap: 'spacing.sm' },
           className: 'absolute inset-0 p-16',
           children: [
-            // 上图 (70% height approx)
+            // 上图 (70% height approx) - 遵循天头原则
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 16 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 3, rowSpan: 14 },
               className: 'bg-white shadow-sm overflow-hidden p-0',
               children: [
                 {
@@ -42,11 +42,11 @@ export const FilmDiptychSchema: TemplateSchema = {
                 }
               ]
             },
-            // 下图 (30% height approx)
+            // 下图 (30% height approx) - 确保地脚留白
             {
               type: 'Container',
               layout: 'absolute',
-              modular: { colStart: 1, colSpan: 24, rowStart: 18, rowSpan: 7 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 18, rowSpan: 3 },
               className: 'bg-white shadow-sm overflow-hidden p-0',
               children: [
                 {
@@ -107,12 +107,12 @@ export const FilmDiptychSchema: TemplateSchema = {
           ]
         }
       },
-      // 底部标签 (居中)
+      // 底部标签 (居中) - 位于地脚区域
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { justify: 'center', align: 'end' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 2 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 22, rowSpan: 1 },
         className: 'pb-8',
         children: [
           {

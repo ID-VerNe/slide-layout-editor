@@ -27,11 +27,11 @@ export const ZineClassicSchema: TemplateSchema = {
         children: []
       },
 
-      // 2. 主标题 (Display Atom)
+      // 2. 主标题 (Display Atom) - 遵循天头 2.5格原则
       {
         type: 'Component',
         componentType: 'ZineDisplay',
-        modular: { colStart: 2, colSpan: 10, rowStart: 4, rowSpan: 5 },
+        modular: { colStart: 2, colSpan: 10, rowStart: 3, rowSpan: 5 },
         bind: 'page.title',
         props: {
           color: 'primary'
@@ -42,7 +42,7 @@ export const ZineClassicSchema: TemplateSchema = {
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 2, colSpan: 3, rowStart: 9, rowSpan: 1 },
+        modular: { colStart: 2, colSpan: 3, rowStart: 8, rowSpan: 1 },
         className: 'border-t-2 border-zine-accent mt-2',
         children: []
       },
@@ -52,7 +52,7 @@ export const ZineClassicSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineCaption',
         bind: 'page.subtitle',
-        modular: { colStart: 2, colSpan: 10, rowStart: 10, rowSpan: 1 },
+        modular: { colStart: 2, colSpan: 10, rowStart: 9, rowSpan: 1 },
         props: {
           color: 'accent'
         }
@@ -62,7 +62,7 @@ export const ZineClassicSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineBody',
-        modular: { colStart: 2, colSpan: 9, rowStart: 12, rowSpan: 10 },
+        modular: { colStart: 2, colSpan: 9, rowStart: 11, rowSpan: 9 },
         bind: 'page.paragraph',
         props: {
           color: 'secondary'
@@ -80,12 +80,12 @@ export const ZineClassicSchema: TemplateSchema = {
         }
       },
 
-      // 7. 图片说明 (Caption Atom)
+      // 7. 图片说明 (Caption Atom) - 位于地脚区域
       {
         type: 'Component',
         componentType: 'ZineCaption',
         bind: 'page.imageLabel',
-        modular: { colStart: 13, colSpan: 11, rowStart: 23, rowSpan: 1 },
+        modular: { colStart: 13, colSpan: 11, rowStart: 21, rowSpan: 1 },
         props: {
           className: 'text-right opacity-30',
           color: 'secondary'

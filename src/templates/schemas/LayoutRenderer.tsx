@@ -217,8 +217,8 @@ function filterZineClassName(className: string): string {
 /**
  * 解析 Token 引用 (e.g. "spacing.lg" -> "24px")
  */
-function resolveTokenValue(val: string, ds: DesignSystem): string {
-  if (val.startsWith('spacing.')) {
+function resolveTokenValue(val: any, ds: DesignSystem): string {
+  if (typeof val === 'string' && val.startsWith('spacing.')) {
     const key = val.split('.')[1] as keyof typeof ds.tokens.spacing;
     return ds.tokens.spacing[key] || '0px'; // 安全默认值，避免无效 CSS
   }
@@ -249,7 +249,7 @@ function renderContainer(
       alignItems: mapAlign(props.align),
       justifyContent: mapJustify(props.justify),
       gap: resolveTokenValue(props.gap || '', ds) || props.gap,
-      flexWrap: props.wrap ? 'wrap' : 'nowrap',
+      flexWrap: props.wrap === 'wrap-reverse' ? 'wrap-reverse' : (props.wrap ? 'wrap' : 'nowrap'),
     };
   } else if (layout === 'absolute') {
     const props = layoutProps as any || {};
@@ -371,7 +371,7 @@ function renderRepeater(
   resolveZIndex?: ZIndexResolverFn
 ): React.ReactElement | null {
   const items = evaluator.evaluate(node.bind, context) || [];
-  const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
+  const { className, style: baseStyle } = resolveBaseProps(node, context, ds, resolveZIndex);
   const itemVar = node.itemVariable || 'item';
 
   // 空值安全检查
@@ -384,23 +384,59 @@ function renderRepeater(
     return null;
   }
 
+  // 1. 处理布局属性 (类似于 renderContainer)
+  let finalStyle: React.CSSProperties = { ...baseStyle };
+  const { layout, layoutProps } = node;
+
+  if (layout === 'flex') {
+    const props = layoutProps as any || {};
+    finalStyle = {
+      ...finalStyle,
+      display: 'flex',
+      flexDirection: props.direction || 'row',
+      alignItems: mapAlign(props.align),
+      justifyContent: mapJustify(props.justify),
+      gap: resolveTokenValue(props.gap || '', ds) || props.gap,
+      flexWrap: props.wrap === 'wrap-reverse' ? 'wrap-reverse' : (props.wrap ? 'wrap' : 'nowrap'),
+    };
+  } else if (layout === 'grid') {
+    const props = layoutProps as any || {};
+    finalStyle = {
+      ...finalStyle,
+      display: 'grid',
+      gridTemplateColumns: typeof props.columns === 'number' ? `repeat(${props.columns}, 1fr)` : props.columns,
+      gridTemplateRows: typeof props.rows === 'number' ? `repeat(${props.rows}, 1fr)` : props.rows,
+      gap: resolveTokenValue(props.gap || '', ds) || props.gap,
+      gridTemplateAreas: props.areas?.map((a: string) => `"${a}"`).join(' '),
+    };
+  }
+
+  // 2. 渲染项
+  const renderedItems = items.map((item, index) => {
+    const itemContext = { ...context, $parent: context[itemVar], [itemVar]: item, index };
+    return (
+      <LayoutRenderer 
+        key={index}
+        node={node.template}
+        page={context.page}
+        theme={context.theme}
+        typography={typography}
+        context={itemContext}
+        resolveZIndex={resolveZIndex}
+      />
+    );
+  });
+
+  // 3. 透明模式检查：如果既没有样式也没有布局，则返回 Fragment (透明 Repeater)
+  const isTransparent = !className && Object.keys(finalStyle).length === 0 && !layout;
+
+  if (isTransparent) {
+    return <React.Fragment>{renderedItems}</React.Fragment>;
+  }
+
   return (
-    <div className={className} style={style}>
-      {items.map((item, index) => {
-        // 嵌套 Repeater 支持：$parent 引用外层 item，index 为当前索引
-        const itemContext = { ...context, $parent: context[itemVar], [itemVar]: item, index };
-        return (
-          <LayoutRenderer 
-            key={index}
-            node={node.template}
-            page={context.page}
-            theme={context.theme}
-            typography={typography}
-            context={itemContext}
-            resolveZIndex={resolveZIndex}
-          />
-        );
-      })}
+    <div className={className} style={finalStyle}>
+      {renderedItems}
     </div>
   );
 }

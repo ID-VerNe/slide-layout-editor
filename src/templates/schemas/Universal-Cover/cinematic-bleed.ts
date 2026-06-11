@@ -49,12 +49,12 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                 }
               ]
             },
-            // 底部 Subtitle（独立容器）
+            // 底部 Subtitle（独立容器）- 遵循地脚原则
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 20, rowSpan: 1 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 19, rowSpan: 1 },
               children: [
                 {
                   type: 'Component',
@@ -72,27 +72,27 @@ export const CinematicFullBleedSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0 pointer-events-none',
           children: [
-            // Subtitle（独立容器）
+            // Subtitle（独立容器）- 居中显示
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 16, rowSpan: 2 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 18, rowSpan: 1 },
               children: [
                 {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase', color: 'surface' }
+                  props: { align: 'center', tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase', color: 'surface' }
                 }
               ]
             },
-            // 底部标题（独立容器）
+            // 底部标题（独立容器）- 居中显示
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'end' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 18, rowSpan: 4 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 19, rowSpan: 2 },
               className: 'pb-8',
               children: [
                 {
@@ -107,12 +107,12 @@ export const CinematicFullBleedSchema: TemplateSchema = {
         }
       },
 
-      // 3. 通用页脚 (Row 23) - 降低位置防止遮挡，并绑定正确字段
+      // 3. 通用页脚 (Row 21) - 位于地脚区域
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'center' },
-        modular: { colStart: 0, colSpan: 24, rowStart: 22, rowSpan: 1 },
+        modular: { colStart: 0, colSpan: 24, rowStart: 21, rowSpan: 1 },
         style: { position: 'relative', zIndex: 10 },
         children: [
           {

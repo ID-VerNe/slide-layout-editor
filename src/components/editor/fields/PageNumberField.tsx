@@ -67,22 +67,6 @@ export const PageNumberField: React.FC<FieldProps> = ({ page, onUpdate }) => {
           </div>
         )}
       </div>
-
-      {!isVisible && (
-        <div className="pl-8 space-y-2 animate-in fade-in slide-in-from-top-1">
-          <div className="flex items-center gap-2">
-            <Type size={10} className="text-slate-400" />
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fallback Text</span>
-          </div>
-          <Input 
-            value={page.pageNumberText || ''} 
-            onChange={(e) => handleTextChange(e.target.value)}
-            placeholder="e.g. END OF FILE"
-            className="text-[10px]"
-          />
-          <p className="text-[8px] text-slate-400 italic">This text replaces the page number.</p>
-        </div>
-      )}
     </div>
   );
 };

@@ -41,15 +41,6 @@
 - [语义化排版开发指南](guides/typography.md)
 - [动态数组组件开发规范](guides/dynamic-components.md)
 
-### 4. 设计与计划 (Design)
-- [设计规范 (SPEC)](design/SPEC.md)
-- [设计规范通用定义](design/design%20spec.md)
-- [架构重构提案](design/ARCHITECTURAL_REFAC_PROPOSAL.md)
-- [模板重构计划](design/template-refactor-plan.md)
-- [ZINE 设计规范执行计划](design/ZINE_设计规范执行计划.md)
-
-### 5. 归档记录 (Archive)
-- [历史 Session 记录](archive/)
 
 ---
 

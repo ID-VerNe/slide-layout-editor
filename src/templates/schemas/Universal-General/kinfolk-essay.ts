@@ -15,12 +15,12 @@ export const KinfolkEssaySchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg px-32 py-20',
     children: [
-      // 1. 顶部标题栏 (Rows 1-4)
+      // 1. 顶部标题栏 (Rows 3-5) - 遵循天头 2.5格原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'end', justify: 'between' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 4 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 3, rowSpan: 3 },
         className: 'border-b-[1.5px] border-zine-accent pb-8',
         children: [
           {
@@ -50,12 +50,12 @@ export const KinfolkEssaySchema: TemplateSchema = {
         ]
       },
 
-      // 2. 中部叙事区 (Rows 6-18)
+      // 2. 中部叙事区 (Rows 7-17)
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 6, rowSpan: 12 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 11 },
         className: 'py-12',
         children: [
           {
@@ -81,7 +81,7 @@ export const KinfolkEssaySchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineMedia',
-                      props: { src: '{page.signature}', className: 'h-16 w-auto mix-blend-multiply opacity-80' }
+                      props: { src: '{page.signature}', className: 'h-16 w-auto mix-blend-multiply opacity-80', style: { objectFit: 'contain' } }
                     }
                   ]
                 }
@@ -91,12 +91,12 @@ export const KinfolkEssaySchema: TemplateSchema = {
         ]
       },
 
-      // 3. 底部元数据网格 (Rows 20-24)
+      // 3. 底部元数据网格 (Rows 19-20) - 确保地脚留白 4格
       {
         type: 'Container',
         layout: 'modular',
         layoutProps: { columns: 2, rows: 2 },
-        modular: { colStart: 1, colSpan: 24, rowStart: 20, rowSpan: 5 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 19, rowSpan: 2 },
         className: 'border-t border-zine-accent/15 pt-10',
         children: [
           {

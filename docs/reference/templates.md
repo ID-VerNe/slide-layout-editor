@@ -106,7 +106,50 @@ SlideGrid Studio 提供了 30+ 专业排版模板，涵盖封面、画册、产�
 - ✅ **Repeater 内部**：Repeater 模板中的多个组件可以共享容器（因为它们是作为一个整体重复的）
 - ✅ **装饰性元素**：不可编辑的纯视觉元素（如背景、分割线）可以共享容器
 
-### 0.2 如何提供默认引导内容
+### 0.2.5 避免不必要的 Container 嵌套 ⚠️
+
+**直接将组件放置在模块化网格中，而不是嵌套在 `layout: 'absolute'` 的 Container 内**，除非明确需要该容器的布局功能。
+
+#### ❌ 错误示例（不必要的 absolute 容器）
+
+```typescript
+{
+  type: 'Container',
+  layout: 'absolute',  // ❌ 没有提供 inset-0 或位置样式
+  modular: { colStart: 13, colSpan: 12, rowStart: 3, rowSpan: 20 },
+  children: [
+    {
+      type: 'Component',
+      componentType: 'ZineMedia',
+      props: { className: 'w-full h-full object-cover' }
+    }
+  ]
+}
+```
+
+**问题**：
+- `layout: 'absolute'` 的 Container 如果没有设置 `className: 'absolute inset-0'` 或具体的位置样式，会塌缩成内容大小
+- 导致内部组件无法正确填充分配的网格区域
+- 图片可能只显示在一小块区域而不是填满整个空间
+
+#### ✅ 正确示例（直接放置组件）
+
+```typescript
+{
+  type: 'Component',
+  componentType: 'ZineMedia',
+  modular: { colStart: 13, colSpan: 12, rowStart: 3, rowSpan: 20 },
+  props: { className: 'w-full h-full object-cover' }
+}
+```
+
+**何时需要 Container**：
+- ✅ 需要 Flexbox 对齐（`layout: 'flex'`）
+- ✅ 需要 Grid 布局（`layout: 'grid'`）
+- ✅ 需要嵌套的模块化网格（`layout: 'modular'`）
+- ✅ 需要明确设置 `absolute inset-0` 的绝对定位容器
+
+### 0.3 如何提供默认引导内容
 
 虽然 Schema 不能硬编码显示内容，但可以通过**数据层的默认值**来提供引导语，告诉用户每个字段的用途。
 
@@ -234,6 +277,8 @@ withBaseFields([
 - [ ] 循环渲染使用 `{item.xxx}` 表达式
 - [ ] **每个可编辑的 Component 都在独立的 Container 中**（关键！）
 - [ ] Repeater 内部结构除外（它们作为整体重复）
+- [ ] **避免不必要的 `layout: 'absolute'` Container 嵌套**（直接将组件放在模块化网格中）
+- [ ] 如果使用 `layout: 'absolute'` Container，确保设置了 `className: 'absolute inset-0'` 或具体位置样式
 - [ ] 在 `registry.ts` 中提供了 `defaultData` 或字段的 `defaultValue`
 - [ ] 字段配置包含清晰的 `label`（必需）
 - [ ] 复杂字段配置了 `placeholder` 作为编辑提示（可选）

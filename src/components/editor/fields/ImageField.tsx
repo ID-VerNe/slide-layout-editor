@@ -11,6 +11,8 @@ import { nativeFs } from '../../../utils/native-fs';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  fieldKey?: string;
+  label?: string;
 }
 
 const AssetPreviewSmall = ({ source }: { source?: string }) => {
@@ -22,9 +24,10 @@ const AssetPreviewSmall = ({ source }: { source?: string }) => {
   );
 };
 
-export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, fieldKey = 'image', label = 'Visual Asset' }) => {
   const [showAdjust, setShowAdjust] = useState(false);
-  const isVisible = page.visibility?.image !== false;
+  const configKey = fieldKey === 'image' ? 'imageConfig' : `${fieldKey}Config`;
+  const isVisible = page.visibility?.[fieldKey] !== false;
 
   const handleImageSelect = async (val: string) => {
     const resetConfig = { scale: 1, x: 0, y: 0 };
@@ -34,44 +37,52 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
           const filename = `asset_upload_${Date.now()}.png`; 
           const result = await nativeFs.uploadAsset(filename, val);
           if (result.success && result.url) {
-            onUpdate({ ...page, image: result.url, imageConfig: resetConfig });
+            onUpdate({ ...page, [fieldKey]: result.url, [configKey]: resetConfig });
           }
         } catch (e) { console.error('Native upload error:', e); }
       } else {
         const assetId = await saveAsset(val);
-        onUpdate({ ...page, image: assetId, imageConfig: resetConfig });
+        onUpdate({ ...page, [fieldKey]: assetId, [configKey]: resetConfig });
       }
     } else {
-      onUpdate({ ...page, image: val, imageConfig: resetConfig });
+      onUpdate({ ...page, [fieldKey]: val, [configKey]: resetConfig });
     }
   };
 
   const handleConfigChange = (key: string, val: number) => {
-    const currentConfig = page.imageConfig || { scale: 1, x: 0, y: 0 };
+    const currentConfig = (page as any)[configKey] || { scale: 1, x: 0, y: 0 };
     onUpdate({
       ...page,
-      imageConfig: { ...currentConfig, [key]: val }
+      [configKey]: { ...currentConfig, [key]: val }
     });
   };
 
-  const handleRemove = () => onUpdate({ ...page, image: '' });
+  const handleFit = () => {
+    // 重置为完美适配：scale=1, 居中显示
+    onUpdate({
+      ...page,
+      [configKey]: { scale: 1, x: 0, y: 0 }
+    });
+  };
+
+  const handleRemove = () => onUpdate({ ...page, [fieldKey]: '' });
 
   return (
-    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="image" label="Visual Asset" icon={ImageIcon}>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey={fieldKey} label={label} icon={ImageIcon}>
       <div className="space-y-3">
         <div className="flex gap-2">
           <IconPicker 
-            value={page.image || ''} 
+            value={(page as any)[fieldKey] || ''} 
             onChange={handleImageSelect}
             allowedTabs={['upload', 'icons', 'map']} 
             className="flex-1"
             trigger={
               <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:border-[#264376] transition-all shadow-sm group">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <AssetPreviewSmall source={page.image} />
+                  <AssetPreviewSmall source={(page as any)[fieldKey]} />
                   <div className="text-left min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected Asset</p>
-                    <p className="text-xs font-bold text-slate-700 truncate">{page.image ? 'Change Source' : 'Browse Library'}</p>
+                    <p className="text-xs font-bold text-slate-700 truncate">{(page as any)[fieldKey] ? 'Change Source' : 'Browse Library'}</p>
                   </div>
                 </div>
                 <div className="p-1.5 rounded-lg bg-slate-50 text-slate-400 group-hover:text-[#264376] transition-colors">
@@ -81,7 +92,7 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
             }
           />
           
-          {page.image && (
+          {(page as any)[fieldKey] && (
             <button 
               onClick={() => setShowAdjust(!showAdjust)}
               className={`p-3 rounded-xl border transition-all ${showAdjust ? 'bg-[#264376] border-[#264376] text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
@@ -92,11 +103,23 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) 
           )}
         </div>
 
-        {showAdjust && page.image && (
+        {showAdjust && (page as any)[fieldKey] && (
           <div className="p-4 bg-slate-50 rounded-2xl space-y-5 border border-slate-100 animate-in fade-in slide-in-from-top-2">
-            <Slider label="Scale" value={page.imageConfig?.scale || 1} min={0.5} max={3} step={0.1} onChange={(v) => handleConfigChange('scale', v)} />
-            <Slider label="Move Horiz." value={page.imageConfig?.x || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('x', v)} />
-            <Slider label="Move Vert." value={page.imageConfig?.y || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('y', v)} />
+            <div className="flex gap-2">
+              <button 
+                onClick={handleFit} 
+                className="flex-1 py-2.5 flex items-center justify-center gap-2 text-[#264376] hover:bg-blue-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-blue-200"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M9 9h6v6H9z"/>
+                </svg>
+                Fit to Container
+              </button>
+            </div>
+            <Slider label="Scale" value={(page as any)[configKey]?.scale || 1} min={0.5} max={3} step={0.1} onChange={(v) => handleConfigChange('scale', v)} />
+            <Slider label="Move Horiz." value={(page as any)[configKey]?.x || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('x', v)} />
+            <Slider label="Move Vert." value={(page as any)[configKey]?.y || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('y', v)} />
             <button onClick={handleRemove} className="w-full py-2.5 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-red-100 mt-2">
               <Trash2 size={14} /> Remove Asset
             </button>

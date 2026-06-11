@@ -26,6 +26,11 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, l
 
   const style = page.styleOverrides?.footer || {};
 
+  // 如果页码被禁用，footer 也不会显示，因此隐藏编辑器
+  if (page.pageNumber === false) {
+    return null;
+  }
+
   return (
     <FieldWrapper
       page={page}

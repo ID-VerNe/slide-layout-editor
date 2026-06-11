@@ -15,12 +15,12 @@ export const PlatformHeroSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg px-24',
     children: [
-      // 1. 顶部标题组 (Rows 2-13)
+      // 1. 顶部标题组 (Rows 3-12) - 遵循天头原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.lg' },
-        modular: { colStart: 3, colSpan: 18, rowStart: 2, rowSpan: 11 },
+        modular: { colStart: 3, colSpan: 18, rowStart: 3, rowSpan: 10 },
         children: [
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20', sans: true } }] },
           {
@@ -53,12 +53,12 @@ export const PlatformHeroSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 底部特性网格 (Rows 14-24)
+      // 2. 底部特性网格 (Rows 14-20) - 确保地脚留白
       {
         type: 'Container',
         layout: 'modular',
         layoutProps: { columns: 4, rows: 1 },
-        modular: { colStart: 1, colSpan: 24, rowStart: 14, rowSpan: 11 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 14, rowSpan: 7 },
         className: 'border-t border-zine-accent/15',
         children: [
           {

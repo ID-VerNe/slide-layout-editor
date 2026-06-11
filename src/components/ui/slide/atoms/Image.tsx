@@ -69,24 +69,31 @@ export const Image: React.FC<ImageProps> = ({
   const posX = (config.x + 100) / 2;
   const posY = (config.y + 100) / 2;
 
+  const { 
+    objectFit: styleObjectFit, 
+    objectPosition: styleObjectPosition, 
+    overflow: styleOverflow,
+    ...remainingStyle 
+  } = (style || {}) as any;
+
   const containerStyle = useMemo(() => ({
-    overflow: 'hidden',
+    overflow: styleOverflow || 'hidden',
     position: 'relative' as const,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     aspectRatio,
-    ...style
-  }), [aspectRatio, style]);
+    ...remainingStyle
+  }), [aspectRatio, remainingStyle, styleOverflow]);
 
   const imageStyle = useMemo(() => ({
     transform: `scale(${config.scale})`,
-    objectPosition: `${posX}% ${posY}%`,
-    transformOrigin: `${posX}% ${posY}%`,
+    objectPosition: styleObjectPosition || `${posX}% ${posY}%`,
+    transformOrigin: styleObjectPosition || `${posX}% ${posY}%`,
     width: '100%',
     height: '100%',
-    objectFit: 'cover' as const
-  }), [config.scale, posX, posY]);
+    objectFit: styleObjectFit || 'cover'
+  }), [config.scale, posX, posY, styleObjectFit, styleObjectPosition]);
 
   return (
     <div className={className} style={containerStyle}>

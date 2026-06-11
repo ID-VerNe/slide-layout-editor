@@ -15,12 +15,12 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 上半部分：极简序言区 (Rows 1-11)
+      // 1. 上半部分：极简序言区 (Rows 3-12) - 遵循天头 2.5格原则
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.lg' },
-        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 11 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 3, rowSpan: 10 },
         className: 'px-24',
         children: [
           // 章节标题
@@ -53,11 +53,11 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 下半部分：沉底大图 (Rows 12-24)
+      // 2. 下半部分：沉底大图 (Rows 13-20) - 确保地脚留白 4格
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 1, colSpan: 24, rowStart: 12, rowSpan: 13 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 13, rowSpan: 8 },
         className: 'relative group',
         children: [
           {

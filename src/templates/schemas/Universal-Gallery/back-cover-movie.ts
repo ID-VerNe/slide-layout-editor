@@ -15,11 +15,11 @@ export const BackCoverMovieSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-[#111111]',
     children: [
-      // 1. 核心图片区 (Rows 2-15)
+      // 1. 核心图片区 (Rows 3-16) - 遵循天头原则
       {
         type: 'Container',
         layout: 'absolute',
-        modular: { colStart: 3, colSpan: 20, rowStart: 2, rowSpan: 14 },
+        modular: { colStart: 3, colSpan: 20, rowStart: 3, rowSpan: 14 },
         className: 'mask-movie-feather', // 需要在 index.css 中定义这个遮罩
         style: {
           WebkitMaskImage: 'radial-gradient(ellipse, black 50%, transparent 100%)',
@@ -34,12 +34,12 @@ export const BackCoverMovieSchema: TemplateSchema = {
         ]
       },
 
-      // 2. 谢幕文本区 (Rows 17-22)
+      // 2. 谢幕文本区 (Rows 18-20) - 确保地脚留白
       {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-        modular: { colStart: 3, colSpan: 20, rowStart: 17, rowSpan: 6 },
+        modular: { colStart: 3, colSpan: 20, rowStart: 18, rowSpan: 3 },
         children: [
           {
             type: 'Component',

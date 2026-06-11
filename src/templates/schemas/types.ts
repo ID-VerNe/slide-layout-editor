@@ -38,6 +38,8 @@ export interface RepeaterNode extends BaseNode {
   type: 'Repeater';
   bind: string;      // e.g., "page.agenda"
   itemVariable?: string; // e.g., "item", "section"
+  layout?: 'flex' | 'grid' | 'absolute' | 'modular'; 
+  layoutProps?: FlexLayoutProps | GridLayoutProps | AbsoluteLayoutProps | ModularLayoutProps;
   template: TemplateNode;
 }
 
@@ -52,7 +54,7 @@ export interface FlexLayoutProps {
   align?: 'start' | 'center' | 'end' | 'baseline' | 'stretch';
   justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
   gap?: number | string;
-  wrap?: boolean;
+  wrap?: boolean | 'wrap-reverse';
 }
 
 export interface GridLayoutProps {

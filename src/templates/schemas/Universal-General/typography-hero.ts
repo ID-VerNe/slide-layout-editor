@@ -15,12 +15,12 @@ export const TypographyHeroSchema: TemplateSchema = {
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
     className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
-      // 1. 上分割线 (Divider 1: Top boundary)
+      // 1. 上分割线 (Divider 1: Top boundary) - 遵循天头原则
       {
         type: 'Component',
         componentType: 'ZineDivider',
         fieldKey: 'topDivider',
-        modular: { colStart: 3, colSpan: 20, rowStart: 9, rowSpan: 1, align: 'center' },
+        modular: { colStart: 3, colSpan: 20, rowStart: 8, rowSpan: 1, align: 'center' },
         props: { 
           color: 'secondary', 
           thickness: '1px', 
@@ -33,7 +33,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineDisplay',
         bind: 'page.title',
-        modular: { colStart: 4, colSpan: 18, rowStart: 10, rowSpan: 1, align: 'center' },
+        modular: { colStart: 4, colSpan: 18, rowStart: 9, rowSpan: 1, align: 'center' },
         props: {
           size: 6.5,
           align: 'center',
@@ -48,7 +48,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineBody',
         bind: 'page.paragraph',
-        modular: { colStart: 5, colSpan: 16, rowStart: 12, rowSpan: 2, align: 'start' },
+        modular: { colStart: 5, colSpan: 16, rowStart: 11, rowSpan: 2, align: 'start' },
         props: {
           size: 2.25,
           align: 'center',
@@ -65,7 +65,7 @@ export const TypographyHeroSchema: TemplateSchema = {
         type: 'Component',
         componentType: 'ZineDivider',
         fieldKey: 'bottomDivider',
-        modular: { colStart: 3, colSpan: 20, rowStart: 14, rowSpan: 1, align: 'center' },
+        modular: { colStart: 3, colSpan: 20, rowStart: 13, rowSpan: 1, align: 'center' },
         props: { 
           color: 'secondary', 
           thickness: '1px', 

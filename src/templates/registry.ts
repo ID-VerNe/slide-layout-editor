@@ -191,7 +191,7 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'subtitle', label: 'Handwritten Notes (Top)' },
       { key: 'topDivider' as any, label: 'Top Accent Line', type: 'separator' },
       { key: 'image', label: 'Main Image' },
-      { key: 'paragraph', label: 'Metadata / Description' }
+      { key: 'footer', label: 'Metadata / Description', type: 'footer' }
     ]),
     supportedRatios: ['2:3']
   },
@@ -209,7 +209,7 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'subtitle', label: 'Poetic Verse (Under Line)' },
       { key: 'paragraph', label: 'Detailed Paragraph (Bottom)' },
       { key: 'image', label: 'Main Artwork' },
-      { key: 'imageLabel', label: 'Catalog Info' }
+      { key: 'footer', label: 'Catalog Info', type: 'footer' }
     ]),
     supportedRatios: ['2:3']
   },
@@ -227,7 +227,7 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'subtitle', label: 'Top Teaser (Above Title)' },
       { key: 'paragraph', label: 'Movie Subtitle (Below Image)' },
       { key: 'image', label: 'Widescreen Artwork' },
-      { key: 'imageLabel', label: 'Catalog Info' }
+      { key: 'footer', label: 'Catalog Info', type: 'footer' }
     ]),
     supportedRatios: ['2:3']
   },
@@ -288,11 +288,22 @@ export const TEMPLATES: TemplateConfig[] = [
     fields: withBaseFields([
       { key: 'title', label: 'Top Small Headline' },
       { key: 'paragraph', label: 'Detailed Paragraph (Bottom)' },
-      { key: 'metrics', label: 'Colophon Info (Grid)' },
-      { key: 'signature', label: 'Signature Image' },
+      { key: 'bigDataMetrics', label: 'Colophon Info (Grid)' },
+      { key: 'signature', label: 'Artist Signature' },
       { key: 'image', label: 'Right Pillar Image' },
-      { key: 'imageLabel', label: 'Metadata (Bottom Left)' }
+      { key: 'footer', label: 'Metadata / Description', type: 'footer' }
     ]),
+    defaultData: {
+      metrics: [
+        { value: 'CAMERA', label: 'CATEGORY', unit: '' },
+        { value: 'LENS', label: 'CATEGORY', unit: '' },
+        { value: 'LENS', label: 'CATEGORY', unit: '' },
+        { value: 'LOCATION', label: 'CATEGORY', unit: '' },
+        { value: 'LOCATION', label: 'CATEGORY', unit: '' },
+        { value: 'LOCATION', label: 'CATEGORY', unit: '' }
+      ],
+      bigDataMetricsConfig: { rows: 3, cols: 2 }
+    },
     supportedRatios: ['2:3']
   },
   {
