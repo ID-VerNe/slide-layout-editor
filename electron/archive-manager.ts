@@ -10,6 +10,7 @@ export class ProjectArchiveManager {
   private workspacePath: string | null = null;
   private currentProjectId: string | null = null;
   private currentProjectName: string = 'Untitled';
+  private folderLock: Map<string, Promise<string>> = new Map();
 
   public setActiveWorkspace(path: string) {
     this.workspacePath = path;
@@ -58,8 +59,30 @@ export class ProjectArchiveManager {
   /**
    * 获取物理存储目录
    * 核心改进：优先通过 ID 后缀匹配现有文件夹，防止因标题修改导致资产丢失
+   * 添加锁机制防止竞态条件
    */
   private async getProjectFolder() {
+    const lockKey = this.currentProjectId || 'default';
+    
+    // 如果已有进行中的操作，等待它完成
+    if (this.folderLock.has(lockKey)) {
+      return this.folderLock.get(lockKey)!;
+    }
+    
+    // 创建新的锁
+    const folderPromise = this._getProjectFolderInternal();
+    this.folderLock.set(lockKey, folderPromise);
+    
+    try {
+      const result = await folderPromise;
+      return result;
+    } finally {
+      // 操作完成后释放锁
+      this.folderLock.delete(lockKey);
+    }
+  }
+  
+  private async _getProjectFolderInternal(): Promise<string> {
     if (!this.workspacePath) {
       this.workspacePath = path.join(app.getPath('userData'), 'DefaultWorkspace');
     }
@@ -85,11 +108,14 @@ export class ProjectArchiveManager {
       if (existingFolder !== newFolderName) {
         try {
           const newPath = path.join(this.workspacePath, newFolderName);
-          await fs.rename(fullPath, newPath);
-          return newPath;
+          // 检查目标路径是否已存在
+          if (!existsSync(newPath)) {
+            await fs.rename(fullPath, newPath);
+            return newPath;
+          }
         } catch (e) {
           // 重命名失败（可能被占用），则继续使用旧路径
-          return fullPath;
+          console.warn(`Failed to rename project folder: ${e}`);
         }
       }
       return fullPath;
@@ -216,18 +242,33 @@ export class ProjectArchiveManager {
     const ext = format === 'bin' ? path.extname(filename) : `.${format === 'jpeg' ? 'jpg' : format}`;
     const finalFilename = `res_${hash.slice(0, 8)}${ext}`;
     
-    await fs.writeFile(path.join(assetsDir, finalFilename), processedBuffer);
-    return `asset://${finalFilename}`;
+    // 安全检查：防止路径遍历
+    const sanitized = path.basename(finalFilename);
+    const targetPath = path.join(assetsDir, sanitized);
+    if (!targetPath.startsWith(assetsDir)) {
+      throw new Error('Invalid asset filename');
+    }
+    
+    await fs.writeFile(targetPath, processedBuffer);
+    return `asset://${sanitized}`;
   }
 
   private async compressImage(buffer: Buffer): Promise<{ buffer: Buffer, format: string }> {
     try {
-      if (buffer.toString('ascii', 0, 4) === '<svg') return { buffer, format: 'svg' };
+      // 检测 SVG：可能以 <?xml、<!DOCTYPE 或 <svg 开头
+      const header = buffer.toString('utf8', 0, Math.min(200, buffer.length));
+      if (header.includes('<svg') || header.includes('<?xml')) {
+        return { buffer, format: 'svg' };
+      }
+      
       const s = sharp(buffer);
       const metadata = await s.metadata();
       if (metadata.width && metadata.width > 2000) s.resize({ width: 2000, withoutEnlargement: true });
       const out = await s.webp({ quality: 85 }).toBuffer();
       return { buffer: out, format: 'webp' };
-    } catch (e) { return { buffer, format: 'bin' }; }
+    } catch (e) { 
+      console.warn('Image compression failed, using original buffer:', e);
+      return { buffer, format: 'bin' }; 
+    }
   }
 }

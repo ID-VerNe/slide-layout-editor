@@ -3,7 +3,8 @@ import { PageData } from '../../../types';
 import { Type, Maximize, Scissors, Ghost } from 'lucide-react';
 import { Input } from '../../ui/Base';
 import { FieldWrapper } from './FieldWrapper';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS, LETTER_SPACING_PRESETS } from '../../../constants/editorPresets';
 
 interface FieldProps {
   page: PageData;
@@ -51,25 +52,35 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
         {/* 样式控制组 */}
         <div className="grid grid-cols-2 gap-2">
            {/* 字号控制 */}
-           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400">
-                <Maximize size={10} /> Size
-              </div>
-              <FieldToolbar 
-                onIncrease={() => updateStyle({ fontSize: (style.fontSize || 120) + 20 })} 
-                onDecrease={() => updateStyle({ fontSize: Math.max(20, (style.fontSize || 120) - 20) })} 
-              />
-           </div>
+           <PresetSelect
+             value={style.fontSize || 120}
+             options={FONT_SIZE_PRESETS}
+             onChange={(val) => updateStyle({ fontSize: val })}
+             label="Size"
+           />
 
-           {/* 粗细/描边控制 */}
+           {/* 描边控制 */}
            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400">
                 <Scissors size={10} /> Stroke
               </div>
-              <FieldToolbar 
-                onIncrease={() => updateStyle({ strokeWidth: (style.strokeWidth || 2) + 0.5 })} 
-                onDecrease={() => updateStyle({ strokeWidth: Math.max(0.5, (style.strokeWidth || 2) - 0.5) })} 
-              />
+              <div className="flex gap-1">
+                <button
+                  onClick={() => updateStyle({ strokeWidth: Math.max(0.5, (style.strokeWidth || 2) - 0.5) })}
+                  className="flex-1 py-2 bg-white border border-slate-200 hover:border-slate-950 text-slate-950 text-xs font-black transition-all"
+                >
+                  −
+                </button>
+                <div className="flex-1 py-2 bg-white border border-slate-200 text-center text-xs font-black text-slate-950">
+                  {(style.strokeWidth || 2).toFixed(1)}
+                </div>
+                <button
+                  onClick={() => updateStyle({ strokeWidth: (style.strokeWidth || 2) + 0.5 })}
+                  className="flex-1 py-2 bg-white border border-slate-200 hover:border-slate-950 text-slate-950 text-xs font-black transition-all"
+                >
+                  +
+                </button>
+              </div>
            </div>
         </div>
 

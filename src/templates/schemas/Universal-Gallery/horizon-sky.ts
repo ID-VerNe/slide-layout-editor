@@ -23,22 +23,31 @@ export const HorizonSkySchema: TemplateSchema = {
         modular: { colStart: 4, colSpan: 18, rowStart: 2, rowSpan: 9 },
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.subtitle',
-            props: { tracking: 0.5, color: 'secondary', sans: true, className: 'opacity-50 mb-4' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              props: { tracking: 0.5, color: 'secondary', sans: true, className: 'opacity-50 mb-4' }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineDisplay',
-            bind: 'page.title',
-            props: { align: 'center', tracking: 0.5, size: 4.8, serif: true }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineDisplay',
+              bind: 'page.title',
+              props: { align: 'center', tracking: 0.5, size: 4.8, serif: true }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineBody',
-            bind: 'page.paragraph',
-            props: { align: 'center', italic: true, size: 1.5, color: 'secondary', serif: true, className: 'opacity-50 mt-6' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineBody',
+              bind: 'page.paragraph',
+              props: { align: 'center', italic: true, size: 1.5, color: 'secondary', serif: true, className: 'opacity-50 mt-6' }
+            }]
           }
         ]
       },

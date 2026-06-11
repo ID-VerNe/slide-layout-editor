@@ -14,5 +14,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   listProjects: () => ipcRenderer.invoke('list-projects'),
   setCurrentProject: (id: string, name: string) => ipcRenderer.invoke('setCurrentProject', { id, name }),
   readAssetFile: (filename: string) => ipcRenderer.invoke('read-asset-file', filename),
-  processResponsiveImages: (input: any, formats: any) => ipcRenderer.invoke('process-responsive-images', { input, formats })
+  processResponsiveImages: (input: any, formats: any) => ipcRenderer.invoke('process-responsive-images', { input, formats }),
+  deleteProject: (projectPath: string) => ipcRenderer.invoke('delete-project', projectPath)
 });

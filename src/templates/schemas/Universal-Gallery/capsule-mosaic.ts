@@ -107,24 +107,30 @@ export const GalleryCapsuleSchema: TemplateSchema = {
               modular: { colStart: 2, colSpan: 10, rowStart: 2, rowSpan: 4 },
               children: [
                 { 
-                  type: 'Component', 
-                  componentType: 'ZineCaption', 
-                  bind: 'page.imageSubLabel',
-                  props: { 
-                    size: 1.25, 
-                    tracking: 0.5,
-                    opacity: 0.3
-                  } 
+                  type: 'Container',
+                  children: [{
+                    type: 'Component', 
+                    componentType: 'ZineCaption', 
+                    bind: 'page.imageSubLabel',
+                    props: { 
+                      size: 1.25, 
+                      tracking: 0.5,
+                      opacity: 0.3
+                    }
+                  }]
                 },
                 { 
-                  type: 'Component', 
-                  componentType: 'ZineDisplay', 
-                  bind: 'page.subtitle', 
-                  props: { 
-                    size: 5, 
-                    bold: true,
-                    tracking: -0.02
-                  } 
+                  type: 'Container',
+                  children: [{
+                    type: 'Component', 
+                    componentType: 'ZineDisplay', 
+                    bind: 'page.subtitle', 
+                    props: { 
+                      size: 5, 
+                      bold: true,
+                      tracking: -0.02
+                    }
+                  }]
                 }
               ]
             },
@@ -141,7 +147,7 @@ export const GalleryCapsuleSchema: TemplateSchema = {
                   bind: 'page.artFont',
                   props: {
                     mode: 'outline',
-                    fontSize: 200,
+                    fontSize: 120,
                     strokeWidth: 2,
                     textAlign: 'right',
                     className: 'opacity-40',
@@ -157,27 +163,33 @@ export const GalleryCapsuleSchema: TemplateSchema = {
               modular: { colStart: 12, colSpan: 11, rowStart: 20, rowSpan: 4 },
               children: [
                 { 
-                  type: 'Component', 
-                  componentType: 'ZineCaption', 
-                  bind: 'page.imageLabel',
-                  props: { 
-                    size: 1.25, 
-                    opacity: 0.4,
-                    tracking: 0.3
-                  } 
+                  type: 'Container',
+                  children: [{
+                    type: 'Component', 
+                    componentType: 'ZineCaption', 
+                    bind: 'page.imageLabel',
+                    props: { 
+                      size: 1.25, 
+                      opacity: 0.4,
+                      tracking: 0.3
+                    }
+                  }]
                 },
                 { type: 'Container', className: 'w-12 h-0.5 bg-zine-accent mb-6', children: [] },
                 { 
-                  type: 'Component', 
-                  componentType: 'ZineDisplay', 
-                  bind: 'page.title', 
-                  props: { 
-                    size: 8, 
-                    bold: true,
-                    align: 'right',
-                    leading: 0.9,
-                    tracking: -0.05
-                  } 
+                  type: 'Container',
+                  children: [{
+                    type: 'Component', 
+                    componentType: 'ZineDisplay', 
+                    bind: 'page.title', 
+                    props: { 
+                      size: 8, 
+                      bold: true,
+                      align: 'right',
+                      leading: 0.9,
+                      tracking: -0.05
+                    }
+                  }]
                 }
               ]
             }

@@ -22,7 +22,6 @@ export const MicroAnchorSchema: TemplateSchema = {
         bind: 'page.title',
         modular: { colStart: 1, colSpan: 24, rowStart: 7, rowSpan: 1 },
         props: {
-          text: "THE SILENCE OF THE FRAME",
           className: '!opacity-20 text-center',
           italic: true,
           bold: true,
@@ -49,21 +48,27 @@ export const MicroAnchorSchema: TemplateSchema = {
               modular: { colStart: 15, colSpan: 8, rowStart: 10, rowSpan: 13 },
               children: [
                 {
-                  type: 'Component',
-                  componentType: 'ZineMedia',
-                  props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                  type: 'Container',
+                  children: [{
+                    type: 'Component',
+                    componentType: 'ZineMedia',
+                    props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                  }]
                 },
                 {
-                  type: 'Component',
-                  componentType: 'ZineCaption',
-                  bind: 'page.subtitle',
-                  props: {
-                    className: 'mt-6 text-right',
-                    tracking: 0.2,
-                    bold: true,
-                    sans: true,
-                    color: 'secondary'
-                  }
+                  type: 'Container',
+                  children: [{
+                    type: 'Component',
+                    componentType: 'ZineCaption',
+                    bind: 'page.subtitle',
+                    props: {
+                      className: 'mt-6 text-right',
+                      tracking: 0.2,
+                      bold: true,
+                      sans: true,
+                      color: 'secondary'
+                    }
+                  }]
                 }
               ]
             },
@@ -74,21 +79,27 @@ export const MicroAnchorSchema: TemplateSchema = {
               modular: { colStart: 2, colSpan: 8, rowStart: 10, rowSpan: 13 },
               children: [
                 {
-                  type: 'Component',
-                  componentType: 'ZineMedia',
-                  props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                  type: 'Container',
+                  children: [{
+                    type: 'Component',
+                    componentType: 'ZineMedia',
+                    props: { className: 'aspect-[3/4] shadow-xl w-full' }
+                  }]
                 },
                 {
-                  type: 'Component',
-                  componentType: 'ZineCaption',
-                  bind: 'page.subtitle',
-                  props: {
-                    className: 'mt-6 text-left',
-                    tracking: 0.2,
-                    bold: true,
-                    sans: true,
-                    color: 'secondary'
-                  }
+                  type: 'Container',
+                  children: [{
+                    type: 'Component',
+                    componentType: 'ZineCaption',
+                    bind: 'page.subtitle',
+                    props: {
+                      className: 'mt-6 text-left',
+                      tracking: 0.2,
+                      bold: true,
+                      sans: true,
+                      color: 'secondary'
+                    }
+                  }]
                 }
               ]
             }

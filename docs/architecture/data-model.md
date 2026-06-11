@@ -530,7 +530,50 @@ interface ProjectSaveData extends ProjectData {
 
 ---
 
-## 8. 类型关系图
+## 8. 编辑器预设类型
+
+### 8.1 `PresetOption<T>`
+编辑器预设选项，用于字号、行高、字距的受控选择。
+
+- **文件**: `src/constants/editorPresets.ts`
+
+```typescript
+interface PresetOption<T extends string | number> {
+  value: T;      // 预设值 (数字或字符串)
+  label: string; // 显示标签
+}
+```
+
+### 8.2 预设常量
+
+**字号预设** (`FONT_SIZE_PRESETS`):
+```typescript
+PresetOption<number>[] = [
+  { value: 6, label: '6pt (Micro)' },
+  { value: 7, label: '7pt (Caption)' },
+  // ... 共 12 档
+];
+```
+
+**行高预设** (`LINE_HEIGHT_PRESETS`):
+```typescript
+PresetOption<number>[] = [
+  { value: 1.0, label: '1.0 (Tight)' },
+  // ... 共 7 档
+];
+```
+
+**字距预设** (`LETTER_SPACING_PRESETS`):
+```typescript
+PresetOption<string>[] = [
+  { value: '-0.05em', label: '-0.05em (Tight)' },
+  // ... 共 7 档
+];
+```
+
+---
+
+## 9. 类型关系图
 
 ```text
 ProjectData

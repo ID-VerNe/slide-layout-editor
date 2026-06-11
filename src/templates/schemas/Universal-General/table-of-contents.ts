@@ -22,9 +22,9 @@ export const TableOfContentsSchema: TemplateSchema = {
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
         modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 5 },
         children: [
-          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20 mb-2', sans: true } },
-          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 6, bold: true, align: 'center', serif: true } },
-          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, align: 'center', color: 'secondary', sans: true, className: 'opacity-60' } }
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20 mb-2', sans: true } }] },
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 6, bold: true, align: 'center', serif: true } }] },
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, align: 'center', color: 'secondary', sans: true, className: 'opacity-60' } }] }
         ]
       },
 
@@ -52,7 +52,7 @@ export const TableOfContentsSchema: TemplateSchema = {
                   layoutProps: { direction: 'column', gap: 'spacing.sm' },
                   className: 'p-8 pb-5',
                   children: [
-                    { type: 'Component', componentType: 'ZineCaption', props: { text: 'ICON', className: 'opacity-30', sans: true } },
+                    { type: 'Component', componentType: 'ZineCaption', bind: 'item.icon', props: { className: 'opacity-30', sans: true } },
                     { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', size: 2.25, bold: true, sans: true } },
                     { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.desc}', size: 1.3, tracking: 0.1, sans: true, className: 'opacity-50 uppercase' } }
                   ]

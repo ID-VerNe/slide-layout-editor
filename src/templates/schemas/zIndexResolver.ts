@@ -7,7 +7,9 @@ import { TemplateNode, ZIndexDeclaration } from './types';
 export type ZIndexResolverFn = (declaration?: ZIndexDeclaration) => number;
 
 /** 页面内容默认层级 */
-const PAGE_TOP = 10;
+const DEFAULT_LAYER = 10;
+/** 显式声明的页面顶层 */
+const PAGE_TOP = 50;
 /** 最底层 */
 const BOTTOM = 0;
 
@@ -54,7 +56,12 @@ export function createZIndexResolver(root: TemplateNode): ZIndexResolverFn {
     const key = declaration ?? '__default__';
     if (cache.has(key)) return cache.get(key)!;
 
-    if (!declaration || declaration === 'page.top') {
+    if (!declaration) {
+      cache.set(key, DEFAULT_LAYER);
+      return DEFAULT_LAYER;
+    }
+    
+    if (declaration === 'page.top') {
       cache.set(key, PAGE_TOP);
       return PAGE_TOP;
     }
@@ -89,4 +96,38 @@ export function createZIndexResolver(root: TemplateNode): ZIndexResolverFn {
   }
 
   return resolve;
+}
+
+/**
+ * 简化版 API：直接返回节点 ID 到 zIndex 数值的映射
+ * 用于测试和简单场景
+ */
+export function resolveZIndex(nodes: TemplateNode[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  
+  // 构建临时根节点
+  const root: TemplateNode = {
+    type: 'Container',
+    children: nodes,
+  };
+  
+  const resolver = createZIndexResolver(root);
+  
+  // 遍历所有节点，解析其 zIndex
+  function walk(node: TemplateNode): void {
+    if (node.id) {
+      result[node.id] = resolver((node as any).zIndex);
+    }
+    if (node.type === 'Container') {
+      node.children.forEach(walk);
+    } else if (node.type === 'Conditional') {
+      walk(node.then);
+      if (node.else) walk(node.else);
+    } else if (node.type === 'Repeater') {
+      walk(node.template);
+    }
+  }
+  
+  walk(root);
+  return result;
 }

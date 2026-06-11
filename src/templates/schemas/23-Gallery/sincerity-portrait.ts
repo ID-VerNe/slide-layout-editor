@@ -22,7 +22,6 @@ export const SincerityPortraitSchema: TemplateSchema = {
         bind: 'page.title',
         modular: { colStart: 1, colSpan: 24, rowStart: 6, rowSpan: 2 },
         props: {
-          text: "THE SILENCE OF THE FRAME",
           className: '!opacity-10 text-center',
           italic: true,
           bold: true,
@@ -90,7 +89,6 @@ export const SincerityPortraitSchema: TemplateSchema = {
         bind: 'page.imageLabel',
         modular: { colStart: 14, colSpan: 9, rowStart: 22, rowSpan: 1 },
         props: {
-          text: "CATALOG / FIG. 01",
           className: '!p-0 opacity-40 text-right',
           italic: true,
           size: 1.125,

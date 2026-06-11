@@ -54,6 +54,34 @@ class Logger {
 
 export const logger = new Logger();
 
+// 生产环境：拦截并过滤 console 输出
+if (import.meta.env.PROD) {
+  const originalConsole = {
+    log: console.log,
+    debug: console.debug,
+    info: console.info,
+    warn: console.warn,
+    error: console.error
+  };
+
+  // 保留关键错误和警告，过滤普通日志
+  console.log = () => {};
+  console.debug = () => {};
+  console.info = () => {};
+  
+  // 警告和错误仅在非敏感信息时输出
+  console.warn = (...args: any[]) => {
+    const message = String(args[0] || '');
+    if (!message.includes('AutoSave') && !message.includes('Thumbnail')) {
+      originalConsole.warn(...args);
+    }
+  };
+  
+  console.error = (...args: any[]) => {
+    originalConsole.error(...args);
+  };
+}
+
 /**
  * 统一异步错误处理工具
  */

@@ -22,7 +22,6 @@ export const FutureFocusSchema: TemplateSchema = {
         bind: 'page.actionText',
         modular: { colStart: 18, colSpan: 12, rowStart: 20, rowSpan: 8 },
         props: {
-          text: '26',
           size: 50,
           bold: true,
           italic: true,
@@ -59,29 +58,35 @@ export const FutureFocusSchema: TemplateSchema = {
             className: 'pb-8 pl-4',
             children: [
               {
-                type: 'Component',
-                componentType: 'ZineCaption',
-                bind: 'page.subtitle',
-                props: { 
-                  size: 3.6, 
-                  italic: true, 
-                  bold: true,
-                  className: '!text-white mb-2', 
-                  color: 'surface' 
-                }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.subtitle',
+                  props: { 
+                    size: 3.6, 
+                    italic: true, 
+                    bold: true,
+                    className: '!text-white mb-2', 
+                    color: 'surface' 
+                  }
+                }]
               },
               {
-                type: 'Component',
-                componentType: 'ZineDisplay',
-                bind: 'page.title',
-                props: { 
-                  size: 10, 
-                  bold: true,
-                  leading: 0.85,
-                  tracking: -0.05,
-                  className: '!text-white uppercase', 
-                  color: 'surface' 
-                }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineDisplay',
+                  bind: 'page.title',
+                  props: { 
+                    size: 10, 
+                    bold: true,
+                    leading: 0.85,
+                    tracking: -0.05,
+                    className: '!text-white uppercase', 
+                    color: 'surface' 
+                  }
+                }]
               }
             ]
           }
@@ -105,22 +110,28 @@ export const FutureFocusSchema: TemplateSchema = {
             className: 'border-l-[6px] border-zine-accent pl-8 py-2',
             children: [
               {
-                type: 'Component',
-                componentType: 'ZineCaption',
-                bind: 'page.imageSubLabel',
-                props: { size: 2.5, italic: true, className: 'opacity-40 mb-1', color: 'secondary' }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.imageSubLabel',
+                  props: { size: 2.5, italic: true, className: 'opacity-40 mb-1', color: 'secondary' }
+                }]
               },
               {
-                type: 'Component',
-                componentType: 'ZineDisplay',
-                bind: 'page.imageLabel',
-                props: { 
-                  size: 6, 
-                  bold: true,
-                  tracking: -0.05,
-                  leading: 1,
-                  className: 'uppercase' 
-                }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineDisplay',
+                  bind: 'page.imageLabel',
+                  props: { 
+                    size: 6, 
+                    bold: true,
+                    tracking: -0.05,
+                    leading: 1,
+                    className: 'uppercase' 
+                  }
+                }]
               }
             ]
           },
@@ -167,7 +178,7 @@ export const FutureFocusSchema: TemplateSchema = {
                       componentType: 'ZineCaption',
                       bind: 'page.gallery[1].caption',
                       modular: { colStart: 1, colSpan: 4, rowStart: 5, rowSpan: 1 },
-                      props: { text: 'ARTWORK // 2026', className: 'text-center !italic opacity-60', color: 'secondary' }
+                      props: { className: 'text-center !italic opacity-60', color: 'secondary' }
                     }
                   ]
                 }

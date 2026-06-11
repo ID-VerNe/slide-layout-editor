@@ -23,15 +23,15 @@ export const CommunityHubSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 11, rowStart: 1, rowSpan: 24 },
         className: 'bg-white shadow-2xl px-16 relative z-10',
         children: [
-          { type: 'Component', componentType: 'ZineCaption', props: { text: 'BRAND LOGO', className: 'opacity-20', sans: true } },
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20', sans: true } }] },
           {
             type: 'Container',
             layout: 'flex',
             layoutProps: { direction: 'column', gap: 'spacing.lg' },
             children: [
-              { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 7, bold: true, tracking: -0.05, serif: true } },
-              { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, color: 'secondary', sans: true } },
-              { type: 'Component', componentType: 'ZineCaption', bind: 'page.imageLabel', props: { className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent', sans: true } }
+              { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 7, bold: true, tracking: -0.05, serif: true } }] },
+              { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { size: 2.25, color: 'secondary', sans: true } }] },
+              { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.imageLabel', props: { className: 'mt-4 px-8 py-3 bg-zine-accent/10 rounded-full', color: 'accent', sans: true } }] }
             ]
           },
           // 合作伙伴 (Partners)
@@ -41,7 +41,7 @@ export const CommunityHubSchema: TemplateSchema = {
             layoutProps: { direction: 'column', gap: 'spacing.md' },
             className: 'pt-12 border-t border-zine-accent/10 w-full',
             children: [
-              { type: 'Component', componentType: 'ZineCaption', bind: 'page.partnersTitle', props: { text: 'POWERED BY', size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase', sans: true } },
+              { type: 'Component', componentType: 'ZineCaption', bind: 'page.partnersTitle', props: { size: 1.25, tracking: 0.1, className: 'opacity-40 uppercase', sans: true } },
               {
                 type: 'Repeater',
                 bind: 'page.partners',

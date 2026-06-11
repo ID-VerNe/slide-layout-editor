@@ -141,6 +141,8 @@ export interface FieldSchema {
   type?: string; 
   icon?: string;
   props?: Record<string, any>;
+  defaultValue?: any;      // 字段默认值
+  placeholder?: string;    // 编辑器占位符提示
 }
 
 // --- 简历 2.0 全动态结构 ---

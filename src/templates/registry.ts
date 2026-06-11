@@ -1,6 +1,6 @@
 import React from 'react';
 import { AspectRatioType } from '../constants/layout';
-import { FieldSchema, FieldType } from '../types';
+import { FieldSchema, FieldType, PageData } from '../types';
 
 import { 
   BigStatementSchema, 
@@ -48,6 +48,7 @@ export interface TemplateConfig {
   schema?: TemplateSchema;
   fields: FieldSchema[];
   supportedRatios: AspectRatioType[];
+  defaultData?: Partial<PageData>;  // 模板级默认数据
 }
 
 const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
@@ -382,6 +383,12 @@ export const TEMPLATES: TemplateConfig[] = [
       { key: 'imageSubLabel', label: 'Issue Volume' },
       { key: 'actionText', label: 'Year/Edition' }
     ]),
+    defaultData: {
+      title: 'MAGAZINE TITLE',
+      subtitle: 'Issue Theme',
+      imageLabel: 'JANUARY',
+      actionText: '2026'
+    },
     supportedRatios: ['2:3']
   },
 
@@ -494,7 +501,14 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['Community', 'Social', 'Marketing'],
     component: () => null,
     schema: CommunityHubSchema,
-    fields: withBaseFields(['title', 'subtitle', 'imageLabel', 'partnersTitle' as any, 'partners' as any, 'testimonials' as any]),
+    fields: withBaseFields([
+      { key: 'title', label: 'Main Title' },
+      { key: 'subtitle', label: 'Subtitle' },
+      { key: 'imageLabel', label: 'Call-to-Action' },
+      { key: 'partnersTitle', label: 'Partners Section Title', defaultValue: 'POWERED BY', placeholder: 'e.g., Trusted by, Used by' },
+      { key: 'partners' as any },
+      { key: 'testimonials' as any }
+    ]),
     supportedRatios: ['16:9', '2:3']
   },
 

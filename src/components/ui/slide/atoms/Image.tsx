@@ -42,11 +42,21 @@ export const Image: React.FC<ImageProps> = ({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showLqip, setShowLqip] = useState(true);
+  const [imgRef, setImgRef] = useState<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setIsLoaded(false);
     setShowLqip(true);
   }, [url]);
+
+  // 修复：检查缓存图片是否已经加载完成
+  useEffect(() => {
+    if (imgRef && imgRef.complete && imgRef.naturalWidth > 0) {
+      setIsLoaded(true);
+      setTimeout(() => setShowLqip(false), 300);
+      onLoad?.();
+    }
+  }, [imgRef, onLoad]);
 
   const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     if (e.currentTarget.complete) {
@@ -99,6 +109,7 @@ export const Image: React.FC<ImageProps> = ({
             <source srcSet={variants.avif.srcSet} type="image/avif" sizes={sizes} />
           )}
           <img 
+            ref={setImgRef}
             src={url} 
             srcSet={srcSet}
             sizes={sizes}

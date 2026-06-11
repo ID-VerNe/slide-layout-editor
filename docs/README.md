@@ -19,12 +19,12 @@
 
 - [核心 Hooks 参考](reference/hooks.md)
 - [模板库参考 (Catalog)](reference/templates.md)
-- [全局常量与配置](reference/constants.md)
+- [全局常量与配置](reference/constants.md) — **包含编辑器预设系统**
 
 #### 🎨 UI 组件
 - [核心原子组件 (Atoms)](reference/ui/atoms.md)
 - [布局与块组件 (Blocks)](reference/ui/blocks.md)
-- [复合与功能组件 (Molecules)](reference/ui/molecules.md)
+- [复合与功能组件 (Molecules)](reference/ui/molecules.md) — **包含 PresetSelect 组件**
 
 #### 🛠️ 工具函数 (Utilities)
 - [原生桥接 (Native FS)](reference/utils/native-fs.md)
@@ -33,7 +33,7 @@
 
 #### ⚙️ 编辑器参考
 - [编辑器架构](reference/editor/overview.md)
-- [编辑器字段控件参考](reference/editor/fields.md)
+- [编辑器字段控件参考](reference/editor/fields.md) — **包含编辑器约束系统**
 
 ### 3. 指南与基础 (Guides)
 - [贡献者指南](guides/contributor.md)

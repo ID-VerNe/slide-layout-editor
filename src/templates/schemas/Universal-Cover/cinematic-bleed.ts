@@ -33,12 +33,12 @@ export const CinematicFullBleedSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0 pointer-events-none',
           children: [
-            // 顶置标题
+            // 顶置标题（独立容器）
             {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 4, rowSpan: 6 },
+              modular: { colStart: 0, colSpan: 24, rowStart: 4, rowSpan: 3 },
               className: 'pt-8',
               children: [
                 {
@@ -49,13 +49,20 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                 }
               ]
             },
-            // 底部 Subtitle
+            // 底部 Subtitle（独立容器）
             {
-              type: 'Component',
-              componentType: 'ZineCaption',
+              type: 'Container',
+              layout: 'flex',
+              layoutProps: { direction: 'column', align: 'center', justify: 'center' },
               modular: { colStart: 0, colSpan: 24, rowStart: 20, rowSpan: 1 },
-              bind: 'page.subtitle',
-              props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'text-white uppercase opacity-80', color: 'surface' }
+              children: [
+                {
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.subtitle',
+                  props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'text-white uppercase opacity-80', color: 'surface' }
+                }
+              ]
             }
           ]
         },
@@ -65,20 +72,29 @@ export const CinematicFullBleedSchema: TemplateSchema = {
           layoutProps: { columns: 24, rows: 24 },
           className: 'absolute inset-0 pointer-events-none',
           children: [
-            // 底部标题组
+            // Subtitle（独立容器）
             {
               type: 'Container',
               layout: 'flex',
-              layoutProps: { direction: 'column', align: 'center', justify: 'end' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 16, rowSpan: 6 },
-              className: 'pb-8',
+              layoutProps: { direction: 'column', align: 'center', justify: 'center' },
+              modular: { colStart: 0, colSpan: 24, rowStart: 16, rowSpan: 2 },
               children: [
                 {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase mb-4', color: 'surface' }
-                },
+                  props: { tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase', color: 'surface' }
+                }
+              ]
+            },
+            // 底部标题（独立容器）
+            {
+              type: 'Container',
+              layout: 'flex',
+              layoutProps: { direction: 'column', align: 'center', justify: 'end' },
+              modular: { colStart: 0, colSpan: 24, rowStart: 18, rowSpan: 4 },
+              className: 'pb-8',
+              children: [
                 {
                   type: 'Component',
                   componentType: 'ZineDisplay',

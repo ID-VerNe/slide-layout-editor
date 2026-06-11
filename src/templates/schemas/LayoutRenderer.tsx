@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { TemplateNode, ContainerNode, ComponentNode, BaseNode, RepeaterNode } from './types';
 import { getComponent } from './componentRegistry';
+import TemplateErrorBoundary from '../../components/ui/TemplateErrorBoundary';
 import { evaluator, EvaluationContext } from './expressionEvaluator';
 import { ZIndexResolverFn } from './zIndexResolver';
 import { PageData, ProjectTheme, TypographySettings, DesignSystem } from '../../types';
@@ -30,6 +31,31 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   const context: EvaluationContext = useMemo(() => parentContext || { page, theme }, [page, theme, parentContext]);
   const ds = useStore(s => s.designSystem);
 
+  // 包裹 ErrorBoundary 保护渲染过程
+  return (
+    <TemplateErrorBoundary>
+      <LayoutRendererInternal 
+        node={node}
+        page={page}
+        theme={theme}
+        typography={typography}
+        context={context}
+        ds={ds}
+        resolveZIndex={resolveZIndex}
+      />
+    </TemplateErrorBoundary>
+  );
+};
+
+const LayoutRendererInternal: React.FC<LayoutRendererProps & { ds: DesignSystem }> = ({
+  node,
+  page,
+  theme,
+  typography,
+  context,
+  ds,
+  resolveZIndex
+}) => {
   // 1. 处理可见性逻辑
   const { isActuallyVisible, conditionMet } = useMemo(() => {
     // A. 基础可见性 (所有节点通用 visibleWhen)
@@ -308,34 +334,30 @@ function renderComponent(
     }
   }
 
-  // 2. 合并基础样式与动态 Props 中的样式，防止 grid 定位被覆盖
-  //    使用 zIndex 解析器替代硬编码的默认值
-  const resolvedZIndex = resolveZIndex
-    ? resolveZIndex((node as any).zIndex)
-    : 1;
-  const mergedStyle = { 
-    zIndex: resolvedZIndex, 
-    ...style, 
-    ...(dynamicProps.style || {}) 
-  };
-
   const baseProps: any = {
     page: context.page,
     theme: context.theme,
     designSystem: ds,
     typography,
     className,
-    style: mergedStyle,
   };
 
   if (inferredFieldKey) {
     baseProps.fieldKey = inferredFieldKey;
   }
 
-  // 3. 从 dynamicProps 中移除 style，因为它已经合并到了 baseProps 中
+  // 2. 从 dynamicProps 中移除 style，因为它已经合并到了 baseProps 中
   const { style: _unused, ...remainingProps } = dynamicProps;
 
-  return <Component {...baseProps} {...remainingProps} />;
+  // 3. 计算最终 zIndex（优先级：resolveZIndex > style > dynamicProps.style）
+  const baseZIndex = resolveZIndex ? resolveZIndex((node as any).zIndex) : undefined;
+  const finalStyle: React.CSSProperties = {
+    ...style,
+    ...(dynamicProps.style || {}),
+    ...(baseZIndex !== undefined ? { zIndex: baseZIndex } : {}),
+  };
+
+  return <Component {...baseProps} {...remainingProps} style={finalStyle} />;
 }
 
 /**
@@ -347,14 +369,24 @@ function renderRepeater(
   ds: DesignSystem,
   typography?: TypographySettings,
   resolveZIndex?: ZIndexResolverFn
-): React.ReactElement {
+): React.ReactElement | null {
   const items = evaluator.evaluate(node.bind, context) || [];
   const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
   const itemVar = node.itemVariable || 'item';
 
+  // 空值安全检查
+  if (!Array.isArray(items)) {
+    console.warn(`[Repeater] Bind "${node.bind}" did not return an array, got:`, typeof items);
+    return null;
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <div className={className} style={style}>
-      {Array.isArray(items) && items.map((item, index) => {
+      {items.map((item, index) => {
         // 嵌套 Repeater 支持：$parent 引用外层 item，index 为当前索引
         const itemContext = { ...context, $parent: context[itemVar], [itemVar]: item, index };
         return (

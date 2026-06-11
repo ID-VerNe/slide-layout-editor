@@ -44,9 +44,10 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
 
   // 2. 智能厚度与长度逻辑
   // 我们支持通过 styleOverrides 直接控制 width 和 height
-  const resolvedThickness = isHorizontal 
-    ? (style.height || thickness)
-    : (style.width || thickness);
+  // 修复：优先读取 styleOverrides.thickness，并自动添加 px 单位
+  const overrideThickness = fieldKey && page.styleOverrides?.[fieldKey]?.thickness;
+  const thicknessValue = overrideThickness || thickness;
+  const resolvedThickness = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
 
   const finalStyle: React.CSSProperties = {
     ...style,
@@ -65,7 +66,7 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
     opacity: style.opacity ?? 1,
     
     // 强制执行对齐方式 (由 LayoutRenderer 或 styleOverrides 传入)
-    // grid 布局下，alignSelf 控制垂直方向，justifySelf 控制水平方向
+    // 修复：Flexbox(column) 中需要交换 alignSelf 和 justifySelf
     alignSelf: style.alignSelf || (isHorizontal ? 'center' : 'stretch'),
     justifySelf: style.justifySelf || (isHorizontal ? 'stretch' : 'center'),
     

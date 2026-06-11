@@ -87,10 +87,15 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
   
+  // 检查是否有用户手动设置的对齐（通过 styleOverrides）
+  const hasManualAlignment = fieldKey && page.styleOverrides?.[fieldKey] && 
+    (page.styleOverrides[fieldKey].alignSelf !== undefined || 
+     page.styleOverrides[fieldKey].justifySelf !== undefined);
+
   const containerStyle: React.CSSProperties = {
     // 默认行为：如果没有 align/justify，则铺满容器
-    width: style.width || (style.justifySelf ? undefined : '100%'),
-    height: style.height || (style.alignSelf ? undefined : '100%'),
+    width: style.width || (hasManualAlignment ? undefined : '100%'),
+    height: style.height || (hasManualAlignment ? undefined : '100%'),
     ...style,
     borderRadius: rounded !== undefined 
       ? (typeof rounded === 'number' ? `${rounded}px` : rounded) 

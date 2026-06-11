@@ -47,14 +47,22 @@ export const AppleBentoGridSchema: TemplateSchema = {
         className: 'bg-zine-primary rounded-3xl p-8 text-center',
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            props: { text: 'KEY METRIC', color: 'accent', className: 'mb-4 opacity-50' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.metricLabel',
+              props: { color: 'accent', className: 'mb-4 opacity-50' }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineDisplay',
-            props: { text: '99%', size: 7.5, className: 'text-white' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineDisplay',
+              bind: 'page.metricValue',
+              props: { size: 7.5, className: 'text-white' }
+            }]
           }
         ]
       },
@@ -83,16 +91,22 @@ export const AppleBentoGridSchema: TemplateSchema = {
         className: 'bg-zine-surface/50 border border-zine-surface rounded-3xl px-12',
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineBody',
-            bind: 'page.paragraph',
-            props: { className: 'max-w-md', color: 'secondary' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineBody',
+              bind: 'page.paragraph',
+              props: { className: 'max-w-md', color: 'secondary' }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.subtitle',
-            props: { tracking: 0.5, bold: true, sans: true, color: 'primary' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              props: { tracking: 0.5, bold: true, sans: true, color: 'primary' }
+            }]
           }
         ]
       }

@@ -37,17 +37,27 @@ const AbsoluteLayoutPropsSchema = z.object({
   zIndex: z.number().optional(),
 });
 
+const ModularLayoutPropsSchema = z.object({
+  colStart: z.number().min(1).max(24).optional(),
+  colSpan: z.number().min(1).max(24).optional(),
+  rowStart: z.number().min(1).max(24).optional(),
+  rowSpan: z.number().min(1).max(24).optional(),
+  align: z.enum(['start', 'center', 'end']).optional(),
+  justify: z.enum(['start', 'center', 'end']).optional(),
+});
+
 // 使用 z.lazy 处理递归结构
 export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() => 
   z.discriminatedUnion('type', [
     BaseNodeSchema.extend({
       type: z.literal('Container'),
-      layout: z.enum(['flex', 'grid', 'absolute', 'modular']),
+      layout: z.enum(['flex', 'grid', 'absolute', 'modular']).optional(),
       layoutProps: z.union([
         FlexLayoutPropsSchema,
         GridLayoutPropsSchema,
         AbsoluteLayoutPropsSchema
       ]).optional(),
+      modular: ModularLayoutPropsSchema.optional(),
       children: z.array(TemplateNodeSchema)
     }),
     BaseNodeSchema.extend({
@@ -80,7 +90,7 @@ export const TemplateSchemaValidator = z.object({
   id: z.string(),
   name: z.string(),
   category: z.string(),
-  supportedRatios: z.array(z.string()),
+  supportedRatios: z.array(z.string()).min(1, "supportedRatios 不能为空"),
   root: TemplateNodeSchema,
   defaults: z.record(z.string(), z.any()).optional(),
   meta: z.object({
@@ -92,3 +102,6 @@ export const TemplateSchemaValidator = z.object({
 export function validateTemplate(data: any) {
   return TemplateSchemaValidator.safeParse(data);
 }
+
+// 别名导出以兼容测试
+export const validateTemplateSchema = validateTemplate;

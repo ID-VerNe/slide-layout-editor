@@ -92,6 +92,18 @@ export default function EditorPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, pages, projectTitle, currentFilePath, theme, isLoaded, projectId]);
 
+  // 自动保存：每 3 秒检查并保存到 IndexedDB
+  useEffect(() => {
+    if (!isLoaded || !projectId || !hasUnsavedChanges) return;
+    
+    const autoSaveTimer = setTimeout(() => {
+      console.log('[AutoSave] Saving to IndexedDB...');
+      saveToDB(previewRef, false);
+    }, 3000);
+    
+    return () => clearTimeout(autoSaveTimer);
+  }, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
+
   useEffect(() => {
     if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
       setModalMode('create');
@@ -110,12 +122,27 @@ export default function EditorPage() {
         const currentConfig = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
         setSelectedOrientation(currentConfig.orientation);
         setSelectedRatio(currentPage.aspectRatio || '16:9');
-        setCreationStage('template');
-      } else { setCreationStage('orientation'); }
+      }
       setShowLayoutModal(true);
     };
+    
+    const handleShowExportModal = () => {
+      setShowExportModal(true);
+    };
+    
+    const handleTriggerImport = () => {
+      fileInputRef.current?.click();
+    };
+    
     window.addEventListener('open-layout-browser', handleOpenBrowser);
-    return () => window.removeEventListener('open-layout-browser', handleOpenBrowser);
+    window.addEventListener('show-export-modal', handleShowExportModal);
+    window.addEventListener('trigger-import', handleTriggerImport);
+    
+    return () => {
+      window.removeEventListener('open-layout-browser', handleOpenBrowser);
+      window.removeEventListener('show-export-modal', handleShowExportModal);
+      window.removeEventListener('trigger-import', handleTriggerImport);
+    };
   }, [currentPage]);
 
   useEffect(() => {
@@ -136,7 +163,9 @@ export default function EditorPage() {
         }
         return await toPng(el as HTMLElement, { pixelRatio: 0.2, quality: 0.5 });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[Export] Failed to capture thumbnail:', e);
+    }
     return null;
   };
 

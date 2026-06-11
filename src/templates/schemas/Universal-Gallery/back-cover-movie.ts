@@ -46,7 +46,6 @@ export const BackCoverMovieSchema: TemplateSchema = {
             componentType: 'ZineDisplay',
             bind: 'page.title',
             props: {
-              text: 'THANKS FOR WATCHING',
               className: 'uppercase !text-white/80',
               tracking: 0.5,
               size: 4,
@@ -60,7 +59,6 @@ export const BackCoverMovieSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
             props: {
-              text: 'SEE YOU NEXT YEAR',
               className: 'uppercase opacity-60',
               tracking: 0.8,
               sans: true,

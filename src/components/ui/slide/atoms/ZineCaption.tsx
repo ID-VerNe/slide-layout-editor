@@ -50,11 +50,36 @@ export const ZineCaption: React.FC<ZineCaptionProps> = ({
   const content = text || (fieldKey ? (page as any)[fieldKey] : undefined);
   if (!content) return null;
 
-  const finalStyle: React.CSSProperties = {
-    // 默认不占据 100%（针对小标注，对齐生效）
-    width: style.width || (style.justifySelf ? undefined : '100%'),
-    ...style,
-  };
+  // 检查是否有用户手动设置的 Grid 对齐（通过 styleOverrides）
+  const hasManualAlignment = fieldKey && page.styleOverrides?.[fieldKey] && 
+    (page.styleOverrides[fieldKey].alignSelf !== undefined || 
+     page.styleOverrides[fieldKey].justifySelf !== undefined);
+
+  // 修复：父容器是 Flexbox(column) 时，需要交换对齐属性
+  // Flexbox(column): alignSelf=水平(交叉轴), justifySelf不生效
+  // 9-Point UI 语义: alignSelf=垂直, justifySelf=水平
+  const finalStyle: React.CSSProperties = { ...style };
+  
+  if (hasManualAlignment && fieldKey) {
+    const overrides = page.styleOverrides[fieldKey];
+    finalStyle.alignSelf = overrides.justifySelf;  // 水平位置
+    
+    // 垂直位置通过 margin 实现
+    if (overrides.alignSelf === 'start') {
+      finalStyle.marginTop = '0';
+      finalStyle.marginBottom = 'auto';
+    } else if (overrides.alignSelf === 'end') {
+      finalStyle.marginTop = 'auto';
+      finalStyle.marginBottom = '0';
+    } else if (overrides.alignSelf === 'center') {
+      finalStyle.marginTop = 'auto';
+      finalStyle.marginBottom = 'auto';
+    }
+    
+    delete finalStyle.justifySelf;
+  }
+  
+  finalStyle.width = style.width || (hasManualAlignment ? undefined : '100%');
 
   return (
     <Text

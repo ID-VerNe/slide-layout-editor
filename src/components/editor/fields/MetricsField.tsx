@@ -3,7 +3,8 @@ import { PageData, MetricData } from '../../../types';
 import { Activity, Plus, X, Type } from 'lucide-react';
 import { Input } from '../../ui/Base';
 import { FieldWrapper } from './FieldWrapper';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 
 interface FieldProps {
   page: PageData;
@@ -31,15 +32,14 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     updateMetrics(metrics.filter((_, i) => i !== idx));
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.metrics?.fontSize;
+  const updateFontSize = (value: number) => {
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
         metrics: {
           ...(page.styleOverrides?.metrics || {}),
-          fontSize: Math.max(12, (currentSize || 72) + delta)
+          fontSize: value
         }
       }
     });
@@ -49,11 +49,13 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="metrics" label="Big Data Metrics" icon={Activity}>
       <div className="space-y-4">
         {/* 全局控制 metrics 大小 */}
-        <div className="relative group/field mb-2 bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
-           <span className="text-[9px] font-black uppercase text-slate-400 ml-2">Global Metrics Size</span>
-           <div className="scale-90 origin-right">
-             <FieldToolbar onIncrease={() => updateFontSize(4)} onDecrease={() => updateFontSize(-4)} />
-           </div>
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+           <PresetSelect
+             value={page.styleOverrides?.metrics?.fontSize || 72}
+             options={FONT_SIZE_PRESETS}
+             onChange={updateFontSize}
+             label="Global Metrics Size"
+           />
         </div>
 
         {metrics.map((m, idx) => (

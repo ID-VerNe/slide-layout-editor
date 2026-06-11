@@ -49,11 +49,13 @@ export function useProject(projectId: string | undefined, templateId: string | n
   const redo = useStore(s => s.redo);
 
   const handleExportProject = useCallback(() => {
-    console.log('Export project');
+    // 触发导出模态框
+    window.dispatchEvent(new CustomEvent('show-export-modal'));
   }, []);
 
   const handleImportProject = useCallback(() => {
-    console.log('Import project');
+    // 触发文件选择器
+    window.dispatchEvent(new CustomEvent('trigger-import'));
   }, []);
 
   const previewRefLocal = useRef<HTMLDivElement | null>(null);
@@ -107,7 +109,9 @@ export function useProject(projectId: string | undefined, templateId: string | n
             localStorage.setItem('magazine_recent_projects', JSON.stringify(index));
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('[Thumbnail] Failed to generate or save thumbnail:', e);
+      }
     };
 
     const initialTimer = setTimeout(generateThumbnail, 30000);

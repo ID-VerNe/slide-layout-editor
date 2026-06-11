@@ -19,8 +19,9 @@ export const ComponentMosaicSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineCaption',
+        bind: 'page.logo',
         modular: { colStart: 1, colSpan: 6, rowStart: 2, rowSpan: 1 },
-        props: { text: 'BRAND LOGO', bold: true, tracking: 0.1, className: 'opacity-20 uppercase', sans: true }
+        props: { bold: true, tracking: 0.1, className: 'opacity-20 uppercase', sans: true }
       },
 
       // 2. 左侧文字区 (Cols 1-10)
@@ -31,22 +32,31 @@ export const ComponentMosaicSchema: TemplateSchema = {
         modular: { colStart: 1, colSpan: 10, rowStart: 1, rowSpan: 24 },
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineDisplay',
-            bind: 'page.title',
-            props: { size: 8, bold: true, tracking: -0.05, serif: true }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineDisplay',
+              bind: 'page.title',
+              props: { size: 8, bold: true, tracking: -0.05, serif: true }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.subtitle',
-            props: { color: 'secondary', sans: true, className: 'max-w-md' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              props: { color: 'secondary', sans: true, className: 'max-w-md' }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.imageLabel',
-            props: { tracking: 0.4, color: 'accent', sans: true, className: 'opacity-40 uppercase' }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.imageLabel',
+              props: { tracking: 0.4, color: 'accent', sans: true, className: 'opacity-40 uppercase' }
+            }]
           }
         ]
       },
@@ -74,7 +84,8 @@ export const ComponentMosaicSchema: TemplateSchema = {
                     {
                       type: 'Component',
                       componentType: 'ZineCaption',
-                      props: { text: 'ICON', size: 1, className: 'opacity-20', sans: true }
+                      bind: 'item.label',
+                      props: { size: 1, className: 'opacity-20', sans: true }
                     }
                   ]
                 }

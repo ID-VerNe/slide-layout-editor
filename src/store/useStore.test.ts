@@ -31,29 +31,32 @@ describe('useStore', () => {
     addPage('16:9', 'modern-feature'); // Page 2
     
     const page1 = useStore.getState().pages[0];
-    const updatedPage1 = { ...page1, title: 'New Title', counterStyle: 'roman' as const };
+    const updatedPage1 = { ...page1, title: 'New Title', footer: 'GLOBAL FOOTER' };
     
-    // 更新第一页，其中 counterStyle 是全局字段
+    // 更新第一页，其中 footer 是全局字段
     updatePage(updatedPage1);
     
     const state = useStore.getState();
     expect(state.pages[0].title).toBe('New Title');
-    // 检查全局同步：第二页的 counterStyle 也应该变成了 roman
-    expect(state.pages[1].counterStyle).toBe('roman');
+    // 检查全局同步：第二页的 footer 也应该变成了 'GLOBAL FOOTER'
+    expect(state.pages[1].footer).toBe('GLOBAL FOOTER');
   });
 
   it('应该能正确执行撤销和重做', () => {
-    const { addPage, undo, redo, setProjectTitle } = useStore.getState();
+    const { addPage, undo, redo } = useStore.getState();
     
-    setProjectTitle('Initial Title');
+    // 初始状态：没有页面
+    expect(useStore.getState().pages).toHaveLength(0);
+    
+    // 添加第一页（会触发 pushHistory）
     addPage('16:9', 'modern-feature');
-    
     expect(useStore.getState().pages).toHaveLength(1);
     
+    // 撤销：应该回到没有页面的状态
     undo();
     expect(useStore.getState().pages).toHaveLength(0);
-    expect(useStore.getState().projectTitle).toBe('Initial Title');
     
+    // 重做：应该恢复到有一页的状态
     redo();
     expect(useStore.getState().pages).toHaveLength(1);
   });

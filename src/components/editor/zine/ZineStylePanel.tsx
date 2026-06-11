@@ -43,6 +43,20 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
     }, true);
   };
 
+  // 批量更新多个属性
+  const updateOverrides = (updates: Record<string, any>) => {
+    onUpdate({
+      ...page,
+      styleOverrides: {
+        ...(page.styleOverrides || {}),
+        [fieldKey]: {
+          ...overrides,
+          ...updates
+        }
+      }
+    }, true);
+  };
+
   const resetToDefault = () => {
     const nextOverrides = { ...(page.styleOverrides || {}) };
     delete nextOverrides[fieldKey];
@@ -65,10 +79,11 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
   
   // 对齐属性 (9点定位支持)
+  // 注意：这里直接读取 overrides，而不是从 style 读取（style 可能被过滤）
   const currentAlign = overrides.alignSelf;
   const currentJustify = overrides.justifySelf;
   const currentTextAlign = overrides.align || 'left';
-
+  
   const hasOverrides = Object.keys(overrides).length > 0;
 
   return (
@@ -187,7 +202,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
         ))}
       </div>
 
-      {/* 3. 全球 9点定位控制 (9-Point Grid Docking) */}
+      {/* 3. 9宫格定位 (9-Point Docking) - 改进为 3x3 网格 */}
       <div className="space-y-3 pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -207,38 +222,67 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
           )}
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
-          {/* 垂直对齐 (Top/Middle/Bottom) */}
-          <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
-            <button 
-              onClick={() => updateOverride('alignSelf', 'start')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'start' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >TOP</button>
-            <button 
-              onClick={() => updateOverride('alignSelf', 'center')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'center' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >MID</button>
-            <button 
-              onClick={() => updateOverride('alignSelf', 'end')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentAlign === 'end' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >BOT</button>
-          </div>
+        <div className="grid grid-cols-3 gap-1">
+          {/* 
+            注意：Flexbox 和 Grid 的对齐语义不同
+            - Grid: alignSelf=垂直, justifySelf=水平
+            - Flexbox(column): alignSelf=水平, justifySelf不生效
+            
+            为了用户体验一致，我们统一使用：
+            - alignSelf 控制垂直位置（上中下）
+            - justifySelf 控制水平位置（左中右）
+          */}
           
-          {/* 水平对齐 (Left/Center/Right) */}
-          <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
-            <button 
-              onClick={() => updateOverride('justifySelf', 'start')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'start' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >LFT</button>
-            <button 
-              onClick={() => updateOverride('justifySelf', 'center')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'center' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >CTR</button>
-            <button 
-              onClick={() => updateOverride('justifySelf', 'end')}
-              className={`flex-1 py-1 text-[8px] font-black rounded transition-all ${currentJustify === 'end' ? 'bg-white shadow-sm text-zine-accent' : 'opacity-40'}`}
-            >RGT</button>
-          </div>
+          {/* 第一行：Top Left, Top Center, Top Right */}
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'start', justifySelf: 'start' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'start' && currentJustify === 'start' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Top Left (左上)"
+          >↖</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'start', justifySelf: 'center' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'start' && currentJustify === 'center' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Top Center (上中)"
+          >↑</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'start', justifySelf: 'end' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'start' && currentJustify === 'end' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Top Right (右上)"
+          >↗</button>
+
+          {/* 第二行：Mid Left, Center, Mid Right */}
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'center', justifySelf: 'start' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'center' && currentJustify === 'start' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Mid Left (左中)"
+          >←</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'center', justifySelf: 'center' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'center' && currentJustify === 'center' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Center (正中)"
+          >⊙</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'center', justifySelf: 'end' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'center' && currentJustify === 'end' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Mid Right (右中)"
+          >→</button>
+
+          {/* 第三行：Bottom Left, Bottom Center, Bottom Right */}
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'end', justifySelf: 'start' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'end' && currentJustify === 'start' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Bottom Left (左下)"
+          >↙</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'end', justifySelf: 'center' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'end' && currentJustify === 'center' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Bottom Center (下中)"
+          >↓</button>
+          <button
+            onClick={() => updateOverrides({ alignSelf: 'end', justifySelf: 'end' })}
+            className={`h-10 flex items-center justify-center text-lg font-bold border rounded transition-all ${currentAlign === 'end' && currentJustify === 'end' ? 'bg-zine-accent text-white border-zine-accent' : 'bg-white border-slate-200 hover:border-zine-accent hover:bg-slate-50'}`}
+            title="Bottom Right (右下)"
+          >↘</button>
         </div>
       </div>
 

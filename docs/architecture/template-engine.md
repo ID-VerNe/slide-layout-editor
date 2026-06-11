@@ -226,9 +226,12 @@ opacity, mixBlendMode, transform, transition, transitionDuration,
 width, height, maxWidth, maxHeight, minWidth, minHeight,
 aspectRatio, overflow, backgroundColor, borderColor, borderWidth,
 borderTopWidth, borderBottomWidth, borderLeftWidth, borderRightWidth,
-borderStyle, textAlign, fontFamily, fontSize, fontWeight, lineHeight,
-letterSpacing, textTransform, color, verticalAlign, visibility, fontStyle
+borderStyle, borderRadius, textAlign, fontFamily, fontSize, fontWeight,
+lineHeight, letterSpacing, textTransform, color, verticalAlign,
+visibility, fontStyle
 ```
+
+**注意**: `borderRadius` 已被允许，以便配合 `ZineMedia` 的圆角特性和 `ZineDivider` 的胶囊形状效果。
 
 #### 智能样式合并 (Style Merging)
 在 `renderComponent` 中，渲染引擎执行 **三级深度合并** 以保证定位优先级：

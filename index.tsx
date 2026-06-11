@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './src/utils/logger';
 import App from './src/App';
 
 console.log('[Index] Script Execution Start');

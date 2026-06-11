@@ -4,7 +4,8 @@ import { Eye, EyeOff, MessageSquare, Plus, X, User } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Label, Input, TextArea } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 
 interface FieldProps {
   page: PageData;
@@ -45,16 +46,14 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
     });
   };
 
-  const updateFontSize = (field: 'testimonialName' | 'testimonialQuote', delta: number) => {
-    const defaultSize = field === 'testimonialName' ? 14 : 12;
-    const currentSize = page.styleOverrides?.[field]?.fontSize;
+  const updateFontSize = (field: 'testimonialName' | 'testimonialQuote', value: number) => {
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
         [field]: {
           ...(page.styleOverrides?.[field] || {}),
-          fontSize: Math.max(8, (currentSize || defaultSize) + delta)
+          fontSize: value
         }
       }
     });
@@ -118,13 +117,12 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
 
             <div className="space-y-3">
               {/* Name Field with Toolbar */}
-              <div className="relative group/field">
-                <FieldToolbar 
-                  onIncrease={() => updateFontSize('testimonialName', 1)} 
-                  onDecrease={() => updateFontSize('testimonialName', -1)}
-                  customFonts={customFonts}
-                  currentFont={(page.styleOverrides as any)?.testimonialName?.fontFamily}
-                  onFontChange={(font) => handleFontChange('testimonialName', font)}
+              <div className="relative">
+                <PresetSelect
+                  value={page.styleOverrides?.testimonialName?.fontSize || 14}
+                  options={FONT_SIZE_PRESETS}
+                  onChange={(val) => updateFontSize('testimonialName', val)}
+                  label="Name Size"
                 />
                 <Input 
                   placeholder="User Name" 
@@ -136,13 +134,12 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
               </div>
 
               {/* Quote Field with Toolbar */}
-              <div className="relative group/field">
-                <FieldToolbar 
-                  onIncrease={() => updateFontSize('testimonialQuote', 1)} 
-                  onDecrease={() => updateFontSize('testimonialQuote', -1)}
-                  customFonts={customFonts}
-                  currentFont={(page.styleOverrides as any)?.testimonialQuote?.fontFamily}
-                  onFontChange={(font) => handleFontChange('testimonialQuote', font)}
+              <div className="relative">
+                <PresetSelect
+                  value={page.styleOverrides?.testimonialQuote?.fontSize || 12}
+                  options={FONT_SIZE_PRESETS}
+                  onChange={(val) => updateFontSize('testimonialQuote', val)}
+                  label="Quote Size"
                 />
                 <TextArea 
                   placeholder="Testimonial Quote" 

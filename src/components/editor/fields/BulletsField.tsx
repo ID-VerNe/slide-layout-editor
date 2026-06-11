@@ -2,7 +2,8 @@ import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { List, Plus, X } from 'lucide-react';
 import { DebouncedInput } from '../../ui/DebouncedBase';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 import { FieldWrapper } from './FieldWrapper';
 
 interface FieldProps {
@@ -32,15 +33,14 @@ export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     onUpdate({ ...page, bullets: bullets.filter((_, i) => i !== idx) });
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.bullets?.fontSize;
+  const updateFontSize = (value: number) => {
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
         bullets: {
           ...(page.styleOverrides?.bullets || {}),
-          fontSize: Math.max(8, (currentSize || 10) + delta)
+          fontSize: value
         }
       }
     });
@@ -55,13 +55,14 @@ export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
       icon={List}
     >
       <div className="space-y-2 mt-1">
+        <PresetSelect
+          value={page.styleOverrides?.bullets?.fontSize || 10}
+          options={FONT_SIZE_PRESETS}
+          onChange={updateFontSize}
+          label="Size"
+        />
         {bullets.map((bullet, idx) => (
           <div key={idx} className="relative group/field flex items-center gap-2">
-            {/* 核心回归：只有鼠标移入这个 Item，才会在它的右上角浮现调节按钮 */}
-            <FieldToolbar 
-              onIncrease={() => updateFontSize(1)} 
-              onDecrease={() => updateFontSize(-1)}
-            />
             <DebouncedInput 
               value={bullet} 
               onChange={(val) => handleBulletChange(idx, val)} 

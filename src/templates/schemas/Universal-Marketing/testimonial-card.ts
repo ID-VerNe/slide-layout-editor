@@ -30,15 +30,21 @@ export const TestimonialCardSchema: TemplateSchema = {
             modular: { colStart: 1, colSpan: 6, rowStart: 1, rowSpan: 18 },
             children: [
               {
-                type: 'Component',
-                componentType: 'ZineMedia',
-                props: { className: 'aspect-square rounded-[3rem] border-[6px] border-white shadow-xl' }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineMedia',
+                  props: { className: 'aspect-square rounded-[3rem] border-[6px] border-white shadow-xl' }
+                }]
               },
               {
-                type: 'Component',
-                componentType: 'ZineCaption',
-                bind: 'page.imageLabel',
-                props: { size: 1.25, tracking: 0.1, color: 'secondary', sans: true, className: 'opacity-40 uppercase' }
+                type: 'Container',
+                children: [{
+                  type: 'Component',
+                  componentType: 'ZineCaption',
+                  bind: 'page.imageLabel',
+                  props: { size: 1.25, tracking: 0.1, color: 'secondary', sans: true, className: 'opacity-40 uppercase' }
+                }]
               }
             ]
           },
@@ -54,8 +60,8 @@ export const TestimonialCardSchema: TemplateSchema = {
                 layout: 'flex',
                 layoutProps: { direction: 'row', align: 'center', gap: 'spacing.md' },
                 children: [
-                  { type: 'Component', componentType: 'ZineCaption', props: { text: 'LOGO', className: 'opacity-20', sans: true } },
-                  { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 4, bold: true, tracking: -0.025, serif: true } }
+                  { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20', sans: true } }] },
+                  { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 4, bold: true, tracking: -0.025, serif: true } }] }
                 ]
               },
               {

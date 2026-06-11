@@ -3,7 +3,11 @@ import { PageData, ProjectTheme } from '../../types';
 export interface EvaluationContext {
   page: PageData;
   theme: ProjectTheme;
+  [key: string]: any;
 }
+
+const MAX_EXPRESSION_DEPTH = 50;
+const MAX_OBJECT_DEPTH = 20;
 
 /**
  * ExpressionEvaluator - 处理 JSON 模板中的数据绑定表达式
@@ -38,6 +42,81 @@ export class ExpressionEvaluator {
       return result ? this.evaluatePart(trueVal, context) : this.evaluatePart(falseVal, context);
     }
 
+    // 处理算术运算符 (+)
+    if (cleanExpr.includes(' + ')) {
+      const parts = cleanExpr.split(' + ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return Number(left) + Number(right);
+    }
+
+    // 处理算术运算符 (-)
+    if (cleanExpr.includes(' - ')) {
+      const parts = cleanExpr.split(' - ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return Number(left) - Number(right);
+    }
+
+    // 处理算术运算符 (*)
+    if (cleanExpr.includes(' * ')) {
+      const parts = cleanExpr.split(' * ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return Number(left) * Number(right);
+    }
+
+    // 处理算术运算符 (/)
+    if (cleanExpr.includes(' / ')) {
+      const parts = cleanExpr.split(' / ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return Number(left) / Number(right);
+    }
+
+    // 处理逻辑非 (!)
+    if (cleanExpr.startsWith('!')) {
+      const operand = cleanExpr.slice(1).trim();
+      const value = this.evaluatePart(operand, context);
+      return !value;
+    }
+
+    // 处理逻辑运算符 (&&)
+    if (cleanExpr.includes(' && ')) {
+      const parts = cleanExpr.split(' && ').map(p => p.trim());
+      for (const part of parts) {
+        const value = this.evaluate(part, context);
+        if (!value) return false;
+      }
+      return true;
+    }
+
+    // 处理逻辑运算符 (||)
+    if (cleanExpr.includes(' || ')) {
+      const parts = cleanExpr.split(' || ').map(p => p.trim());
+      for (const part of parts) {
+        const value = this.evaluate(part, context);
+        if (value) return value;
+      }
+      return false;
+    }
+
+    // 处理比较运算符 (>)
+    if (cleanExpr.includes(' > ')) {
+      const parts = cleanExpr.split(' > ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return left > right;
+    }
+
+    // 处理比较运算符 (<)
+    if (cleanExpr.includes(' < ')) {
+      const parts = cleanExpr.split(' < ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return left < right;
+    }
+
     // 处理等于 (===)
     if (cleanExpr.includes(' === ')) {
       const parts = cleanExpr.split(' === ').map(p => p.trim());
@@ -46,12 +125,27 @@ export class ExpressionEvaluator {
       return left === right;
     }
 
-    // 处理空值合并 (??) 或 逻辑或 (||)
-    if (cleanExpr.includes('??') || cleanExpr.includes('||')) {
-      const parts = cleanExpr.split(/\?\?|\|\|/).map(p => p.trim());
+    // 处理不等于 (!==)
+    if (cleanExpr.includes(' !== ')) {
+      const parts = cleanExpr.split(' !== ').map(p => p.trim());
+      const left = this.evaluatePart(parts[0], context);
+      const right = this.evaluatePart(parts[1], context);
+      return left !== right;
+    }
+
+    // 处理 typeof
+    if (cleanExpr.startsWith('typeof ')) {
+      const operand = cleanExpr.slice(7).trim();
+      const value = this.evaluatePart(operand, context);
+      return typeof value;
+    }
+
+    // 处理空值合并 (??)
+    if (cleanExpr.includes('??')) {
+      const parts = cleanExpr.split('??').map(p => p.trim());
       for (const part of parts) {
         const value = this.evaluatePart(part, context);
-        if (value !== null && value !== undefined && value !== '') {
+        if (value !== null && value !== undefined) {
           return value;
         }
       }
@@ -64,7 +158,12 @@ export class ExpressionEvaluator {
   /**
    * 计算表达式的一个部分 (不含 ??)
    */
-  private evaluatePart(part: string, context: EvaluationContext): any {
+  private evaluatePart(part: string, context: EvaluationContext, depth = 0): any {
+    if (depth > MAX_EXPRESSION_DEPTH) {
+      console.error(`Expression too deep (>${MAX_EXPRESSION_DEPTH}): ${part}`);
+      return undefined;
+    }
+    
     // 处理字符串字面量
     if ((part.startsWith("'") && part.endsWith("'")) || (part.startsWith('"') && part.endsWith('"'))) {
       return part.slice(1, -1);
@@ -81,6 +180,12 @@ export class ExpressionEvaluator {
     // 将 ?. 替换为特殊标记后统一处理
     const normalized = part.replace(/\?\./g, '.?.');
     const segments = normalized.split(/\.(?!\?)|\[|\]/).filter(Boolean);
+    
+    // 防止路径过深
+    if (segments.length > MAX_EXPRESSION_DEPTH) {
+      console.error(`Expression path too deep (>${MAX_EXPRESSION_DEPTH} segments)`);
+      return undefined;
+    }
     
     let current: any = context;
     let isOptional = false;
@@ -117,29 +222,50 @@ export class ExpressionEvaluator {
   /**
    * 递归处理对象中的所有表达式
    */
-  evaluateObject(obj: any, context: EvaluationContext): any {
+  evaluateObject(obj: any, context: EvaluationContext, depth = 0): any {
+    if (depth > MAX_OBJECT_DEPTH) {
+      console.warn(`Object evaluation depth exceeded (>${MAX_OBJECT_DEPTH}), returning as-is`);
+      return obj;
+    }
+    
     if (obj === null || obj === undefined) return obj;
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.evaluateObject(item, context));
+      return obj.map(item => this.evaluateObject(item, context, depth + 1));
     }
 
     if (typeof obj === 'object') {
       const result: any = {};
       for (const key in obj) {
-        result[key] = this.evaluateObject(obj[key], context);
+        result[key] = this.evaluateObject(obj[key], context, depth + 1);
       }
       return result;
     }
 
-    if (this.hasExpression(obj)) {
-      // 如果整个字符串就是一个表达式 e.g. "{page.logoSize}", 尝试保持原始类型
-      if (obj.startsWith('{') && obj.endsWith('}') && obj.indexOf('{', 1) === -1) {
-        const result = this.evaluate(obj, context);
-        // 类型矫正：布尔值保持布尔，避免下游组件收到意外类型
-        return result;
+    if (typeof obj === 'string') {
+      if (this.hasExpression(obj)) {
+        // 如果整个字符串就是一个表达式 e.g. "{page.logoSize}", 尝试保持原始类型
+        if (obj.startsWith('{') && obj.endsWith('}') && obj.indexOf('{', 1) === -1) {
+          const result = this.evaluate(obj, context);
+          return result;
+        }
+        return this.interpolate(obj, context);
       }
-      return this.interpolate(obj, context);
+      // 判断是否为表达式（包含运算符或数据路径）
+      const hasOperator = obj.includes('?') || obj.includes('&&') || obj.includes('||') || 
+                          obj.includes('===') || obj.includes('!==') || 
+                          obj.includes(' > ') || obj.includes(' < ');
+      const hasContextPath = obj.includes('.');
+      
+      if (hasOperator || hasContextPath) {
+        const firstSegment = obj.split(/[.?\s(]/, 1)[0];
+        // 如果第一个 segment 在 context 中，或者包含运算符，就求值
+        if ((firstSegment && context.hasOwnProperty(firstSegment)) || hasOperator) {
+          return this.evaluate(obj, context);
+        }
+      }
+      // 纯字面量字符串，直接返回
+      return obj;
     }
 
     return obj;

@@ -4,7 +4,8 @@ import { Eye, EyeOff, Layout, Plus, X, SlidersHorizontal, RotateCcw, HelpCircle 
 import { LUCIDE_ICON_MAP } from '../../../constants/icons';
 import { Label, Input, TextArea, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 
 interface FieldProps {
   page: PageData;
@@ -74,16 +75,14 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     });
   };
 
-  const updateFontSize = (field: 'featureTitle' | 'featureDesc', delta: number) => {
-    const defaultSize = field === 'featureTitle' ? 14 : 11;
-    const currentSize = page.styleOverrides?.[field]?.fontSize;
+  const updateFontSize = (field: 'featureTitle' | 'featureDesc', value: number) => {
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
         [field]: {
           ...(page.styleOverrides?.[field] || {}),
-          fontSize: Math.max(8, (currentSize || defaultSize) + delta)
+          fontSize: value
         }
       }
     });
@@ -185,13 +184,12 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
               )}
               
               <div className="space-y-3">
-                <div className="relative group/field">
-                  <FieldToolbar 
-                    onIncrease={() => updateFontSize('featureTitle', 1)} 
-                    onDecrease={() => updateFontSize('featureTitle', -1)}
-                    customFonts={customFonts}
-                    currentFont={(page.styleOverrides as any)?.featureTitle?.fontFamily}
-                    onFontChange={(font) => handleFontChange('featureTitle', font)}
+                <div className="space-y-2">
+                  <PresetSelect
+                    value={page.styleOverrides?.featureTitle?.fontSize || 14}
+                    options={FONT_SIZE_PRESETS}
+                    onChange={(val) => updateFontSize('featureTitle', val)}
+                    label="Title Size"
                   />
                   <Input 
                     placeholder="Feature Title" 
@@ -202,13 +200,12 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
                   />
                 </div>
 
-                <div className="relative group/field">
-                  <FieldToolbar 
-                    onIncrease={() => updateFontSize('featureDesc', 1)} 
-                    onDecrease={() => updateFontSize('featureDesc', -1)}
-                    customFonts={customFonts}
-                    currentFont={(page.styleOverrides as any)?.featureDesc?.fontFamily}
-                    onFontChange={(font) => handleFontChange('featureDesc', font)}
+                <div className="space-y-2">
+                  <PresetSelect
+                    value={page.styleOverrides?.featureDesc?.fontSize || 11}
+                    options={FONT_SIZE_PRESETS}
+                    onChange={(val) => updateFontSize('featureDesc', val)}
+                    label="Desc Size"
                   />
                   <TextArea 
                     placeholder="Description text..." 

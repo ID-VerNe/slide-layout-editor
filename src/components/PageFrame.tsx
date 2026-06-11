@@ -82,7 +82,10 @@ export const PageFrame: React.FC<PageFrameProps> = ({
  * 24x24 物理网格与 8px 基线叠加层
  */
 const ModularGridOverlay: React.FC = () => (
-  <div className="absolute inset-0 z-[100] pointer-events-none overflow-hidden select-none">
+  <div 
+    className="absolute inset-0 z-[100] pointer-events-none overflow-hidden select-none"
+    data-testid="modular-grid-overlay"
+  >
     {/* 24x24 Grid */}
     <div className="w-full h-full grid grid-cols-24 grid-rows-24 opacity-20">
       {Array.from({ length: 24 * 24 }).map((_, i) => (

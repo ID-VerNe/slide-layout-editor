@@ -24,6 +24,57 @@ interface FieldProps {
 
 ---
 
+## 编辑器约束系统
+
+### PresetSelect - 受控预设选择器
+
+从 v3.0 开始，字号、行高、字距等设计属性采用**受控预设**而非自由输入，确保设计一致性。
+
+**组件**: `src/components/ui/PresetSelect.tsx`  
+**预设定义**: `src/constants/editorPresets.ts`
+
+#### 可用预设
+
+**字号预设** (12 档)
+```
+6pt (Micro) | 7pt (Caption) | 10pt (Body) | 12pt (Body+) 
+14pt (Lead) | 18pt (Subhead) | 24pt (H3) | 32pt (H2)
+48pt (H1) | 64pt (Display) | 80pt (Hero) | 120pt (Art)
+```
+
+**行高预设** (7 档)
+```
+1.0 (Tight) | 1.1 (Display) | 1.2 (Compact) | 1.4 (Normal)
+1.6 (Relaxed) | 1.8 (Loose) | 2.0 (Double)
+```
+
+**字距预设** (7 档)
+```
+-0.05em (Tight) | 0 (Normal) | 0.05em (Wide) | 0.1em (Airy)
+0.15em (Tracking) | 0.2em (Caps) | 0.3em (Display)
+```
+
+#### 使用方式
+
+```tsx
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
+
+<PresetSelect
+  value={page.styleOverrides?.field?.fontSize || 14}
+  options={FONT_SIZE_PRESETS}
+  onChange={(val) => updateFontSize('field', val)}
+  label="Size"
+/>
+```
+
+#### 特性
+- ✅ 自动值映射：非预设值自动映射到最接近的档位
+- ✅ 类型安全：泛型类型 `<T extends string | number>` 确保类型正确
+- ✅ 向后兼容：旧项目数据自动适配
+
+---
+
 ## 1. 文本类字段
 
 ### 1.1 `TitleField`
@@ -93,7 +144,7 @@ interface FieldProps {
 | 控件 | 绑定 | 说明 |
 | :--- | :--- | :--- |
 | Input | `page.artFont` | 艺术字文本内容 (大号粗体输入) |
-| -/+ 按钮 | `styleOverrides.artFont.fontSize` | 字号控制 (步长 ±20px) |
+| **PresetSelect** | `styleOverrides.artFont.fontSize` | **字号预设选择器** (12 档：6pt-120pt) |
 | -/+ 按钮 | `styleOverrides.artFont.strokeWidth` | 描边粗细控制 (步长 ±0.5px) |
 | Solid/Outline 按钮 | `styleOverrides.artFont.mode` | 切换 `'solid'` (实心) / `'outline'` (空心描边) |
 | Range Slider | `styleOverrides.artFont.opacity` | 不透明度 (0.1 ~ 1.0) |
@@ -101,6 +152,7 @@ interface FieldProps {
 **特性**:
 - **SVG 渲染**: 艺术字由 `ZineArtFont` 组件以 SVG 方式渲染，支持描边和透明度叠加
 - **实时预览**: 样式变更直接反映到预览区
+- **受控字号**: 使用 PresetSelect 确保字号符合设计规范
 
 ---
 

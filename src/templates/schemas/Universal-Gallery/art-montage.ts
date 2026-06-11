@@ -67,7 +67,6 @@ export const KinfolkMontageSchema: TemplateSchema = {
             bind: 'page.imageLabel',
             style: { writingMode: 'vertical-rl', transform: 'rotate(180deg)' },
             props: {
-              text: 'SCENE 04 — THE TOUCH',
               className: 'opacity-40',
               tracking: 0.6,
               sans: true,

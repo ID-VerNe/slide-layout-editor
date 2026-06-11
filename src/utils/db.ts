@@ -20,19 +20,28 @@ export function initDB(): Promise<IDBDatabase> {
 
 /**
  * 保存资源
- * 核心优化：移除外部依赖，防止循环引用死锁。
+ * 使用 Web Crypto API 生成可靠的哈希，防止碰撞
  */
 export async function saveAsset(dataUrl: string): Promise<string> {
   if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl;
 
-  // 1. 生成 Hash ID
-  let hash = 0;
-  for (let i = 0; i < dataUrl.length; i++) {
-    const char = dataUrl.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; 
+  // 1. 生成 SHA-256 Hash ID（防止碰撞）
+  const base64Data = dataUrl.split(',')[1];
+  if (!base64Data) return dataUrl;
+  
+  let hashId: string;
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(base64Data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    hashId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  } catch (e) {
+    // 降级方案：使用时间戳 + 随机数
+    console.warn('Crypto API not available, using fallback hash');
+    hashId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   }
-  const hashId = Math.abs(hash).toString(36);
+  
   const ext = dataUrl.substring(dataUrl.indexOf('/') + 1, dataUrl.indexOf(';'));
   const filename = `asset_${hashId}.${ext}`;
 

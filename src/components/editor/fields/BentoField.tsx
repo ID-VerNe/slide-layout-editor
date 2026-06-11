@@ -4,7 +4,8 @@ import { LayoutGrid, Plus, X, Type, Image as ImageIcon, Box, Activity, ChevronRi
 import { FieldWrapper } from './FieldWrapper';
 import { Input, Label, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 import Modal from '../../Modal';
 
 interface FieldProps {
@@ -37,9 +38,8 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
     updateItems(newItems);
   };
 
-  const updateFontSize = (idx: number, delta: number) => {
-    const current = items[idx].fontSize || 1;
-    updateItem(idx, { fontSize: Math.max(0.5, current + delta * 0.1) });
+  const updateFontSize = (idx: number, value: number) => {
+    updateItem(idx, { fontSize: value });
   };
 
   return (
@@ -77,10 +77,12 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
 
         <div className="space-y-3">
           {items.map((item, idx) => (
-            <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative group/field">
-              <FieldToolbar 
-                onIncrease={() => updateFontSize(idx, 1)} 
-                onDecrease={() => updateFontSize(idx, -1)}
+            <div key={item.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4 relative">
+              <PresetSelect
+                value={items[idx].fontSize || 14}
+                options={FONT_SIZE_PRESETS}
+                onChange={(val) => updateFontSize(idx, val)}
+                label="Size"
               />
 
               <div className="flex items-center gap-2 mb-2 border-b border-slate-50 pb-3">

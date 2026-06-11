@@ -24,29 +24,35 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
         className: 'mb-12',
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineDisplay',
-            bind: 'page.title',
-            props: {
-              className: 'uppercase mb-4',
-              size: 4.75,
-              bold: true,
-              tracking: -0.05,
-              serif: true
-            }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineDisplay',
+              bind: 'page.title',
+              props: {
+                className: 'uppercase mb-4',
+                size: 4.75,
+                bold: true,
+                tracking: -0.05,
+                serif: true
+              }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.subtitle',
-            props: {
-              className: 'text-slate-500 uppercase',
-              size: 1.375,
-              bold: true,
-              tracking: 0.1,
-              leading: 1.625,
-              sans: true
-            }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              props: {
+                className: 'text-slate-500 uppercase',
+                size: 1.375,
+                bold: true,
+                tracking: 0.1,
+                leading: 1.625,
+                sans: true
+              }
+            }]
           }
         ]
       },
@@ -76,27 +82,33 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
         className: 'mt-auto pt-8 opacity-20 border-t border-slate-100',
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            props: {
-              text: 'CV — {page.title || "NAME"}',
-              className: 'uppercase',
-              size: 1.25,
-              bold: true,
-              tracking: 0.4,
-              sans: true
-            }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.footer',
+              props: {
+                className: 'uppercase',
+                size: 1.25,
+                bold: true,
+                tracking: 0.4,
+                sans: true
+              }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            props: {
-              text: 'Academic Edition',
-              className: 'uppercase',
-              size: 1.25,
-              bold: true,
-              sans: true
-            }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.edition',
+              props: {
+                className: 'uppercase',
+                size: 1.25,
+                bold: true,
+                sans: true
+              }
+            }]
           }
         ]
       }

@@ -36,7 +36,16 @@ UI 的原子化属性，如 `color.primary`, `typography.body.fontSize`。禁止
 4. Zine 约束过滤（`ALLOWED_PROPS` 白名单 + `filterZineClassName` 黑名单）
 
 ### Zine Mode (工业精密模式)
-项目的核心美学约束机制。通过 `LayoutRenderer.css` 的 `ALLOWED_PROPS` 白名单 (41 个允许的 CSS 属性) 和 `filterZineClassName` 黑名单 (`rounded-*`, `shadow-*`, `blur-*`, `animate-*`)，强制执行去圆角、去阴影、去模糊的极简工业感美学。
+项目的核心美学约束机制。通过 `LayoutRenderer.css` 的 `ALLOWED_PROPS` 白名单 (42 个允许的 CSS 属性，包含 `borderRadius`) 和 `filterZineClassName` 黑名单 (`shadow-*`, `blur-*`, `animate-*`)，强制执行去阴影、去模糊的极简工业感美学。**注意**: `rounded-*` 类名现已允许，以配合 `ZineMedia` 圆角特性。
+
+### 编辑器预设系统 (Editor Preset System)
+从 v3.0 开始引入的受控输入机制。字号、行高、字距等设计属性采用离散预设档位而非自由输入，确保设计一致性。由 `PresetSelect` 组件和 `editorPresets.ts` 常量共同实现。
+
+### PresetSelect (预设选择器)
+通用的下拉选择组件 ([src/components/ui/PresetSelect.tsx](src/components/ui/PresetSelect.tsx))，用于在编辑器中强制使用预设值。支持泛型类型安全 (`<T extends string | number>`)，自动将非预设值映射到最接近的档位。
+
+### 字号预设 (Font Size Presets)
+12 档离散字号：6pt (Micro) → 7pt (Caption) → 10pt (Body) → 12pt (Body+) → 14pt (Lead) → 18pt (Subhead) → 24pt (H3) → 32pt (H2) → 48pt (H1) → 64pt (Display) → 80pt (Hero) → 120pt (Art)。对齐 DesignSystem.typography.scales。
 
 ---
 

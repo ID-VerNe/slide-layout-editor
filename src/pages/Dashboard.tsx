@@ -3,14 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { Plus, FolderOpen, Settings, Layout, FileText, Map as MapIcon, Clock, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
 import { nativeFs } from '../utils/native-fs';
+import { deleteProject } from '../utils/db';
 
 const RECENT_KEY = 'magazine_recent_projects';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { createProject, loadProject, setCurrentFilePath } = useStore();
-  const [workspace, setWorkspace] = useState<string | null>(localStorage.getItem('slidegrid_workspace'));
+  const [workspace, setWorkspace] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
+
+  // 初始化默认 Workspace
+  useEffect(() => {
+    const initWorkspace = async () => {
+      let savedWorkspace = localStorage.getItem('slidegrid_workspace');
+      
+      // 如果没有设置 Workspace，使用默认路径
+      if (!savedWorkspace && nativeFs.isElectron()) {
+        const paths = await (window as any).electronAPI?.getAppPaths();
+        if (paths?.userData) {
+          const defaultWorkspace = `${paths.userData}/Projects`;
+          savedWorkspace = defaultWorkspace;
+          localStorage.setItem('slidegrid_workspace', defaultWorkspace);
+        }
+      }
+      
+      setWorkspace(savedWorkspace);
+    };
+    
+    initWorkspace();
+  }, []);
 
   const refreshProjects = async () => {
     // 1. 如果有 Workspace，优先从物理目录扫描
@@ -88,14 +110,47 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteProject = async (e: React.MouseEvent, project: any) => {
+    e.stopPropagation();
+    if (!confirm(`Permanently delete "${project.title}"? This cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      if (nativeFs.isElectron() && project.filePath) {
+        const result = await nativeFs.deleteProject(project.filePath);
+        if (result.success) {
+          // 从列表中移除
+          handleRemoveRecord(e, project.id);
+          await refreshProjects();
+        } else {
+          alert(`Failed to delete project: ${result.error}`);
+        }
+      } else {
+        // Web 环境，只删除 IndexedDB 和记录
+        await deleteProject(project.id);
+        handleRemoveRecord(e, project.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      alert('Failed to delete project');
+    }
+  };
+
   const handleNewProject = () => {
-    if (!workspace) { alert("Please set a Workspace directory first."); return; }
+    if (!workspace) { 
+      alert("Workspace is not initialized. Please restart the application."); 
+      return; 
+    }
     const id = createProject("New Slide", 'modern-feature');
     navigate(`/editor/${id}?new=true`);
   };
 
   const handleOpenProject = async () => {
-    if (!workspace) { alert("Please set a Workspace directory first."); return; }
+    if (!workspace) { 
+      alert("Workspace is not initialized. Please restart the application."); 
+      return; 
+    }
     const result = await nativeFs.openProject();
     if (result.success && result.content) {
       try {
@@ -204,7 +259,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-8">
               {projects.map(project => (
                 <div key={project.id} onClick={() => handleProjectClick(project)} className="group relative bg-white rounded-[2.5rem] border border-slate-100 p-6 hover:border-[#264376] hover:shadow-2xl hover:shadow-[#264376]/5 transition-all cursor-pointer flex flex-col h-full">
-                  <button onClick={(e) => handleRemoveRecord(e, project.id)} className="absolute top-8 right-8 w-9 h-9 bg-white/90 backdrop-blur rounded-full shadow-xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:scale-110 opacity-0 group-hover:opacity-100 transition-all z-10 border border-slate-100"><Trash2 size={16} /></button>
+                  <button onClick={(e) => handleDeleteProject(e, project)} className="absolute top-8 right-8 w-9 h-9 bg-white/90 backdrop-blur rounded-full shadow-xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:scale-110 opacity-0 group-hover:opacity-100 transition-all z-10 border border-slate-100"><Trash2 size={16} /></button>
                   <div className="aspect-[3/4] bg-slate-50 rounded-2xl mb-6 overflow-hidden border border-slate-50 relative shrink-0">
                     {project.thumbnail ? <img src={project.thumbnail} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" /> : <div className="w-full h-full flex items-center justify-center opacity-5 bg-gradient-to-br from-slate-900 to-transparent"><Layout size={64} /></div>}
                     <div className="absolute inset-0 bg-[#264376]/0 group-hover:bg-[#264376]/5 transition-colors" />

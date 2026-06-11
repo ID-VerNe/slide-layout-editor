@@ -2,7 +2,8 @@ import React from 'react';
 import { PageData } from '../../../types';
 import { Eye, EyeOff, Type } from 'lucide-react';
 import { Label, Input } from '../../ui/Base';
-import { FieldToolbar } from './FieldToolbar';
+import { PresetSelect } from '../../ui/PresetSelect';
+import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 
 interface FieldProps {
   page: PageData;
@@ -23,15 +24,14 @@ export const PartnersTitleField: React.FC<FieldProps> = ({ page, onUpdate }) => 
     onUpdate({ ...page, partnersTitle: val });
   };
 
-  const updateFontSize = (delta: number) => {
-    const currentSize = page.styleOverrides?.partnersTitle?.fontSize;
+  const updateFontSize = (value: number) => {
     onUpdate({
       ...page,
       styleOverrides: {
         ...(page.styleOverrides || {}),
         partnersTitle: {
           ...(page.styleOverrides?.partnersTitle || {}),
-          fontSize: Math.max(8, (currentSize || 10) + delta)
+          fontSize: value
         }
       }
     });
@@ -50,9 +50,11 @@ export const PartnersTitleField: React.FC<FieldProps> = ({ page, onUpdate }) => 
       </div>
       
       <div className={`relative ${!isVisible ? 'opacity-50 grayscale' : ''}`}>
-        <FieldToolbar 
-            onIncrease={() => updateFontSize(1)} 
-            onDecrease={() => updateFontSize(-1)} 
+        <PresetSelect
+          value={page.styleOverrides?.partnersTitle?.fontSize || 10}
+          options={FONT_SIZE_PRESETS}
+          onChange={updateFontSize}
+          label="Size"
         />
         <Input 
           placeholder="e.g. Used by leading companies" 

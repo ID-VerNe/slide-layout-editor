@@ -51,8 +51,23 @@ app.whenReady().then(async () => {
       // 2. 解码并清理路径
       filename = decodeURIComponent(filename.split('?')[0].replace(/^\/+/, '').replace(/\/+$/, ''));
       
+      // 3. 安全检查：防止路径遍历攻击
+      const sanitized = path.basename(filename);
+      if (sanitized !== filename || filename.includes('..') || path.isAbsolute(filename)) {
+        console.error(`[Asset] Path traversal attempt blocked: ${filename}`);
+        return new Response(null, { status: 403 });
+      }
+      
       const assetRoot = await archiveManager.getAssetRoot();
-      const filePath = path.join(assetRoot, filename);
+      const filePath = path.join(assetRoot, sanitized);
+      
+      // 4. 二次验证：确保最终路径在 assetRoot 内
+      const normalizedPath = path.normalize(filePath);
+      const normalizedRoot = path.normalize(assetRoot);
+      if (!normalizedPath.startsWith(normalizedRoot)) {
+        console.error(`[Asset] Path escape attempt blocked: ${normalizedPath}`);
+        return new Response(null, { status: 403 });
+      }
       
       if (!existsSync(filePath)) {
         console.error(`[Asset] Not found: ${filePath}`);
@@ -160,6 +175,19 @@ app.whenReady().then(async () => {
       const result = await processResponsiveImages(input, formats);
       return { success: true, result };
     } catch (error: any) { return { success: false, error: error.message }; }
+  });
+
+  ipcMain.handle('delete-project', async (event, projectPath) => {
+    try {
+      const stats = await fs.stat(projectPath);
+      if (stats.isDirectory()) {
+        await fs.rm(projectPath, { recursive: true, force: true });
+        return { success: true };
+      }
+      return { success: false, error: 'Path is not a directory' };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
   });
 });
 

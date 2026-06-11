@@ -30,7 +30,6 @@ export const EpiloguePillarSchema: TemplateSchema = {
             bind: 'page.title',
             modular: { colStart: 1, colSpan: 12, rowStart: 1, rowSpan: 1 },
             props: {
-              text: "P I L O G U E",
               tracking: 1,
               size: 1.5,
               bold: true,

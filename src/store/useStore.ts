@@ -4,7 +4,7 @@ import { getProject } from '../utils/db';
 import { nativeFs } from '../utils/native-fs';
 import { migrateToV3 } from '../utils/migrations/v2-to-v3';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
-import { TEMPLATES } from '../templates/registry';
+import { TEMPLATES, getTemplateById } from '../templates/registry';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
@@ -13,22 +13,40 @@ const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
   return template?.supportedRatios?.[0] || '16:9';
 };
 
-const getDefaultPage = (ratio: AspectRatioType, layoutId: string): PageData => ({
-  id: `slide-${crypto.randomUUID()}`,
-  type: layoutId === 'freeform' ? 'freeform' : 'slide',
-  layoutId: layoutId as any,
-  aspectRatio: ratio,
-  title: 'New Slide',
-  subtitle: 'Created with SlideGrid Studio',
-  backgroundColor: DEFAULT_THEME.colors.background,
-  accentColor: DEFAULT_THEME.colors.accent,
-  titleFont: DEFAULT_THEME.typography.headingFont,
-  bodyFont: DEFAULT_THEME.typography.bodyFont,
-  counterStyle: 'number',
-  visibility: { logo: true },
-  freeformItems: [],
-  freeformConfig: { gridSize: 20, snapToGrid: true, showGridOverlay: false, showAlignmentGuides: true }
-});
+const getDefaultPage = (ratio: AspectRatioType, layoutId: string, templateConfig?: any): PageData => {
+  const base: PageData = {
+    id: `slide-${crypto.randomUUID()}`,
+    type: layoutId === 'freeform' ? 'freeform' : 'slide',
+    layoutId: layoutId as any,
+    aspectRatio: ratio,
+    title: 'New Slide',
+    subtitle: 'Created with SlideGrid Studio',
+    backgroundColor: DEFAULT_THEME.colors.background,
+    accentColor: DEFAULT_THEME.colors.accent,
+    titleFont: DEFAULT_THEME.typography.headingFont,
+    bodyFont: DEFAULT_THEME.typography.bodyFont,
+    counterStyle: 'number',
+    visibility: { logo: true },
+    freeformItems: [],
+    freeformConfig: { gridSize: 20, snapToGrid: true, showGridOverlay: false, showAlignmentGuides: true }
+  };
+
+  // 合并模板级默认数据
+  if (templateConfig?.defaultData) {
+    Object.assign(base, templateConfig.defaultData);
+  }
+
+  // 合并字段级默认值
+  if (templateConfig?.fields) {
+    templateConfig.fields.forEach((field: any) => {
+      if (field.defaultValue !== undefined && base[field.key as keyof PageData] === undefined) {
+        (base as any)[field.key] = field.defaultValue;
+      }
+    });
+  }
+
+  return base;
+};
 
 interface ProjectState {
   pages: PageData[];
@@ -93,10 +111,11 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   createProject: (title, templateId) => {
     const id = crypto.randomUUID();
+    const templateConfig = getTemplateById(templateId || 'modern-feature');
     set({
       activeProjectId: id,
       projectTitle: title,
-      pages: [{ ...getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature'), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
+      pages: [{ ...getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
       theme: DEFAULT_THEME,
       designSystem: DEFAULT_DESIGN_SYSTEM,
       currentPageIndex: 0,
@@ -151,8 +170,9 @@ export const useStore = create<ProjectState>((set, get) => ({
         future: []
       }));
     } else {
+      const templateConfig = getTemplateById(templateId || 'modern-feature');
       set({
-        pages: [getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature')], 
+        pages: [getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig)], 
         projectTitle: '', 
         theme: DEFAULT_THEME, 
         designSystem: DEFAULT_DESIGN_SYSTEM, 
@@ -171,20 +191,35 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   pushHistory: () => {
     const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex } = get();
-    if (pages.length === 0) return;
+    
+    // 优化：检查快照大小，避免过大的状态占用内存
+    const snapshot = {
+      pages: deepClone(pages),
+      projectTitle,
+      theme: deepClone(theme),
+      designSystem: deepClone(designSystem),
+      printSettings: deepClone(printSettings),
+      minimalCounter,
+      counterStyle,
+      imageQuality,
+      customFonts: deepClone(customFonts),
+      currentPageIndex,
+    };
+    
+    // 粗略估算快照大小（通过 JSON 序列化长度）
+    try {
+      const snapshotSize = JSON.stringify(snapshot).length;
+      const MAX_SNAPSHOT_SIZE = 5 * 1024 * 1024; // 5MB
+      if (snapshotSize > MAX_SNAPSHOT_SIZE) {
+        console.warn(`Snapshot too large (${(snapshotSize / 1024 / 1024).toFixed(2)}MB), skipping history`);
+        return;
+      }
+    } catch (e) {
+      console.error('Failed to estimate snapshot size:', e);
+    }
+    
     set((state) => ({
-      past: [...state.past, {
-        pages: deepClone(pages),
-        projectTitle,
-        theme: deepClone(theme),
-        designSystem: deepClone(designSystem),
-        printSettings: deepClone(printSettings),
-        minimalCounter,
-        counterStyle,
-        imageQuality,
-        customFonts: deepClone(customFonts),
-        currentPageIndex,
-      }].slice(-50),
+      past: [...state.past, snapshot].slice(-50),
       future: [],
       hasUnsavedChanges: true
     }));
@@ -242,7 +277,10 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   removePage: (id) => {
     const { pages, currentPageIndex } = get();
-    if (pages.length <= 1) return;
+    if (pages.length <= 1) {
+      console.warn('Cannot remove the last page');
+      return;
+    }
     get().pushHistory();
     const newPages = pages.filter(p => p.id !== id);
     let nextIdx = currentPageIndex;

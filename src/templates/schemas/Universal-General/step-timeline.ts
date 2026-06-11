@@ -22,8 +22,8 @@ export const StepTimelineSchema: TemplateSchema = {
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.md' },
         modular: { colStart: 4, colSpan: 16, rowStart: 2, rowSpan: 4 },
         children: [
-          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 5, bold: true, align: 'center', serif: true } },
-          { type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { align: 'center', color: 'secondary', sans: true, className: 'opacity-60 max-w-2xl' } }
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineDisplay', bind: 'page.title', props: { size: 5, bold: true, align: 'center', serif: true } }] },
+          { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.subtitle', props: { align: 'center', color: 'secondary', sans: true, className: 'opacity-60 max-w-2xl' } }] }
         ]
       },
 

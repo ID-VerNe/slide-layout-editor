@@ -42,7 +42,6 @@ export const EditorialSplitSchema: TemplateSchema = {
                       componentType: 'ZineCaption',
                       bind: 'page.paragraph',
                       props: {
-                        text: 'EDITORIAL METADATA',
                         className: 'opacity-40 uppercase',
                         size: 1,
                         tracking: 0.2,
@@ -73,29 +72,35 @@ export const EditorialSplitSchema: TemplateSchema = {
                   layoutProps: { direction: 'column', gap: 'spacing.sm' },
                   children: [
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.subtitle',
-                      props: {
-                        className: 'uppercase',
-                        size: 1.25,
-                        bold: true,
-                        tracking: 0.4,
-                        sans: true,
-                        color: 'accent'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.subtitle',
+                        props: {
+                          className: 'uppercase',
+                          size: 1.25,
+                          bold: true,
+                          tracking: 0.4,
+                          sans: true,
+                          color: 'accent'
+                        }
+                      }]
                     },
                     {
-                      type: 'Component',
-                      componentType: 'ZineDisplay',
-                      bind: 'page.title',
-                      props: {
-                        className: 'uppercase',
-                        size: 6,
-                        bold: true,
-                        tracking: -0.05,
-                        serif: true
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineDisplay',
+                        bind: 'page.title',
+                        props: {
+                          className: 'uppercase',
+                          size: 6,
+                          bold: true,
+                          tracking: -0.05,
+                          serif: true
+                        }
+                      }]
                     },
                     { type: 'Container', className: 'h-px w-16 bg-zine-accent/20 mt-4', children: [] }
                   ]
@@ -123,30 +128,35 @@ export const EditorialSplitSchema: TemplateSchema = {
                   className: 'bg-white/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-white/50 max-w-[320px]',
                   children: [
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.imageSubLabel',
-                      props: {
-                        text: 'Information',
-                        className: 'uppercase',
-                        size: 1.375,
-                        bold: true,
-                        sans: true,
-                        color: 'primary'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.imageSubLabel',
+                        props: {
+                          className: 'uppercase',
+                          size: 1.375,
+                          bold: true,
+                          sans: true,
+                          color: 'primary'
+                        }
+                      }]
                     },
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.imageLabel',
-                      props: {
-                        className: '',
-                        size: 1.75,
-                        bold: true,
-                        leading: 1.625,
-                        sans: true,
-                        color: 'primary'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.imageLabel',
+                        props: {
+                          className: '',
+                          size: 1.75,
+                          bold: true,
+                          leading: 1.625,
+                          sans: true,
+                          color: 'primary'
+                        }
+                      }]
                     }
                   ]
                 }
@@ -178,7 +188,6 @@ export const EditorialSplitSchema: TemplateSchema = {
                       componentType: 'ZineCaption',
                       bind: 'page.paragraph',
                       props: {
-                        text: 'EDITORIAL METADATA',
                         className: 'opacity-40 uppercase',
                         size: 1,
                         tracking: 0.2,
@@ -209,29 +218,35 @@ export const EditorialSplitSchema: TemplateSchema = {
                   layoutProps: { direction: 'column', gap: 'spacing.sm' },
                   children: [
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.subtitle',
-                      props: {
-                        className: 'uppercase',
-                        size: 1.25,
-                        bold: true,
-                        tracking: 0.4,
-                        sans: true,
-                        color: 'accent'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.subtitle',
+                        props: {
+                          className: 'uppercase',
+                          size: 1.25,
+                          bold: true,
+                          tracking: 0.4,
+                          sans: true,
+                          color: 'accent'
+                        }
+                      }]
                     },
                     {
-                      type: 'Component',
-                      componentType: 'ZineDisplay',
-                      bind: 'page.title',
-                      props: {
-                        className: 'uppercase',
-                        size: 6,
-                        bold: true,
-                        tracking: -0.05,
-                        serif: true
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineDisplay',
+                        bind: 'page.title',
+                        props: {
+                          className: 'uppercase',
+                          size: 6,
+                          bold: true,
+                          tracking: -0.05,
+                          serif: true
+                        }
+                      }]
                     },
                     { type: 'Container', className: 'h-px w-16 bg-zine-accent/20 mt-4', children: [] }
                   ]
@@ -259,30 +274,35 @@ export const EditorialSplitSchema: TemplateSchema = {
                   className: 'bg-white/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-white/50 max-w-[320px]',
                   children: [
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.imageSubLabel',
-                      props: {
-                        text: 'Information',
-                        className: 'uppercase',
-                        size: 1.375,
-                        bold: true,
-                        sans: true,
-                        color: 'primary'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.imageSubLabel',
+                        props: {
+                          className: 'uppercase',
+                          size: 1.375,
+                          bold: true,
+                          sans: true,
+                          color: 'primary'
+                        }
+                      }]
                     },
                     {
-                      type: 'Component',
-                      componentType: 'ZineCaption',
-                      bind: 'page.imageLabel',
-                      props: {
-                        className: '',
-                        size: 1.75,
-                        bold: true,
-                        leading: 1.625,
-                        sans: true,
-                        color: 'primary'
-                      }
+                      type: 'Container',
+                      children: [{
+                        type: 'Component',
+                        componentType: 'ZineCaption',
+                        bind: 'page.imageLabel',
+                        props: {
+                          className: '',
+                          size: 1.75,
+                          bold: true,
+                          leading: 1.625,
+                          sans: true,
+                          color: 'primary'
+                        }
+                      }]
                     }
                   ]
                 }

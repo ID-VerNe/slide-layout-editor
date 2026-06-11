@@ -24,23 +24,28 @@ export const KinfolkEssaySchema: TemplateSchema = {
         className: 'border-b-[1.5px] border-zine-accent pb-8',
         children: [
           {
-            type: 'Component',
-            componentType: 'ZineDisplay',
-            bind: 'page.title',
-            props: { size: 6, italic: true, tracking: -0.025, align: 'left', serif: true }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineDisplay',
+              bind: 'page.title',
+              props: { size: 6, italic: true, tracking: -0.025, align: 'left', serif: true }
+            }]
           },
           {
-            type: 'Component',
-            componentType: 'ZineCaption',
-            bind: 'page.subtitle',
-            props: {
-              text: 'SHENZHEN / 2026',
-              size: 1.25,
-              bold: true,
-              tracking: 0.3,
-              sans: true,
-              className: 'uppercase opacity-40 mb-2'
-            }
+            type: 'Container',
+            children: [{
+              type: 'Component',
+              componentType: 'ZineCaption',
+              bind: 'page.subtitle',
+              props: {
+                size: 1.25,
+                bold: true,
+                tracking: 0.3,
+                sans: true,
+                className: 'uppercase opacity-40 mb-2'
+              }
+            }]
           }
         ]
       },
