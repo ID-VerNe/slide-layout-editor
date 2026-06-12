@@ -245,10 +245,10 @@ interface ProjectTheme {
   };
   typography: {
     headingFont: string;      // 英文标题字体 (默认: 'Playfair Display')
-    bodyFont: string;         // 英文正文字体 (默认: 'Crimson Pro')
+    bodyFont: string;         // 英文正文字体 (默认: 'Inter')
     captionFont?: string;     // 说明文字字体 (默认: 'Inter')
-    headingFontZH?: string;   // 中文标题字体 (默认: 'Noto Serif SC')
-    bodyFontZH?: string;      // 中文正文字体 (默认: 'Noto Serif SC')
+    headingFontZH?: string;   // 中文标题字体 (默认: 'STFangsong, FangSong, Noto Serif SC')
+    bodyFontZH?: string;      // 中文正文字体 (默认: 'STFangsong, FangSong, Noto Serif SC')
   };
 }
 ```

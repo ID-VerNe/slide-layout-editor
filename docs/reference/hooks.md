@@ -137,11 +137,178 @@ const {
 
 ---
 
-## 5. 其他 Hooks
+## 5. `useModularStyle` (Zine 样式 Hook)
+
+Zine 原子组件的核心样式处理器，负责将语义化 Props 转换为精确的 CSS 样式。
+
+- **文件**: [src/components/ui/slide/hooks/useModularStyle.ts](src/components/ui/slide/hooks/useModularStyle.ts)
+
+### 5.1 输入参数
+
+```typescript
+interface ModularStyleProps {
+  page: PageData;
+  fieldKey?: string;
+  size?: number;        // 字号（8px 的倍数）
+  serif?: boolean;      // 衬线体开关
+  sans?: boolean;       // 无衬线体开关
+  bold?: boolean;       // 加粗开关
+  italic?: boolean;     // 斜体开关
+  align?: 'left' | 'center' | 'right' | 'justify';
+  leading?: number;     // 行高倍数
+  tracking?: number;    // 字距（em）
+  color?: string;       // 颜色 Token 或 Hex
+  scale?: 'display' | 'body' | 'caption';  // 令牌规模
+}
+```
+
+### 5.2 输出样式
+
+```typescript
+const style = useModularStyle(props);
+// 返回 React.CSSProperties 对象
+```
+
+### 5.3 核心逻辑
+
+1. **Token 合并**: 从 `designSystem.tokens.typography[scale]` 读取基础样式
+2. **字体解析**: 优先使用 `styleOverrides[fieldKey].fontFamily`，次之 Props 意图（`serif`/`sans`），最后回退到 Token
+3. **基线吸附**: 当字号使用 `px`/无单位时，自动将行高对齐到 8px 网格
+4. **颜色映射**: `color='primary'` → `theme.colors.primary` 或 `designSystem.tokens.colors.primary`
+5. **覆盖优先级**: `styleOverrides > Props > Tokens > Defaults`
+
+### 5.4 示例
+
+```typescript
+// 在 ZineDisplay 中使用
+const style = useModularStyle({
+  page,
+  fieldKey: 'title',
+  size: 48,           // 48px
+  serif: true,        // 使用衬线体
+  bold: true,         // 加粗
+  leading: 1.1,       // 行高 1.1（吸附到 48px）
+  tracking: 0.05,     // 字距 +0.05em
+  color: 'primary',   // 主色
+  scale: 'display'
+});
+```
+
+---
+
+## 6. `useDataConnector` (数据连接器)
+
+自动连接 `PageData` 字段与组件 Props 的桥接 Hook。
+
+- **文件**: [src/components/ui/slide/hooks/useDataConnector.ts](src/components/ui/slide/hooks/useDataConnector.ts)
+
+### 6.1 核心功能
+
+```typescript
+const { value, visibility } = useDataConnector(page, fieldKey);
+
+// value: 字段的当前值（如 page.title）
+// visibility: 可见性开关（如 page.visibility.logo）
+```
+
+### 6.2 使用场景
+
+```typescript
+// 在原子组件中使用
+export const ZineLogo: React.FC<Props> = ({ page, fieldKey = 'logo' }) => {
+  const { value, visibility } = useDataConnector(page, fieldKey);
+  
+  if (!visibility) return null;  // 可见性控制
+  
+  return <div>{value}</div>;
+};
+```
+
+### 6.3 可见性字段映射
+
+| fieldKey | visibility 路径 |
+|----------|----------------|
+| `logo` | `page.visibility.logo` |
+| `image` | `page.visibility.image` |
+| `footer` | `page.visibility.footer` |
+| 其他 | `page.visibility[fieldKey]` |
+
+---
+
+## 7. 其他 Hooks
 
 | Hook | 文件 | 说明 |
 | :--- | :--- | :--- |
 | `useResponsiveImage` | [hooks/useResponsiveImage.ts](src/hooks/useResponsiveImage.ts) | 处理 `srcset` 与多尺寸图片的按需加载 |
 | `useImagePreload` | [hooks/useImagePreload.ts](src/hooks/useImagePreload.ts) | 针对模板预览图的批量预加载 |
-| `useModularStyle` | [ui/slide/hooks/useModularStyle.ts](src/components/ui/slide/hooks/useModularStyle.ts) | Zine 原子组件专用样式 Hook，处理 8px 基线对齐和 Token 映射 |
-| `useDataConnector` | [ui/slide/hooks/useDataConnector.ts](src/components/ui/slide/hooks/useDataConnector.ts) | 数据连接器 Hook，连接 PageData 字段与渲染组件 |
+
+---
+
+## 8. Hook 最佳实践
+
+### 8.1 性能优化
+
+**避免全量订阅**：
+```typescript
+// ❌ 错误：订阅整个 store
+const store = useStore();
+
+// ✅ 正确：仅订阅需要的字段
+const pages = useStore(s => s.pages);
+const currentPage = useStore(s => s.pages[s.currentPageIndex]);
+```
+
+**使用 shallow 比较**：
+```typescript
+import { shallow } from 'zustand/shallow';
+
+// 对于对象/数组，使用 shallow 避免深度比较
+const { pages, theme } = useStore(
+  s => ({ pages: s.pages, theme: s.theme }),
+  shallow
+);
+```
+
+### 8.2 异步数据加载
+
+```typescript
+// 在组件中加载项目数据
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      await store.loadProject(projectId);
+    } catch (error) {
+      console.error('加载失败:', error);
+    }
+  };
+  loadData();
+}, [projectId]);
+```
+
+### 8.3 防止内存泄漏
+
+```typescript
+// 清理定时器和事件监听
+useEffect(() => {
+  const timer = setInterval(() => {
+    // 定期任务
+  }, 3000);
+  
+  return () => clearInterval(timer);
+}, []);
+```
+
+### 8.4 条件 Hook 调用
+
+```typescript
+// ❌ 错误：条件调用 Hook
+if (needsAsset) {
+  const url = useAssetUrl(assetId);
+}
+
+// ✅ 正确：始终调用，条件使用结果
+const url = useAssetUrl(needsAsset ? assetId : null);
+if (needsAsset && url) {
+  // 使用 url
+}
+```

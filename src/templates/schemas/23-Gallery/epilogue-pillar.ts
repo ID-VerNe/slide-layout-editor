@@ -43,7 +43,7 @@ export const EpiloguePillarSchema: TemplateSchema = {
             type: 'Container',
             layout: 'flex',
             layoutProps: { direction: 'column', align: 'start', justify: 'end' },
-            modular: { colStart: 1, colSpan: 12, rowStart: 12, rowSpan: 12 },
+            modular: { colStart: 1, colSpan: 12, rowStart: 16, rowSpan: 10 },
             className: 'pb-10 pr-8',
             children: [
               // 1. Metrics (使用 BigDataMetrics 组件，从右下到左上填充)

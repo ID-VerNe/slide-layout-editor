@@ -93,6 +93,20 @@ redo():
   nextSnapshot = future.shift()       ->  restore state from nextSnapshot
 ```
 
+### 2.4 快照大小限制
+
+为了防止内存溢出，`pushHistory()` 会检查快照大小：
+
+```typescript
+const snapshotSize = JSON.stringify(snapshot).length;
+if (snapshotSize > 5 * 1024 * 1024) { // 5MB 限制
+  console.warn('快照过大，跳过历史记录');
+  return;
+}
+```
+
+大型项目（100+ 页面或大量嵌入资产）会触发此保护机制，牺牲撤销功能以保证应用稳定性。
+
 ---
 
 ## 3. 跨页面全局同步算法
@@ -105,8 +119,8 @@ redo():
 
 1. **全局字段识别**: 检查修改的字段是否属于 `GLOBAL_FIELDS` 集合：
    ```typescript
-   const GLOBAL_FIELDS = ['backgroundPattern', 'footer', 'titleFont',
-                          'bodyFont', 'logo', 'logoSize', 'counterColor'];
+   const GLOBAL_FIELDS = ['counterStyle', 'backgroundPattern', 'footer', 'titleFont',
+                          'bodyFont', 'logo', 'logoSize', 'accentColor', 'pageNumber'];
    ```
 2. **条件广播**: 如果检测到全局字段变更，循环遍历 `pages` 数组，将该字段的新值应用到**所有页面**。
 3. **静默更新**: `silent=true` 参数确保全局同步不触发额外的 `pushHistory()`，保持撤销栈整洁。
@@ -187,4 +201,80 @@ const migratedData = migrateToV3(projectData);
 
 ```typescript
 const { alert, confirm } = useUI();
+
+// 示例：删除确认
+confirm(
+  '删除页面',
+  '确定要删除这个页面吗？此操作不可撤销。',
+  () => { store.removePage(pageId); },
+  { confirmText: '删除', cancelText: '取消', danger: true }
+);
+```
+
+---
+
+## 7. 状态订阅与性能优化
+
+Zustand 提供了细粒度的状态订阅，避免不必要的重渲染。
+
+### 7.1 选择性订阅
+
+```typescript
+// ❌ 错误：订阅整个 store，任何字段变化都会触发重渲染
+const store = useStore();
+
+// ✅ 正确：仅订阅需要的字段
+const pages = useStore(s => s.pages);
+const currentPageIndex = useStore(s => s.currentPageIndex);
+```
+
+### 7.2 shallow 比较
+
+对于对象和数组，使用 `shallow` 比较器避免深度比较开销：
+
+```typescript
+import { shallow } from 'zustand/shallow';
+
+const { pages, theme } = useStore(
+  s => ({ pages: s.pages, theme: s.theme }),
+  shallow
+);
+```
+
+### 7.3 批量更新
+
+通过 `silent` 参数控制历史记录写入，避免中间态污染：
+
+```typescript
+// 全局字段同步时，仅第一次写入历史
+store.pushHistory();
+pages.forEach(page => {
+  store.updatePage({ ...page, logo: newLogo }, true); // silent=true
+});
+```
+
+---
+
+## 8. 数据流完整示意图
+
+```
+用户交互 (UI Event)
+    ↓
+Action 调用 (store.updatePage)
+    ↓
+pushHistory() [可选]
+    ↓
+状态更新 (Zustand set)
+    ↓
+    ├─→ React 组件重渲染
+    ├─→ hasUnsavedChanges = true
+    └─→ 3秒后自动保存到 IndexedDB
+         ↓
+    Ctrl+S 手动保存
+         ↓
+    Electron IPC → 主进程
+         ↓
+    archiveManager.saveProject()
+         ↓
+    写入 .slgrid ZIP 文件
 ```
