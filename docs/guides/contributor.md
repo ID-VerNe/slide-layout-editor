@@ -219,9 +219,10 @@ import FieldWrapper from './FieldWrapper';
 interface MyCustomFieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  pages?: PageData[]; // 可选：用于在项目级历史面板中复用已有图片
 }
 
-const MyCustomField: React.FC<MyCustomFieldProps> = ({ page, onUpdate }) => {
+const MyCustomField: React.FC<MyCustomFieldProps> = ({ page, onUpdate, pages }) => {
   const handleChange = (value: string) => {
     onUpdate({ ...page, myCustomField: value });
   };

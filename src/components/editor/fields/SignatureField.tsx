@@ -8,13 +8,14 @@ import IconPicker from '../../ui/IconPicker';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  pages?: PageData[];
 }
 
 /**
  * SignatureField - 本人签名组件
  * 增强版：支持 Adjust 微调功能，控制签名的大小。
  */
-export const SignatureField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+export const SignatureField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pages }) => {
   const [showAdjust, setShowAdjust] = useState(false);
 
   const handleChange = (val: string) => {
@@ -59,11 +60,12 @@ export const SignatureField: React.FC<FieldProps> = React.memo(({ page, onUpdate
       actions={actions}
     >
       <div className="space-y-4">
-        <IconPicker 
-          value={page.signature || ''} 
+        <IconPicker
+          value={page.signature || ''}
           onChange={handleChange}
-          allowedTabs={['upload']}
+          allowedTabs={['upload', 'history']}
           className="w-full"
+          pages={pages}
           trigger={
             <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:border-[#264376] transition-all shadow-sm group text-left">
               <div className="flex items-center gap-3 overflow-hidden">

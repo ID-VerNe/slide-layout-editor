@@ -5,8 +5,9 @@ import { CATEGORIZED_ICONS } from '../../constants/icons';
 import { compressImage } from '../../utils/db';
 import { useProject } from '../../hooks/useProject';
 import { useParams } from 'react-router-dom';
+import { PageData } from '../../types';
 
-export type AssetTab = 'icons' | 'upload' | 'map';
+export type AssetTab = 'icons' | 'upload' | 'map' | 'history';
 
 export interface IconPickerProps {
   value: string;
@@ -14,18 +15,66 @@ export interface IconPickerProps {
   trigger?: React.ReactNode;
   allowedTabs?: AssetTab[];
   className?: string;
+  pages?: PageData[];
 }
 
 const RECENT_STORAGE_KEY = 'magazine_editor_recent_assets';
 
-export const IconPicker: React.FC<IconPickerProps> = ({ 
-  value, onChange, trigger, allowedTabs = ['icons', 'upload', 'map'], className = ""
+const collectProjectImages = (pages: PageData[]): { url: string; count: number }[] => {
+  const imageMap = new Map<string, number>();
+  const isImage = (val: string) => val && (val.startsWith('data:image') || val.includes('http') || val.includes('.png') || val.includes('.jpg') || val.includes('asset://'));
+
+  pages.forEach(page => {
+    [page.image, page.signature, page.logo].forEach(img => {
+      if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+    });
+
+    (page.gallery || []).forEach(item => {
+      if (item.url && isImage(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
+    });
+
+    (page.features || []).forEach(f => {
+      [f.icon, f.image].forEach(img => {
+        if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+      });
+    });
+
+    (page.bentoItems || []).forEach(b => {
+      [b.icon, b.image].forEach(img => {
+        if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+      });
+    });
+
+    (page.partners || []).forEach(p => {
+      if (p.logo && isImage(p.logo)) imageMap.set(p.logo, (imageMap.get(p.logo) || 0) + 1);
+    });
+
+    (page.testimonials || []).forEach(t => {
+      if (t.avatar && isImage(t.avatar)) imageMap.set(t.avatar, (imageMap.get(t.avatar) || 0) + 1);
+    });
+
+    if (page.mosaicConfig?.icons) {
+      Object.values(page.mosaicConfig.icons).forEach(icon => {
+        if (icon && isImage(icon)) imageMap.set(icon, (imageMap.get(icon) || 0) + 1);
+      });
+    }
+  });
+
+  return Array.from(imageMap.entries())
+    .map(([url, count]) => ({ url, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 50);
+};
+
+export const IconPicker: React.FC<IconPickerProps> = ({
+  value, onChange, trigger, allowedTabs = ['icons', 'upload', 'map'], className = "", pages
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<AssetTab>(allowedTabs[0]);
   const [search, setSearch] = useState('');
   const [recentAssets, setRecentAssets] = useState<string[]>([]);
-  
+  const [projectImages, setProjectImages] = useState<{url:string;count:number}[]>([]);
+
   const { projectId } = useParams();
   const { imageQuality } = useProject(projectId, null);
 
@@ -33,6 +82,12 @@ export const IconPicker: React.FC<IconPickerProps> = ({
     const saved = localStorage.getItem(RECENT_STORAGE_KEY);
     if (saved) { try { setRecentAssets(JSON.parse(saved)); } catch (e) { setRecentAssets([]); } }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (activeTab === 'history' && pages?.length && projectImages.length === 0) {
+      setProjectImages(collectProjectImages(pages));
+    }
+  }, [activeTab, pages, projectImages.length]);
 
   const handleSelect = (val: string) => {
     onChange(val);
@@ -80,6 +135,11 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                   <div className="flex items-center gap-2"><Upload size={14} /> Images</div>
                 </button>
               )}
+              {allowedTabs.includes('history') && (
+                <button onClick={() => setActiveTab('history')} className={`pb-4 px-2 text-xs font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'history' ? 'border-[#264376] text-[#264376]' : 'border-transparent text-slate-400'}`}>
+                  <div className="flex items-center gap-2"><History size={14} /> History</div>
+                </button>
+              )}
             </div>
           </div>
 
@@ -113,6 +173,24 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            ) : activeTab === 'history' ? (
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto no-scrollbar pr-2 pb-20">
+                  {projectImages.length > 0 ? (
+                    <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-12 gap-3">
+                      {projectImages.map((item, idx) => (
+                        <button key={idx} onClick={() => handleSelect(item.url)} className="aspect-square bg-slate-50 border border-slate-100 rounded-xl overflow-hidden hover:border-[#264376] hover:bg-white transition-all">
+                          <img src={item.url} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                      No images used in this project yet
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

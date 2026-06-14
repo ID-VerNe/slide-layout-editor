@@ -7,9 +7,10 @@ import IconPicker from '../../ui/IconPicker';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  pages?: PageData[];
 }
 
-export const MosaicField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const MosaicField: React.FC<FieldProps> = ({ page, onUpdate, pages }) => {
   const isVisible = page.visibility?.mosaic !== false; // Mosaic usually doesn't have a toggle but let's keep it consistent
 
   const toggle = () => {
@@ -81,6 +82,7 @@ export const MosaicField: React.FC<FieldProps> = ({ page, onUpdate }) => {
                     const current = page.mosaicConfig || { rows: 3, cols: 5, stagger: true, icons: {} };
                     handleChange('mosaicConfig', { ...current, icons: { ...current.icons, [key]: newVal } });
                   }}
+                  pages={pages}
                   trigger={<button className="w-10 h-10 rounded-lg flex items-center justify-center transition-all border-2 bg-white border-slate-200">{renderCellPreview(val)}</button>}
                   />
                 );

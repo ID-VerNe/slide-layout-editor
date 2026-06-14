@@ -11,9 +11,10 @@ interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
   customFonts: CustomFont[];
+  pages?: PageData[];
 }
 
-export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts, pages }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
   // 用 Set 跟踪已迁移的页面 ID，避免跨页面迁移被跳过
   const migratedRef = useRef<Set<string>>(new Set());
@@ -152,10 +153,11 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
                       <SlidersHorizontal size={14} />
                     </button>
                   )}
-                  <IconPicker 
-                    value={f.icon || 'Globe'} 
+                  <IconPicker
+                    value={f.icon || 'Globe'}
                     onChange={(val) => handleFeatureChange(idx, 'icon', val)}
-                    allowedTabs={['icons', 'upload']}
+                    allowedTabs={['icons', 'upload', 'history']}
+                    pages={pages}
                     trigger={
                       <button className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-100 rounded-xl hover:border-[#264376] transition-all shadow-sm">
                         <div className="w-5 h-5 flex items-center justify-center text-[#264376]">

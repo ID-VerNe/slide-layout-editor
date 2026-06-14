@@ -9,13 +9,14 @@ interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
   customFonts?: CustomFont[];
+  pages?: PageData[];
 }
 
 /**
  * GalleryField
  * 修复版：重新引入 FieldWrapper 以支持显隐切换（小眼睛功能）。
  */
-export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate }) => {
+export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pages }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
   const gallery = page.gallery || [];
 
@@ -95,11 +96,12 @@ export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
             </div>
 
             <div className="w-full">
-              <IconPicker 
-                value={item.url} 
+              <IconPicker
+                value={item.url}
                 onChange={(url) => handleImageChange(idx, url)}
-                allowedTabs={['upload']}
+                allowedTabs={['upload', 'history']}
                 className="w-full"
+                pages={pages}
                 trigger={
                   <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-100 rounded-xl hover:border-[#264376] transition-all shadow-sm group/btn">
                     <div className="flex items-center gap-3 overflow-hidden">

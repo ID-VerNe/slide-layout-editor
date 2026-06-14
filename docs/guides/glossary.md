@@ -61,7 +61,7 @@ SlideGrid Studio 的专有归档格式。本质上是一个包含 `project.json`
 Store 中的 `hasUnsavedChanges` 标志。当 Zustand Store 中的数据通过 `pushHistory()` 标记为变更后，驱动 UI 显示"未保存"圆点，并触发 3 秒定时自动保存 (`saveToDB`)。
 
 ### 表达式绑定 (Expression Binding)
-模板 Schema 中通过 `{...}` 语法引用动态数据的能力。`ExpressionEvaluator` 支持路径访问 (`page.title`)、空值合并 (`??`)、三元运算 (`? : `)、字符串插值等。详见 [模板引擎文档](../architecture/template-engine.md#4-表达式引擎与数据绑定)。
+模板 Schema 中通过 `{...}` 语法引用动态数据的能力。`ExpressionEvaluator` 支持路径访问 (`page.title`)、空值合并 (`??`)、三元运算 (`? : `)、字符串插值等。详见 [表达式引擎文档](../architecture/template-engine/expressions.md)。
 
 ### Repeater (循环渲染器)
 模板引擎的循环节点类型。通过 `bind` 属性绑定数据集合（如 `page.agenda`），为每个元素创建独立的 `EvaluationContext`（含 `item`、`index`、`$parent`），递归渲染子模板。

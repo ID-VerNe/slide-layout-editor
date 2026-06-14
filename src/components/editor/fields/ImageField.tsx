@@ -13,6 +13,7 @@ interface FieldProps {
   onUpdate: (page: PageData) => void;
   fieldKey?: string;
   label?: string;
+  pages?: PageData[];
 }
 
 const AssetPreviewSmall = ({ source }: { source?: string }) => {
@@ -24,7 +25,7 @@ const AssetPreviewSmall = ({ source }: { source?: string }) => {
   );
 };
 
-export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, fieldKey = 'image', label = 'Visual Asset' }) => {
+export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pages, fieldKey = 'image', label = 'Visual Asset' }) => {
   const [showAdjust, setShowAdjust] = useState(false);
   const configKey = fieldKey === 'image' ? 'imageConfig' : `${fieldKey}Config`;
   const isVisible = page.visibility?.[fieldKey] !== false;
@@ -71,11 +72,12 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, fi
     <FieldWrapper page={page} onUpdate={onUpdate} fieldKey={fieldKey} label={label} icon={ImageIcon}>
       <div className="space-y-3">
         <div className="flex gap-2">
-          <IconPicker 
-            value={(page as any)[fieldKey] || ''} 
+          <IconPicker
+            value={(page as any)[fieldKey] || ''}
             onChange={handleImageSelect}
-            allowedTabs={['upload', 'icons', 'map']} 
+            allowedTabs={['upload', 'icons', 'map', 'history']}
             className="flex-1"
+            pages={pages}
             trigger={
               <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:border-[#264376] transition-all shadow-sm group">
                 <div className="flex items-center gap-3 overflow-hidden">

@@ -8,9 +8,10 @@ import IconPicker from '../../ui/IconPicker';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  pages?: PageData[];
 }
 
-export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate, pages }) => {
   const isVisible = page.visibility?.partners !== false;
 
   // Auto-generate IDs for legacy data
@@ -101,9 +102,10 @@ export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate }) => {
               <button onClick={() => removePartner(idx)} className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-100 shadow-sm rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10">
                 <X size={12} />
               </button>
-              <IconPicker 
-                value={p.logo || ''} 
+              <IconPicker
+                value={p.logo || ''}
                 onChange={(val) => handlePartnerChange(idx, 'logo', val)}
+                pages={pages}
                 trigger={<button className="w-10 h-10 shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[#264376] shadow-sm">{renderCellPreview(p.logo)}</button>}
               />
               <Input placeholder="Company Name" value={p.name || ''} onChange={(e) => handlePartnerChange(idx, 'name', e.target.value)} className="text-[10px] flex-1 bg-white" />

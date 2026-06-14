@@ -11,9 +11,10 @@ import Modal from '../../Modal';
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
+  pages?: PageData[];
 }
 
-export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
+export const BentoField: React.FC<FieldProps> = ({ page, onUpdate, pages }) => {
   const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
   const [adjustingIdx, setAdjustingIdx] = useState<number | null>(null); 
   
@@ -114,7 +115,7 @@ export const BentoField: React.FC<FieldProps> = ({ page, onUpdate }) => {
                 {item.type === 'image' && (
                   <div className="space-y-3">
                     <div className="flex gap-2">
-                      <IconPicker value={item.image || ''} onChange={(v) => updateItem(idx, { image: v })} allowedTabs={['upload', 'map']} />
+                      <IconPicker value={item.image || ''} onChange={(v) => updateItem(idx, { image: v })} allowedTabs={['upload', 'map', 'history']} pages={pages} />
                       <Input placeholder="Label" value={item.title || ''} onChange={(e) => updateItem(idx, { title: e.target.value })} className="flex-1" />
                     </div>
                     {adjustingIdx === idx && (

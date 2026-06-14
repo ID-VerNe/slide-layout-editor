@@ -11,9 +11,10 @@ interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
   customFonts: CustomFont[];
+  pages?: PageData[];
 }
 
-export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, customFonts }) => {
+export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, customFonts, pages }) => {
   const isVisible = page.visibility?.testimonials !== false;
 
   const toggle = () => {
@@ -108,9 +109,10 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
                 <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-[#264376] shadow-sm"><User size={12}/></div>
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Feedback {idx + 1}</span>
               </div>
-              <IconPicker 
-                value={t.avatar || ''} 
+              <IconPicker
+                value={t.avatar || ''}
                 onChange={(val) => handleTestimonialChange(idx, 'avatar', val)}
+                pages={pages}
                 trigger={<button className="w-10 h-10 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 overflow-hidden shadow-md hover:border-[#264376] transition-all">{renderCellPreview(t.avatar)}</button>}
               />
             </div>

@@ -11,12 +11,13 @@ interface EditorProps {
   page: PageData;
   onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
+  pages?: PageData[];
 }
 
 /**
  * Editor 核心组件 (Schema 驱动虚拟化版)
  */
-const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts }) => {
+const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts, pages }) => {
   if (!page || !page.layoutId) return null;
 
   const template = useMemo(() => getTemplateById(page.layoutId), [page.layoutId]);
@@ -77,11 +78,12 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts 
               </Section>
             ) : (
               <div className="px-1">
-                <FieldRenderer 
+                <FieldRenderer
                   schema={template.fields[virtualRow.index - 1]}
                   page={page}
                   onUpdate={onUpdate}
                   customFonts={customFonts}
+                  pages={pages}
                 />
               </div>
             )}

@@ -91,7 +91,7 @@ Lucide 图标集渲染器。
 模板引擎的核心渲染器，递归遍历 TemplateNode 树。
 
 - **文件**: [src/templates/schemas/LayoutRenderer.tsx](src/templates/schemas/LayoutRenderer.tsx)
-- **功能**: CSS Grid 映射、DesignSystem Preset 注入、Zine 审美约束过滤。详见 [模板引擎文档](../architecture/template-engine.md#2-layoutrenderer递归渲染核心)。
+- **功能**: CSS Grid 映射、DesignSystem Preset 注入、Zine 审美约束过滤。详见 [模板引擎文档](../architecture/template-engine/nodes-and-renderer.md)。
 
 ### 3.2 `JsonTemplateRenderer`
 JSON 模板渲染器的 React 封装层。

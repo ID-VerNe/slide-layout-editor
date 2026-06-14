@@ -222,13 +222,13 @@ pnpm build
 |:---|:---|
 | [STANDARD_OPERATING_PROCEDURE.md](STANDARD_OPERATING_PROCEDURE.md) | 模板开发 SOP（必读） |
 | [docs/architecture/overview.md](docs/architecture/overview.md) | 架构总览（进程模型、IPC、持久化） |
-| [docs/architecture/data-model.md](docs/architecture/data-model.md) | 数据模型与类型系统完整参考 |
+| [docs/architecture/data-model/index.md](docs/architecture/data-model/index.md) | 数据模型与类型系统完整参考 |
 | [docs/architecture/state.md](docs/architecture/state.md) | Zustand 状态管理、Undo/Redo、同步算法 |
-| [docs/architecture/template-engine.md](docs/architecture/template-engine.md) | 模板引擎渲染机制 |
+| [docs/architecture/template-engine/index.md](docs/architecture/template-engine/index.md) | 模板引擎渲染机制 |
 | [docs/architecture/native.md](docs/architecture/native.md) | Electron 原生集成（资产协议、归档、图像管线） |
 | [docs/guides/typography.md](docs/guides/typography.md) | 语义化排版指南 |
 | [docs/guides/dynamic-components.md](docs/guides/dynamic-components.md) | 动态组件（Repeater）开发 |
-| [docs/design/SPEC.md](docs/design/SPEC.md) | Zine 设计规范（24×24 网格、8px 基线、Token 系统） |
+| [docs/design.md](docs/design.md) | Zine 设计规范（24×24 网格、8px 基线、Token 系统） |
 
 ## License
 

@@ -70,10 +70,11 @@ interface FieldRendererProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
   customFonts: CustomFont[];
+  pages?: PageData[];
 }
 
-export const FieldRenderer: React.FC<FieldRendererProps> = ({ 
-  schema, page, onUpdate, customFonts 
+export const FieldRenderer: React.FC<FieldRendererProps> = ({
+  schema, page, onUpdate, customFonts, pages
 }) => {
   const { key, label, type, props = {} } = schema;
 
@@ -83,12 +84,12 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   // 3. Fallback 逻辑
   if (!Component && type === 'number') {
     return (
-      <GenericNumberField 
-        page={page} 
-        onUpdate={onUpdate} 
-        label={label} 
-        fieldKey={key} 
-        {...props} 
+      <GenericNumberField
+        page={page}
+        onUpdate={onUpdate}
+        label={label}
+        fieldKey={key}
+        {...props}
       />
     );
   }
@@ -101,13 +102,14 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   if (!Component) return null;
 
   return (
-    <Component 
-      page={page} 
-      onUpdate={onUpdate} 
-      customFonts={customFonts} 
+    <Component
+      page={page}
+      onUpdate={onUpdate}
+      customFonts={customFonts}
       label={label}
       fieldKey={key}
-      {...props} 
+      pages={pages}
+      {...props}
     />
   );
 };

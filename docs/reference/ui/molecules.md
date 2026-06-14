@@ -64,6 +64,60 @@ const closestOption = options.reduce((prev, curr) =>
 );
 ```
 
+#### `IconPicker` 组件
+
+**文件**: `src/components/ui/IconPicker.tsx`  
+**用途**: 统一的资产选择器，支持 Lucide / Material Symbols 图标、本地上传图片，以及**项目级历史图片复用**。
+
+**Props 接口**:
+```typescript
+export type AssetTab = 'icons' | 'upload' | 'map' | 'history';
+
+interface IconPickerProps {
+  value: string;                        // 当前选中的资产值
+  onChange: (val: string) => void;      // 选择回调
+  trigger?: React.ReactNode;            // 自定义触发按钮
+  allowedTabs?: AssetTab[];             // 允许显示的 Tab，默认 ['icons', 'upload', 'map']
+  className?: string;
+  pages?: PageData[];                   // 可选：传入项目全部页面，解锁 History Tab
+}
+```
+
+**四大资产 Tab**:
+
+| Tab | 标识 | 内容 | 默认显示 |
+| :--- | :--- | :--- | :--- |
+| **Icons** | `icons` | 分类的 Lucide / Material Symbols 图标，支持搜索与最近使用 | ✅ |
+| **Images** | `upload` | 本地上传图片，经 `compressImage()` 处理后写入数据 | ✅ |
+| **Map** | `map` | 预留的地图/资产映射入口 | ✅ |
+| **History** | `history` | 展示当前项目中已使用过的图片，按使用频次倒排 | 仅在 `allowedTabs` 中声明且传入 `pages` 时显示 |
+
+**核心行为**:
+
+- **最近使用**: 通过 `localStorage` 的 `magazine_editor_recent_assets` 保存最近 18 个选中的资产，便于跨会话快速复用。
+- **项目历史**: 当传入 `pages` 且允许 `history` Tab 时，`collectProjectImages()` 会扫描所有页面的以下字段：
+  - `page.image`、`page.signature`、`page.logo`
+  - `page.gallery[].url`
+  - `page.features[].icon` / `page.features[].image`
+  - `page.bentoItems[].icon` / `page.bentoItems[].image`
+  - `page.partners[].logo`
+  - `page.testimonials[].avatar`
+  - `page.mosaicConfig.icons`
+
+  扫描结果按使用频次降序排列，最多展示 **50 张**项目内已使用图片。
+
+**使用示例**:
+```tsx
+<IconPicker
+  value={page.logo}
+  onChange={(val) => onUpdate({ ...page, logo: val })}
+  allowedTabs={['upload', 'icons', 'history']}
+  pages={pages}
+/>
+```
+
+> 💡 在媒体类字段（Image / Logo / Gallery / Features / Bento / Partners / Testimonials / Signature / Mosaic）中，`pages` 已从 `EditorPage` 一路透传至 `IconPicker`，因此用户可直接在历史面板中快速复用项目已有的图片。
+
 ---
 
 ## 2. 模板辅助功能
