@@ -24,13 +24,12 @@
 interface EvaluationContext {
   page: PageData;
   theme: ProjectTheme;
-  // Repeater 模式下动态注入:
-  item?: any;       // 当前循环项
-  index?: number;   // 当前循环索引
-  $parent?: any;    // 父级 Repeater 的 item
-  [key: string]: any; // 自定义 itemVariable
+  [key: string]: any; // Repeater 模式下动态注入 item / index / $parent 等
 }
 ```
+
+> **注意**: Repeater 上下文变量（`item`、`index`、`$parent`）并非 `EvaluationContext` 的显式属性，
+> 而是通过 `[key: string]: any` 索引签名在 Repeater 渲染时动态注入。
 
 ### 4.3 关键方法
 
@@ -40,12 +39,20 @@ interface EvaluationContext {
 | `interpolate(template, context)` | 处理含 `{...}` 插值的模板字符串 |
 | `hasExpression(value)` | 检测值是否包含 `{...}` 表达式 |
 | `evaluateObject(obj, context)` | 递归处理对象/数组中的所有表达式 |
-| `evaluatePart(part, context)` | 路径分段求值，支持 `.`、`?.`、`[ ]` 访问 |
 
-### 4.4 使用示例
+### 4.4 单例实例
+
+模块导出一个预创建的单例，应用中统一使用：
 
 ```typescript
-const evaluator = new ExpressionEvaluator();
+import { evaluator } from './expressionEvaluator';
+// 直接使用 evaluator.evaluate(...) / evaluator.interpolate(...)
+```
+
+### 4.5 使用示例
+
+```typescript
+import { evaluator } from './expressionEvaluator';
 
 // 简单字段
 evaluator.evaluate('page.title', { page: { title: 'Hello' }, theme });

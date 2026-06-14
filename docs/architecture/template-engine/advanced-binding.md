@@ -23,12 +23,42 @@ type ZIndexDeclaration =
 const idMap = new Map<string, ZIndexDeclaration>();
 collectIds(root, idMap);
 
-// 2. 创建解析器
+// 2. 创建解析器（单棵树）
 const resolveZIndex = createZIndexResolver(root);
 
 // 3. 在渲染时解析
 const finalZIndex = resolveZIndex(node.zIndex);
 ```
+
+### 9.2.1 便捷 API：`resolveZIndex()`
+
+对于需要一次性解析所有节点 zIndex 的场景（如调试或预览），可使用便捷函数：
+
+```typescript
+import { resolveZIndex } from './zIndexResolver';
+
+// 输入节点数组，返回 { nodeId: zIndex 数值 } 映射
+const zMap = resolveZIndex(schema.root.children);
+// => { 'bg': 0, 'content': 10, 'overlay': 11 }
+```
+
+> `resolveZIndex` 内部会为每个节点创建解析器并批量求值，适合初始化阶段使用。
+> 渲染路径中推荐直接使用 `createZIndexResolver` 以避免重复遍历。
+
+### 9.2.2 循环引用检测：Tarjan SCC
+
+解析器使用 **Tarjan 强连通分量 (SCC)** 算法检测循环引用：
+
+1. 将所有 `<id>.top` / `<id>.bottom` 声明构建为有向图
+2. 运行 Tarjan SCC 找出所有大小 > 1 的强连通分量（以及自环）
+3. 将涉及循环的声明标记为无效，解析时回退到 `PAGE_TOP (50)`
+
+相比简单的深度限制，Tarjan SCC 能一次性发现所有环路，不会遗漏跨层级的间接循环。
+
+### 9.2.3 结果缓存
+
+解析器内部维护 `Map<string, number>` 缓存，相同声明字符串不会重复计算。
+缓存在 `createZIndexResolver()` 的生命周期内有效，树销毁时自动释放。
 
 ### 9.3 示例
 

@@ -283,21 +283,51 @@ fields: withBaseFields([
 运行测试：
 
 ```powershell
+# 交互模式（watch）
 pnpm test
+
+# 单次运行（CI 模式）
+pnpm test:ci
 ```
+
+**覆盖率阈值**（在 `vitest.config.ts` 中配置，低于阈值 CI 会失败）：
+
+| 指标 | 最低要求 |
+|------|---------|
+| Statements | 55% |
+| Branches | 37% |
+| Functions | 42% |
+| Lines | 57% |
 
 测试覆盖范围：
 - **Schema 验证**: 确保 `validator.ts` 正确解析新 Schema
 - **组件渲染**: 测试组件在不同 `layoutVariant` 下的视觉表现
 - **Store 逻辑**: 测试 undo/redo、全局同步等核心逻辑
+- **Hooks**: useAssetUrl、useImagePreload、usePreview、useProject、useResponsiveImage
+- **工具函数**: db、lruCache、logger、native-fs、typeGuards、comparison
+- **编辑器 UI**: FieldRenderer、GlobalSettings、PreviewArea、TopNav、Dashboard
 
-### 7.2 实时调试
+### 7.2 CI 管线
+
+项目使用 GitHub Actions 运行自动化测试，配置文件：`.github/workflows/ci.yml`
+
+- **触发条件**: push 或 PR 到 `master`/`main` 分支
+- **环境**: Ubuntu latest, pnpm 9, Node.js 20
+- **步骤**: `pnpm install --frozen-lockfile` → `pnpm test:ci`
+- **覆盖率上报**: 可选上传至 Codecov
+
+```powershell
+# 本地模拟 CI 运行
+pnpm test:ci
+```
+
+### 7.3 实时调试
 
 运行 `pnpm dev`，在编辑器中切换到新模板。由于 `TemplatePreview` 是实时渲染的，你可以直接看到 24x24 网格布局的正确性。
 
 按 `Alt+;` 可切换调试网格覆盖层，方便验证模块化定位的精确性。
 
-### 7.3 类型检查
+### 7.4 类型检查
 
 ```powershell
 pnpm typecheck

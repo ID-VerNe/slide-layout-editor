@@ -11,11 +11,6 @@ SlideGrid Studio 针对高精度排版与高性能预览，在 `src/utils/` 下�
 - `generateResponsiveImages()`: 调用主进程 Sharp 生成 WebP/JPG 多尺寸变体。
 - `generateSrcSet()`: 构建 HTML `srcset`。
 
-### 1.2 `blobManager.ts`
-引用计数式的内存 Blob URL 生命周期管理，防止内存泄漏。
-- `create(blob, key)`: 创建并跟踪。
-- `release(key)`: 释放并回收。
-
 ### 1.3 `lqip.ts` (Low Quality Image Placeholder)
 生成 20x20 超低保真 JPEG DataURL 作为加载占位图。
 

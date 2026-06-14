@@ -38,9 +38,16 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
 | `removePage(id)` | 删除页面 (至少保留 1 页) |
 | `reorderPages(newPages)` | 页面重排序 |
 | `setTheme(update, applyToAll?)` | 更新主题；`applyToAll=true` 同步到所有页面 |
+| `setPages(pages)` | 直接替换整个页面数组 |
+| `setProjectTitle(title)` | 更新项目标题 |
 | `setDesignSystem(ds)` | 更新设计令牌系统 |
-| `setCounterStyle(style)` | 设置页码样式并同步到所有页面 |
 | `setPrintSettings(settings)` | 更新打印设置 |
+| `setImageQuality(quality)` | 设置图片压缩质量 |
+| `setMinimalCounter(minimal)` | 切换极简页码模式 |
+| `setCounterStyle(style)` | 设置页码样式并同步到所有页面 |
+| `setCustomFonts(fonts)` | 更新自定义字体列表 |
+| `setCurrentPageIndex(index)` | 切换当前编辑页 |
+| `setCurrentFilePath(path)` | 设置 .slgrid 文件路径 |
 | `pushHistory()` | 快照当前状态到撤销栈 |
 | `undo()` / `redo()` | 撤销/重做 |
 | `markAsSaved()` | 清除脏标记 (`hasUnsavedChanges = false`) |
@@ -119,8 +126,8 @@ if (snapshotSize > 5 * 1024 * 1024) { // 5MB 限制
 
 1. **全局字段识别**: 检查修改的字段是否属于 `GLOBAL_FIELDS` 集合：
    ```typescript
-   const GLOBAL_FIELDS = ['counterStyle', 'backgroundPattern', 'footer', 'titleFont',
-                          'bodyFont', 'logo', 'logoSize', 'accentColor', 'pageNumber'];
+   const GLOBAL_FIELDS = ['counterStyle', 'counterColor', 'backgroundPattern', 'footer',
+                          'titleFont', 'bodyFont', 'logo', 'logoSize', 'accentColor', 'pageNumber'];
    ```
 2. **条件广播**: 如果检测到全局字段变更，循环遍历 `pages` 数组，将该字段的新值应用到**所有页面**。
 3. **静默更新**: `silent=true` 参数确保全局同步不触发额外的 `pushHistory()`，保持撤销栈整洁。

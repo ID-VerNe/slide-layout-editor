@@ -29,6 +29,7 @@
 ```typescript
 export const GLOBAL_FIELDS: Array<keyof PageData> = [
   'counterStyle',
+  'counterColor',
   'backgroundPattern',
   'footer',
   'titleFont',
@@ -87,3 +88,5 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 | `partners` | `PartnersField` | 合作伙伴 Logo |
 | `resumeSections` | `ResumeSectionsField` | 简历区块 |
 | `artFont` | `ArtFontField` | SVG 艺术字 |
+| `group` | `GroupField` | 字段分组折叠 |
+| `bigDataMetrics` | `BigDataMetricsField` | 可视化网格指标 |
