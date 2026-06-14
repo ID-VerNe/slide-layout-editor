@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import AutoFitHeadline from '../AutoFitHeadline';
+import AutoFitHeadline, { resetAutoFitCache } from '../AutoFitHeadline';
 import React from 'react';
 
 // 模拟 requestAnimationFrame 立即执行以加快测试
@@ -23,7 +23,8 @@ vi.stubGlobal('Worker', MockWorker);
 describe('AutoFitHeadline', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+    resetAutoFitCache();
+
     // 模拟 DOM 属性
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { 
       configurable: true, 
@@ -34,9 +35,9 @@ describe('AutoFitHeadline', () => {
       configurable: true, 
       get: function() {
         const fontSize = parseFloat(this.style.fontSize);
-        // 模拟：字号大于 40px 就溢出（scrollHeight 100 > maxHeight）
-        // 这里需要配合组件内的 maxHeight 计算逻辑：fontSize * lineHeight * maxLines
-        return fontSize > 40 ? 100 : 20;
+        // 模拟：字号大于 40px 就溢出（scrollHeight 150 > maxHeight）
+        // 组件内的 maxHeight 计算逻辑为：fontSize * lineHeight * maxLines + 2
+        return fontSize > 40 ? 150 : 20;
       }
     });
   });

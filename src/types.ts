@@ -126,14 +126,15 @@ export interface EditorialSplitData extends PageData {
 
 // --- Phase 4: Schema 驱动编辑器定义 ---
 
-export type FieldType = 
-  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph' 
+export type FieldType =
+  | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph'
   | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
-  | 'features' | 'bentoItems' | 'mosaic' | 'metrics' 
-  | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda' 
-  | 'gallery' | 'variant' | 'footer' | 'bullets' 
+  | 'features' | 'bentoItems' | 'mosaic' | 'metrics'
+  | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda'
+  | 'gallery' | 'variant' | 'footer' | 'bullets'
   | 'backgroundColor' | 'pageNumber' | 'logoSize' | 'titleY'
-  | 'group' | 'separator' | 'resumeSections' | 'artFont';
+  | 'group' | 'separator' | 'resumeSections' | 'artFont'
+  | 'bigDataMetrics';
 
 export interface FieldSchema {
   key: FieldType;
@@ -208,9 +209,12 @@ export interface PageData {
   mosaic?: any[];
   testimonials?: TestimonialData[];
   gallery?: any[];
+  partners?: PartnerData[];
+  signature?: string;
   
   bentoItems?: BentoItem[];
   bentoConfig?: { rows: number; cols: number };
+  bigDataMetricsConfig?: { rows: number; cols: number };
   mosaicConfig?: {
     rows: number;
     cols: number;
@@ -304,13 +308,14 @@ export interface ProjectData {
   projectTitle?: string;
   pages: PageData[];
   customFonts: CustomFont[];
-  theme?: ProjectTheme; 
-  designSystem?: DesignSystem; 
-  imageQuality?: number; 
-  minimalCounter?: boolean; 
+  theme?: ProjectTheme;
+  designSystem?: DesignSystem;
+  imageQuality?: number;
+  minimalCounter?: boolean;
   counterStyle?: CounterStyle;
-  printSettings?: PrintSettings; 
+  printSettings?: PrintSettings;
   filePath?: string;
+  thumbnail?: string;
 }
 
 export interface ProjectSaveData extends ProjectData {

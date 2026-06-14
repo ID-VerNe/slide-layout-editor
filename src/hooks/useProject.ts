@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { CustomFont, PrintSettings } from '../types';
-import { saveProject, getAsset, saveAsset } from '../utils/db';
+import { saveProject } from '../utils/db';
 import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
 import { useStore } from '../store/useStore';
@@ -125,43 +125,62 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
   const saveToDB = useCallback(async (previewRef: React.RefObject<HTMLDivElement | null>, forceThumbnail: boolean = true) => {
     if (!projectId || !isLoaded || activeProjectId !== projectId || pages.length === 0) return;
-    
-    // 捕获 Ref 用于定时器
+
+    // 捕获 Ref 用于缩略图生成
     if (previewRef.current) {
       previewRefLocal.current = previewRef.current;
     }
 
-    // 保存主数据 (不再处理缩略图)
-    await saveProject(projectId, { 
-      version: "3.0", 
-      title: projectTitle, 
-      pages, 
-      customFonts, 
-      imageQuality, 
-      printSettings, 
+    let thumbnail: string | null = null;
+    if (forceThumbnail) {
+      try {
+        const el = previewRefLocal.current?.querySelector('.magazine-page');
+        if (el) {
+          if (nativeFs.isElectron()) {
+            const rect = el.getBoundingClientRect();
+            thumbnail = await (window as any).electronAPI.captureThumbnail(projectId, {
+              x: rect.x, y: rect.y, width: rect.width, height: rect.height
+            });
+          } else {
+            thumbnail = await toPng(el as HTMLElement, { pixelRatio: 0.2, quality: 0.5, skipFonts: true });
+          }
+        }
+      } catch (e) {
+        console.warn('[Save] Failed to generate thumbnail:', e);
+      }
+    }
+
+    // 保存主数据
+    await saveProject(projectId, {
+      version: "3.0",
+      title: projectTitle,
+      pages,
+      customFonts,
+      imageQuality,
+      printSettings,
       theme,
       designSystem,
       minimalCounter,
       counterStyle,
-      filePath: currentFilePath || undefined // 保存当前路径
+      thumbnail: thumbnail || undefined,
+      filePath: currentFilePath || undefined
     });
 
-    // 更新索引元数据 (保留原有缩略图)
+    // 更新索引元数据
     const indexSaved = localStorage.getItem('magazine_recent_projects');
     let index = indexSaved ? JSON.parse(indexSaved) : [];
     const existingIdx = index.findIndex((p: any) => p.id === projectId);
-    
-    const summary: any = { 
-      id: projectId, title: projectTitle || (pages[0]?.title), 
-      date: new Date().toLocaleDateString(), type: pages[0]?.layoutId, 
+
+    const summary: any = {
+      id: projectId, title: projectTitle || (pages[0]?.title),
+      date: new Date().toLocaleDateString(), type: pages[0]?.layoutId,
       aspectRatio: pages[0]?.aspectRatio,
-      // 继承已有缩略图，或者如果是新项目则暂时为空（等待定时器填充）
-      thumbnail: existingIdx > -1 ? index[existingIdx].thumbnail : null
+      thumbnail: thumbnail || (existingIdx > -1 ? index[existingIdx].thumbnail : null)
     };
 
     if (existingIdx > -1) index[existingIdx] = { ...index[existingIdx], ...summary };
     else index.unshift(summary);
-    
+
     localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
   }, [pages, projectId, isLoaded, activeProjectId, projectTitle, theme, designSystem, customFonts, imageQuality, printSettings, minimalCounter, counterStyle, currentFilePath]);
 

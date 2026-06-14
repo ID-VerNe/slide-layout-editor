@@ -129,9 +129,9 @@ const GlobalFolio: React.FC<{
   const alignment = page.folioAlignment || 'auto';
   const isRight = alignment === 'auto' ? page.layoutVariant === 'right' : alignment === 'right';
 
-  // 检查当前模板是否注册了 footer 字段
+  // 当模板未注册或注册字段中包含 footer 时，允许渲染页脚文字
   const templateConfig = getTemplateById(page.layoutId);
-  const hasFooterField = templateConfig?.fields?.some((f: any) => f.key === 'footer');
+  const hasFooterField = !templateConfig || templateConfig.fields?.some((f: any) => f.key === 'footer');
 
   const renderCounter = () => {
     const style = counterStyle || page.counterStyle || 'number';

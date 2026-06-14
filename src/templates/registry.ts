@@ -295,12 +295,12 @@ export const TEMPLATES: TemplateConfig[] = [
     ]),
     defaultData: {
       metrics: [
-        { value: 'CAMERA', label: 'CATEGORY', unit: '' },
-        { value: 'LENS', label: 'CATEGORY', unit: '' },
-        { value: 'LENS', label: 'CATEGORY', unit: '' },
-        { value: 'LOCATION', label: 'CATEGORY', unit: '' },
-        { value: 'LOCATION', label: 'CATEGORY', unit: '' },
-        { value: 'LOCATION', label: 'CATEGORY', unit: '' }
+        { id: 'm-col-1', value: 'CAMERA', label: 'CATEGORY', unit: '' },
+        { id: 'm-col-2', value: 'LENS', label: 'CATEGORY', unit: '' },
+        { id: 'm-col-3', value: 'LENS', label: 'CATEGORY', unit: '' },
+        { id: 'm-col-4', value: 'LOCATION', label: 'CATEGORY', unit: '' },
+        { id: 'm-col-5', value: 'LOCATION', label: 'CATEGORY', unit: '' },
+        { id: 'm-col-6', value: 'LOCATION', label: 'CATEGORY', unit: '' }
       ],
       bigDataMetricsConfig: { rows: 3, cols: 2 }
     },

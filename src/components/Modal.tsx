@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, AlertCircle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,12 +9,25 @@ interface ModalProps {
   title: string;
   message?: string;
   type?: 'alert' | 'confirm' | 'custom';
-  onConfirm?: () => void;
+  onConfirm?: () => void | boolean;
   confirmText?: string;
   cancelText?: string;
   children?: React.ReactNode;
   maxWidth?: string;
 }
+
+// 全局 body overflow 锁，支持多层 Modal 叠加
+let bodyOverflowLockCount = 0;
+const lockBodyOverflow = () => {
+  bodyOverflowLockCount++;
+  document.body.style.overflow = 'hidden';
+};
+const unlockBodyOverflow = () => {
+  bodyOverflowLockCount = Math.max(0, bodyOverflowLockCount - 1);
+  if (bodyOverflowLockCount === 0) {
+    document.body.style.overflow = '';
+  }
+};
 
 /**
  * 升级版 Modal 组件
@@ -35,14 +48,25 @@ export default function Modal({
 }: ModalProps) {
   // 确保在客户端环境下运行
   const [mounted, setMounted] = useState(false);
+  const lockedRef = useRef(false);
+
   useEffect(() => {
     setMounted(true);
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      if (!lockedRef.current) {
+        lockBodyOverflow();
+        lockedRef.current = true;
+      }
+    } else if (lockedRef.current) {
+      unlockBodyOverflow();
+      lockedRef.current = false;
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      if (lockedRef.current) {
+        unlockBodyOverflow();
+        lockedRef.current = false;
+      }
+    };
   }, [isOpen]);
 
   if (!mounted) return null;
@@ -107,9 +131,12 @@ export default function Modal({
                       {cancelText}
                   </button>
                   )}
-                  <button 
+                  <button
                     onClick={() => {
-                        if (onConfirm) onConfirm();
+                        if (onConfirm) {
+                          const result = onConfirm();
+                          if (result === false) return;
+                        }
                         onClose();
                     }}
                     className="px-8 py-3 bg-[#264376] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-[#264376]/20 hover:brightness-110 transition-all active:scale-95"

@@ -9,6 +9,342 @@ export interface EvaluationContext {
 const MAX_EXPRESSION_DEPTH = 50;
 const MAX_OBJECT_DEPTH = 20;
 
+type Token =
+  | { type: 'number'; value: number }
+  | { type: 'string'; value: string }
+  | { type: 'boolean'; value: boolean }
+  | { type: 'identifier'; value: string }
+  | { type: 'operator'; value: string }
+  | { type: 'punct'; value: string };
+
+function tokenize(expr: string): Token[] {
+  const tokens: Token[] = [];
+  let i = 0;
+
+  while (i < expr.length) {
+    const ch = expr[i];
+
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+
+    // 字符串字面量
+    if (ch === '"' || ch === "'") {
+      const quote = ch;
+      let value = '';
+      i++;
+      while (i < expr.length && expr[i] !== quote) {
+        if (expr[i] === '\\' && i + 1 < expr.length) {
+          const next = expr[i + 1];
+          if (next === 'n') value += '\n';
+          else if (next === 't') value += '\t';
+          else value += next;
+          i += 2;
+          continue;
+        }
+        value += expr[i];
+        i++;
+      }
+      i++; // 跳过结束引号
+      tokens.push({ type: 'string', value });
+      continue;
+    }
+
+    // 数字
+    if (/\d/.test(ch) || (ch === '.' && /\d/.test(expr[i + 1]))) {
+      let num = '';
+      while (i < expr.length && (/\d/.test(expr[i]) || expr[i] === '.')) {
+        num += expr[i];
+        i++;
+      }
+      tokens.push({ type: 'number', value: Number(num) });
+      continue;
+    }
+
+    // 标识符 / 关键字
+    if (/[A-Za-z_$]/.test(ch)) {
+      let id = '';
+      while (i < expr.length && /[A-Za-z0-9_$]/.test(expr[i])) {
+        id += expr[i];
+        i++;
+      }
+      if (id === 'true') tokens.push({ type: 'boolean', value: true });
+      else if (id === 'false') tokens.push({ type: 'boolean', value: false });
+      else tokens.push({ type: 'identifier', value: id });
+      continue;
+    }
+
+    // 长度 3/2 的运算符优先于单字符
+    const three = expr.slice(i, i + 3);
+    if (three === '===' || three === '!==') {
+      tokens.push({ type: 'operator', value: three });
+      i += 3;
+      continue;
+    }
+
+    const two = expr.slice(i, i + 2);
+    if (['==', '!=', '>=', '<=', '&&', '||', '??', '?.'].includes(two)) {
+      tokens.push({ type: 'operator', value: two });
+      i += 2;
+      continue;
+    }
+
+    // 单字符
+    if (['+', '-', '*', '/', '>', '<', '(', ')', '[', ']', '.', '?', ':', '!'].includes(ch)) {
+      let type: Token['type'] = 'operator';
+      if (ch === '.' || ch === '?' || ch === ':') type = 'punct';
+      tokens.push({ type, value: ch });
+      i++;
+      continue;
+    }
+
+    // 无法识别的字符，跳过以避免死循环
+    i++;
+  }
+
+  return tokens;
+}
+
+function getTokenValue(token: Token): string {
+  return token.value as string;
+}
+
+class Parser {
+  private pos = 0;
+  private depth = 0;
+
+  constructor(private tokens: Token[], private context: EvaluationContext) {}
+
+  parseExpression(): any {
+    this.depth++;
+    if (this.depth > MAX_EXPRESSION_DEPTH) {
+      this.depth--;
+      console.warn(`Expression depth exceeded in: ${this.stringifyTokens()}`);
+      return undefined;
+    }
+    const result = this.parseTernary();
+    this.depth--;
+    return result;
+  }
+
+  private stringifyTokens(): string {
+    return this.tokens
+      .map((t) => (t.type === 'string' ? `"${t.value}"` : String(t.value)))
+      .join(' ');
+  }
+
+  private peek(): Token | undefined {
+    return this.tokens[this.pos];
+  }
+
+  private consume(expected?: string): Token {
+    const token = this.tokens[this.pos];
+    if (!token) {
+      throw new SyntaxError(`Unexpected end of expression, expected: ${expected || 'token'}`);
+    }
+    if (expected && getTokenValue(token) !== expected) {
+      throw new SyntaxError(`Expected ${expected}, got ${getTokenValue(token)}`);
+    }
+    this.pos++;
+    return token;
+  }
+
+  private match(...values: string[]): boolean {
+    const token = this.peek();
+    return token ? values.includes(getTokenValue(token)) : false;
+  }
+
+  private parseTernary(): any {
+    const condition = this.parseNullish();
+    if (this.match('?')) {
+      this.consume('?');
+      const trueBranch = this.parseExpression();
+      this.consume(':');
+      const falseBranch = this.parseExpression();
+      return condition ? trueBranch : falseBranch;
+    }
+    return condition;
+  }
+
+  private parseNullish(): any {
+    let left = this.parseOr();
+    while (this.match('??')) {
+      this.consume('??');
+      if (left !== null && left !== undefined) {
+        // 短路：消费掉后续 ?? 的右操作数以保持语法完整
+        this.parseOr();
+      } else {
+        left = this.parseOr();
+      }
+    }
+    return left;
+  }
+
+  private parseOr(): any {
+    let left = this.parseAnd();
+    while (this.match('||')) {
+      this.consume('||');
+      if (left) {
+        this.parseAnd();
+      } else {
+        left = this.parseAnd();
+      }
+    }
+    return left;
+  }
+
+  private parseAnd(): any {
+    let left = this.parseEquality();
+    while (this.match('&&')) {
+      this.consume('&&');
+      if (!left) {
+        this.parseEquality();
+      } else {
+        left = this.parseEquality();
+      }
+    }
+    return left;
+  }
+
+  private parseEquality(): any {
+    let left = this.parseComparison();
+    while (this.match('===', '==', '!==', '!=')) {
+      const op = getTokenValue(this.consume());
+      const right = this.parseComparison();
+      if (op === '===') left = left === right;
+      else if (op === '==') left = left == right;
+      else if (op === '!==') left = left !== right;
+      else left = left != right;
+    }
+    return left;
+  }
+
+  private parseComparison(): any {
+    let left = this.parseAdditive();
+    while (this.match('>', '<', '>=', '<=')) {
+      const op = getTokenValue(this.consume());
+      const right = this.parseAdditive();
+      if (op === '>') left = left > right;
+      else if (op === '<') left = left < right;
+      else if (op === '>=') left = left >= right;
+      else left = left <= right;
+    }
+    return left;
+  }
+
+  private parseAdditive(): any {
+    let left = this.parseMultiplicative();
+    while (this.match('+', '-')) {
+      const op = getTokenValue(this.consume());
+      const right = this.parseMultiplicative();
+      const l = Number(left);
+      const r = Number(right);
+      if (op === '+') left = l + r;
+      else left = l - r;
+    }
+    return left;
+  }
+
+  private parseMultiplicative(): any {
+    let left = this.parseUnary();
+    while (this.match('*', '/')) {
+      const op = getTokenValue(this.consume());
+      const right = this.parseUnary();
+      const l = Number(left);
+      const r = Number(right);
+      if (op === '*') {
+        left = l * r;
+      } else {
+        if (r === 0) {
+          console.warn(`Division by zero in expression: ${this.stringifyTokens()}`);
+          left = l === 0 ? NaN : (l > 0 ? Infinity : -Infinity);
+        } else {
+          left = l / r;
+        }
+      }
+    }
+    return left;
+  }
+
+  private parseUnary(): any {
+    if (this.match('!')) {
+      this.consume('!');
+      return !this.parseUnary();
+    }
+    if (this.match('-')) {
+      this.consume('-');
+      return -Number(this.parseUnary());
+    }
+    if (this.match('typeof')) {
+      this.consume('typeof');
+      return typeof this.parseUnary();
+    }
+    return this.parsePrimary();
+  }
+
+  private parsePrimary(): any {
+    const token = this.peek();
+    if (!token) {
+      throw new SyntaxError('Unexpected end of expression');
+    }
+
+    if (token.type === 'number' || token.type === 'string' || token.type === 'boolean') {
+      this.consume();
+      return token.value;
+    }
+
+    if (token.type === 'identifier') {
+      this.consume();
+      let value = this.context[token.value];
+      return this.parseMember(value);
+    }
+
+    if (this.match('(')) {
+      this.consume('(');
+      const value = this.parseExpression();
+      this.consume(')');
+      return value;
+    }
+
+    this.consume(); // 跳过无法识别的 token
+    return undefined;
+  }
+
+  private parseMember(current: any): any {
+    while (true) {
+      if (this.match('.')) {
+        this.consume('.');
+        const token = this.peek();
+        if (!token || token.type !== 'identifier') {
+          throw new SyntaxError('Expected property name after "."');
+        }
+        this.consume();
+        if (current == null) return undefined;
+        current = current[getTokenValue(token)];
+      } else if (this.match('?.')) {
+        this.consume('?.');
+        const token = this.peek();
+        if (!token || token.type !== 'identifier') {
+          throw new SyntaxError('Expected property name after "?."');
+        }
+        this.consume();
+        if (current == null) return undefined;
+        current = current[getTokenValue(token)];
+      } else if (this.match('[')) {
+        this.consume('[');
+        const index = this.parseExpression();
+        this.consume(']');
+        if (current == null) return undefined;
+        current = current[index];
+      } else {
+        break;
+      }
+    }
+    return current;
+  }
+}
+
 /**
  * ExpressionEvaluator - 处理 JSON 模板中的数据绑定表达式
  * 支持:
@@ -16,187 +352,31 @@ const MAX_OBJECT_DEPTH = 20;
  * 2. 嵌套对象: "theme.colors.primary"
  * 3. 可选链: "page.styleOverrides?.title?.fontSize"
  * 4. 字符串插值: "bg-pattern-{page.backgroundPattern}"
+ * 5. 算术/比较/逻辑/三元运算符、括号优先级
  */
 export class ExpressionEvaluator {
   /**
    * 计算单个表达式的值
-   * 支持: 
-   * 1. 路径访问: "page.title"
-   * 2. 空值合并: "page.backgroundColor ?? theme.colors.background ?? '#ffffff'"
    */
   evaluate(expr: string, context: EvaluationContext): any {
     if (!expr) return undefined;
+    if (typeof expr !== 'string') return expr;
 
-    // 清理花括号
-    const cleanExpr = expr.replace(/\{|\}/g, '').trim();
+    let cleanExpr = expr.trim();
 
-    // 处理三元运算符 (cond ? a : b)
-    if (cleanExpr.includes(' ? ') && cleanExpr.includes(' : ')) {
-      const qIndex = cleanExpr.indexOf(' ? ');
-      const cIndex = cleanExpr.lastIndexOf(' : ');
-      const condition = cleanExpr.slice(0, qIndex).trim();
-      const trueVal = cleanExpr.slice(qIndex + 3, cIndex).trim();
-      const falseVal = cleanExpr.slice(cIndex + 3).trim();
-
-      const result = this.evaluate(condition, context);
-      return result ? this.evaluatePart(trueVal, context) : this.evaluatePart(falseVal, context);
+    // 仅去掉最外层包裹的 { }
+    if (cleanExpr.startsWith('{') && cleanExpr.endsWith('}')) {
+      cleanExpr = cleanExpr.slice(1, -1).trim();
     }
 
-    // 处理算术运算符 (+)
-    if (cleanExpr.includes(' + ')) {
-      const parts = cleanExpr.split(' + ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return Number(left) + Number(right);
-    }
-
-    // 处理算术运算符 (-)
-    if (cleanExpr.includes(' - ')) {
-      const parts = cleanExpr.split(' - ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return Number(left) - Number(right);
-    }
-
-    // 处理算术运算符 (*)
-    if (cleanExpr.includes(' * ')) {
-      const parts = cleanExpr.split(' * ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return Number(left) * Number(right);
-    }
-
-    // 处理算术运算符 (/)
-    if (cleanExpr.includes(' / ')) {
-      const parts = cleanExpr.split(' / ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return Number(left) / Number(right);
-    }
-
-    // 处理逻辑非 (!)
-    if (cleanExpr.startsWith('!')) {
-      const operand = cleanExpr.slice(1).trim();
-      const value = this.evaluatePart(operand, context);
-      return !value;
-    }
-
-    // 处理逻辑运算符 (&&)
-    if (cleanExpr.includes(' && ')) {
-      const parts = cleanExpr.split(' && ').map(p => p.trim());
-      for (const part of parts) {
-        const value = this.evaluate(part, context);
-        if (!value) return false;
-      }
-      return true;
-    }
-
-    // 处理逻辑运算符 (||)
-    if (cleanExpr.includes(' || ')) {
-      const parts = cleanExpr.split(' || ').map(p => p.trim());
-      for (const part of parts) {
-        const value = this.evaluate(part, context);
-        if (value) return value;
-      }
-      return false;
-    }
-
-    // 处理比较运算符 (>)
-    if (cleanExpr.includes(' > ')) {
-      const parts = cleanExpr.split(' > ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return left > right;
-    }
-
-    // 处理比较运算符 (<)
-    if (cleanExpr.includes(' < ')) {
-      const parts = cleanExpr.split(' < ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return left < right;
-    }
-
-    // 处理等于 (===)
-    if (cleanExpr.includes(' === ')) {
-      const parts = cleanExpr.split(' === ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return left === right;
-    }
-
-    // 处理不等于 (!==)
-    if (cleanExpr.includes(' !== ')) {
-      const parts = cleanExpr.split(' !== ').map(p => p.trim());
-      const left = this.evaluatePart(parts[0], context);
-      const right = this.evaluatePart(parts[1], context);
-      return left !== right;
-    }
-
-    // 处理 typeof
-    if (cleanExpr.startsWith('typeof ')) {
-      const operand = cleanExpr.slice(7).trim();
-      const value = this.evaluatePart(operand, context);
-      return typeof value;
-    }
-
-    // 处理空值合并 (??)
-    if (cleanExpr.includes('??')) {
-      const parts = cleanExpr.split('??').map(p => p.trim());
-      for (const part of parts) {
-        const value = this.evaluatePart(part, context);
-        if (value !== null && value !== undefined) {
-          return value;
-        }
-      }
+    try {
+      const tokens = tokenize(cleanExpr);
+      if (tokens.length === 0) return undefined;
+      return new Parser(tokens, context).parseExpression();
+    } catch (err: any) {
+      console.warn('[ExpressionEvaluator] Failed to evaluate:', expr, err?.message || err);
       return undefined;
     }
-
-    return this.evaluatePart(cleanExpr, context);
-  }
-
-  /**
-   * 计算表达式的一个部分 (不含 ??)
-   */
-  private evaluatePart(part: string, context: EvaluationContext, depth = 0): any {
-    if (depth > MAX_EXPRESSION_DEPTH) {
-      console.error(`Expression too deep (>${MAX_EXPRESSION_DEPTH}): ${part}`);
-      return undefined;
-    }
-    
-    // 处理字符串字面量
-    if ((part.startsWith("'") && part.endsWith("'")) || (part.startsWith('"') && part.endsWith('"'))) {
-      return part.slice(1, -1);
-    }
-
-    // 处理布尔字面量
-    if (part === 'true') return true;
-    if (part === 'false') return false;
-
-    // 处理数字
-    if (!isNaN(Number(part)) && part !== '') return Number(part);
-
-    // 路径分割：正确处理 . ?. [ ] 运算符
-    // 将 ?. 替换为特殊标记后统一处理
-    const normalized = part.replace(/\?\./g, '.?.');
-    const segments = normalized.split(/\.(?!\?)|\[|\]/).filter(Boolean);
-    
-    // 防止路径过深
-    if (segments.length > MAX_EXPRESSION_DEPTH) {
-      console.error(`Expression path too deep (>${MAX_EXPRESSION_DEPTH} segments)`);
-      return undefined;
-    }
-    
-    let current: any = context;
-    let isOptional = false;
-    for (const seg of segments) {
-      if (seg === '?') { isOptional = true; continue; }
-      if (current === null || current === undefined) return undefined;
-      current = current[seg];
-      isOptional = false;
-    }
-
-    return current;
   }
 
   /**
@@ -208,7 +388,7 @@ export class ExpressionEvaluator {
 
     return template.replace(/\{([^}]+)\}/g, (_, expr) => {
       const value = this.evaluate(expr, context);
-      return value !== undefined ? String(value) : '';
+      return value !== undefined && value !== null ? String(value) : '';
     });
   }
 
@@ -227,11 +407,11 @@ export class ExpressionEvaluator {
       console.warn(`Object evaluation depth exceeded (>${MAX_OBJECT_DEPTH}), returning as-is`);
       return obj;
     }
-    
+
     if (obj === null || obj === undefined) return obj;
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.evaluateObject(item, context, depth + 1));
+      return obj.map((item) => this.evaluateObject(item, context, depth + 1));
     }
 
     if (typeof obj === 'object') {
@@ -246,25 +426,27 @@ export class ExpressionEvaluator {
       if (this.hasExpression(obj)) {
         // 如果整个字符串就是一个表达式 e.g. "{page.logoSize}", 尝试保持原始类型
         if (obj.startsWith('{') && obj.endsWith('}') && obj.indexOf('{', 1) === -1) {
-          const result = this.evaluate(obj, context);
-          return result;
+          return this.evaluate(obj, context);
         }
         return this.interpolate(obj, context);
       }
+
       // 判断是否为表达式（包含运算符或数据路径）
-      const hasOperator = obj.includes('?') || obj.includes('&&') || obj.includes('||') || 
-                          obj.includes('===') || obj.includes('!==') || 
-                          obj.includes(' > ') || obj.includes(' < ');
+      const hasOperator =
+        /\s*(\+|\-|\*|\/|&&|\|\||===|!==|==|!=|>=|<=|>|\?)\s*/.test(obj) ||
+        obj.includes('typeof ');
       const hasContextPath = obj.includes('.');
-      
+
       if (hasOperator || hasContextPath) {
-        const firstSegment = obj.split(/[.?\s(]/, 1)[0];
-        // 如果第一个 segment 在 context 中，或者包含运算符，就求值
-        if ((firstSegment && context.hasOwnProperty(firstSegment)) || hasOperator) {
+        const firstSegment = obj.split(/[.\s\[]/, 1)[0];
+        if (
+          (firstSegment && Object.prototype.hasOwnProperty.call(context, firstSegment)) ||
+          hasOperator
+        ) {
           return this.evaluate(obj, context);
         }
       }
-      // 纯字面量字符串，直接返回
+
       return obj;
     }
 

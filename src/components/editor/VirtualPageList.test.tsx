@@ -3,11 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import VirtualPageList from './VirtualPageList';
 import { PageData } from '../../types';
 import React from 'react';
+import { UIProvider } from '../../context/UIContext';
 
 // Mock BrandLogo as it might use SVG or other things that don't need to be tested here
 vi.mock('../ui/BrandLogo', () => ({
   BrandLogo: () => <div data-testid="brand-logo" />
 }));
+
+const renderWithUI = (ui: React.ReactElement) => render(<UIProvider>{ui}</UIProvider>);
 
 describe('VirtualPageList', () => {
   const mockPages: PageData[] = Array.from({ length: 50 }, (_, i) => ({
@@ -33,7 +36,7 @@ describe('VirtualPageList', () => {
   };
 
   it('should render the list container', () => {
-    render(<VirtualPageList {...defaultProps} />);
+    renderWithUI(<VirtualPageList {...defaultProps} />);
     expect(screen.getByTestId('brand-logo')).toBeInTheDocument();
   });
 
@@ -53,7 +56,7 @@ describe('VirtualPageList', () => {
       toJSON: () => {},
     }));
 
-    render(<VirtualPageList {...defaultProps} />);
+    renderWithUI(<VirtualPageList {...defaultProps} />);
     
     // Virtualizer might need a tick to update visible items
     // But since we are using overscan: 10, it might render some even if it thinks 0 height initially
@@ -73,7 +76,7 @@ describe('VirtualPageList', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 800 });
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 96 });
     
-    render(<VirtualPageList {...defaultProps} pages={fewPages} />);
+    renderWithUI(<VirtualPageList {...defaultProps} pages={fewPages} />);
     const addButton = screen.getByTitle('Add New Slide');
     fireEvent.click(addButton);
     expect(defaultProps.onAddPage).toHaveBeenCalled();

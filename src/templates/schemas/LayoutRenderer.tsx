@@ -20,10 +20,10 @@ interface LayoutRendererProps {
  * LayoutRenderer - 递归渲染 JSON 模板节点
  * 强制全局 Zine Mode：支持 24x24 模块化网格与 Design System 审美约束
  */
-export const LayoutRenderer: React.FC<LayoutRendererProps> = ({ 
-  node, 
-  page, 
-  theme, 
+export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
+  node,
+  page,
+  theme,
   typography,
   context: parentContext,
   resolveZIndex
@@ -34,7 +34,7 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   // 包裹 ErrorBoundary 保护渲染过程
   return (
     <TemplateErrorBoundary>
-      <LayoutRendererInternal 
+      <LayoutRendererInternal
         node={node}
         page={page}
         theme={theme}
@@ -62,15 +62,15 @@ const LayoutRendererInternal: React.FC<LayoutRendererProps & { ds: DesignSystem 
     if (node.visibleWhen && !evaluator.evaluate(node.visibleWhen, context)) {
       return { isActuallyVisible: false, conditionMet: false };
     }
-    
+
     // B. 条件判断 (仅限 Conditional 节点)
     if (node.type === 'Conditional') {
-      return { 
-        isActuallyVisible: true, 
-        conditionMet: !!evaluator.evaluate(node.condition, context) 
+      return {
+        isActuallyVisible: true,
+        conditionMet: !!evaluator.evaluate(node.condition, context)
       };
     }
-    
+
     return { isActuallyVisible: true, conditionMet: true };
   }, [node, context]);
 
@@ -91,11 +91,11 @@ const LayoutRendererInternal: React.FC<LayoutRendererProps & { ds: DesignSystem 
     case 'Conditional':
       const targetNode = conditionMet ? node.then : node.else;
       return targetNode ? (
-        <LayoutRenderer 
-          node={targetNode} 
-          page={page} 
-          theme={theme} 
-          typography={typography} 
+        <LayoutRenderer
+          node={targetNode}
+          page={page}
+          theme={theme}
+          typography={typography}
           context={context}
           resolveZIndex={resolveZIndex}
         />
@@ -124,7 +124,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
     if (colSpan !== undefined) finalStyle.gridColumnEnd = `span ${colSpan}`;
     if (rowStart !== undefined) finalStyle.gridRowStart = rowStart;
     if (rowSpan !== undefined) finalStyle.gridRowEnd = `span ${rowSpan}`;
-    
+
     // 9宫格对齐逻辑 (Self Alignment)
     if (align) finalStyle.alignSelf = align;
     if (justify) finalStyle.justifySelf = justify;
@@ -135,7 +135,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
   if (node.presetKey) {
     const layoutPreset = ds.presets.layout[node.presetKey];
     const effectsPreset = ds.presets.effects[node.presetKey];
-    
+
     if (layoutPreset) {
       if (layoutPreset.px) {
         presetStyle.paddingLeft = resolveTokenValue(layoutPreset.px, ds);
@@ -147,7 +147,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
       }
       if (layoutPreset.p) presetStyle.padding = resolveTokenValue(layoutPreset.p, ds);
     }
-    
+
     if (effectsPreset) {
       presetStyle = { ...presetStyle, ...effectsPreset };
     }
@@ -156,12 +156,12 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
   // 3. Zine Mode 审美约束 (强制执行)
   // A. Style Whitelist: 仅允许几何布局、定位、核心视觉属性
   const ALLOWED_PROPS = [
-    'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd', 
+    'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd',
     'alignSelf', 'justifySelf',
     'display', 'flexDirection', 'alignItems', 'justifyContent', 'gap', 'flexWrap',
-    'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 
+    'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight',
     'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
-    'position', 'top', 'left', 'right', 'bottom', 'inset', 'zIndex', 
+    'position', 'top', 'left', 'right', 'bottom', 'inset', 'zIndex',
     'opacity', 'mixBlendMode', 'transform', 'transition', 'transitionDuration',
     'width', 'height', 'maxWidth', 'maxHeight', 'minWidth', 'minHeight',
     'aspectRatio', 'overflow', 'backgroundColor', 'borderColor', 'borderWidth',
@@ -170,13 +170,13 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
     'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
     'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin'
   ];
-  
+
   const filteredStyle: any = {};
-  ALLOWED_PROPS.forEach(p => { 
-    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p]; 
+  ALLOWED_PROPS.forEach(p => {
+    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p];
     if ((presetStyle as any)[p] !== undefined) filteredStyle[p] = (presetStyle as any)[p];
   });
-  
+
   finalStyle = filteredStyle;
 
   // B. ClassName Blacklist: 强制剔除阴影、模糊等“软审美”类名 (保留 rounded 以支持圆角)
@@ -199,7 +199,7 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
  */
 function filterZineClassName(className: string): string {
   if (!className) return '';
-  
+
   const forbiddenPrefixes = [
     'shadow', 'blur', 'drop-shadow',
     'animate-bounce', 'animate-pulse', 'animate-wiggle'
@@ -208,7 +208,7 @@ function filterZineClassName(className: string): string {
   return className
     .split(' ')
     .filter(c => {
-      const baseClass = c.replace('!', ''); 
+      const baseClass = c.replace('!', '');
       return !forbiddenPrefixes.some(p => baseClass === p || baseClass.startsWith(`${p}-`));
     })
     .join(' ');
@@ -229,8 +229,8 @@ function resolveTokenValue(val: any, ds: DesignSystem): string {
  * 渲染容器节点
  */
 function renderContainer(
-  node: ContainerNode, 
-  context: EvaluationContext, 
+  node: ContainerNode,
+  context: EvaluationContext,
   ds: DesignSystem,
   typography?: TypographySettings,
   resolveZIndex?: ZIndexResolverFn
@@ -286,12 +286,12 @@ function renderContainer(
   return (
     <div className={className} style={layoutStyle}>
       {children.map((child, index) => (
-        <LayoutRenderer 
-          key={child.id || index} 
-          node={child} 
-          page={context.page} 
-          theme={context.theme} 
-          typography={typography} 
+        <LayoutRenderer
+          key={child.id || index}
+          node={child}
+          page={context.page}
+          theme={context.theme}
+          typography={typography}
           context={context}
           resolveZIndex={resolveZIndex}
         />
@@ -304,8 +304,8 @@ function renderContainer(
  * 渲染组件节点
  */
 function renderComponent(
-  node: ComponentNode, 
-  context: EvaluationContext, 
+  node: ComponentNode,
+  context: EvaluationContext,
   ds: DesignSystem,
   typography?: TypographySettings,
   resolveZIndex?: ZIndexResolverFn
@@ -316,15 +316,20 @@ function renderComponent(
     return null;
   }
 
-  const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
   const staticProps = node.props || {};
   const dynamicProps = evaluator.evaluateObject(staticProps, context);
-  
-  // 1. 优先使用显式指定的 fieldKey，否则尝试从 bind 字段推断
+
+  // 1. 合并 node.style 与 props.style，统一经过白名单过滤
+  const mergedStyle: React.CSSProperties = {
+    ...(node.style || {}),
+    ...((dynamicProps.style || {}) as React.CSSProperties),
+  };
+
+  // 2. 优先使用显式指定的 fieldKey，否则尝试从 bind 字段推断
   let inferredFieldKey: string | undefined = node.fieldKey;
   if (!inferredFieldKey && node.bind) {
     inferredFieldKey = node.bind.startsWith('page.') ? node.bind.replace('page.', '') : undefined;
-    
+
     // 启发式：如果是媒体类组件注入 src，否则注入 text
     const value = evaluator.evaluate(node.bind, context);
     if (node.componentType.toLowerCase().includes('media') || node.componentType.toLowerCase().includes('image')) {
@@ -334,30 +339,35 @@ function renderComponent(
     }
   }
 
+  // 3. 解析基础属性（含样式白名单与 zIndex）
+  const { className: baseClassName, style } = resolveBaseProps(
+    { ...node, style: mergedStyle },
+    context,
+    ds,
+    resolveZIndex
+  );
+
+  // 4. 对动态 props 中的 className 也执行 Zine 过滤
+  const dynamicClassName = filterZineClassName((dynamicProps.className as string) || '');
+  const finalClassName = [baseClassName, dynamicClassName].filter(Boolean).join(' ');
+
+  // 5. 已在 mergedStyle 中消费，从 remainingProps 中移除 style/className，避免重复或绕过
+  const { style: _unusedStyle, className: _unusedClassName, ...remainingProps } = dynamicProps;
+
   const baseProps: any = {
     page: context.page,
     theme: context.theme,
     designSystem: ds,
     typography,
-    className,
+    className: finalClassName,
+    bind: node.bind,
   };
 
   if (inferredFieldKey) {
     baseProps.fieldKey = inferredFieldKey;
   }
 
-  // 2. 从 dynamicProps 中移除 style，因为它已经合并到了 baseProps 中
-  const { style: _unused, ...remainingProps } = dynamicProps;
-
-  // 3. 计算最终 zIndex（优先级：resolveZIndex > style > dynamicProps.style）
-  const baseZIndex = resolveZIndex ? resolveZIndex((node as any).zIndex) : undefined;
-  const finalStyle: React.CSSProperties = {
-    ...style,
-    ...(dynamicProps.style || {}),
-    ...(baseZIndex !== undefined ? { zIndex: baseZIndex } : {}),
-  };
-
-  return <Component {...baseProps} {...remainingProps} style={finalStyle} />;
+  return <Component {...baseProps} {...remainingProps} style={style} />;
 }
 
 /**
@@ -413,10 +423,10 @@ function renderRepeater(
 
   // 2. 渲染项
   const renderedItems = items.map((item, index) => {
-    const itemContext = { ...context, $parent: context[itemVar], [itemVar]: item, index };
+    const itemContext = { ...context, $parent: context, [itemVar]: item, index };
     return (
-      <LayoutRenderer 
-        key={index}
+      <LayoutRenderer
+        key={item?.id ?? index}
         node={node.template}
         page={context.page}
         theme={context.theme}

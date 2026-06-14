@@ -13,7 +13,7 @@ interface ModalState {
 
 interface UIContextType {
   alert: (title: string, message: string) => void;
-  confirm: (title: string, message: string, onConfirm: () => void, options?: { confirmText?: string, cancelText?: string }) => void;
+  confirm: (title: string, message: string, onConfirm: () => void | boolean, options?: { confirmText?: string, cancelText?: string }) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -35,14 +35,14 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     });
   }, []);
 
-  const confirm = useCallback((title: string, message: string, onConfirm: () => void, options = {}) => {
+  const confirm = useCallback((title: string, message: string, onConfirm: () => void | boolean, options = {}) => {
     setModal({
       isOpen: true,
       title,
       message,
       type: 'confirm',
-      onConfirm,
-      ...options
+      ...options,
+      onConfirm
     });
   }, []);
 

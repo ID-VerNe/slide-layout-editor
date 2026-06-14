@@ -5,6 +5,7 @@ import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { useUI } from '../../context/UIContext';
 
 interface VirtualPageListProps {
   pages: PageData[];
@@ -41,6 +42,10 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const lastReorderRef = useRef(0);
+  const lastDragOverIndexRef = useRef<number>(-1);
+  const draggedPageIdRef = useRef<string | null>(null);
+  const { confirm } = useUI();
 
   const rowVirtualizer = useVirtualizer({
     count: pages.length + 1, // +1 for the "Add New Slide" button
@@ -63,25 +68,64 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
+    draggedPageIdRef.current = pages[index]?.id || null;
+    lastDragOverIndexRef.current = index;
+  };
+
+  const commitReorder = (targetIndex: number) => {
+    const currentDraggedIndex = pages.findIndex(p => p.id === draggedPageIdRef.current);
+    if (
+      draggedPageIdRef.current == null ||
+      currentDraggedIndex === -1 ||
+      currentDraggedIndex === targetIndex ||
+      targetIndex >= pages.length
+    ) return;
+
+    const newPages = [...pages];
+    const [draggedPage] = newPages.splice(currentDraggedIndex, 1);
+    newPages.splice(targetIndex, 0, draggedPage);
+
+    onReorderPages(newPages);
+    lastReorderRef.current = Date.now();
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index || index >= pages.length) return;
 
-    const newPages = [...pages];
-    const [draggedPage] = newPages.splice(draggedIndex, 1);
-    newPages.splice(index, 0, draggedPage);
-
-    onReorderPages(newPages);
+    lastDragOverIndexRef.current = index;
     setDraggedIndex(index);
+
+    // 限制 reorder 调用频率，避免 drag-over 每秒生成大量 undo 记录
+    const now = Date.now();
+    if (now - lastReorderRef.current < 100) return;
+
+    commitReorder(index);
   };
 
   const handleDragEnd = () => {
+    const finalTarget = lastDragOverIndexRef.current;
+    if (finalTarget >= 0) {
+      commitReorder(finalTarget);
+    }
     setDraggedIndex(null);
+    draggedPageIdRef.current = null;
+    lastDragOverIndexRef.current = -1;
   };
 
-  const currentPageId = pages[currentPageIndex]?.id;
+  const handleRemoveCurrentPage = () => {
+    const currentPageId = pages[currentPageIndex]?.id;
+    if (!currentPageId) return;
+    confirm('Delete Slide', 'Are you sure you want to delete the current slide? This cannot be undone.', () => {
+      onRemovePage(currentPageId);
+    });
+  };
+
+  const handleClearAll = () => {
+    confirm('Reset Project', 'This will reset the project to its initial state. All unsaved changes will be lost. Continue?', () => {
+      onClearAll();
+    });
+  };
 
   const renderPageItem = (index: number, style: React.CSSProperties) => {
     if (index === pages.length) {
@@ -197,10 +241,10 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
 
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
-        
+
         <div className="h-px w-8 bg-slate-100 my-1" />
-        <ActionButton onClick={() => onRemovePage(currentPageId)} icon={Trash2} title="Delete Slide" danger />
-        <ActionButton onClick={onClearAll} icon={Eraser} title="Reset Project" danger />
+        <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger />
+        <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger />
       </div>
     </motion.div>
   );

@@ -23,48 +23,75 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
 
   useEffect(() => {
     let active = true;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const schedule = (fn: () => void, ms: number) => {
+      const id = setTimeout(fn, ms);
+      timeouts.push(id);
+      return id;
+    };
 
     const checkReady = async () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !active) return;
 
       // 1. 等待字体就绪
       if (document.fonts) {
-        await document.fonts.ready;
+        try {
+          await document.fonts.ready;
+        } catch (e) {
+          console.warn('[OffscreenExport] document.fonts.ready failed:', e);
+        }
       }
 
-      // 2. 等待懒加载组件就绪 (直到没有 status role 的 loader)
+      if (!active) return;
+
+      // 2. 等待懒加载组件就绪
       const waitForTemplate = async () => {
-        const maxRetries = 50; // 5 seconds max
+        const maxRetries = 50; // 最多 5 秒
         for (let i = 0; i < maxRetries; i++) {
+          if (!active) return false;
           const loader = containerRef.current?.querySelector('[role="status"]');
           if (!loader && containerRef.current?.querySelector('.magazine-page')) {
             return true;
           }
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => schedule(resolve as any, 100));
         }
-        return false;
+        console.warn('[OffscreenExport] Template load timeout, continuing anyway');
+        return !!containerRef.current?.querySelector('.magazine-page');
       };
 
-      await waitForTemplate();
+      const templateReady = await waitForTemplate();
+      if (!active || !templateReady) return;
 
-      // 3. 检查所有图片是否加载完成
+      // 3. 检查所有图片是否加载完成；超时时跳过无法加载的图片
       const checkImages = () => {
         const images = Array.from(containerRef.current?.querySelectorAll('img') || []) as HTMLImageElement[];
-        return images.every(img => img.complete && img.naturalHeight !== 0);
+        if (images.length === 0) return { ready: true, broken: [] };
+        const broken: HTMLImageElement[] = [];
+        const pending = images.filter(img => {
+          if (img.complete && img.naturalHeight === 0) broken.push(img);
+          return !img.complete;
+        });
+        return { ready: pending.length === 0, broken };
       };
 
+      let imageRetries = 0;
+      const maxImageRetries = 100; // 最多 10 秒
       const waitForImages = () => {
         if (!active) return;
-        if (checkImages()) {
-          // 额外缓冲时间确保渲染引擎绘制完成
-          setTimeout(() => {
-            if (active && containerRef.current) {
-              const el = containerRef.current.querySelector('.magazine-page') as HTMLElement;
-              if (el) onReady(el);
-            }
+        const { ready, broken } = checkImages();
+        if (ready || imageRetries >= maxImageRetries) {
+          if (broken.length > 0) {
+            console.warn('[OffscreenExport] Some images failed to load, exporting anyway:', broken.map(img => img.src));
+          }
+          schedule(() => {
+            if (!active || !containerRef.current) return;
+            const el = containerRef.current.querySelector('.magazine-page') as HTMLElement;
+            if (el) onReady(el);
           }, 300);
         } else {
-          setTimeout(waitForImages, 100);
+          imageRetries++;
+          schedule(waitForImages, 100);
         }
       };
 
@@ -73,7 +100,10 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
 
     checkReady();
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+      timeouts.forEach(id => clearTimeout(id));
+    };
   }, [page.id, onReady]);
 
   return (

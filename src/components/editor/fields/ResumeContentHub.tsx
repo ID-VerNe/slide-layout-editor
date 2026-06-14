@@ -13,7 +13,9 @@ interface ResumeContentHubProps {
 export const ResumeContentHub: React.FC<ResumeContentHubProps> = ({ page, onUpdate }) => {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(page.resumeSections?.[0]?.id || null);
   const sections = page.resumeSections || [];
-  const { pages, currentPageIndex } = useStore.getState();
+  const pages = useStore(state => state.pages);
+  const currentPageIndex = useStore(state => state.currentPageIndex);
+  const updatePage = useStore(state => state.updatePage);
 
   const activeSection = sections.find(s => s.id === activeSectionId);
 
@@ -39,7 +41,8 @@ export const ResumeContentHub: React.FC<ResumeContentHubProps> = ({ page, onUpda
     } else {
       targetSections.push(sectionToMove);
     }
-    useStore.setState({ pages: pages.map((p, i) => i === targetPageIndex ? { ...targetPage, resumeSections: targetSections } : p) });
+    // 通过 store action 更新目标页，不再绕过历史/未保存标记/全局同步
+    updatePage({ ...targetPage, resumeSections: targetSections });
     if (activeSectionId === sectionId) setActiveSectionId(remainingSections[0]?.id || null);
   };
 

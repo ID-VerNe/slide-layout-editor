@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LRUCache } from '../utils/lruCache';
+import { getAsset } from '../utils/db';
 
 interface ImageDimensions { width: number; height: number; }
 
@@ -8,7 +9,7 @@ const dimensionCache = new Map<string, ImageDimensions>();
 
 /**
  * useAssetUrl 4.0 - 直读式架构
- * 直接调用 Electron API 读取 Workspace 物理文件并转换为内存 URL
+ * 在 Electron 环境下直接读取 Workspace 物理文件；缺失时回退到 IndexedDB 资源。
  */
 export function useAssetUrl(assetSource: string | undefined) {
   const [url, setUrl] = useState<string | undefined>(undefined);
@@ -19,49 +20,74 @@ export function useAssetUrl(assetSource: string | undefined) {
     if (!assetSource) {
       setUrl(undefined);
       setIsLoading(false);
+      setDimensions({ width: 0, height: 0 });
       return;
     }
 
     let isMounted = true;
+    setIsLoading(true);
 
-    // 1. 如果不是 asset:// 协议，直接使用（可能是 DataURL 或外部 Link）
-    if (!assetSource.startsWith('asset://')) {
-      setUrl(assetSource);
-      return;
-    }
+    (async () => {
+      let finalUrl: string | null = null;
 
-    // 2. 如果是 asset:// 协议，从 Electron 读取物理文件
-    async function loadDirectly() {
-      setIsLoading(true);
-      try {
-        // 检查缓存
-        if (assetCache.has(assetSource)) {
-          setUrl(assetCache.get(assetSource));
-          setIsLoading(false);
-          return;
+      // 1. 非 asset:// 协议直接使用；仍然需要读取尺寸
+      if (!assetSource.startsWith('asset://')) {
+        finalUrl = assetSource;
+        setUrl(assetSource);
+      } else if (assetCache.has(assetSource)) {
+        // 2.1 命中缓存，直接返回
+        const cached = assetCache.get(assetSource);
+        if (isMounted) {
+          setUrl(cached);
+          setDimensions(dimensionCache.get(assetSource) || { width: 0, height: 0 });
         }
-
+        return;
+      } else {
+        // 2.2 asset:// 协议：尝试本地/缓存读取，否则回退 IndexedDB
         const filename = assetSource.replace('asset://', '');
-        // 核心：调用 Electron 暴露的直接读取接口
-        const base64Data = await (window as any).electronAPI.readAssetFile(filename);
-        
-        if (base64Data && isMounted) {
-          // 这里我们使用 Base64 作为最直接的传递方式（或者 Blob）
-          // 为了极致稳定性，我们将其转换为可用的图片地址
-          const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
-          const finalUrl = `data:${mime};base64,${base64Data}`;
-          
-          assetCache.set(assetSource!, finalUrl);
-          setUrl(finalUrl);
-        }
-      } catch (err) {
-        console.error("Direct load failed:", assetSource, err);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
+        const electronAPI = (window as any).electronAPI;
 
-    loadDirectly();
+        if (electronAPI?.readAssetFile) {
+          try {
+            const base64Data = await electronAPI.readAssetFile(filename);
+            if (base64Data) {
+              const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+              finalUrl = `data:${mime};base64,${base64Data}`;
+            }
+          } catch (err) {
+            console.warn('Electron readAssetFile failed:', err);
+          }
+        }
+
+        if (!finalUrl) {
+          finalUrl = await getAsset(assetSource);
+        }
+      }
+
+      if (finalUrl && isMounted) {
+        if (assetSource.startsWith('asset://')) {
+          assetCache.set(assetSource, finalUrl);
+        }
+        setUrl(finalUrl);
+
+        // 读取图片尺寸并缓存
+        const img = new Image();
+        img.onload = () => {
+          const dims = { width: img.naturalWidth, height: img.naturalHeight };
+          if (assetSource.startsWith('asset://')) {
+            dimensionCache.set(assetSource, dims);
+          }
+          if (isMounted) setDimensions(dims);
+        };
+        img.onerror = () => {
+          if (isMounted) setDimensions({ width: 0, height: 0 });
+        };
+        img.src = finalUrl;
+      }
+    })()
+      .catch((err) => console.error('Direct load failed:', assetSource, err))
+      .finally(() => { if (isMounted) setIsLoading(false); });
+
     return () => { isMounted = false; };
   }, [assetSource]);
 

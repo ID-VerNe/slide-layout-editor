@@ -5,6 +5,7 @@ import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
 import { nativeFs } from '../../utils/native-fs';
+import { useUI } from '../../context/UIContext';
 import VirtualPageList from './VirtualPageList';
 
 interface SidebarProps {
@@ -44,6 +45,8 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
 
+  const { confirm } = useUI();
+
   const currentPageId = pages[currentPageIndex]?.id;
 
   useEffect(() => {
@@ -55,6 +58,19 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
       });
     }
   }, [currentPageIndex]);
+
+  const handleRemoveCurrentPage = () => {
+    if (!currentPageId) return;
+    confirm('Delete Slide', 'Are you sure you want to delete the current slide? This cannot be undone.', () => {
+      onRemovePage(currentPageId);
+    });
+  };
+
+  const handleClearAll = () => {
+    confirm('Reset Project', 'This will reset the project to its initial state. All unsaved changes will be lost. Continue?', () => {
+      onClearAll();
+    });
+  };
 
   // Use virtual scroll for large projects
   if (pages.length >= VIRTUAL_SCROLL_THRESHOLD) {
@@ -139,8 +155,8 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
 
       <div className="mt-auto flex flex-col items-center w-full border-t border-zine-accent">
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
-        <ActionButton onClick={() => onRemovePage(currentPageId)} icon={Trash2} title="Delete Slide" danger />
-        <ActionButton onClick={onClearAll} icon={Eraser} title="Reset Project" danger />
+        <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger />
+        <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger />
       </div>
     </motion.div>
   );

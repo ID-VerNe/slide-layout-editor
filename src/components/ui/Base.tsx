@@ -41,7 +41,10 @@ export const Slider = ({ label, value, min, max, step, onChange, unit = "" }: { 
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
+        onChange={(e) => {
+          const parsed = parseFloat(e.target.value);
+          onChange(Number.isNaN(parsed) ? value : parsed);
+        }}
         className="w-full h-[1px] bg-slate-200 appearance-none cursor-pointer accent-slate-950 hover:bg-slate-400 transition-all"
       />
     </div>
@@ -52,8 +55,11 @@ export const Slider = ({ label, value, min, max, step, onChange, unit = "" }: { 
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-950 rounded-none px-1 py-1 text-[11px] font-black font-mono text-slate-950 text-right focus:outline-none transition-all appearance-none" 
+        onChange={(e) => {
+          const parsed = parseFloat(e.target.value);
+          onChange(Number.isNaN(parsed) ? value : parsed);
+        }}
+        className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-950 rounded-none px-1 py-1 text-[11px] font-black font-mono text-slate-950 text-right focus:outline-none transition-all appearance-none"
       />
     </div>
   </div>

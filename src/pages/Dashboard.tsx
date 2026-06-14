@@ -4,11 +4,13 @@ import { useStore } from '../store/useStore';
 import { Plus, FolderOpen, Settings, Layout, FileText, Map as MapIcon, Clock, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
 import { nativeFs } from '../utils/native-fs';
 import { deleteProject } from '../utils/db';
+import { useUI } from '../context/UIContext';
 
 const RECENT_KEY = 'magazine_recent_projects';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { alert, confirm } = useUI();
   const { createProject, loadProject, setCurrentFilePath } = useStore();
   const [workspace, setWorkspace] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
@@ -99,7 +101,7 @@ export default function Dashboard() {
 
   const handleRemoveRecord = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (confirm("Remove this project from recent list?")) {
+    confirm('Remove Record', 'Remove this project from recent list?', () => {
       const saved = localStorage.getItem(RECENT_KEY);
       if (saved) {
         const recent = JSON.parse(saved);
@@ -107,56 +109,52 @@ export default function Dashboard() {
         localStorage.setItem(RECENT_KEY, JSON.stringify(filtered));
         setProjects(filtered);
       }
-    }
+    });
   };
 
-  const handleDeleteProject = async (e: React.MouseEvent, project: any) => {
+  const handleDeleteProject = (e: React.MouseEvent, project: any) => {
     e.stopPropagation();
-    if (!confirm(`Permanently delete "${project.title}"? This cannot be undone.`)) {
-      return;
-    }
-    
-    try {
-      if (nativeFs.isElectron() && project.filePath) {
-        const result = await nativeFs.deleteProject(project.filePath);
-        if (result.success) {
-          // 从列表中移除
-          handleRemoveRecord(e, project.id);
-          await refreshProjects();
+    confirm('Delete Project', `Permanently delete "${project.title}"? This cannot be undone.`, async () => {
+      try {
+        if (nativeFs.isElectron() && project.filePath) {
+          const result = await nativeFs.deleteProject(project.filePath);
+          if (result.success) {
+            handleRemoveRecord(e, project.id);
+            await refreshProjects();
+          } else {
+            alert('Delete Failed', `Failed to delete project: ${result.error}`);
+          }
         } else {
-          alert(`Failed to delete project: ${result.error}`);
+          await deleteProject(project.id);
+          handleRemoveRecord(e, project.id);
         }
-      } else {
-        // Web 环境，只删除 IndexedDB 和记录
-        await deleteProject(project.id);
-        handleRemoveRecord(e, project.id);
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+        alert('Delete Failed', 'Failed to delete project');
       }
-    } catch (error) {
-      console.error('Failed to delete project:', error);
-      alert('Failed to delete project');
-    }
+    });
   };
 
   const handleNewProject = () => {
-    if (!workspace) { 
-      alert("Workspace is not initialized. Please restart the application."); 
-      return; 
+    if (!workspace) {
+      alert('Workspace Not Configured', 'Workspace is not initialized. Please restart the application.');
+      return;
     }
     const id = createProject("New Slide", 'modern-feature');
     navigate(`/editor/${id}?new=true`);
   };
 
   const handleOpenProject = async () => {
-    if (!workspace) { 
-      alert("Workspace is not initialized. Please restart the application."); 
-      return; 
+    if (!workspace) {
+      alert('Workspace Not Configured', 'Workspace is not initialized. Please restart the application.');
+      return;
     }
     const result = await nativeFs.openProject();
     if (result.success && result.content) {
       try {
         const projectData = JSON.parse(result.content);
         if (!projectData.id) projectData.id = crypto.randomUUID();
-        
+
         const saved = localStorage.getItem(RECENT_KEY);
         let recent = saved ? JSON.parse(saved) : [];
         const entry = {
@@ -167,40 +165,42 @@ export default function Dashboard() {
           type: projectData.pages?.[0]?.layoutId || 'standard',
           aspectRatio: projectData.pages?.[0]?.aspectRatio || '16:9',
           thumbnail: projectData.thumbnail || null,
-          filePath: result.filePath // 核心修复：记录物理文件路径
+          filePath: result.filePath
         };
         recent = [entry, ...recent.filter((p: any) => p.id !== projectData.id)].slice(0, 48);
         localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
         setProjects(recent);
 
-        // 先加载数据，再显式设置路径
         await loadProject(projectData);
         if (result.filePath) setCurrentFilePath(result.filePath);
-        
         navigate(`/editor/${projectData.id}`);
-      } catch (e) { alert("Failed to parse project file."); }
+      } catch (e) {
+        alert('Open Failed', 'Failed to parse project file.');
+      }
     }
   };
 
   const handleProjectClick = async (project: any) => {
-    // 如果是 Electron 环境且有物理路径，优先从物理路径加载最新的 project.json
-    if (nativeFs.isElectron() && project.filePath) {
-      const result = await nativeFs.readProject(project.filePath);
-      if (result.success && result.content) {
-        try {
-          const projectData = JSON.parse(result.content);
-          await loadProject(projectData, null, project.filePath);
-          navigate(`/editor/${projectData.id}`);
-          return;
-        } catch (e) {
-          console.error("Failed to parse project from disk", e);
+    try {
+      if (nativeFs.isElectron() && project.filePath) {
+        const result = await nativeFs.readProject(project.filePath);
+        if (result.success && result.content) {
+          try {
+            const projectData = JSON.parse(result.content);
+            await loadProject(projectData, null, project.filePath);
+            navigate(`/editor/${projectData.id}`);
+            return;
+          } catch (e) {
+            console.error("Failed to parse project from disk", e);
+          }
         }
       }
+      await loadProject(project.id, null, project.filePath);
+      navigate(`/editor/${project.id}`);
+    } catch (error) {
+      console.error('Failed to open project:', error);
+      alert('Open Failed', 'Could not open the selected project.');
     }
-    
-    // 回退到 IDB 加载
-    await loadProject(project.id, null, project.filePath);
-    navigate(`/editor/${project.id}`);
   };
 
   return (

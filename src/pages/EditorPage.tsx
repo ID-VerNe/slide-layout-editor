@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toPng } from 'html-to-image';
@@ -63,6 +63,7 @@ export default function EditorPage() {
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const exportCancelledRef = useRef(false);
 
   const fallbackTitle = pages[0]?.title || 'Untitled Project';
 
@@ -76,31 +77,15 @@ export default function EditorPage() {
     }
   }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges, isLoaded, projectId]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        if (e.shiftKey) handleSaveAs();
-        else handleSmartSave();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, pages, projectTitle, currentFilePath, theme, isLoaded, projectId]);
-
-  // 自动保存：每 3 秒检查并保存到 IndexedDB
+  // 自动保存：仅在存在未保存变更时启动 3s 防抖定时器
   useEffect(() => {
     if (!isLoaded || !projectId || !hasUnsavedChanges) return;
-    
+
     const autoSaveTimer = setTimeout(() => {
       console.log('[AutoSave] Saving to IndexedDB...');
       saveToDB(previewRef, false);
     }, 3000);
-    
+
     return () => clearTimeout(autoSaveTimer);
   }, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
 
@@ -145,15 +130,7 @@ export default function EditorPage() {
     };
   }, [currentPage]);
 
-  useEffect(() => {
-    let timeout: any;
-    if (projectId && isLoaded && pages.length > 0 && pages[0].title !== 'PLACEHOLDER_FOR_NEW_PROJECT') {
-      timeout = setTimeout(() => saveToDB(previewRef, false), 3000);
-    }
-    return () => clearTimeout(timeout);
-  }, [pages, projectId, isLoaded, saveToDB, projectTitle, theme, minimalCounter, imageQuality, printSettings]);
-
-  const generateThumb = async () => {
+  const generateThumb = useCallback(async () => {
     try {
       const el = previewRef.current?.querySelector('.magazine-page');
       if (el) {
@@ -167,37 +144,45 @@ export default function EditorPage() {
       console.warn('[Export] Failed to capture thumbnail:', e);
     }
     return null;
-  };
+  }, [projectId]);
 
-  const handleSmartSave = async () => {
-    if (!isLoaded || !projectId) return;
-    const thumb = await generateThumb();
-    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: currentFilePath };
-    if (nativeFs.isElectron()) {
-      const result = await nativeFs.saveProject(content, currentFilePath || undefined, projectTitle || fallbackTitle);
-      if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
-    }
-    updateIndex(thumb, currentFilePath);
-    saveToDB(previewRef, true);
-  };
-
-  const handleSaveAs = async () => {
-    if (!isLoaded || !projectId) return;
-    const thumb = await generateThumb();
-    const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: null };
-    if (nativeFs.isElectron()) {
-      const result = await nativeFs.saveProject(content, undefined, `${projectTitle || fallbackTitle}_Copy`);
-      if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); updateIndex(thumb, result.filePath); }
-    }
-  };
-
-  const updateIndex = (thumb: any, path: string | null) => {
+  const updateIndex = useCallback((thumb: any, path: string | null) => {
     const recentKey = 'magazine_recent_projects';
     const recent = JSON.parse(localStorage.getItem(recentKey) || '[]');
     const entry = { id: projectId, title: projectTitle || fallbackTitle, date: new Date().toLocaleDateString(), lastModified: Date.now(), type: pages[0]?.layoutId, aspectRatio: pages[0]?.aspectRatio, thumbnail: thumb, filePath: path };
     const updatedRecent = [entry, ...recent.filter((p: any) => p.id !== projectId)].slice(0, 48);
     localStorage.setItem(recentKey, JSON.stringify(updatedRecent));
-  };
+  }, [projectId, projectTitle, fallbackTitle, pages]);
+
+  const handleSmartSave = useCallback(async () => {
+    if (!isLoaded || !projectId) return;
+    try {
+      const thumb = await generateThumb();
+      const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: currentFilePath };
+      if (nativeFs.isElectron()) {
+        const result = await nativeFs.saveProject(content, currentFilePath || undefined, projectTitle || fallbackTitle);
+        if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
+      }
+      updateIndex(thumb, currentFilePath);
+      saveToDB(previewRef, true);
+    } catch (e) {
+      console.error('[Save] Smart save failed:', e);
+    }
+  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, currentFilePath, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex, saveToDB]);
+
+  const handleSaveAs = useCallback(async () => {
+    if (!isLoaded || !projectId) return;
+    try {
+      const thumb = await generateThumb();
+      const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb, filePath: null };
+      if (nativeFs.isElectron()) {
+        const result = await nativeFs.saveProject(content, undefined, `${projectTitle || fallbackTitle}_Copy`);
+        if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); updateIndex(thumb, result.filePath); }
+      }
+    } catch (e) {
+      console.error('[Save] Save As failed:', e);
+    }
+  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex]);
 
   const handleNativeOpen = async () => {
     const result = await nativeFs.openProject();
@@ -220,21 +205,27 @@ export default function EditorPage() {
     setShowLayoutModal(false);
   };
 
-  const handleExport = async (format: 'png' | 'pdf') => {
+  const handleExport = useCallback(async (format: 'png' | 'pdf') => {
     if (!previewRef.current) return;
+    exportCancelledRef.current = false;
     setIsExporting(true); setShowExportModal(false); setExportProgress(0);
     const prevZoom = previewZoom; const prevIdx = currentPageIndex;
     try {
       setPreviewZoom(1); await document.fonts.ready;
+      if (exportCancelledRef.current) return;
       const exportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
-      const opt = { pixelRatio: 2, backgroundColor: '#ffffff', filter: (n: any) => !(n.tagName === 'LINK' && n.rel === 'stylesheet' && !n.href.includes(window.location.origin)) };
+      const opt = { pixelRatio: 2, backgroundColor: '#ffffff', filter: (n: any) => !(n.tagName === 'LINK' && n.rel === 'stylesheet' && n.href && !n.href.includes(window.location.origin)) };
       if (nativeFs.isElectron() && format === 'png' && exportScope === 'all') {
         const dirResult = await nativeFs.selectDirectory();
+        if (exportCancelledRef.current) return;
         if (dirResult.canceled) { setIsExporting(false); return; }
         for (let i = 0; i < exportIndices.length; i++) {
+          if (exportCancelledRef.current) return;
           const idx = exportIndices[i]; setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 800));
+          if (exportCancelledRef.current) return;
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
+          if (exportCancelledRef.current) return;
           const fileName = `${projectTitle || 'Export'}_Page_${String(idx + 1).padStart(2, '0')}.png`;
           await nativeFs.saveFileBuffer(`${dirResult.path}/${fileName}`, dataUrl);
           setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
@@ -242,34 +233,64 @@ export default function EditorPage() {
       } else if (format === 'pdf') {
         const doc = new jsPDF({ unit: 'px', format: [LAYOUT_CONFIG[pages[0].aspectRatio].width, LAYOUT_CONFIG[pages[0].aspectRatio].height], hotfixes: ["px_scaling"] });
         for (let i = 0; i < exportIndices.length; i++) {
+          if (exportCancelledRef.current) return;
           const idx = exportIndices[i]; setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 800));
+          if (exportCancelledRef.current) return;
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
+          if (exportCancelledRef.current) return;
           if (i > 0) doc.addPage([LAYOUT_CONFIG[pages[idx].aspectRatio].width, LAYOUT_CONFIG[pages[idx].aspectRatio].height]);
           doc.addImage(dataUrl, 'PNG', 0, 0, LAYOUT_CONFIG[pages[idx].aspectRatio].width, LAYOUT_CONFIG[pages[idx].aspectRatio].height);
           const pageRect = el.getBoundingClientRect();
           el.querySelectorAll('.resume-link').forEach((linkEl: any) => { const rect = linkEl.getBoundingClientRect(); const url = linkEl.getAttribute('data-url'); if (url) doc.link(rect.left - pageRect.left, rect.top - pageRect.top, rect.width, rect.height, { url }); });
           setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
         }
-        doc.save(`${projectTitle || fallbackTitle}.pdf`);
+        if (!exportCancelledRef.current) doc.save(`${projectTitle || fallbackTitle}.pdf`);
       } else {
         for (const idx of exportIndices) {
+          if (exportCancelledRef.current) return;
           setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 600));
+          if (exportCancelledRef.current) return;
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
+          if (exportCancelledRef.current) return;
           const link = document.createElement('a'); link.download = `${projectTitle}_${idx + 1}.png`; link.href = dataUrl; link.click();
         }
       }
     } finally {
       try {
-        setPreviewZoom(prevZoom);
-        setCurrentPageIndex(prevIdx);
+        if (!exportCancelledRef.current) {
+          setPreviewZoom(prevZoom);
+          setCurrentPageIndex(prevIdx);
+        }
       } catch (recoveryError) {
         console.error('Failed to restore preview state after export:', recoveryError);
       }
-      setIsExporting(false); setExportProgress(0);
+      if (!exportCancelledRef.current) {
+        setIsExporting(false); setExportProgress(0);
+      }
     }
-  };
+  }, [previewZoom, currentPageIndex, exportScope, pages, projectTitle, fallbackTitle, setPreviewZoom, setCurrentPageIndex, setIsExporting, setShowExportModal, setExportProgress]);
+
+  useEffect(() => {
+    return () => { exportCancelledRef.current = true; };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (e.shiftKey) handleSaveAs();
+        else handleSmartSave();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, pages, projectTitle, currentFilePath, theme, isLoaded, projectId, handleSmartSave, handleSaveAs]);
 
   const handleSelectOrientation = (ori: OrientationType) => {
     setSelectedOrientation(ori);

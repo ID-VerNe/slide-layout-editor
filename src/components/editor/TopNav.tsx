@@ -101,7 +101,7 @@ const TopNav: React.FC<TopNavProps> = ({
             {showSaveMenu && (
               <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute top-full right-0 mt-1 w-48 bg-white rounded-none border-2 border-zine-accent p-1 z-50 shadow-none">
                 <button onClick={() => { onSave(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-none hover:bg-zine-accent hover:text-white text-zine-accent transition-all text-[10px] font-black uppercase tracking-widest"><Save size={14} strokeWidth={3} /> Save <span className="ml-auto text-[9px] opacity-40">Ctrl+S</span></button>
-                <button onClick={() => { onSaveAs(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-none hover:bg-zine-accent hover:text-white text-zine-accent transition-all text-[10px] font-black uppercase tracking-widest"><Copy size={14} strokeWidth={3} /> Save As <span className="ml-auto text-[9px] opacity-40">Shift+S</span></button>
+                <button onClick={() => { onSaveAs(); setShowSaveMenu(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-none hover:bg-zine-accent hover:text-white text-zine-accent transition-all text-[10px] font-black uppercase tracking-widest"><Copy size={14} strokeWidth={3} /> Save As <span className="ml-auto text-[9px] opacity-40">Ctrl+Shift+S</span></button>
               </motion.div>
             )}
           </AnimatePresence>

@@ -4,6 +4,7 @@ import { LayoutRenderer } from '../LayoutRenderer';
 import { ContainerNode, ComponentNode, ConditionalNode, TextNode, RepeaterNode } from '../types';
 import { PageData, ProjectTheme, DesignSystem } from '../../../types';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM } from '../../../constants/theme';
+import { getComponent } from '../componentRegistry';
 
 // Mock useStore
 vi.mock('../../../store/useStore', () => ({
@@ -49,11 +50,13 @@ describe('LayoutRenderer', () => {
         children: [],
       };
 
-      render(
+      const { container } = render(
         <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
       );
-      
-      expect(document.querySelector('.flex')).toBeInTheDocument();
+
+      const element = container.firstChild as HTMLElement;
+      expect(element).toBeInTheDocument();
+      expect(element).toHaveStyle({ display: 'flex' });
     });
 
     it('应支持 24x24 模块化定位', () => {
@@ -296,6 +299,162 @@ describe('LayoutRenderer', () => {
           <LayoutRenderer node={invalidNode} page={mockPage} theme={mockTheme} />
         );
       }).not.toThrow();
+    });
+
+    it('组件抛错时显示 ErrorBoundary fallback', () => {
+      const throwingComponent = () => {
+        throw new Error('render boom');
+      };
+      const originalImpl = vi.mocked(getComponent).getMockImplementation();
+      vi.mocked(getComponent).mockImplementation((type: string) => {
+        if (type === 'Boom') return throwingComponent as any;
+        const MockComponent = ({ bind, ...props }: any) => (
+          <div data-testid={`component-${type}`} data-bind={bind}>Mock {type}</div>
+        );
+        return MockComponent;
+      });
+
+      const node: ComponentNode = {
+        type: 'Component',
+        componentType: 'Boom',
+        bind: 'page.title',
+      };
+
+      render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+
+      vi.mocked(getComponent).mockImplementation(originalImpl || (() => null));
+    });
+  });
+
+  describe('未注册组件兜底', () => {
+    it('未知名组件返回 null 且不抛错', () => {
+      vi.mocked(getComponent).mockReturnValueOnce(null);
+      const node: ComponentNode = {
+        type: 'Component',
+        componentType: 'UnknownWidget',
+        bind: 'page.title',
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      expect(container.firstChild).toBeNull();
+    });
+  });
+
+  describe('visibleWhen 上下文表达式', () => {
+    it('根据页面属性条件隐藏', () => {
+      const node: ComponentNode = {
+        type: 'Component',
+        componentType: 'ZineDisplay',
+        bind: 'page.title',
+        visibleWhen: 'page.visibility.logo',
+      };
+      const page = { ...mockPage, visibility: { logo: false } };
+
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      expect(screen.queryByTestId('component-ZineDisplay')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Repeater 边界', () => {
+    it('空数组不渲染', () => {
+      const node: RepeaterNode = {
+        type: 'Repeater',
+        bind: 'page.items',
+        template: { type: 'Text', content: '{item}' },
+      };
+      const page = { ...mockPage, items: [] as string[] };
+
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      expect(document.body.textContent?.trim()).toBe('');
+    });
+
+    it('绑定值非数组时返回 null 并警告', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const node: RepeaterNode = {
+        type: 'Repeater',
+        bind: 'page.title',
+        template: { type: 'Text', content: '{item}' },
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      expect(container.firstChild).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('did not return an array'), expect.any(String));
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('Conditional 边界', () => {
+    it('条件为 false 且没有 else 时返回 null', () => {
+      const node: ConditionalNode = {
+        type: 'Conditional',
+        condition: 'page.missingValue',
+        then: { type: 'Text', content: 'Then' },
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      expect(container.firstChild).toBeNull();
+    });
+  });
+
+  describe('Container 布局变体', () => {
+    it('grid 布局生成正确 CSS', () => {
+      const node: ContainerNode = {
+        type: 'Container',
+        layout: 'grid',
+        layoutProps: { columns: 3, rows: 2, gap: '10px' } as any,
+        children: [],
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const el = container.firstChild as HTMLElement;
+      expect(el.style.display).toBe('grid');
+      expect(el.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
+      expect(el.style.gridTemplateRows).toBe('repeat(2, minmax(0, 1fr))');
+    });
+  });
+
+  describe('Zine 样式约束', () => {
+    it('样式白名单会移除不允许的属性', () => {
+      const node: TextNode = {
+        type: 'Text',
+        content: 'Text',
+        style: { color: '#000', boxShadow: '0 1px 2px' } as any,
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const el = container.firstChild as HTMLElement;
+      expect(el.style.color).toBe('rgb(0, 0, 0)');
+      expect(el.style.boxShadow).toBe('');
+    });
+
+    it('类名黑名单会剔除阴影/动画类', () => {
+      const node: TextNode = {
+        type: 'Text',
+        content: 'Text',
+        className: 'shadow-lg blur-md animate-pulse allowed-class',
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const el = container.firstChild as HTMLElement;
+      expect(el.classList.contains('allowed-class')).toBe(true);
+      expect(el.classList.contains('shadow-lg')).toBe(false);
+      expect(el.classList.contains('animate-pulse')).toBe(false);
+    });
+  });
+
+  describe('组件 prop 推断', () => {
+    it('媒体组件注入 src', () => {
+      const node: ComponentNode = {
+        type: 'Component',
+        componentType: 'ZineMedia',
+        bind: 'page.coverUrl',
+      };
+      const page = { ...mockPage, coverUrl: 'https://example.com/cover.png' };
+
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      const component = screen.getByTestId('component-ZineMedia');
+      expect(component.getAttribute('data-bind')).toBe('page.coverUrl');
     });
   });
 });

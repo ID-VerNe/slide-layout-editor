@@ -10,7 +10,10 @@ const BaseNodeSchema = z.object({
   id: z.string().optional(),
   zIndex: ZIndexDeclarationSchema.optional(),
   className: z.string().optional(),
-  style: z.record(z.string(), z.any()).optional(),
+  style: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  modular: z.lazy(() => ModularLayoutPropsSchema).optional(),
+  presetKey: z.string().optional(),
+  visibleWhen: z.string().optional(),
 });
 
 const FlexLayoutPropsSchema = z.object({
@@ -44,10 +47,13 @@ const ModularLayoutPropsSchema = z.object({
   rowSpan: z.number().min(1).max(24).optional(),
   align: z.enum(['start', 'center', 'end']).optional(),
   justify: z.enum(['start', 'center', 'end']).optional(),
+  gap: z.union([z.number(), z.string()]).optional(),
+  columns: z.number().min(1).optional(),
+  rows: z.number().min(1).optional(),
 });
 
 // 使用 z.lazy 处理递归结构
-export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() => 
+export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
   z.discriminatedUnion('type', [
     BaseNodeSchema.extend({
       type: z.literal('Container'),
@@ -55,17 +61,17 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
       layoutProps: z.union([
         FlexLayoutPropsSchema,
         GridLayoutPropsSchema,
-        AbsoluteLayoutPropsSchema
+        AbsoluteLayoutPropsSchema,
+        ModularLayoutPropsSchema,
       ]).optional(),
-      modular: ModularLayoutPropsSchema.optional(),
       children: z.array(TemplateNodeSchema)
     }),
     BaseNodeSchema.extend({
       type: z.literal('Component'),
       componentType: z.string(),
       bind: z.string().optional(),
+      fieldKey: z.string().optional(),
       props: z.record(z.string(), z.any()).optional(),
-      visibleWhen: z.string().optional(),
     }),
     BaseNodeSchema.extend({
       type: z.literal('Conditional'),
@@ -81,7 +87,8 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
       layoutProps: z.union([
         FlexLayoutPropsSchema,
         GridLayoutPropsSchema,
-        AbsoluteLayoutPropsSchema
+        AbsoluteLayoutPropsSchema,
+        ModularLayoutPropsSchema,
       ]).optional(),
       template: TemplateNodeSchema,
     }),

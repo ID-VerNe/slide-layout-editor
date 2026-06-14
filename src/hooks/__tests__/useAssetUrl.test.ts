@@ -7,24 +7,20 @@ vi.mock('../../utils/db', () => ({
   getAsset: vi.fn()
 }));
 
-vi.mock('../../utils/blobManager', () => ({
-  blobManager: {
-    create: vi.fn().mockImplementation((blob, id) => `blob:${id}`),
-    release: vi.fn()
-  }
-}));
-
 describe('useAssetUrl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+    delete (window as any).electronAPI;
+
     global.Image = class {
       onload: () => void = () => {};
-      src: string = '';
-      width: number = 1920;
-      height: number = 1080;
-      constructor() {
-        // 模拟图片加载延迟
+      onerror: () => void = () => {};
+      naturalWidth: number = 1920;
+      naturalHeight: number = 1080;
+      _src: string = '';
+      get src() { return this._src; }
+      set src(value: string) {
+        this._src = value;
         setTimeout(() => this.onload(), 50);
       }
     } as any;
@@ -34,12 +30,11 @@ describe('useAssetUrl', () => {
     const testUrl = 'https://example.com/test.jpg';
     const { result } = renderHook(() => useAssetUrl(testUrl));
 
-    // 使用 expect 确保 waitFor 会重试
     await waitFor(() => {
+      expect(result.current.url).toBe(testUrl);
       expect(result.current.dimensions.width).toBe(1920);
+      expect(result.current.dimensions.height).toBe(1080);
     }, { timeout: 3000 });
-
-    expect(result.current.url).toBe(testUrl);
   });
 
   it('应该能处理 asset:// 协议的资源', async () => {
@@ -51,6 +46,60 @@ describe('useAssetUrl', () => {
     await waitFor(() => {
       expect(result.current.url).toBe('data:image/png;base64,xxxx');
       expect(result.current.dimensions.width).toBe(1920);
+      expect(result.current.dimensions.height).toBe(1080);
+    }, { timeout: 3000 });
+
+    expect(db.getAsset).toHaveBeenCalledWith(assetId);
+  });
+
+  it('Electron 环境下优先读取本地文件并识别 SVG MIME', async () => {
+    const assetId = 'asset://icon.svg';
+    const readAssetFile = vi.fn().mockResolvedValue('abc123');
+    (window as any).electronAPI = { readAssetFile };
+
+    const { result } = renderHook(() => useAssetUrl(assetId));
+
+    await waitFor(() => {
+      expect(result.current.url).toBe('data:image/svg+xml;base64,abc123');
+    }, { timeout: 3000 });
+
+    expect(readAssetFile).toHaveBeenCalledWith('icon.svg');
+    expect(db.getAsset).not.toHaveBeenCalled();
+  });
+
+  it('Electron 读取失败时回退到 IndexedDB', async () => {
+    const assetId = 'asset://fallback-id';
+    const readAssetFile = vi.fn().mockRejectedValue(new Error('disk missing'));
+    (window as any).electronAPI = { readAssetFile };
+    vi.mocked(db.getAsset).mockResolvedValue('data:image/png;base64,fallback');
+
+    const { result } = renderHook(() => useAssetUrl(assetId));
+
+    await waitFor(() => {
+      expect(result.current.url).toBe('data:image/png;base64,fallback');
+    }, { timeout: 3000 });
+
+    expect(readAssetFile).toHaveBeenCalledWith('fallback-id');
+    expect(db.getAsset).toHaveBeenCalledWith(assetId);
+  });
+
+  it('图片加载失败时尺寸回退到 0', async () => {
+    global.Image = class {
+      onload: () => void = () => {};
+      onerror: () => void = () => {};
+      _src: string = '';
+      get src() { return this._src; }
+      set src(value: string) {
+        this._src = value;
+        setTimeout(() => this.onerror(), 10);
+      }
+    } as any;
+
+    const { result } = renderHook(() => useAssetUrl('https://example.com/bad.jpg'));
+
+    await waitFor(() => {
+      expect(result.current.url).toBe('https://example.com/bad.jpg');
+      expect(result.current.dimensions).toEqual({ width: 0, height: 0 });
     }, { timeout: 3000 });
   });
 });

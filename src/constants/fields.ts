@@ -6,6 +6,7 @@ import { PageData } from '../types';
  */
 export const GLOBAL_FIELDS: Array<keyof PageData> = [
   'counterStyle',
+  'counterColor',
   'backgroundPattern',
   'footer',
   'titleFont',

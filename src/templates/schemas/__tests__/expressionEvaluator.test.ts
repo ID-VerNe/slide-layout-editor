@@ -68,9 +68,40 @@ describe('Expression Evaluator', () => {
       expect(evaluator.evaluate('page.title ? "has title" : "no title"', mockContext)).toBe('has title');
     });
 
-    it('应支持字符串比较', () => {
-      expect(evaluator.evaluate('page.layoutId === "test-layout"', mockContext)).toBe(true);
-      expect(evaluator.evaluate('page.aspectRatio !== "4:3"', mockContext)).toBe(true);
+    it('应支持 >= 和 <= 比较', () => {
+      const pageWithCounter = { ...mockPage, counter: 42 };
+      const contextWithCounter = { ...mockContext, page: pageWithCounter };
+      expect(evaluator.evaluate('page.counter >= 42', contextWithCounter)).toBe(true);
+      expect(evaluator.evaluate('page.counter >= 43', contextWithCounter)).toBe(false);
+      expect(evaluator.evaluate('page.counter <= 42', contextWithCounter)).toBe(true);
+      expect(evaluator.evaluate('page.counter <= 41', contextWithCounter)).toBe(false);
+    });
+
+    it('应遵循算术优先级与括号', () => {
+      const pageWithCounter = { ...mockPage, counter: 42 };
+      const contextWithCounter = { ...mockContext, page: pageWithCounter };
+      expect(evaluator.evaluate('2 + 3 * 4', contextWithCounter)).toBe(14);
+      expect(evaluator.evaluate('(2 + 3) * 4', contextWithCounter)).toBe(20);
+      expect(evaluator.evaluate('page.counter - 2 * 10', contextWithCounter)).toBe(22);
+    });
+
+    it('应支持可选链访问', () => {
+      const optionalContext = {
+        ...mockContext,
+        page: {
+          ...mockPage,
+          styleOverrides: { title: { fontSize: 64 } },
+        },
+      };
+      expect(evaluator.evaluate('page.styleOverrides?.title?.fontSize', optionalContext)).toBe(64);
+      expect(evaluator.evaluate('page.missing?.deep?.value', optionalContext)).toBeUndefined();
+    });
+
+    it('除零应返回 Infinity 或 NaN 且不抛错', () => {
+      const pageWithCounter = { ...mockPage, counter: 42 };
+      const contextWithCounter = { ...mockContext, page: pageWithCounter };
+      expect(evaluator.evaluate('page.counter / 0', contextWithCounter)).toBe(Infinity);
+      expect(evaluator.evaluate('0 / 0', contextWithCounter)).toBeNaN();
     });
   });
 
@@ -209,6 +240,66 @@ describe('Expression Evaluator', () => {
       const contextWithCounter = { ...mockContext, page: pageWithCounter };
       expect(evaluator.evaluate('typeof page.title', mockContext)).toBe('string');
       expect(evaluator.evaluate('typeof page.counter', contextWithCounter)).toBe('number');
+    });
+  });
+
+  describe('nullish coalescing 与短路边界', () => {
+    it('?? 在 null/undefined 时取右值', () => {
+      expect(evaluator.evaluate('page.missing ?? "fallback"', mockContext)).toBe('fallback');
+      const nullishContext = { ...mockContext, page: { ...mockPage, missing: null } };
+      expect(evaluator.evaluate('page.missing ?? "fallback"', nullishContext)).toBe('fallback');
+    });
+
+    it('?? 在 0 / false 时短路保留左值', () => {
+      const zeroContext = { ...mockContext, page: { ...mockPage, counter: 0 } };
+      expect(evaluator.evaluate('page.counter ?? -1', zeroContext)).toBe(0);
+      const falseContext = { ...mockContext, page: { ...mockPage, flag: false } };
+      expect(evaluator.evaluate('page.flag ?? true', falseContext)).toBe(false);
+    });
+
+    it('|| 在 falsy 值时取右值', () => {
+      const zeroContext = { ...mockContext, page: { ...mockPage, counter: 0 } };
+      expect(evaluator.evaluate('page.counter || 99', zeroContext)).toBe(99);
+      const emptyContext = { ...mockContext, page: { ...mockPage, title: '' } };
+      expect(evaluator.evaluate('page.title || "default"', emptyContext)).toBe('default');
+    });
+  });
+
+  describe('非法表达式安全降级', () => {
+    it('不支持的函数调用不抛错', () => {
+      expect(evaluator.evaluate('Math.max(1, 2)', mockContext)).toBeUndefined();
+    });
+
+    it('语法错误返回 undefined', () => {
+      expect(evaluator.evaluate('..', mockContext)).toBeUndefined();
+      expect(evaluator.evaluate('(1 + 2', mockContext)).toBeUndefined();
+    });
+
+    it('typeof 访问未定义路径返回 undefined', () => {
+      expect(evaluator.evaluate('typeof page.missing.deep', mockContext)).toBe('undefined');
+    });
+  });
+
+  describe('辅助 API', () => {
+    it('hasExpression 识别含 { } 的字符串', () => {
+      expect(evaluator.hasExpression('Hello {page.title}')).toBe(true);
+      expect(evaluator.hasExpression('Plain text')).toBe(false);
+    });
+
+    it('evaluateObject 对纯字段路径字符串求值', () => {
+      const result = evaluator.evaluateObject({ color: 'page.backgroundColor' }, mockContext);
+      expect(result.color).toBe('#ffffff');
+    });
+
+    it('evaluate 对非字符串输入按源码语义返回', () => {
+      expect(evaluator.evaluate(123 as any, mockContext)).toBe(123);
+      expect(evaluator.evaluate({ answer: 42 } as any, mockContext)).toEqual({ answer: 42 });
+      expect(evaluator.evaluate('', mockContext)).toBeUndefined();
+      expect(evaluator.evaluate(null as any, mockContext)).toBeUndefined();
+    });
+
+    it('interpolate 对非字符串输入原样返回', () => {
+      expect(evaluator.interpolate(null as any, mockContext)).toBeNull();
     });
   });
 });

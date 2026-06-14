@@ -120,6 +120,8 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
       if (isOverflowing) {
         const newMax = fontSize - 1;
         if (newMax <= range.min) {
+          // 已经收敛到最小可用字号，回退到 range.min 后结束
+          setFontSize(range.min);
           setIsCalculating(false);
         } else {
           const nextSize = Math.floor((range.min + newMax) / 2);
@@ -187,5 +189,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
     </Tag>
   );
 };
+
+export const resetAutoFitCache = () => fontCache.clear();
 
 export default AutoFitHeadline;

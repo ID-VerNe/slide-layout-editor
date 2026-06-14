@@ -74,8 +74,21 @@ export async function saveAsset(dataUrl: string): Promise<string> {
 export async function getAsset(assetId: string): Promise<string | null> {
   if (!assetId || !assetId.startsWith('asset://')) return assetId;
 
-  // Electron 环境下直接返回 ID，由 protocol 处理
-  if ((window as any).electronAPI) return assetId;
+  const filename = assetId.replace('asset://', '');
+  const electronAPI = (window as any).electronAPI;
+
+  // Electron 环境下优先尝试读取物理文件；失败时回退到 IndexedDB
+  if (electronAPI) {
+    try {
+      const base64Data = await electronAPI.readAssetFile(filename);
+      if (base64Data) {
+        const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+        return `data:${mime};base64,${base64Data}`;
+      }
+    } catch (e) {
+      console.warn('[DB] Electron readAssetFile failed, falling back to IndexedDB:', e);
+    }
+  }
 
   const db = await initDB();
   return new Promise((resolve, reject) => {
@@ -104,7 +117,7 @@ export async function getProject(id: string): Promise<ProjectData | null> {
     const transaction = db.transaction(STORE_PROJECTS, 'readonly');
     const store = transaction.objectStore(STORE_PROJECTS);
     const request = store.get(id);
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => resolve(request.result || null);
     request.onerror = () => reject(request.error);
   });
 }
@@ -126,7 +139,6 @@ export async function compressImage(file: File, quality: number = 0.9): Promise<
     reader.readAsDataURL(file);
     reader.onload = (event) => {
       const img = new Image();
-      img.src = event.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -135,7 +147,9 @@ export async function compressImage(file: File, quality: number = 0.9): Promise<
         ctx.drawImage(img, 0, 0);
         resolve(canvas.toDataURL('image/webp', quality));
       };
+      img.onerror = () => reject(new Error(`Failed to load image for compression: ${file.name}`));
+      img.src = event.target?.result as string;
     };
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(reader.error || new Error(`Failed to read file: ${file.name}`));
   });
 }

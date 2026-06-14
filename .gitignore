@@ -30,3 +30,6 @@ gemini.md
 metadata.json
 .trae/
 .code-review-graph/
+
+# Test coverage
+coverage/

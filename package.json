@@ -9,7 +9,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:coverage": "vitest --coverage --run",
+    "test:ci": "vitest --coverage --run"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.18",
@@ -28,7 +30,6 @@
     "sharp": "^0.34.5",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6",
-    "zundo": "^2.3.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "@types/katex": "^0.16.7",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^4.1.8",
     "autoprefixer": "^10.4.20",
     "electron": "^39.2.7",
     "jsdom": "^27.4.0",
@@ -47,7 +49,7 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-electron": "^0.29.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.8"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
