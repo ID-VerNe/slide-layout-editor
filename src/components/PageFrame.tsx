@@ -10,6 +10,29 @@ interface PageFrameProps {
   children: React.ReactNode;
 }
 
+/** 将正整数转为罗马数字（支持 1~3999） */
+function toRoman(num: number): string {
+  if (num < 1) return String(num);
+  const vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const syms = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I'];
+  let result = '';
+  for (let i = 0; i < vals.length; i++) {
+    while (num >= vals[i]) { result += syms[i]; num -= vals[i]; }
+  }
+  return result;
+}
+
+/** 将正整数转为 Alpha 序号（1→A, 26→Z, 27→AA, 28→AB … 类似 Excel 列名） */
+function toAlpha(num: number): string {
+  let result = '';
+  while (num > 0) {
+    num--; // 使 1-based 变为 0-based
+    result = String.fromCharCode(65 + (num % 26)) + result;
+    num = Math.floor(num / 26);
+  }
+  return result;
+}
+
 /**
  * PageFrame - 24x24 模块化网格容器
  * 负责：
@@ -138,10 +161,8 @@ const GlobalFolio: React.FC<{
     const current = pageIndex + 1;
 
     switch (style) {
-      case 'alpha': return String.fromCharCode(64 + current).toUpperCase();
-      case 'roman':
-        const romanMap: Record<number, string> = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X' };
-        return romanMap[current] || current.toString();
+      case 'alpha': return toAlpha(current);
+      case 'roman': return toRoman(current);
       case 'dots':
         return (
           <div className="flex gap-1.5 items-center">

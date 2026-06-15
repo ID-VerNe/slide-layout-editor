@@ -361,7 +361,7 @@ describe('PageFrame', () => {
       expect(dotsContainer).toBeInTheDocument();
     });
 
-    it('roman 计数器 > 10 时回退到数字', () => {
+    it('roman 计数器 > 10 正常显示罗马数字', () => {
       mockUseStore.mockImplementation((selector) => {
         const state = {
           designSystem: DEFAULT_DESIGN_SYSTEM,
@@ -375,8 +375,26 @@ describe('PageFrame', () => {
           <div>Content</div>
         </PageFrame>
       );
-      // Roman map 只到 10，第 11 页回退到数字
-      expect(screen.getByText('11')).toBeInTheDocument();
+      // 第 11 页应显示 XI 而非数字 11
+      expect(screen.getByText('XI')).toBeInTheDocument();
+    });
+
+    it('alpha 计数器 > 26 正确显示 AA/AB', () => {
+      mockUseStore.mockImplementation((selector) => {
+        const state = {
+          designSystem: DEFAULT_DESIGN_SYSTEM,
+          counterStyle: 'alpha',
+        };
+        return selector(state);
+      });
+
+      render(
+        <PageFrame page={mockPage} pageIndex={26} totalPages={30}>
+          <div>Content</div>
+        </PageFrame>
+      );
+      // 第 27 页应显示 AA
+      expect(screen.getByText('AA')).toBeInTheDocument();
     });
   });
 });
