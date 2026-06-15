@@ -102,4 +102,15 @@ describe('TopNav', () => {
     fireEvent.click(chevrons[0]);
     expect(await screen.findByText('Save As')).toBeInTheDocument();
   });
+
+  it('isExporting=true 时按钮显示导出中', () => {
+    render(<TopNav {...baseProps} isExporting={true} />);
+    expect(screen.getByText(/Exporting/i)).toBeInTheDocument();
+  });
+
+  it('页码导航右侧边界禁用', () => {
+    render(<TopNav {...baseProps} currentPageIndex={4} totalPages={5} />);
+    const right = screen.getAllByRole('button').find((b) => b.innerHTML.includes('lucide-chevron-right'));
+    expect(right).toBeDisabled();
+  });
 });

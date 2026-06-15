@@ -302,4 +302,37 @@ describe('Expression Evaluator', () => {
       expect(evaluator.interpolate(null as any, mockContext)).toBeNull();
     });
   });
+
+  describe('边界情况补充', () => {
+    it('取反运算符 -page.counter', () => {
+      const ctx = { ...mockContext, page: { ...mockPage, counter: 5 } as any };
+      expect(evaluator.evaluate('-page.counter', ctx)).toBe(-5);
+    });
+
+    it('evaluateObject 对数组输入求值', () => {
+      const result = evaluator.evaluateObject(['page.title', 'page.subtitle'], mockContext);
+      expect(result).toEqual(['Test Title', 'Test Subtitle']);
+    });
+
+    it('evaluateObject 对 null 输入返回 null', () => {
+      expect(evaluator.evaluateObject(null, mockContext)).toBeNull();
+    });
+
+    it('evaluateObject 对 undefined 输入返回 undefined', () => {
+      expect(evaluator.evaluateObject(undefined, mockContext)).toBeUndefined();
+    });
+
+    it('方括号索引访问 page.items[page.index]', () => {
+      const ctx = {
+        ...mockContext,
+        page: { ...mockPage, items: ['a', 'b', 'c'], index: 1 } as any,
+      };
+      expect(evaluator.evaluate('page.items[page.index]', ctx)).toBe('b');
+    });
+
+    it('字符串中含转义字符', () => {
+      const result = evaluator.evaluate('"hello world"', mockContext);
+      expect(result).toBe('hello world');
+    });
+  });
 });

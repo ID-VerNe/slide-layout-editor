@@ -359,4 +359,98 @@ describe('Schema Validator', () => {
       expect(result.success).toBe(true);
     });
   });
+
+  describe('节点类型校验补充', () => {
+    it('Conditional 缺少 condition 校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: {
+          type: 'Conditional',
+          then: { type: 'Text', content: 'hello' },
+        } as any,
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+
+    it('Repeater 缺少 bind 校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: {
+          type: 'Repeater',
+          template: { type: 'Text', content: 'item' },
+        } as any,
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+
+    it('Container 无效 layout 枚举校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: {
+          type: 'Container',
+          layout: 'inline' as any,
+          children: [],
+        },
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+
+    it('modular 范围下界越界校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: {
+          type: 'Container',
+          children: [],
+          modular: { colStart: 0, colSpan: 1, rowStart: 1, rowSpan: 1 },
+        },
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+
+    it('ZIndex 格式无效校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: {
+          type: 'Container',
+          id: 'a',
+          zIndex: 'invalid' as any,
+          children: [],
+        },
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+
+    it('meta 缺少 version 校验失败', () => {
+      const schema: TemplateSchema = {
+        id: 'test',
+        name: 'Test',
+        category: 'test',
+        supportedRatios: ['16:9'],
+        root: { type: 'Container', children: [] },
+        meta: {} as any,
+      };
+      const result = validateTemplateSchema(schema);
+      expect(result.success).toBe(false);
+    });
+  });
 });

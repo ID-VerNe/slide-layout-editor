@@ -48,6 +48,38 @@ describe('Logger', () => {
     logger.warn('should appear');
     expect(warnSpy).toHaveBeenCalled();
   });
+
+  it('ERROR 级别下 warn 不输出', () => {
+    logger.setLevel(3 as any);
+    warnSpy.mockClear();
+    logger.warn('should not appear');
+    expect(warnSpy).not.toHaveBeenCalled();
+    logger.error('should appear');
+    expect(errorSpy).toHaveBeenCalled();
+  });
+
+  it('DEBUG 级别下 debug 输出', () => {
+    logger.setLevel(0 as any);
+    debugSpy.mockClear();
+    logger.debug('debug msg');
+    expect(debugSpy).toHaveBeenCalled();
+    expect(debugSpy.mock.calls[0][0]).toContain('debug msg');
+  });
+
+  it('额外参数传递到 console', () => {
+    logger.info('msg', { detail: 42 });
+    expect(infoSpy).toHaveBeenCalled();
+    const args = infoSpy.mock.calls[0];
+    expect(args[0]).toContain('msg');
+    expect(args[1]).toEqual({ detail: 42 });
+  });
+
+  it('formatMessage 包含日志级别标记', () => {
+    logger.warn('test-format');
+    const formatStr = warnSpy.mock.calls[0][0] as string;
+    expect(formatStr).toContain('[WARN]');
+    expect(formatStr).toContain('test-format');
+  });
 });
 
 describe('handleAsync', () => {

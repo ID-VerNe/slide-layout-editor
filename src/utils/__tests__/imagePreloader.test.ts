@@ -133,4 +133,41 @@ describe('imagePreloader', () => {
     expect(goodLoaded).toBe(true);
     await expect(goodPromise).resolves.toBeUndefined();
   });
+
+  it('preload(undefined) 早返回不报错', async () => {
+    global.Image = createImmediateImage();
+    await expect(imagePreloader.preload(undefined as any)).resolves.toBeUndefined();
+  });
+
+  it('同一 URL 重复 preload 返回同一 promise', () => {
+    global.Image = createImmediateImage();
+    const p1 = imagePreloader.preload('dedup.jpg');
+    const p2 = imagePreloader.preload('dedup.jpg');
+    expect(p1).toBe(p2);
+  });
+
+  it('preloadMultiple 过滤 falsy URL', async () => {
+    global.Image = createImmediateImage();
+    const results = await imagePreloader.preloadMultiple(['', 'valid.jpg', undefined as any, null as any]);
+    expect(results).toHaveLength(1);
+  });
+
+  it('HTTP URL 设置 crossOrigin = anonymous', async () => {
+    let capturedCrossOrigin = '';
+    global.Image = class {
+      onload: any;
+      onerror: any;
+      crossOrigin = '';
+      _src = '';
+      get src() { return this._src; }
+      set src(v: string) {
+        this._src = v;
+        capturedCrossOrigin = this.crossOrigin;
+        setTimeout(() => this.onload?.(), 10);
+      }
+    } as any;
+
+    await imagePreloader.preload('http://example.com/img.jpg');
+    expect(capturedCrossOrigin).toBe('anonymous');
+  });
 });

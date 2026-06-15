@@ -340,4 +340,43 @@ describe('PageFrame', () => {
       expect(counter?.style.gridColumn).toContain('23');
     });
   });
+
+  describe('页码计数器样式', () => {
+    it('dots 计数器 >= 10 时渲染点阵', () => {
+      mockUseStore.mockImplementation((selector) => {
+        const state = {
+          designSystem: DEFAULT_DESIGN_SYSTEM,
+          counterStyle: 'dots',
+        };
+        return selector(state);
+      });
+
+      const { container } = render(
+        <PageFrame page={mockPage} pageIndex={9} totalPages={20}>
+          <div>Content</div>
+        </PageFrame>
+      );
+      // dots 渲染为 div 元素，检查 .flex gap-1.5 容器存在
+      const dotsContainer = container.querySelector('.flex.gap-1\\.5');
+      expect(dotsContainer).toBeInTheDocument();
+    });
+
+    it('roman 计数器 > 10 时回退到数字', () => {
+      mockUseStore.mockImplementation((selector) => {
+        const state = {
+          designSystem: DEFAULT_DESIGN_SYSTEM,
+          counterStyle: 'roman',
+        };
+        return selector(state);
+      });
+
+      render(
+        <PageFrame page={mockPage} pageIndex={10} totalPages={20}>
+          <div>Content</div>
+        </PageFrame>
+      );
+      // Roman map 只到 10，第 11 页回退到数字
+      expect(screen.getByText('11')).toBeInTheDocument();
+    });
+  });
 });

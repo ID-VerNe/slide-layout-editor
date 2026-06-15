@@ -102,4 +102,67 @@ describe('Z-Index Resolver', () => {
       expect(second).toBe(first);
     });
   });
+
+  describe('Conditional 和 Repeater 节点遍历', () => {
+    it('Conditional.then 中的节点被收集', () => {
+      const root: TemplateNode = {
+        type: 'Container',
+        children: [{
+          type: 'Conditional',
+          condition: 'page.variant === "left"',
+          then: { type: 'Container', id: 'then-node', zIndex: 'page.top', children: [] },
+          else: { type: 'Container', id: 'else-node', zIndex: 'bottom', children: [] },
+        }],
+      } as any;
+
+      const resolver = createZIndexResolver(root);
+      expect(resolver('page.top')).toBeGreaterThanOrEqual(50);
+    });
+
+    it('Repeater.template 中的节点被收集', () => {
+      const root: TemplateNode = {
+        type: 'Container',
+        children: [{
+          type: 'Repeater',
+          bind: 'page.items',
+          template: { type: 'Container', id: 'repeated', zIndex: 'bottom', children: [] },
+        }],
+      } as any;
+
+      const resolver = createZIndexResolver(root);
+      expect(resolver('bottom')).toBe(0);
+    });
+  });
+
+  describe('复杂引用场景', () => {
+    it('3+ 节点环回退到 PAGE_TOP', () => {
+      const nodes: TemplateNode[] = [
+        { type: 'Container', id: 'A', zIndex: 'B.top', children: [] },
+        { type: 'Container', id: 'B', zIndex: 'C.top', children: [] },
+        { type: 'Container', id: 'C', zIndex: 'A.top', children: [] },
+      ];
+      const result = resolveZIndex(nodes);
+      expect(result.A).toBe(50);
+      expect(result.B).toBe(50);
+      expect(result.C).toBe(50);
+    });
+
+    it('传递引用 A→B→C 正确解析', () => {
+      const nodes: TemplateNode[] = [
+        { type: 'Container', id: 'C', zIndex: 'page.top', children: [] },
+        { type: 'Container', id: 'B', zIndex: 'C.top', children: [] },
+        { type: 'Container', id: 'A', zIndex: 'B.top', children: [] },
+      ];
+      const result = resolveZIndex(nodes);
+      expect(result.C).toBe(50);
+      expect(result.B).toBe(51);
+      expect(result.A).toBe(52);
+    });
+
+    it('resolve(undefined) 返回默认层级 10', () => {
+      const root: TemplateNode = { type: 'Container', children: [] };
+      const resolver = createZIndexResolver(root);
+      expect(resolver(undefined)).toBe(10);
+    });
+  });
 });

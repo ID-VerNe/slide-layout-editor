@@ -457,4 +457,84 @@ describe('LayoutRenderer', () => {
       expect(component.getAttribute('data-bind')).toBe('page.coverUrl');
     });
   });
+
+  describe('布局模式补充', () => {
+    it('absolute 布局应用 position:absolute', () => {
+      const node: ContainerNode = {
+        type: 'Container',
+        layout: 'absolute',
+        layoutProps: { top: 10, left: '50%' },
+        children: [{
+          type: 'Text',
+          content: 'Floating',
+        }],
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const el = container.firstElementChild as HTMLElement;
+      expect(el.style.position).toBe('absolute');
+      expect(el.style.top).toBe('10px');
+    });
+
+    it('flex layoutProps 应应用 direction 和 gap', () => {
+      const node: ContainerNode = {
+        type: 'Container',
+        layout: 'flex',
+        layoutProps: { direction: 'column', gap: 16 },
+        children: [{
+          type: 'Text',
+          content: 'Item',
+        }],
+      };
+
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const el = container.firstElementChild as HTMLElement;
+      expect(el.style.flexDirection).toBe('column');
+    });
+
+    it('Repeater 空 className/style/layout 时渲染 Fragment', () => {
+      const node: RepeaterNode = {
+        type: 'Repeater',
+        bind: 'page.items',
+        template: {
+          type: 'Text',
+          content: '{item}',
+        },
+      };
+      const page = { ...mockPage, items: ['A', 'B'] } as any;
+
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      expect(screen.getByText('A')).toBeInTheDocument();
+      expect(screen.getByText('B')).toBeInTheDocument();
+    });
+
+    it('Repeater 嵌套时 $parent 上下文可访问', () => {
+      const node: RepeaterNode = {
+        type: 'Repeater',
+        bind: 'page.categories',
+        itemVariable: 'category',
+        template: {
+          type: 'Repeater',
+          bind: 'category.items',
+          itemVariable: 'product',
+          template: {
+            type: 'Text',
+            content: '{product}',
+          },
+        },
+      };
+      const page = {
+        ...mockPage,
+        categories: [
+          { items: ['X', 'Y'] },
+          { items: ['Z'] },
+        ],
+      } as any;
+
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      expect(screen.getByText('X')).toBeInTheDocument();
+      expect(screen.getByText('Y')).toBeInTheDocument();
+      expect(screen.getByText('Z')).toBeInTheDocument();
+    });
+  });
 });

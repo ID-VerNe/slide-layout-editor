@@ -363,4 +363,44 @@ describe('Data Migration V2→V3', () => {
       expect(migrated.projectTitle).toBe('Migration Test');
     });
   });
+
+  describe('边界情况', () => {
+    it('null 输入返回 null', () => {
+      expect(migrateToV3(null as any)).toBeNull();
+    });
+
+    it('undefined 输入返回 undefined', () => {
+      expect(migrateToV3(undefined as any)).toBeUndefined();
+    });
+
+    it('迁移后 version 设置为 3.0.0', () => {
+      const data = {
+        pages: [{ id: 'p-1', type: 'slide', layoutId: 'modern-feature', aspectRatio: '16:9', title: 'Test', backgroundColor: '#fff', visibility: {} }],
+        projectTitle: 'V',
+      };
+      const result = migrateToV3(data);
+      expect(result.version).toBe('3.0.0');
+    });
+
+    it('缺少 designSystem 时注入默认值', () => {
+      const data = {
+        pages: [{ id: 'p-1', type: 'slide', layoutId: 'modern-feature', aspectRatio: '16:9', title: 'T', backgroundColor: '#fff', visibility: {} }],
+        projectTitle: 'No DS',
+      };
+      const result = migrateToV3(data);
+      expect(result.designSystem).toBeDefined();
+      expect(result.designSystem.tokens).toBeDefined();
+    });
+
+    it('已有 designSystem 时保留原值', () => {
+      const customDS = { tokens: { colors: { primary: '#custom' } } };
+      const data = {
+        pages: [{ id: 'p-1', type: 'slide', layoutId: 'modern-feature', aspectRatio: '16:9', title: 'T', backgroundColor: '#fff', visibility: {} }],
+        projectTitle: 'Has DS',
+        designSystem: customDS,
+      };
+      const result = migrateToV3(data);
+      expect(result.designSystem).toEqual(customDS);
+    });
+  });
 });

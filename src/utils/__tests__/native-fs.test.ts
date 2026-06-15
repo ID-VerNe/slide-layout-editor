@@ -123,5 +123,23 @@ describe('nativeFs', () => {
       expect(result.success).toBe(true);
       expect(mockAPI.deleteProject).toHaveBeenCalledWith('/project/path');
     });
+
+    it('setCurrentProject 调用 electronAPI', async () => {
+      await nativeFs.setCurrentProject('proj-1', 'My Project');
+      expect(mockAPI.setCurrentProject).toHaveBeenCalledWith('proj-1', 'My Project');
+    });
+  });
+
+  describe('openExternal 非 Electron 回退', () => {
+    beforeEach(() => {
+      delete (window as any).electronAPI;
+    });
+
+    it('回退到 window.open', () => {
+      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      nativeFs.openExternal('https://example.com');
+      expect(openSpy).toHaveBeenCalledWith('https://example.com', '_blank');
+      openSpy.mockRestore();
+    });
   });
 });

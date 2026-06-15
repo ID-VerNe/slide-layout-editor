@@ -101,4 +101,30 @@ describe('FieldRenderer', () => {
     // 仅在支持 pages props 的字段中有意义；这里主要验证不抛错
     expect(screen.getByTestId('title-field')).toBeInTheDocument();
   });
+
+  it('backgroundColor key 映射到 ColorField', () => {
+    // backgroundColor 是一个标准字段映射
+    const { container } = render(
+      <FieldRenderer
+        schema={{ key: 'backgroundColor', label: 'BG Color' } as FieldSchema}
+        page={basePage}
+        onUpdate={noop}
+        customFonts={customFonts}
+      />
+    );
+    // backgroundColor 映射到 ColorField，不应返回 null
+    expect(container.firstChild).not.toBeNull();
+  });
+
+  it('props 通过 schema 透传到字段组件', () => {
+    render(
+      <FieldRenderer
+        schema={{ key: 'title', label: 'Title', props: { placeholder: 'Enter...' } } as FieldSchema}
+        page={basePage}
+        onUpdate={noop}
+        customFonts={customFonts}
+      />
+    );
+    expect(screen.getByTestId('title-field')).toBeInTheDocument();
+  });
 });

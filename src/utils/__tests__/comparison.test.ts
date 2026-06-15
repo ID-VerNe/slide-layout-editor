@@ -33,4 +33,27 @@ describe('shallowEqual', () => {
   it('键数量不同应该返回 false', () => {
     expect(shallowEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false);
   });
+
+  it('NaN 与 NaN 比较返回 true', () => {
+    expect(shallowEqual(NaN, NaN)).toBe(true);
+  });
+
+  it('空对象比较返回 true', () => {
+    expect(shallowEqual({}, {})).toBe(true);
+  });
+
+  it('null 与对象比较返回 false', () => {
+    expect(shallowEqual(null, { a: 1 })).toBe(false);
+    expect(shallowEqual({ a: 1 }, null)).toBe(false);
+  });
+
+  it('undefined 与对象比较返回 false', () => {
+    expect(shallowEqual(undefined, { a: 1 })).toBe(false);
+  });
+
+  it('原始类型比较', () => {
+    expect(shallowEqual(1, 1)).toBe(true);
+    expect(shallowEqual(1, 2)).toBe(false);
+    expect(shallowEqual('a', 'a')).toBe(true);
+  });
 });
