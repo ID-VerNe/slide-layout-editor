@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -8,10 +7,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+      },
   coverage: {
     provider: 'v8',
     reporter: ['text', 'html', 'lcov'],
@@ -30,12 +26,10 @@ export default defineConfig({
       'src/templates/schemas/index.ts',
     ],
     thresholds: {
-      // Lock current coverage so future regressions fail CI.
-      // Tune upward as more tests are added.
-      statements: 55,
-      branches: 37,
-      functions: 42,
-      lines: 57,
+      statements: 62,
+      branches: 45,
+      functions: 49,
+      lines: 63,
     },
   },
 });

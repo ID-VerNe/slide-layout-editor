@@ -5,6 +5,12 @@ import Dashboard from '../Dashboard';
 import React from 'react';
 import { UIProvider } from '../../context/UIContext';
 
+vi.mock('framer-motion', () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  motion: { div: 'div', span: 'span' },
+  spring: () => ({}),
+}));
+
 const navigateMock = vi.fn();
 
 const loadProjectMock = vi.fn();

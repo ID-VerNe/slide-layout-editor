@@ -25,6 +25,7 @@ vi.mock('../../utils/native-fs', () => ({
   nativeFs: {
     isElectron: vi.fn(() => false),
     setCurrentProject: vi.fn(),
+    captureThumbnail: vi.fn(),
   },
 }));
 
@@ -181,7 +182,7 @@ describe('useProject', () => {
   it('Electron 环境下使用 captureThumbnail 生成缩略图', async () => {
     (nativeFs.isElectron as ReturnType<typeof vi.fn>).mockReturnValue(true);
     const captureThumbnail = vi.fn().mockResolvedValue('electron-thumb');
-    (window as any).electronAPI = { captureThumbnail };
+    (nativeFs.captureThumbnail as ReturnType<typeof vi.fn>).mockImplementation(captureThumbnail);
 
     vi.mocked(useStore).mockImplementation((selector: any) => selector(createMockState()));
     const { result } = renderHook(() => useProject('proj-1', null));

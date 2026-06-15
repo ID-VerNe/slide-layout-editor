@@ -18,12 +18,8 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    },
-    "allowImportingTsExtensions": true,
+        "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": ["vitest.config.ts", "vite.config.ts", "node_modules", "dist", "dist-electron"]
 }

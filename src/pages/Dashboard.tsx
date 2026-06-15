@@ -22,7 +22,7 @@ export default function Dashboard() {
       
       // 如果没有设置 Workspace，使用默认路径
       if (!savedWorkspace && nativeFs.isElectron()) {
-        const paths = await (window as any).electronAPI?.getAppPaths();
+        const paths = await nativeFs.getAppPaths();
         if (paths?.userData) {
           const defaultWorkspace = `${paths.userData}/Projects`;
           savedWorkspace = defaultWorkspace;

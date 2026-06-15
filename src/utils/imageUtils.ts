@@ -1,3 +1,5 @@
+import { nativeFs } from './native-fs';
+
 export interface ImageVariant {
   url: string;
   width: number;
@@ -23,8 +25,7 @@ export async function generateResponsiveImages(
   assetUrlOrData: string | Buffer,
   formats: ('webp' | 'avif' | 'jpg' | 'png')[] = ['webp', 'jpg']
 ): Promise<ImageVariant[]> {
-  const electronAPI = (window as any).electronAPI;
-  if (!electronAPI || !electronAPI.processResponsiveImages) {
+  if (!nativeFs.isElectron()) {
     console.warn('Responsive image processing is only available in Electron environment');
     return [];
   }
@@ -34,13 +35,12 @@ export async function generateResponsiveImages(
     if (assetUrlOrData.startsWith('data:')) {
       base64Data = assetUrlOrData.split(',')[1];
     } else if (assetUrlOrData.startsWith('asset://')) {
-      // 如果是 asset://，主进程可以直接读取文件，但为了通用性，我们这里假设传入的是数据
-      // 实际上，主进程可以直接根据 ID 处理，这里我们简单处理
-      return electronAPI.processResponsiveImages(assetUrlOrData, formats);
+      // 如果是 asset://，主进程可以直接读取文件
+      return nativeFs.processResponsiveImages(assetUrlOrData, formats);
     }
   }
 
-  return electronAPI.processResponsiveImages(base64Data || assetUrlOrData, formats);
+  return nativeFs.processResponsiveImages(base64Data || assetUrlOrData, formats);
 }
 
 export function generateSrcSet(variants: ImageVariant[]): string {

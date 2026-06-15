@@ -21,9 +21,11 @@ interface ElectronAPI {
   saveFileBuffer: (filePath: string, base64Data: string) => Promise<NativeResponse>;
   openExternal: (url: string) => Promise<void>;
   setActiveWorkspace: (path: string) => Promise<void>;
-  listProjects: () => Promise<any[]>;
+  listProjects: () => Promise<Array<{ id: string; name: string; path: string; lastModified?: number }>>;
   setCurrentProject: (id: string, name: string) => Promise<void>;
   deleteProject: (projectPath: string) => Promise<NativeResponse>;
+  readAssetFile: (filename: string) => Promise<string | null>;
+  processResponsiveImages: (input: string | Buffer, formats: string[]) => Promise<any>;
 }
 
 declare global {
@@ -34,14 +36,34 @@ declare global {
 
 export const nativeFs = {
   isElectron: (): boolean => {
-    return !!(window as any).electronAPI;
+    return !!window.electronAPI;
+  },
+
+  async getAppPaths(): Promise<{ userData: string; thumbnails: string }> {
+    if (!window.electronAPI) return { userData: '', thumbnails: '' };
+    return await window.electronAPI.getAppPaths();
+  },
+
+  async captureThumbnail(projectId: string, rect: { x: number; y: number; width: number; height: number }): Promise<string | null> {
+    if (!window.electronAPI) return null;
+    return await window.electronAPI.captureThumbnail(projectId, rect);
+  },
+
+  async readAssetFile(filename: string): Promise<string | null> {
+    if (!window.electronAPI) return null;
+    return await window.electronAPI.readAssetFile(filename);
+  },
+
+  async processResponsiveImages(input: string | Buffer, formats: string[]): Promise<any> {
+    if (!window.electronAPI) return [];
+    return await window.electronAPI.processResponsiveImages(input, formats);
   },
 
   async setActiveWorkspace(path: string) {
     await window.electronAPI?.setActiveWorkspace(path);
   },
 
-  async listProjects(): Promise<any[]> {
+  async listProjects(): Promise<Array<{ id: string; name: string; path: string; lastModified?: number }>> {
     if (!window.electronAPI) return [];
     return await window.electronAPI.listProjects();
   },

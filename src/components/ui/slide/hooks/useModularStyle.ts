@@ -97,7 +97,7 @@ export const useModularStyle = ({
       color, weight, ...otherProps 
     } = finalProps;
 
-    // A. 字号与行高 (Size & Leading)
+    // A. 字号与行高
     if (size !== undefined) {
       const fontSizePx = typeof size === 'number' ? size * 8 : parseFloat(size);
       finalStyle.fontSize = `${fontSizePx}px`;
@@ -111,7 +111,7 @@ export const useModularStyle = ({
       finalStyle.lineHeight = `${Math.ceil((currentFontSize * leading) / 8) * 8}px`;
     }
 
-    // B. 字体族解析 (Font Family)
+    // B. 字体族解析
     // 优先级：overrides.fontFamily > serif/sans/caption semantic props > variant tokens
     const isZH = zh || props.lang === 'zh';
     

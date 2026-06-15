@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { logger, handleAsync } from '../logger';
+import { logger, handleAsync, applyProdOverrides } from '../logger';
 
 describe('Logger', () => {
   let debugSpy: ReturnType<typeof vi.spyOn>;
@@ -110,5 +110,87 @@ describe('handleAsync', () => {
     expect(data).toBeNull();
     expect(err).toBeInstanceOf(Error);
     expect(err!.message).toBe('string error');
+  });
+});
+
+describe('applyProdOverrides', () => {
+  let originalConsole: typeof console;
+
+  beforeEach(() => {
+    originalConsole = { ...console };
+  });
+
+  afterEach(() => {
+    Object.assign(console, originalConsole);
+  });
+
+  it('console.log 被替换为无操作函数', () => {
+    const logSpy = vi.fn();
+    console.log = logSpy;
+
+    applyProdOverrides();
+
+    console.log('test message');
+    expect(logSpy).not.toHaveBeenCalled();
+  });
+
+  it('console.debug 被替换为无操作函数', () => {
+    const debugSpy = vi.fn();
+    console.debug = debugSpy;
+
+    applyProdOverrides();
+
+    console.debug('test message');
+    expect(debugSpy).not.toHaveBeenCalled();
+  });
+
+  it('console.info 被替换为无操作函数', () => {
+    const infoSpy = vi.fn();
+    console.info = infoSpy;
+
+    applyProdOverrides();
+
+    console.info('test message');
+    expect(infoSpy).not.toHaveBeenCalled();
+  });
+
+  it('console.warn 过滤 AutoSave 消息', () => {
+    const warnSpy = vi.fn();
+    console.warn = warnSpy;
+
+    applyProdOverrides();
+
+    console.warn('AutoSave: document saved');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('console.warn 过滤 Thumbnail 消息', () => {
+    const warnSpy = vi.fn();
+    console.warn = warnSpy;
+
+    applyProdOverrides();
+
+    console.warn('Thumbnail generated successfully');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('console.warn 放行非过滤消息', () => {
+    const warnSpy = vi.fn();
+    console.warn = warnSpy;
+
+    applyProdOverrides();
+
+    console.warn('Some other warning');
+    expect(warnSpy).toHaveBeenCalledWith('Some other warning');
+  });
+
+  it('console.error 透传所有调用', () => {
+    const errorSpy = vi.fn();
+    console.error = errorSpy;
+
+    applyProdOverrides();
+
+    console.error('test error', { key: 42 });
+    expect(errorSpy).toHaveBeenCalledWith('test error', { key: 42 });
   });
 });

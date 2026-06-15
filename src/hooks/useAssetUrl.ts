@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LRUCache } from '../utils/lruCache';
 import { getAsset } from '../utils/db';
+import { nativeFs } from '../utils/native-fs';
 
 interface ImageDimensions { width: number; height: number; }
 
@@ -45,18 +46,15 @@ export function useAssetUrl(assetSource: string | undefined) {
       } else {
         // 2.2 asset:// 协议：尝试本地/缓存读取，否则回退 IndexedDB
         const filename = assetSource.replace('asset://', '');
-        const electronAPI = (window as any).electronAPI;
+        try {
+          const base64Data = await nativeFs.readAssetFile(filename);
 
-        if (electronAPI?.readAssetFile) {
-          try {
-            const base64Data = await electronAPI.readAssetFile(filename);
-            if (base64Data) {
-              const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
-              finalUrl = `data:${mime};base64,${base64Data}`;
-            }
-          } catch (err) {
-            console.warn('Electron readAssetFile failed:', err);
+          if (base64Data) {
+            const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+            finalUrl = `data:${mime};base64,${base64Data}`;
           }
+        } catch (err) {
+          console.warn('Electron readAssetFile failed:', err);
         }
 
         if (!finalUrl) {

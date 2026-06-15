@@ -82,7 +82,6 @@ export default function EditorPage() {
     if (!isLoaded || !projectId || !hasUnsavedChanges) return;
 
     const autoSaveTimer = setTimeout(() => {
-      console.log('[AutoSave] Saving to IndexedDB...');
       saveToDB(previewRef, false);
     }, 3000);
 
@@ -136,7 +135,7 @@ export default function EditorPage() {
       if (el) {
         if (nativeFs.isElectron()) {
           const rect = el.getBoundingClientRect();
-          return await (window as any).electronAPI.captureThumbnail(projectId!, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+          return await nativeFs.captureThumbnail(projectId!, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
         }
         return await toPng(el as HTMLElement, { pixelRatio: 0.2, quality: 0.5 });
       }

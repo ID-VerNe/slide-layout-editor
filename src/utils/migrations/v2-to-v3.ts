@@ -108,8 +108,6 @@ export function migrateToV3(data: any): ProjectData {
     return data as ProjectData;
   }
 
-  console.log('[Migration] Upgrading project to V3 (Modular Grid)...');
-
   // 递归迁移所有字段
   const migratedData = migrateFields(data);
 

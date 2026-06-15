@@ -304,6 +304,7 @@ export interface ProjectTheme {
 
 export interface ProjectData {
   version: string;
+  id?: string;
   title: string;
   projectTitle?: string;
   pages: PageData[];

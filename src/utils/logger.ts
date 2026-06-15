@@ -54,8 +54,11 @@ class Logger {
 
 export const logger = new Logger();
 
-// 生产环境：拦截并过滤 console 输出
-if (import.meta.env.PROD) {
+/**
+ * 应用生产环境的 console 覆盖策略
+ * 提取为独立函数以便测试
+ */
+export function applyProdOverrides() {
   const originalConsole = {
     log: console.log,
     debug: console.debug,
@@ -85,6 +88,12 @@ if (import.meta.env.PROD) {
 /**
  * 统一异步错误处理工具
  */
+
+// 生产环境：拦截并过滤 console 输出
+if (import.meta.env.PROD) {
+  applyProdOverrides();
+}
+
 export async function handleAsync<T>(
   promise: Promise<T>, 
   context: string

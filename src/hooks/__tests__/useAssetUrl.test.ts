@@ -7,10 +7,16 @@ vi.mock('../../utils/db', () => ({
   getAsset: vi.fn()
 }));
 
+vi.mock('../../utils/native-fs', () => ({
+  nativeFs: {
+    readAssetFile: vi.fn(),
+  },
+}));
+
 describe('useAssetUrl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).electronAPI;
+    vi.useFakeTimers({ shouldAdvanceTime: true });
 
     global.Image = class {
       onload: () => void = () => {};
@@ -54,8 +60,9 @@ describe('useAssetUrl', () => {
 
   it('Electron 环境下优先读取本地文件并识别 SVG MIME', async () => {
     const assetId = 'asset://icon.svg';
+    const { nativeFs } = await import('../../utils/native-fs');
     const readAssetFile = vi.fn().mockResolvedValue('abc123');
-    (window as any).electronAPI = { readAssetFile };
+    (nativeFs.readAssetFile as ReturnType<typeof vi.fn>).mockImplementation(readAssetFile);
 
     const { result } = renderHook(() => useAssetUrl(assetId));
 
@@ -69,8 +76,9 @@ describe('useAssetUrl', () => {
 
   it('Electron 读取失败时回退到 IndexedDB', async () => {
     const assetId = 'asset://fallback-id';
+    const { nativeFs } = await import('../../utils/native-fs');
     const readAssetFile = vi.fn().mockRejectedValue(new Error('disk missing'));
-    (window as any).electronAPI = { readAssetFile };
+    (nativeFs.readAssetFile as ReturnType<typeof vi.fn>).mockImplementation(readAssetFile);
     vi.mocked(db.getAsset).mockResolvedValue('data:image/png;base64,fallback');
 
     const { result } = renderHook(() => useAssetUrl(assetId));

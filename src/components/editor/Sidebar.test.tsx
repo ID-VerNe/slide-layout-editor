@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Sidebar from './Sidebar';
 import { PageData } from '../../types';
@@ -126,7 +126,7 @@ describe('Sidebar Interaction', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
     await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: /delete slide/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /delete slide/i })).not.toBeVisible();
     });
     expect(onRemovePage).toHaveBeenCalledWith('page-0');
   });
@@ -140,7 +140,7 @@ describe('Sidebar Interaction', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
     await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: /reset project/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: /reset project/i })).not.toBeVisible();
     });
     expect(onClearAll).toHaveBeenCalled();
   });

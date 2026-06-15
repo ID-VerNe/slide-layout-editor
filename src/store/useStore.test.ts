@@ -493,7 +493,7 @@ describe('useStore', () => {
 
     it('setCustomFonts 更新自定义字体列表', () => {
       const { setCustomFonts } = useStore.getState();
-      const fonts = [{ name: 'MyFont', url: 'https://example.com/font.woff2' }];
+      const fonts = [{ name: 'MyFont', family: 'MyFont', url: 'https://example.com/font.woff2' }];
       setCustomFonts(fonts);
 
       expect(useStore.getState().customFonts).toEqual(fonts);

@@ -3,6 +3,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { UIProvider, useUI } from '../UIContext';
 
+vi.mock('framer-motion', () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  motion: { div: 'div', span: 'span' },
+  spring: () => ({}),
+}));
+
 const wrapper = ({ children }: { children: React.ReactNode }) => <UIProvider>{children}</UIProvider>;
 
 describe('UIContext', () => {

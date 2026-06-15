@@ -43,7 +43,7 @@ export const DEFAULT_DESIGN_SYSTEM: DesignSystem = {
         body: '10pt',
         caption: '7pt'
       },
-      // 引言/诗歌 (Lead/Poem): Playfair Display Italic, 9pt-11pt, Leading 1.6x
+      // 引言/诗歌：Playfair Display Italic, 9pt-11pt, Leading 1.6x
       body: { 
         fontSize: '10pt', 
         lineHeight: '1.6', 
@@ -51,7 +51,7 @@ export const DEFAULT_DESIGN_SYSTEM: DesignSystem = {
         letterSpacing: '0',
         fontStyle: 'italic'
       },
-      // 元数据/图注 (Metadata/Caption): Inter Bold/Medium, 6.5pt-7.5pt, ALL CAPS, Tracking +150 to +200, Leading 12pt-14pt
+      // 元数据/图注：Inter Bold/Medium, 6.5pt-7.5pt, ALL CAPS, Tracking +150 to +200, Leading 12pt-14pt
       caption: { 
         fontSize: '7pt', 
         lineHeight: '1.8', // 12.6pt if fontSize is 7pt
@@ -59,7 +59,7 @@ export const DEFAULT_DESIGN_SYSTEM: DesignSystem = {
         letterSpacing: '0.2em', 
         textTransform: 'uppercase' 
       },
-      // 主标题 (Title): Playfair Display, 32pt-48pt, Tracking +150 to +250 (AllCaps)
+      // 主标题：Playfair Display, 32pt-48pt, Tracking +150 to +250 (AllCaps)
       display: { 
         fontSize: '48pt', 
         lineHeight: '1.1', 

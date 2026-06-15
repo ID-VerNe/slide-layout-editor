@@ -71,7 +71,7 @@ interface ProjectState {
   loadProject: (idOrData: string | any, templateId?: string | null, filePath?: string | null) => Promise<void>;
   setPages: (pages: PageData[]) => void;
   setProjectTitle: (title: string) => void;
-  setTheme: (themeUpdate: Partial<ProjectTheme>, applyToAll?: boolean) => void;
+  setTheme: (themeUpdate: { colors?: Partial<ProjectTheme['colors']>; typography?: Partial<ProjectTheme['typography']> } & Omit<Partial<ProjectTheme>, 'colors' | 'typography'>, applyToAll?: boolean) => void;
   setDesignSystem: (ds: DesignSystem) => void;
   setPrintSettings: (settings: PrintSettings) => void;
   setImageQuality: (imageQuality: number) => void;
@@ -159,7 +159,6 @@ export const useStore = create<ProjectState>((set, get) => ({
 
         if (nativeFs.isElectron()) {
           const title = migratedData.title || migratedData.projectTitle || 'Untitled Project';
-          console.log('[Store] Syncing project context to Electron:', projectId, title);
           nativeFs.setCurrentProject(projectId!, title);
         }
 

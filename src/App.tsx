@@ -36,12 +36,10 @@ export default function App() {
     // 解决刷新编辑器页面或重启开发服务器后资产路径丢失的问题
     const savedWorkspace = localStorage.getItem('slidegrid_workspace');
     if (savedWorkspace && nativeFs.isElectron()) {
-      console.log('[App] Syncing workspace:', savedWorkspace);
       nativeFs.setActiveWorkspace(savedWorkspace);
     }
   }, []);
 
-  console.log('[App] Rendering main structure');
   return (
     <UIProvider>
       {/* @ts-ignore */}

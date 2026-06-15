@@ -1,4 +1,5 @@
 import { ProjectData } from '../types';
+import { nativeFs } from './native-fs';
 
 const DB_NAME = 'slidegrid_studio_db';
 const STORE_PROJECTS = 'projects';
@@ -45,11 +46,10 @@ export async function saveAsset(dataUrl: string): Promise<string> {
   const ext = dataUrl.substring(dataUrl.indexOf('/') + 1, dataUrl.indexOf(';'));
   const filename = `asset_${hashId}.${ext}`;
 
-  // 2. 直接检查 Electron 环境 (不通过 nativeFs 导入)
-  const electronAPI = (window as any).electronAPI;
-  if (electronAPI) {
+  // 2. 直接检查 Electron 环境
+  if (nativeFs.isElectron()) {
     try {
-      const result = await electronAPI.uploadAsset(filename, dataUrl);
+      const result = await nativeFs.uploadAsset(filename, dataUrl);
       if (result.success) return result.url;
     } catch (e) {
       console.error("Native upload failed", e);
@@ -75,12 +75,11 @@ export async function getAsset(assetId: string): Promise<string | null> {
   if (!assetId || !assetId.startsWith('asset://')) return assetId;
 
   const filename = assetId.replace('asset://', '');
-  const electronAPI = (window as any).electronAPI;
 
   // Electron 环境下优先尝试读取物理文件；失败时回退到 IndexedDB
-  if (electronAPI) {
+  if (nativeFs.isElectron()) {
     try {
-      const base64Data = await electronAPI.readAssetFile(filename);
+      const base64Data = await nativeFs.readAssetFile(filename);
       if (base64Data) {
         const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
         return `data:${mime};base64,${base64Data}`;

@@ -40,6 +40,7 @@ const mockPage: PageData = {
 };
 
 const mockTheme: ProjectTheme = DEFAULT_THEME;
+const mockDesignSystem: DesignSystem = DEFAULT_DESIGN_SYSTEM;
 
 describe('LayoutRenderer', () => {
   describe('Container 节点渲染', () => {
@@ -51,7 +52,7 @@ describe('LayoutRenderer', () => {
       };
 
       const { container } = render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       const element = container.firstChild as HTMLElement;
@@ -73,7 +74,7 @@ describe('LayoutRenderer', () => {
       };
 
       const { container } = render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       const element = container.firstChild as HTMLElement;
@@ -96,7 +97,7 @@ describe('LayoutRenderer', () => {
       };
 
       const { container } = render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       const element = container.firstChild as HTMLElement;
@@ -114,7 +115,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByText('Child 1')).toBeInTheDocument();
@@ -131,7 +132,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByTestId('component-ZineDisplay')).toBeInTheDocument();
@@ -145,7 +146,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       const component = screen.getByTestId('component-ZineBody');
@@ -161,7 +162,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByText('Static Text')).toBeInTheDocument();
@@ -174,7 +175,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       // 表达式应被求值
@@ -192,7 +193,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByText('Then Branch')).toBeInTheDocument();
@@ -209,7 +210,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={pageWithoutTitle} theme={mockTheme} />
+        <LayoutRenderer node={node} page={pageWithoutTitle} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.queryByText('Then Branch')).not.toBeInTheDocument();
@@ -231,7 +232,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={pageWithItems} theme={mockTheme} />
+        <LayoutRenderer node={node} page={pageWithItems} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByText('Item 1')).toBeInTheDocument();
@@ -249,7 +250,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.queryByText('Hidden Text')).not.toBeInTheDocument();
@@ -263,7 +264,7 @@ describe('LayoutRenderer', () => {
       };
 
       render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       expect(screen.getByText('Visible Text')).toBeInTheDocument();
@@ -279,7 +280,7 @@ describe('LayoutRenderer', () => {
       };
 
       const { container } = render(
-        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} />
+        <LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
       );
 
       const element = container.firstChild as HTMLElement;
@@ -296,7 +297,7 @@ describe('LayoutRenderer', () => {
       // 不应抛出错误
       expect(() => {
         render(
-          <LayoutRenderer node={invalidNode} page={mockPage} theme={mockTheme} />
+          <LayoutRenderer node={invalidNode} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />
         );
       }).not.toThrow();
     });
@@ -320,7 +321,7 @@ describe('LayoutRenderer', () => {
         bind: 'page.title',
       };
 
-      render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(screen.getByRole('alert')).toBeInTheDocument();
 
       vi.mocked(getComponent).mockImplementation(originalImpl || (() => null));
@@ -336,7 +337,7 @@ describe('LayoutRenderer', () => {
         bind: 'page.title',
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(container.firstChild).toBeNull();
     });
   });
@@ -351,7 +352,7 @@ describe('LayoutRenderer', () => {
       };
       const page = { ...mockPage, visibility: { logo: false } };
 
-      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(screen.queryByTestId('component-ZineDisplay')).not.toBeInTheDocument();
     });
   });
@@ -365,7 +366,7 @@ describe('LayoutRenderer', () => {
       };
       const page = { ...mockPage, items: [] as string[] };
 
-      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(document.body.textContent?.trim()).toBe('');
     });
 
@@ -377,7 +378,7 @@ describe('LayoutRenderer', () => {
         template: { type: 'Text', content: '{item}' },
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(container.firstChild).toBeNull();
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('did not return an array'), expect.any(String));
       warnSpy.mockRestore();
@@ -392,7 +393,7 @@ describe('LayoutRenderer', () => {
         then: { type: 'Text', content: 'Then' },
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(container.firstChild).toBeNull();
     });
   });
@@ -406,7 +407,7 @@ describe('LayoutRenderer', () => {
         children: [],
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       const el = container.firstChild as HTMLElement;
       expect(el.style.display).toBe('grid');
       expect(el.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
@@ -422,7 +423,7 @@ describe('LayoutRenderer', () => {
         style: { color: '#000', boxShadow: '0 1px 2px' } as any,
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       const el = container.firstChild as HTMLElement;
       expect(el.style.color).toBe('rgb(0, 0, 0)');
       expect(el.style.boxShadow).toBe('');
@@ -435,7 +436,7 @@ describe('LayoutRenderer', () => {
         className: 'shadow-lg blur-md animate-pulse allowed-class',
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       const el = container.firstChild as HTMLElement;
       expect(el.classList.contains('allowed-class')).toBe(true);
       expect(el.classList.contains('shadow-lg')).toBe(false);
@@ -452,7 +453,7 @@ describe('LayoutRenderer', () => {
       };
       const page = { ...mockPage, coverUrl: 'https://example.com/cover.png' };
 
-      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} designSystem={mockDesignSystem} />);
       const component = screen.getByTestId('component-ZineMedia');
       expect(component.getAttribute('data-bind')).toBe('page.coverUrl');
     });
@@ -470,7 +471,7 @@ describe('LayoutRenderer', () => {
         }],
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       const el = container.firstElementChild as HTMLElement;
       expect(el.style.position).toBe('absolute');
       expect(el.style.top).toBe('10px');
@@ -487,7 +488,7 @@ describe('LayoutRenderer', () => {
         }],
       };
 
-      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} />);
+      const { container } = render(<LayoutRenderer node={node} page={mockPage} theme={mockTheme} designSystem={mockDesignSystem} />);
       const el = container.firstElementChild as HTMLElement;
       expect(el.style.flexDirection).toBe('column');
     });
@@ -503,7 +504,7 @@ describe('LayoutRenderer', () => {
       };
       const page = { ...mockPage, items: ['A', 'B'] } as any;
 
-      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(screen.getByText('A')).toBeInTheDocument();
       expect(screen.getByText('B')).toBeInTheDocument();
     });
@@ -531,7 +532,7 @@ describe('LayoutRenderer', () => {
         ],
       } as any;
 
-      render(<LayoutRenderer node={node} page={page} theme={mockTheme} />);
+      render(<LayoutRenderer node={node} page={page} theme={mockTheme} designSystem={mockDesignSystem} />);
       expect(screen.getByText('X')).toBeInTheDocument();
       expect(screen.getByText('Y')).toBeInTheDocument();
       expect(screen.getByText('Z')).toBeInTheDocument();

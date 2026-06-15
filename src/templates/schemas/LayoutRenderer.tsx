@@ -5,12 +5,12 @@ import TemplateErrorBoundary from '../../components/ui/TemplateErrorBoundary';
 import { evaluator, EvaluationContext } from './expressionEvaluator';
 import { ZIndexResolverFn } from './zIndexResolver';
 import { PageData, ProjectTheme, TypographySettings, DesignSystem } from '../../types';
-import { useStore } from '../../store/useStore';
 
 interface LayoutRendererProps {
   node: TemplateNode;
   page: PageData;
   theme: ProjectTheme;
+  designSystem: DesignSystem;
   typography?: TypographySettings;
   context?: EvaluationContext;
   resolveZIndex?: ZIndexResolverFn; // zIndex 解析器，由 JsonTemplateRenderer 注入
@@ -24,12 +24,12 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   node,
   page,
   theme,
+  designSystem,
   typography,
   context: parentContext,
   resolveZIndex
 }) => {
   const context: EvaluationContext = useMemo(() => parentContext || { page, theme }, [page, theme, parentContext]);
-  const ds = useStore(s => s.designSystem);
 
   // 包裹 ErrorBoundary 保护渲染过程
   return (
@@ -40,7 +40,7 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
         theme={theme}
         typography={typography}
         context={context}
-        ds={ds}
+        ds={designSystem}
         resolveZIndex={resolveZIndex}
       />
     </TemplateErrorBoundary>
@@ -95,6 +95,7 @@ const LayoutRendererInternal: React.FC<LayoutRendererProps & { ds: DesignSystem 
           node={targetNode}
           page={page}
           theme={theme}
+          designSystem={ds}
           typography={typography}
           context={context}
           resolveZIndex={resolveZIndex}
@@ -291,6 +292,7 @@ function renderContainer(
           node={child}
           page={context.page}
           theme={context.theme}
+          designSystem={ds}
           typography={typography}
           context={context}
           resolveZIndex={resolveZIndex}
@@ -430,6 +432,7 @@ function renderRepeater(
         node={node.template}
         page={context.page}
         theme={context.theme}
+        designSystem={ds}
         typography={typography}
         context={itemContext}
         resolveZIndex={resolveZIndex}

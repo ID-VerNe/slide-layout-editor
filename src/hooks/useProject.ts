@@ -81,7 +81,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
           const pageEl = previewRefLocal.current.querySelector('.magazine-page');
           if (pageEl) {
             const rect = pageEl.getBoundingClientRect();
-            base64 = await (window as any).electronAPI.captureThumbnail(curId, {
+            base64 = await nativeFs.captureThumbnail(curId, {
               x: rect.x, y: rect.y, width: rect.width, height: rect.height
             });
           }
@@ -138,7 +138,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
         if (el) {
           if (nativeFs.isElectron()) {
             const rect = el.getBoundingClientRect();
-            thumbnail = await (window as any).electronAPI.captureThumbnail(projectId, {
+            thumbnail = await nativeFs.captureThumbnail(projectId, {
               x: rect.x, y: rect.y, width: rect.width, height: rect.height
             });
           } else {
