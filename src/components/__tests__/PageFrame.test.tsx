@@ -342,7 +342,7 @@ describe('PageFrame', () => {
   });
 
   describe('页码计数器样式', () => {
-    it('dots 计数器 >= 10 时渲染点阵', () => {
+    it('dots 第 6 页渲染 ◆●（1 菱形 + 1 圆点）', () => {
       mockUseStore.mockImplementation((selector) => {
         const state = {
           designSystem: DEFAULT_DESIGN_SYSTEM,
@@ -352,13 +352,59 @@ describe('PageFrame', () => {
       });
 
       const { container } = render(
-        <PageFrame page={mockPage} pageIndex={9} totalPages={20}>
+        <PageFrame page={mockPage} pageIndex={5} totalPages={20}>
           <div>Content</div>
         </PageFrame>
       );
-      // dots 渲染为 div 元素，检查 .flex gap-1.5 容器存在
       const dotsContainer = container.querySelector('.flex.gap-1\\.5');
       expect(dotsContainer).toBeInTheDocument();
+      // 应包含 rotate-45（菱形）和 rounded-full（圆点）
+      expect(dotsContainer?.querySelector('.rotate-45')).toBeInTheDocument();
+      expect(dotsContainer?.querySelector('.rounded-full')).toBeInTheDocument();
+    });
+
+    it('dots 第 11 页渲染 ■●（1 大方块 + 1 圆点）', () => {
+      mockUseStore.mockImplementation((selector) => {
+        const state = {
+          designSystem: DEFAULT_DESIGN_SYSTEM,
+          counterStyle: 'dots',
+        };
+        return selector(state);
+      });
+
+      const { container } = render(
+        <PageFrame page={mockPage} pageIndex={10} totalPages={20}>
+          <div>Content</div>
+        </PageFrame>
+      );
+      const dotsContainer = container.querySelector('.flex.gap-1\\.5');
+      // 10 对应大方块，检查 w-2 h-2 类
+      const squares = dotsContainer?.querySelectorAll('div.w-2');
+      expect(squares?.length).toBe(1);
+      // 1 对应小圆点
+      const dots = dotsContainer?.querySelectorAll('div.rounded-full');
+      expect(dots?.length).toBe(1);
+    });
+
+    it('dots 第 55 页渲染 ▬◆（1 长条 + 1 菱形）', () => {
+      mockUseStore.mockImplementation((selector) => {
+        const state = {
+          designSystem: DEFAULT_DESIGN_SYSTEM,
+          counterStyle: 'dots',
+        };
+        return selector(state);
+      });
+
+      const { container } = render(
+        <PageFrame page={mockPage} pageIndex={54} totalPages={100}>
+          <div>Content</div>
+        </PageFrame>
+      );
+      const dotsContainer = container.querySelector('.flex.gap-1\\.5');
+      // 50 对应长条 w-3 h-1.5
+      expect(dotsContainer?.querySelector('.w-3')).toBeInTheDocument();
+      // 5 对应菱形
+      expect(dotsContainer?.querySelector('.rotate-45')).toBeInTheDocument();
     });
 
     it('roman 计数器 > 10 正常显示罗马数字', () => {
