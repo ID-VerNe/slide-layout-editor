@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, AlertCircle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +49,57 @@ export default function Modal({
   // 确保在客户端环境下运行
   const [mounted, setMounted] = useState(false);
   const lockedRef = useRef(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const titleId = 'modal-title';
+  const messageId = 'modal-message';
+
+  // Focus trap: store focusable elements and manage Tab/Shift+Tab
+  const getFocusableElements = useCallback((): HTMLElement[] => {
+    if (!modalRef.current) return [];
+    const selectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    return Array.from(modalRef.current.querySelectorAll<HTMLElement>(selectors));
+  }, []);
+
+  // Focus the first focusable element when modal opens
+  useEffect(() => {
+    if (isOpen && mounted) {
+      // Small delay to ensure DOM is painted
+      const timer = requestAnimationFrame(() => {
+        const focusable = getFocusableElements();
+        if (focusable.length > 0) {
+          focusable[0].focus();
+        }
+      });
+      return () => cancelAnimationFrame(timer);
+    }
+  }, [isOpen, mounted, getFocusableElements]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+      return;
+    }
+    if (e.key === 'Tab') {
+      const focusable = getFocusableElements();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        // Shift+Tab: if focus is on first element, wrap to last
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        // Tab: if focus is on last element, wrap to first
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  }, [onClose, getFocusableElements]);
 
   useEffect(() => {
     setMounted(true);
@@ -88,12 +139,18 @@ export default function Modal({
           />
 
           {/* Modal Card */}
-          <motion.div 
+          <motion.div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={message ? messageId : undefined}
             initial={{ opacity: 0, scale: 0.9, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 40 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={`relative w-full ${maxWidth} bg-white rounded-[2.5rem] shadow-[0_32px_80px_rgba(0,0,0,0.3)] overflow-hidden border border-white/20 pointer-events-auto`}
+            onKeyDown={handleKeyDown}
           >
             <div className="p-10">
               <div className="flex items-start justify-between gap-6 mb-8">
@@ -104,12 +161,13 @@ export default function Modal({
                     </div>
                   )}
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight text-slate-900">{title}</h3>
-                    {message && <p className="text-sm font-medium text-slate-500 mt-1">{message}</p>}
+                    <h3 id={titleId} className="text-xl font-black uppercase tracking-tight text-slate-900">{title}</h3>
+                    {message && <p id={messageId} className="text-sm font-medium text-slate-500 mt-1">{message}</p>}
                   </div>
                 </div>
-                <button 
-                  onClick={onClose} 
+                <button
+                  onClick={onClose}
+                  aria-label="Close"
                   className="p-2 bg-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-all"
                 >
                   <X size={20} />
