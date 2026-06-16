@@ -82,11 +82,31 @@ export default function EditorPage() {
     if (!isLoaded || !projectId || !hasUnsavedChanges) return;
 
     const autoSaveTimer = setTimeout(() => {
-      saveToDB(previewRef, false);
+      saveToDB(previewRef, false).catch((err) => {
+        console.warn('[AutoSave] Background save failed:', err);
+      });
     }, 3000);
 
     return () => clearTimeout(autoSaveTimer);
   }, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
+
+  // 迁移遗留的 localStorage 键名
+  useEffect(() => {
+    const oldKey = 'magazine_recent_projects';
+    const newKey = 'slidegrid_recent_projects';
+    try {
+      const oldData = localStorage.getItem(oldKey);
+      if (oldData !== null) {
+        const newData = localStorage.getItem(newKey);
+        if (newData === null) {
+          localStorage.setItem(newKey, oldData);
+        }
+        localStorage.removeItem(oldKey);
+      }
+    } catch {
+      // storage unavailable or quota exceeded -- skip migration silently
+    }
+  }, []);
 
   useEffect(() => {
     if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
@@ -130,8 +150,9 @@ export default function EditorPage() {
   }, [currentPage]);
 
   const generateThumb = useCallback(async () => {
+    if (!previewRef.current) return null;
     try {
-      const el = previewRef.current?.querySelector('.magazine-page');
+      const el = previewRef.current.querySelector('.magazine-page');
       if (el) {
         if (nativeFs.isElectron()) {
           const rect = el.getBoundingClientRect();
@@ -146,11 +167,15 @@ export default function EditorPage() {
   }, [projectId]);
 
   const updateIndex = useCallback((thumb: any, path: string | null) => {
-    const recentKey = 'magazine_recent_projects';
-    const recent = JSON.parse(localStorage.getItem(recentKey) || '[]');
+    const recentKey = 'slidegrid_recent_projects';
+    let stored: string | null = null;
+    try { stored = localStorage.getItem(recentKey); } catch { stored = null; }
+    let recent: any[];
+    try { recent = JSON.parse(stored || '[]'); } catch { recent = []; }
+    recent = recent.filter((p: any) => p && p.id);
     const entry = { id: projectId, title: projectTitle || fallbackTitle, date: new Date().toLocaleDateString(), lastModified: Date.now(), type: pages[0]?.layoutId, aspectRatio: pages[0]?.aspectRatio, thumbnail: thumb, filePath: path };
     const updatedRecent = [entry, ...recent.filter((p: any) => p.id !== projectId)].slice(0, 48);
-    localStorage.setItem(recentKey, JSON.stringify(updatedRecent));
+    try { localStorage.setItem(recentKey, JSON.stringify(updatedRecent)); } catch { /* quota exceeded or storage unavailable */ }
   }, [projectId, projectTitle, fallbackTitle, pages]);
 
   const handleSmartSave = useCallback(async () => {
