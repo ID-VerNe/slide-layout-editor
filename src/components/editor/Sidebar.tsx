@@ -7,6 +7,7 @@ import { LAYOUT_CONFIG } from '../../constants/layout';
 import { nativeFs } from '../../utils/native-fs';
 import { useUI } from '../../context/UIContext';
 import VirtualPageList from './VirtualPageList';
+import ActionButton from '../ui/ActionButton';
 
 interface SidebarProps {
   pages: PageData[];
@@ -153,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
         </button>
       </Reorder.Group>
 
-      <div className="mt-auto flex flex-col items-center w-full border-t border-zine-accent">
+      <div className="mt-auto flex flex-col items-center w-full border-t border-zine-accent divide-y divide-zine-accent/10">
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
         <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger />
         <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger />
@@ -161,19 +162,5 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
     </motion.div>
   );
 };
-
-const ActionButton = ({ onClick, icon: Icon, title, active = false, danger = false }: any) => (
-  <button 
-    onClick={onClick}
-    className={`w-full h-12 flex items-center justify-center transition-all border-b border-zine-accent/10 last:border-b-0
-      ${active ? 'bg-zine-accent text-white' : 
-        danger ? 'text-zine-secondary hover:bg-red-500 hover:text-white' : 
-        'text-zine-accent hover:bg-zine-surface'}`}
-    title={title}
-  >
-    <Icon size={16} strokeWidth={active ? 3 : 2} />
-  </button>
-);
-
 
 export default Sidebar;
