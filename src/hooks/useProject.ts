@@ -60,6 +60,7 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
   const previewRefLocal = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef({ projectId, isLoaded, pages });
+  const lastHashRef = useRef<string>('');
   
   useEffect(() => {
     stateRef.current = { projectId, isLoaded, pages };
