@@ -80,6 +80,13 @@ export interface PartnerData {
   logo?: string;
 }
 
+/** 图片裁剪／定位配置 */
+export interface ImageConfig {
+  scale: number;
+  x: number;
+  y: number;
+}
+
 export interface TestimonialData {
   id: string;
   content: string;
@@ -101,7 +108,8 @@ export interface PlatformHeroData extends PageData {
 }
 
 export interface StepTimelineData extends PageData {
-  steps: any[]; 
+  /** 步骤时间线数据，每项为键值结构 */
+  steps: Record<string, unknown>[];
 }
 
 export interface TestimonialCardData extends PageData {
@@ -109,19 +117,23 @@ export interface TestimonialCardData extends PageData {
 }
 
 export interface CommunityHubData extends PageData {
-  members?: any[];
+  /** 社区成员数据，每项为键值结构 */
+  members?: Record<string, unknown>[];
 }
 
 export interface ComponentMosaicData extends PageData {
-  mosaic: any[];
+  /** 马赛克组件数据，每项为键值结构 */
+  mosaic: Record<string, unknown>[];
 }
 
 export interface GalleryCapsuleData extends PageData {
-  gallery: any[];
+  /** 画廊胶囊数据，每项为键值结构 */
+  gallery: Record<string, unknown>[];
 }
 
 export interface EditorialSplitData extends PageData {
-  sections?: any[];
+  /** 编辑分割区域数据，每项为键值结构 */
+  sections?: Record<string, unknown>[];
 }
 
 // --- Phase 4: Schema 驱动编辑器定义 ---
@@ -141,8 +153,18 @@ export interface FieldSchema {
   label?: string;
   type?: string; 
   icon?: string;
-  props?: Record<string, any>;
-  defaultValue?: any;      // 字段默认值
+  /** 字段专属属性映射，如编辑器配置参数 */
+  props?: Record<string, unknown>;
+  /**
+   * 字段默认值
+   * 类型视具体 FieldType 而定：
+   * - 字符串字段 -> string
+   * - 数值字段 -> number
+   * - 布尔字段 -> boolean
+   * - 数组字段 -> unknown[]
+   * - 对象字段 -> Record<string, unknown>
+   */
+  defaultValue?: unknown;
   placeholder?: string;    // 编辑器占位符提示
 }
 
@@ -190,7 +212,8 @@ export interface PageData {
   resumePageIndex?: number; 
 
   visibility?: Record<string, boolean>;
-  styleOverrides?: Record<string, any>;
+  /** 样式覆盖映射，用于运行时动态调整 */
+  styleOverrides?: Record<string, unknown>;
 
   backgroundColor?: string;
   counterColor?: string;
@@ -206,9 +229,10 @@ export interface PageData {
   agenda?: AgendaData[];
   features?: FeatureData[];
   metrics?: MetricData[];
-  mosaic?: any[];
+  /** 马赛克网格数据，每项为键值结构 */
+  mosaic?: Record<string, unknown>[];
   testimonials?: TestimonialData[];
-  gallery?: any[];
+  gallery?: Record<string, unknown>[];
   partners?: PartnerData[];
   signature?: string;
   
@@ -224,7 +248,8 @@ export interface PageData {
   };
 
   // --- Freeform Editor Fields ---
-  freeformItems?: any[];
+  /** 自由编辑模式下放置的任意元素，每项为键值结构 */
+  freeformItems?: Record<string, unknown>[];
   freeformConfig?: {
     gridSize: number;
     snapToGrid: boolean;
