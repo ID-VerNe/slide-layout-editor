@@ -3,6 +3,7 @@ import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Uploa
 import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
 import { compressImage } from '../../utils/db';
+import { isImageUrl } from '../../utils/imageUrl';
 import { useProject } from '../../hooks/useProject';
 import { useParams } from 'react-router-dom';
 import { PageData } from '../../types';
@@ -18,44 +19,43 @@ export interface IconPickerProps {
   pages?: PageData[];
 }
 
-const RECENT_STORAGE_KEY = 'magazine_editor_recent_assets';
+const RECENT_STORAGE_KEY = 'slidegrid_editor_recent_assets';
 
 const collectProjectImages = (pages: PageData[]): { url: string; count: number }[] => {
   const imageMap = new Map<string, number>();
-  const isImage = (val: string) => val && (val.startsWith('data:image') || val.includes('http') || val.includes('.png') || val.includes('.jpg') || val.includes('asset://'));
 
   pages.forEach(page => {
     [page.image, page.signature, page.logo].forEach(img => {
-      if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+      if (img && isImageUrl(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
     });
 
     (page.gallery || []).forEach(item => {
-      if (item.url && isImage(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
+      if (item.url && isImageUrl(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
     });
 
     (page.features || []).forEach(f => {
       [f.icon, f.image].forEach(img => {
-        if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+        if (img && isImageUrl(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
       });
     });
 
     (page.bentoItems || []).forEach(b => {
       [b.icon, b.image].forEach(img => {
-        if (img && isImage(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
+        if (img && isImageUrl(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
       });
     });
 
     (page.partners || []).forEach(p => {
-      if (p.logo && isImage(p.logo)) imageMap.set(p.logo, (imageMap.get(p.logo) || 0) + 1);
+      if (p.logo && isImageUrl(p.logo)) imageMap.set(p.logo, (imageMap.get(p.logo) || 0) + 1);
     });
 
     (page.testimonials || []).forEach(t => {
-      if (t.avatar && isImage(t.avatar)) imageMap.set(t.avatar, (imageMap.get(t.avatar) || 0) + 1);
+      if (t.avatar && isImageUrl(t.avatar)) imageMap.set(t.avatar, (imageMap.get(t.avatar) || 0) + 1);
     });
 
     if (page.mosaicConfig?.icons) {
       Object.values(page.mosaicConfig.icons).forEach(icon => {
-        if (icon && isImage(icon)) imageMap.set(icon, (imageMap.get(icon) || 0) + 1);
+        if (icon && isImageUrl(icon)) imageMap.set(icon, (imageMap.get(icon) || 0) + 1);
       });
     }
   });
@@ -105,8 +105,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({
     return <IconC size={size} strokeWidth={2.5} className="shrink-0" />;
   };
 
-  const isImage = (val: string) => val && (val.startsWith('data:image') || val.includes('http') || val.includes('.png') || val.includes('.jpg') || val.includes('asset://'));
-
   const filteredCategories = useMemo(() => CATEGORIZED_ICONS.map(cat => ({ ...cat, icons: cat.icons.filter(i => (i.name || '').toLowerCase().includes(search.toLowerCase())) })).filter(cat => cat.icons.length > 0), [search]);
 
   return (
@@ -114,7 +112,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
       <div onClick={(e) => { e.stopPropagation(); setIsOpen(true); }} className={`cursor-pointer flex ${className}`}>
         {trigger ? trigger : (
           <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-100 rounded-lg hover:border-[#264376] transition-all group">
-             {isImage(value) ? <img src={value} className="w-4 h-4 object-contain rounded-sm" /> : renderIcon(value, 'lucide', 16)}
+             {isImageUrl(value) ? <img src={value} className="w-4 h-4 object-contain rounded-sm" /> : renderIcon(value, 'lucide', 16)}
              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Asset</span>
           </button>
         )}
@@ -154,7 +152,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                       <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-12 gap-3">
                         {recentAssets.map((asset, idx) => (
                           <button key={idx} onClick={() => handleSelect(asset)} className="aspect-square bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center hover:border-[#264376] hover:bg-white transition-all">
-                            <div className="w-8 h-8 flex items-center justify-center">{isImage(asset) ? <img src={asset} className="w-full h-full object-cover rounded-md" /> : renderIcon(asset, asset.includes('_') ? 'material' : 'lucide', 24)}</div>
+                            <div className="w-8 h-8 flex items-center justify-center">{isImageUrl(asset) ? <img src={asset} className="w-full h-full object-cover rounded-md" /> : renderIcon(asset, asset.includes('_') ? 'material' : 'lucide', 24)}</div>
                           </button>
                         ))}
                       </div>
@@ -195,7 +193,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center py-12 gap-8 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                <div className="w-48 h-48 rounded-3xl bg-white shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white">{isImage(value) ? <img src={value} className="w-full h-full object-contain" /> : <ImageIcon size={64} className="text-slate-200" />}</div>
+                <div className="w-48 h-48 rounded-3xl bg-white shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white">{isImageUrl(value) ? <img src={value} className="w-full h-full object-contain" /> : <ImageIcon size={64} className="text-slate-200" />}</div>
                 <label className="cursor-pointer px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center gap-3">
                   <Upload size={16} /> Upload Local Image
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) compressImage(file, imageQuality).then(handleSelect); }} />
