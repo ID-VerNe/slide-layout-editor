@@ -6,6 +6,9 @@ import crypto from 'crypto';
 import { existsSync } from 'fs';
 import sharp from 'sharp';
 
+const MAX_ARCHIVE_SIZE = 100 * 1024 * 1024;   // 100 MB
+const MAX_ENTRY_COUNT = 1000;
+
 export class ProjectArchiveManager {
   private workspacePath: string | null = null;
   private currentProjectId: string | null = null;
@@ -23,10 +26,10 @@ export class ProjectArchiveManager {
 
   public async listProjects() {
     if (!this.workspacePath || !existsSync(this.workspacePath)) return [];
-    
+
     const entries = await fs.readdir(this.workspacePath, { withFileTypes: true });
     const projects = [];
-    
+
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const projectJsonPath = path.join(this.workspacePath, entry.name, 'project.json');
@@ -35,7 +38,7 @@ export class ProjectArchiveManager {
             const content = await fs.readFile(projectJsonPath, 'utf-8');
             const data = JSON.parse(content);
             const stats = await fs.stat(projectJsonPath);
-            
+
             projects.push({
               id: data.id || entry.name.split('_').pop(),
               title: data.projectTitle || data.title || 'Untitled',
@@ -52,7 +55,7 @@ export class ProjectArchiveManager {
         }
       }
     }
-    
+
     return projects.sort((a, b) => b.lastModified - a.lastModified);
   }
 
@@ -63,16 +66,16 @@ export class ProjectArchiveManager {
    */
   private async getProjectFolder() {
     const lockKey = this.currentProjectId || 'default';
-    
+
     // 如果已有进行中的操作，等待它完成
     if (this.folderLock.has(lockKey)) {
       return this.folderLock.get(lockKey)!;
     }
-    
+
     // 创建新的锁
     const folderPromise = this._getProjectFolderInternal();
     this.folderLock.set(lockKey, folderPromise);
-    
+
     try {
       const result = await folderPromise;
       return result;
@@ -81,12 +84,12 @@ export class ProjectArchiveManager {
       this.folderLock.delete(lockKey);
     }
   }
-  
+
   private async _getProjectFolderInternal(): Promise<string> {
     if (!this.workspacePath) {
       this.workspacePath = path.join(app.getPath('userData'), 'DefaultWorkspace');
     }
-    
+
     if (!existsSync(this.workspacePath)) {
       await fs.mkdir(this.workspacePath, { recursive: true });
     }
@@ -97,7 +100,7 @@ export class ProjectArchiveManager {
       .trim()
       .replace(/\s+/g, '_')
       .slice(0, 100); // 限制长度，避免路径过长
-      
+
     // 1. 尝试在 Workspace 中寻找 ID 匹配的现有文件夹
     const items = await fs.readdir(this.workspacePath);
     let existingFolder = items.find(item => item.endsWith(`_${idSuffix}`));
@@ -121,11 +124,11 @@ export class ProjectArchiveManager {
       }
       return fullPath;
     }
-    
+
     // 2. 如果不存在，则创建新文件夹
     const folderName = `${safeName}_${idSuffix}`;
     const projectPath = path.join(this.workspacePath, folderName);
-    
+
     if (!existsSync(projectPath)) await fs.mkdir(projectPath, { recursive: true });
     return projectPath;
   }
@@ -139,17 +142,22 @@ export class ProjectArchiveManager {
 
   public async openProject(filePath: string) {
     const stats = await fs.stat(filePath);
-    
+
     if (stats.isDirectory()) {
       // 如果是目录，读取目录下的 project.json
       const jsonPath = path.join(filePath, 'project.json');
       if (!existsSync(jsonPath)) throw new Error("Project metadata not found in directory");
       const content = await fs.readFile(jsonPath, 'utf-8');
-      const projectData = JSON.parse(content);
-      
+      let projectData: any;
+      try {
+        projectData = JSON.parse(content);
+      } catch (e) {
+        throw new Error(`Failed to parse project.json: ${(e as Error).message}`);
+      }
+
       this.currentProjectId = projectData.id || crypto.randomUUID();
       this.currentProjectName = projectData.projectTitle || projectData.title || 'Imported';
-      
+
       return projectData;
     }
 
@@ -158,20 +166,54 @@ export class ProjectArchiveManager {
 
     if (isZip) {
       const zip = new AdmZip(filePath);
+
+      // Security: reject zip bombs by limiting total entry count
+      const entries = zip.getEntries();
+      if (entries.length > MAX_ENTRY_COUNT) {
+        throw new Error(`Archive contains too many entries (${entries.length} > ${MAX_ENTRY_COUNT}) — possible zip bomb`);
+      }
+
+      // Security: validate total uncompressed size to prevent zip bombs
+      let totalUncompressedSize = 0;
+      for (const entry of entries) {
+        totalUncompressedSize += entry.header.size;
+      }
+      if (totalUncompressedSize > MAX_ARCHIVE_SIZE) {
+        throw new Error(`Archive total size exceeds limit (${totalUncompressedSize} > ${MAX_ARCHIVE_SIZE}) — possible zip bomb`);
+      }
+
+      // Security: validate each entry path to prevent path traversal
+      for (const entry of entries) {
+        const normalizedEntryPath = path.normalize(entry.entryName);
+        if (normalizedEntryPath.startsWith('..') || path.isAbsolute(normalizedEntryPath) || normalizedEntryPath.includes('..')) {
+          throw new Error(`Archive contains entry with invalid path: ${entry.entryName}`);
+        }
+      }
+
       const projectJsonEntry = zip.getEntry('project.json');
-      if (!projectJsonEntry) throw new Error("Invalid archive");
-      
-      const projectData = JSON.parse(projectJsonEntry.getData().toString('utf8'));
-      
+      if (!projectJsonEntry) throw new Error("Invalid archive: missing project.json");
+
+      let projectData: any;
+      try {
+        projectData = JSON.parse(projectJsonEntry.getData().toString('utf8'));
+      } catch (e) {
+        throw new Error(`Failed to parse project.json from archive: ${(e as Error).message}`);
+      }
+
       // 先设置上下文，再获取路径，最后解压
       this.currentProjectId = projectData.id || crypto.randomUUID();
       this.currentProjectName = projectData.projectTitle || projectData.title || 'Imported';
-      
+
       const projectFolder = await this.getProjectFolder();
       zip.extractAllTo(projectFolder, true);
       return projectData;
     } else {
-      const projectData = JSON.parse(fileBuffer.toString('utf-8'));
+      let projectData: any;
+      try {
+        projectData = JSON.parse(fileBuffer.toString('utf-8'));
+      } catch (e) {
+        throw new Error(`Failed to parse project file: ${(e as Error).message}`);
+      }
       this.currentProjectId = projectData.id || crypto.randomUUID();
       this.currentProjectName = projectData.title || 'Legacy';
       await this.migrateLegacyAssets(projectData);
@@ -204,7 +246,7 @@ export class ProjectArchiveManager {
     const data = typeof projectData === 'string' ? JSON.parse(projectData) : projectData;
     this.currentProjectId = data.id;
     this.currentProjectName = data.title || data.projectTitle || 'Untitled';
-    
+
     const projectFolder = await this.getProjectFolder();
     const assetsDir = path.join(projectFolder, 'assets');
 
@@ -238,18 +280,18 @@ export class ProjectArchiveManager {
   public async saveAsset(filename: string, buffer: Buffer) {
     const hash = crypto.createHash('md5').update(buffer).digest('hex');
     const assetsDir = await this.getAssetRoot();
-    
+
     const { buffer: processedBuffer, format } = await this.compressImage(buffer);
     const ext = format === 'bin' ? path.extname(filename) : `.${format === 'jpeg' ? 'jpg' : format}`;
     const finalFilename = `res_${hash.slice(0, 8)}${ext}`;
-    
+
     // 安全检查：防止路径遍历
     const sanitized = path.basename(finalFilename);
     const targetPath = path.join(assetsDir, sanitized);
     if (!targetPath.startsWith(assetsDir)) {
       throw new Error('Invalid asset filename');
     }
-    
+
     await fs.writeFile(targetPath, processedBuffer);
     return `asset://${sanitized}`;
   }
@@ -261,15 +303,15 @@ export class ProjectArchiveManager {
       if (header.includes('<svg') || header.includes('<?xml')) {
         return { buffer, format: 'svg' };
       }
-      
+
       const s = sharp(buffer);
       const metadata = await s.metadata();
       if (metadata.width && metadata.width > 2000) s.resize({ width: 2000, withoutEnlargement: true });
       const out = await s.webp({ quality: 85 }).toBuffer();
       return { buffer: out, format: 'webp' };
-    } catch (e) { 
+    } catch (e) {
       console.warn('Image compression failed, using original buffer:', e);
-      return { buffer, format: 'bin' }; 
+      return { buffer, format: 'bin' };
     }
   }
 }
