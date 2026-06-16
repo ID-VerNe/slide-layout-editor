@@ -1,8 +1,21 @@
-
 import React, { useCallback } from 'react';
 // Added Type to the lucide-react imports to fix "Cannot find name 'Type'" error
 import { Upload, X, Type } from 'lucide-react';
 import { CustomFont } from '../types';
+
+const MAX_CUSTOM_FONTS = 20;
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+const ALLOWED_FONT_TYPES = [
+  'font/ttf',
+  'font/otf',
+  'font/woff',
+  'font/woff2',
+  'application/x-font-ttf',
+  'application/x-font-otf',
+  'application/font-woff',
+  'application/font-woff2',
+];
 
 interface FontManagerProps {
   fonts: CustomFont[];
@@ -12,7 +25,17 @@ interface FontManagerProps {
 const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) => {
   const registerFont = useCallback(async (name: string, dataUrl: string) => {
     const family = `custom-${Date.now()}-${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
-    
+
+    // Validate dataUrl to prevent CSS injection
+    const isDataUrlValid =
+      dataUrl.startsWith('data:font/') ||
+      dataUrl.startsWith('data:application/x-font-') ||
+      dataUrl.startsWith('data:application/font-');
+    if (!isDataUrlValid) {
+      console.warn(`Font URL for "${name}" does not appear to be a valid font data URL — skipping.`);
+      return family;
+    }
+
     try {
       const font = new FontFace(family, `url(${dataUrl})`);
       const loadedFont = await font.load();
@@ -20,11 +43,11 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) 
     } catch (e) {
       console.error("FontFace failed, using style fallback", e);
       const style = document.createElement('style');
-      style.id = `style-${family}`;
+      style.id = `${family.replace(/[^a-z0-9]/gi, '_')}-${Date.now()}`;
       style.innerHTML = `
         @font-face {
-          font-family: '${family}';
-          src: url('${dataUrl}');
+          font-family: ${JSON.stringify(family)};
+          src: url(${JSON.stringify(dataUrl)});
           font-weight: normal;
           font-style: normal;
         }
@@ -39,6 +62,24 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) 
     if (!files) return;
 
     Array.from(files).forEach((file: File) => {
+      // Validate font file type
+      if (file.type && !ALLOWED_FONT_TYPES.includes(file.type)) {
+        console.warn(`File "${file.name}" has unrecognized MIME type "${file.type}" — skipping.`);
+        return;
+      }
+
+      // Reject files larger than 5 MB
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        console.warn(`File "${file.name}" exceeds the 5 MB size limit — skipping.`);
+        return;
+      }
+
+      // Limit the number of custom fonts
+      if (fonts.length >= MAX_CUSTOM_FONTS) {
+        console.warn(`Cannot add "${file.name}": maximum of ${MAX_CUSTOM_FONTS} custom fonts reached.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (event) => {
         const dataUrl = event.target?.result as string;
@@ -51,9 +92,13 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) 
 
   const removeFont = (family: string) => {
     // Try to remove from document.fonts
-    const fonts = Array.from(document.fonts.values());
-    const font = fonts.find(f => f.family === family);
-    if (font) document.fonts.delete(font);
+    try {
+      const fonts = Array.from(document.fonts.values());
+      const font = fonts.find(f => f.family === family);
+      if (font) document.fonts.delete(font);
+    } catch (e) {
+      console.warn("Failed to remove font from document.fonts", e);
+    }
 
     const styleEl = document.getElementById(`style-${family}`);
     if (styleEl) styleEl.remove();
