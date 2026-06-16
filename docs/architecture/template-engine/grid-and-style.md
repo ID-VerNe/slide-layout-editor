@@ -36,26 +36,18 @@ style = {
 - 要使元素水平居中，使用公式：`colStart = (24 - colSpan) / 2 + 1`
 - 例如：12 列宽的元素居中应设置 `colStart: 7`（即 (24-12)/2+1=7）
 
-### 3.2.5 网格计算工具函数
+### 3.2.5 网格计算
 
-项目提供了辅助函数简化网格计算：
+要使元素在网格中居中，使用以下公式：
+- 水平居中：`colStart = (24 - colSpan) / 2 + 1`
+- 垂直居中：`rowStart = (24 - rowSpan) / 2 + 1`
 
+示例：创建一个 8x6 的居中元素：
 ```typescript
-// 水平居中计算
-function centerHorizontal(colSpan: number): number {
-  return Math.floor((24 - colSpan) / 2) + 1;
-}
-
-// 垂直居中计算
-function centerVertical(rowSpan: number): number {
-  return Math.floor((24 - rowSpan) / 2) + 1;
-}
-
-// 示例：创建一个 8x6 的居中元素
 const centered = {
-  colStart: centerHorizontal(8),  // 9
+  colStart: 9,   // (24 - 8) / 2 + 1 = 9
   colSpan: 8,
-  rowStart: centerVertical(6),    // 10
+  rowStart: 10,  // (24 - 6) / 2 + 1 = 10
   rowSpan: 6
 };
 ```
@@ -75,12 +67,14 @@ const centered = {
 
 渲染一个节点时，样式经过以下精密漏斗：
 
-1. **令牌注入 (Tokens)**: 从 `DesignSystem` 注入基础字号、行高、字距等原子令牌。
-2. **基线微调 (Baseline Adhesion)**: `useModularStyle` Hook 强制将行高对齐到 8px 网格。
+1. **Modular 网格映射**: `modular.colStart/colSpan/rowStart/rowSpan` → CSS Grid 属性。`align` → `alignSelf`，`justify` → `justifySelf`。
+2. **Preset 注入**: `presetKey` 从 `ds.presets.layout` 获取 padding 令牌，从 `ds.presets.effects` 获取效果样式。
 3. **模板属性 (Props)**: 应用 Schema 中定义的固定样式，经 `evaluateObject()` 处理动态表达式。
-4. **约束过滤 (Zine Filtering)**: **关键步骤**。通过 `ALLOWED_PROPS` 白名单 (41 个允许的 CSS 属性) 过滤内联样式，通过 `filterZineClassName()` 剔除 forbidden 类名前缀 (`rounded-`, `shadow-`, `blur-`, `animate-`)。
+4. **约束过滤 (Zine Filtering)**: **关键步骤**。通过 `ALLOWED_PROPS` 白名单过滤内联样式，通过 `filterZineClassName()` 剔除 forbidden 类名前缀 (`shadow-`, `blur-`, `animate-bounce` 等)。
 
 ### 5.1 允许的属性白名单
+
+LayoutRenderer.tsx 中的 `ALLOWED_PROPS` 白名单：
 
 ```
 gridColumnStart, gridColumnEnd, gridRowStart, gridRowEnd,
@@ -93,20 +87,20 @@ opacity, mixBlendMode, transform, transition, transitionDuration,
 width, height, maxWidth, maxHeight, minWidth, minHeight,
 aspectRatio, overflow, backgroundColor, borderColor, borderWidth,
 borderTopWidth, borderBottomWidth, borderLeftWidth, borderRightWidth,
-borderStyle, borderRadius, textAlign, fontFamily, fontSize, fontWeight,
-lineHeight, letterSpacing, textTransform, color, verticalAlign,
-visibility, fontStyle
+borderStyle, textAlign, fontFamily, fontSize, fontWeight, lineHeight,
+letterSpacing, textTransform, color, verticalAlign, visibility,
+fontStyle, borderRadius, writingMode, textOrientation, whiteSpace, transformOrigin
 ```
 
-**注意**: `borderRadius` 已被允许，以便配合 `ZineMedia` 的圆角特性和 `ZineDivider` 的胶囊形状效果。
+**注意**: `borderRadius` 已被允许，以便配合 `ZineMedia` 的圆角特性和 `ZineDivider` 的胶囊形状效果。`writingMode` 和 `textOrientation` 支持竖排文字，由 `useModularStyle` hook 在原子组件中使用。
 
 #### 智能样式合并 (Style Merging)
-在 `renderComponent` 中，渲染引擎执行 **三级深度合并** 以保证定位优先级：
+在 `renderComponent` 中，渲染引擎将 `node.style` 与 `dynamicProps.style` 合并后统一经过白名单过滤，以保证定位优先级：
 - **Level 1 (网格定位)**: 由 `modular` 属性计算出的 `gridColumnStart` 等。
-- **Level 2 (默认层级)**: 组件默认 `zIndex: 1` 确保在容器背景之上。
-- **Level 3 (自定义样式)**: 模板 Schema 中 `props.style` 定义的样式 (如 `opacity: 0.3`)。
+- **Level 2 (预设注入)**: 由 `presetKey` 从 `ds.presets.layout` / `ds.presets.effects` 注入的预设样式。
+- **Level 3 (自定义样式)**: 模板 Schema 中 `props.style` 和 `node.style` 定义的样式。
 
-引擎确保 Level 3 的自定义 `style` 对象**不会覆盖** Level 1 的定位属性，解决了样式冲突导致组件重置到左上角的 Bug。
+引擎确保所有层级都经过 `ALLOWED_PROPS` 白名单过滤，且 preset 优先级高于内联样式。
 
 ### 5.2 禁止的类名前缀
 

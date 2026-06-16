@@ -3,46 +3,48 @@
 ## 1. 文本类字段
 
 ### 1.1 `TitleField`
-主标题编辑。提供多行文本区域和字体选择。
+主标题编辑。基于 `DebouncedTextArea`（多行文本区域），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/TitleField.tsx`
 - **绑定字段**: `page.title`
-- **额外控件**:
-  - `FontSelect` — 标题字体选择器
-  - `Slider` — 标题 Y 轴偏移 (`page.titleY`)
-  - 字符/词数统计
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel（字体、字号、对齐、颜色等）
 - **图标**: `Type`
 
 ### 1.2 `SubtitleField`
-副标题编辑。
+副标题编辑。基于 `DebouncedTextArea`（多行文本区域），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/SubtitleField.tsx`
 - **绑定字段**: `page.subtitle`
-- **额外控件**: `FontSelect` — 正文字体选择器
-- **图标**: `FileText`
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
+- **图标**: `Type`
 
 ### 1.3 `ParagraphField`
-段落/正文编辑。大号多行文本区域。
+段落/正文编辑。基于 `DebouncedTextArea`（5 行大号多行文本区域），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/ParagraphField.tsx`
 - **绑定字段**: `page.paragraph`
-- **额外控件**: `FontSelect` — 正文字体选择器
-- **图标**: `AlignLeft`
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
+- **图标**: `Type`
 
 ### 1.4 `ActionTextField`
-行动号召 (CTA) 按钮文本编辑。
+行动号召 (CTA) 按钮文本编辑。基于单行 `DebouncedInput`，通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/ActionTextField.tsx`
 - **绑定字段**: `page.actionText`
-- **图标**: `MousePointer`
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
+- **图标**: `Type`
 
 ### 1.5 `SignatureField`
-签名/结语文本编辑。
+签名图片编辑。基于 `IconPicker` 选择签名图片，支持 Adjust 面板控制签名高度。
+在字段注册表中，`signature` FieldType 映射为 `ImageField` 组件，但当前源码使用独立的 `SignatureField` 组件实现。
 
 - **文件**: `fields/SignatureField.tsx`
 - **绑定字段**: `page.signature`
-- **特性**: 签名图片的 `IconPicker` 支持 `upload` + `history` Tab（可复用项目图片）
 - **图标**: `PenTool`
+- **IconPicker**: `allowedTabs={['upload', 'history']}` — 支持上传和复用项目已有图片（无 `icons` 和 `map` Tab）
+- **Adjust 面板**（点击「Adjust」按钮展开）:
+  - **Signature Height 滑块**: 控制签名图片高度 (`20` ~ `300`, 步长 `2`)，存储于 `styleOverrides.signature.fontSize`（默认 `80`）
+  - **Reset 按钮**: 重置高度至 `80`
 
 ### 1.6 `PartnersTitleField`
 合作伙伴区块标题编辑。
@@ -84,41 +86,50 @@
 
 ## 2. 媒体类字段
 
-> 🖼️ **资产复用提示**：所有媒体类字段内置的 `IconPicker` 均已声明 `allowedTabs=['upload', 'icons', 'map', 'history']`（部分字段视场景删减）。只要上层传入 `pages`，用户即可在 `History` Tab 中快速复用项目内已有的图片。
+> 🖼️ **资产复用提示**：媒体类字段内置的 `IconPicker` 已声明 `allowedTabs`（各字段视场景有所不同）。只要上层传入 `pages`，用户即可在 `History` Tab 中快速复用项目内已有的图片。
+> - `ImageField`: `['upload', 'icons', 'map', 'history']` — 全 Tab
+> - `SignatureField`: `['upload', 'history']` — 只有上传和历史
+> - `LogoField`: 不内嵌 `IconPicker`（仅 visibility 切换）
 
 ### 2.1 `ImageField`
-主图片编辑。支持拖放上传、预览、响应式处理。
+主图片编辑。通过 `IconPicker` 提供上传、图标库、地图和历史 Tab，支持 Adjust 微调面板。
 
 - **文件**: `fields/ImageField.tsx`
-- **绑定字段**: `page.image`
+- **绑定字段**: `page.image`（通过 `fieldKey` 参数可配置为其他字段）
 - **特性**:
-  - **Paste 事件**: 粘贴剪贴板图片 (Ctrl+V)
-  - **Drop 事件**: 拖放图片文件
-  - **Upload 按钮**: 点击选择文件
-  - **History Tab**: 从项目其它页面复用已有图片（需 `pages`）
-  - **预览**: 小缩略图预览
-  - **ImageConfig**: X/Y 偏移 (slide)，缩放 (scale)
+  - **IconPicker**: `allowedTabs={['upload', 'icons', 'map', 'history']}`（需 `pages` 以支持 History Tab）
+  - **预览**: `AssetPreviewSmall` 小缩略图预览
+  - **Adjust 面板**:
+    - **Fit to Container**: 重置为 `scale=1, x=0, y=0`
+    - **Scale 滑块**: 缩放 (`0.5` ~ `3.0`, 步长 `0.1`)
+    - **Move Horiz. 滑块**: 水平偏移 (`-100` ~ `100`)
+    - **Move Vert. 滑块**: 垂直偏移 (`-100` ~ `100`)
+    - **Remove Asset**: 清空图片
+  - **配置结构**: `page.imageConfig`（若 `fieldKey` 非 `image` 则使用 `${fieldKey}Config`）含 `{ scale, x, y }`
+  - **Electron 原生支持**: 使用 `nativeFs.uploadAsset` 保存 base64 资源
 - **图标**: `Image`
 
 ### 2.2 `LogoField`
-Logo 图片编辑。功能类似于 `ImageField`。
+Logo 显示开关。提供 visibility 切换，不内嵌图片选择器或 Adjust 面板。
 
 - **文件**: `fields/LogoField.tsx`
-- **绑定字段**: `page.logo`
-- **额外控件**: `Slider` — logo 缩放控制 (`page.logoSize`)
-- **图标**: `Circle`
+- **绑定字段**: `page.logo`（通过 `fieldKey` 参数可配置）
+- **特性**: `manualVisibility` + `onToggle` — 通过 `FieldWrapper` 的切换按钮控制 `page.visibility.logo`
+- **图标**: `Image`
 
 ### 2.3 `ImageLabelField`
-图片主标签编辑。
+图片主标签编辑。基于单行 `DebouncedInput`，通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/ImageLabelField.tsx`
 - **绑定字段**: `page.imageLabel`
-- **图标**: `Tag`
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
+- **图标**: `Type`
 
 ### 2.4 `ImageSubLabelField`
-图片副标签编辑。
+图片副标签编辑。基于单行 `DebouncedInput`，通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/ImageSubLabelField.tsx`
 - **绑定字段**: `page.imageSubLabel`
-- **图标**: `Hash`
+- **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
+- **图标**: `Type`
 

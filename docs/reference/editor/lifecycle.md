@@ -21,10 +21,10 @@
 └──────────────────────────────────────────────────────────┘
 ```
 
-- **文件**: `src/pages/EditorPage.tsx` (324 行)
+- **文件**: `src/pages/EditorPage.tsx` (410 行)
 - **路由**: `/editor/:projectId`
 - **URL 参数**: `?new=true` (新项目标记), `?template=<id>` (模板预设)
-- **数据注入**: `EditorPanel` 接收 `currentPage` 进行编辑，同时透传完整的 `pages` 数组，使字段内的 `IconPicker` 能够展示项目级图片历史 (`History` Tab)
+- **数据注入**: `EditorPanel` 接收 `currentPage`, `onUpdatePage`, `onRemovePage`, `customFonts` 与完整的 `pages` 数组，使字段内的 `IconPicker` 能够展示项目级图片历史 (`History` Tab)
 
 ## 2. 初始化流程
 
@@ -55,10 +55,12 @@
 3. **手动保存 (Ctrl+S)**: 写入 IndexedDB + 打包 .slgrid + 更新最近项目索引
 
 ```typescript
-// 自动保存定时器 (EditorPage)
+// 自动保存定时器 (EditorPage) — 仅在有未保存变更时启动 3s 防抖
 useEffect(() => {
-  if (projectId && isLoaded && pages.length > 0 && pages[0].title !== 'PLACEHOLDER_FOR_NEW_PROJECT') {
-    timeout = setTimeout(() => saveToDB(previewRef, false), 3000);
-  }
-}, [pages, projectId, isLoaded, ...]);
+  if (!isLoaded || !projectId || !hasUnsavedChanges) return;
+  const autoSaveTimer = setTimeout(() => {
+    saveToDB(previewRef, false);
+  }, 3000);
+  return () => clearTimeout(autoSaveTimer);
+}, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
 ```

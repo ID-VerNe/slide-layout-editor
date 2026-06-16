@@ -8,15 +8,18 @@
 
 ```text
 ProjectData (工程文件)
-├── version: string          # 数据版本 "3.0.0"
-├── title / projectTitle     # 工程标题
-├── pages: PageData[]        # 核心页面数组 (见 §2)
-├── theme: ProjectTheme      # 全局视觉主题 (见 §3)
-├── designSystem: DesignSystem  # 设计令牌系统 (见 §4)
+├── version: string             # 数据版本 "3.0.0"
+├── id?: string                 # 工程唯一 ID
+├── title / projectTitle        # 工程标题
+├── pages: PageData[]           # 核心页面数组 (见 §2)
+├── theme?: ProjectTheme        # 全局视觉主题 (见 §3)
+├── designSystem?: DesignSystem # 设计令牌系统 (见 §4)
 ├── customFonts: CustomFont[]   # 自定义字体列表
-├── imageQuality: number        # 图片压缩质量
-├── counterStyle: CounterStyle  # 全局页码样式
-├── printSettings: PrintSettings # 打印/出版设置
+├── imageQuality?: number       # 图片压缩质量
+├── minimalCounter?: boolean    # 全局极简页码模式
+├── counterStyle?: CounterStyle # 全局页码样式
+├── printSettings?: PrintSettings # 打印/出版设置
+├── thumbnail?: string          # 工程封面缩略图
 └── filePath?: string           # .slgrid 物理路径
 ```
 

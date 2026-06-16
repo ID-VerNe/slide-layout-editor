@@ -69,6 +69,25 @@ interface TypographyToken {
 
 ### 4.5 默认值 (来自 `src/constants/theme.ts`)
 
+**默认主题 (`DEFAULT_THEME`)**:
+
+```typescript
+colors: {
+  primary: '#0F172A',
+  secondary: '#64748B',
+  accent: '#264376',
+  background: '#ffffff',
+  surface: '#F1F3F5'
+}
+typography: {
+  headingFont: "'Playfair Display', serif",
+  bodyFont: "'Inter', sans-serif",
+  captionFont: "'Inter', sans-serif",
+  headingFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif",
+  bodyFontZH: "'STFangsong', 'FangSong', 'Noto Serif SC', serif"
+}
+```
+
 **默认 Design Tokens**:
 
 | Token | fontSize | lineHeight | fontWeight | letterSpacing | fontStyle | textTransform |
@@ -94,6 +113,26 @@ interface TypographyToken {
 **预设效果**:
 - `'glass-card'`: 毛玻璃卡片 `{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255,255,255,0.8)' }`
 - `'hard-edge'`: 硬边缘 `{ border: '1px solid #000' }`
+
+**默认打印设置 (`DEFAULT_PRINT_SETTINGS`)**:
+
+```typescript
+{
+  enabled: false,
+  widthMm: 100,
+  heightMm: 145,
+  gutterMm: 10,
+  showGutterShadow: true,
+  showTrimShadow: true,
+  showContentFrame: true,
+  configs: {
+    landscape: { bindingSide: 'bottom', trimSide: 'right' },
+    portrait: { bindingSide: 'left', trimSide: 'bottom' },
+    square: { bindingSide: 'left', trimSide: 'bottom' },
+    resume: { bindingSide: 'left', trimSide: 'bottom' }
+  }
+}
+```
 
 ---
 

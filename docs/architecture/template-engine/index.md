@@ -6,7 +6,8 @@ SlideGrid Studio 的渲染引擎是一个声明式的"虚拟机"，它将静态�
 - [src/templates/schemas/types.ts](src/templates/schemas/types.ts) — 节点类型定义
 - [src/templates/schemas/expressionEvaluator.ts](src/templates/schemas/expressionEvaluator.ts) — 表达式求值引擎
 - [src/templates/schemas/componentRegistry.ts](src/templates/schemas/componentRegistry.ts) — 组件注册表
-- [src/templates/schemas/validator.ts](src/templates/schemas/validator.ts) — Schema 校验器
+- [src/templates/schemas/validator.ts](src/templates/schemas/validator.ts) — Schema 校验器 (Zod)
+- [src/templates/schemas/zIndexResolver.ts](src/templates/schemas/zIndexResolver.ts) — zIndex 分层解析器
 
 ---
 

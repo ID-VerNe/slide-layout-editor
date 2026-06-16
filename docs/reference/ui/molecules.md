@@ -9,16 +9,21 @@
 
 ### 1.1 `Base` 原子组件集
 位于 `src/components/ui/Base.tsx`，遵循项目视觉规范的样式化表单组件：
-- `Base.Input`: 文本输入。
-- `Base.TextArea`: 多行输入。
+- `Base.Input`: 文本输入（`forwardRef` 封装 `input` 元素）。
+- `Base.TextArea`: 多行输入（`forwardRef` 封装 `textarea` 元素）。
 - `Base.Label`: 带图标的标签。
-- `Base.Slider`: 带数字输入的滑块。
+- `Base.Slider`: 带数字输入的滑块（支持 min/max/step/unit）。
+- `Base.Section`: 分区容器。
 
 ### 1.2 通用交互
+- **`ActionButton`**: 紧凑的动作按钮组件。
+- **`DebouncedBase`**: 防抖版本的 Base 组件（Input/TextArea），带延迟更新。
 - **`Modal`**: 通用浮层容器，支持 alert/confirm/custom 模式。
-- **`FontSelect`**: 支持本地自定义字体的预览下拉框。
-- **`IconPicker`**: 样式化的图标选择器。
-- **`PresetSelect`**: 受控预设选择器，用于字号/行高/字距等设计属性。
+- **`FontSelect`**: 字体选择下拉框。支持 `label`、`compact` 模式、`customFonts`（当前支持 Zine Spec 预设字体：仿宋、Playfair Display、Inter 等）。
+- **`IconPicker`**: 样式化的图标选择器，支持 Lucide / Material Symbols 图标、本地上传图片、项目级历史图片复用。
+- **`PresetSelect`**: 受控预设选择器，用于字号/行高/字距等设计属性。泛型支持 `string | number`，自动映射最接近的预设值。
+- **`BrandLogo`**: SVG 品牌 Logo。
+- **`VirtualScrollContainer`**: 虚拟滚动容器（基于 `@tanstack/react-virtual`），支持 `itemCount`/`itemHeight`/`gap`/`renderItem`。
 
 #### PresetSelect 组件
 
@@ -27,11 +32,12 @@
 
 **Props 接口**:
 ```typescript
-interface PresetSelectProps<T extends string | number> {
+interface PresetSelectProps<T> {
   value: T;                          // 当前值
-  options: PresetOption<T>[];        // 预设选项列表
+  options: readonly PresetOption<T>[]; // 预设选项列表（只读）
   onChange: (value: T) => void;      // 变更回调
   label?: string;                    // 可选标签
+  className?: string;                // 额外类名
 }
 ```
 
@@ -56,12 +62,17 @@ import { FONT_SIZE_PRESETS } from '../../constants/editorPresets';
 
 **自动值映射逻辑**:
 ```typescript
-// 如果当前值不在预设中，找到最接近的预设
-const closestOption = options.reduce((prev, curr) => 
-  Math.abs(curr.value - value) < Math.abs(prev.value - value) 
-    ? curr 
-    : prev
-);
+// 如果当前值不在预设中，找到最接近的预设（仅 number 类型适用）
+const findClosestOption = (val: T): PresetOption<T> => {
+  if (typeof val === 'number') {
+    return options.reduce((prev, curr) => {
+      const prevDiff = Math.abs((prev.value as number) - (val as number));
+      const currDiff = Math.abs((curr.value as number) - (val as number));
+      return currDiff < prevDiff ? curr : prev;
+    });
+  }
+  return options.find(opt => opt.value === val) || options[0];
+};
 ```
 
 #### `IconPicker` 组件
@@ -94,7 +105,7 @@ interface IconPickerProps {
 
 **核心行为**:
 
-- **最近使用**: 通过 `localStorage` 的 `magazine_editor_recent_assets` 保存最近 18 个选中的资产，便于跨会话快速复用。
+- **最近使用**: 通过 `localStorage` 的 `slidegrid_editor_recent_assets` 保存最近 18 个选中的资产，便于跨会话快速复用。
 - **项目历史**: 当传入 `pages` 且允许 `history` Tab 时，`collectProjectImages()` 会扫描所有页面的以下字段：
   - `page.image`、`page.signature`、`page.logo`
   - `page.gallery[].url`
@@ -122,9 +133,9 @@ interface IconPickerProps {
 
 ## 2. 模板辅助功能
 
-- **`TemplatePreview`**: 自动化蓝图渲染引擎，用于预览卡片。
-- **`TemplateErrorBoundary`**: 模板级错误隔离。
-- **`TemplateLoader`**: 加载状态反馈。
+- **`TemplatePreview`**: 自动化蓝图渲染引擎，用于预览卡片。构造 Mock 数据 + 通过 `JsonTemplateRenderer` 实例化真实模板组件。
+- **`TemplateErrorBoundary`**: 模板 React Error Boundary，支持自定义 fallback UI 和重试按钮。
+- **`TemplateLoader`**: 加载状态反馈（Framer Motion 旋转动画），支持 `small` / `medium` / `large` 三种尺寸。
 
 ---
 

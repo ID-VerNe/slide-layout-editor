@@ -163,13 +163,20 @@ SlideGrid Studio 提供了 30+ 专业排版模板，涵盖封面、画册、产�
   id: 'editorial-classic',
   name: 'Editorial Classic',
   schema: EditorialClassicSchema,
-  fields: withBaseFields(['title', 'subtitle', 'image', 'imageLabel']),
+  fields: withBaseFields([
+    { key: 'title', label: 'Magazine Masthead' },
+    { key: 'subtitle', label: 'Issue Theme/Tagline' },
+    { key: 'image', label: 'Cover Image' },
+    { key: 'imageLabel', label: 'Issue Month' },
+    { key: 'imageSubLabel', label: 'Issue Volume' },
+    { key: 'actionText', label: 'Year/Edition' }
+  ]),
   // 模板级默认数据
   defaultData: {
     title: 'MAGAZINE TITLE',
-    subtitle: 'ISSUE THEME',
+    subtitle: 'Issue Theme',
     imageLabel: 'JANUARY',
-    imageSubLabel: 'VOL. 01'
+    actionText: '2026'
   },
   supportedRatios: ['2:3']
 }
@@ -230,7 +237,7 @@ withBaseFields([
 2. 模板级 `defaultData` 次之
 3. 系统默认值最低（`'New Slide'`）
 
-### 0.3 动态绑定与表达式
+### 0.4 动态绑定与表达式
 
 对于需要根据数据动态生成的内容，使用表达式绑定：
 
@@ -247,7 +254,7 @@ withBaseFields([
 }
 ```
 
-### 0.4 Repeater 中的动态内容
+### 0.5 Repeater 中的动态内容
 
 在循环渲染（Repeater）中，**必须使用 `{item}` 表达式**绑定数据：
 
@@ -266,7 +273,7 @@ withBaseFields([
 }
 ```
 
-### 0.5 检查清单
+### 0.6 检查清单
 
 在提交新模板之前，请确认：
 

@@ -26,11 +26,11 @@ interface TemplateConfig {
   category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
   desc: string;                    // 描述
   tags: string[];                  // 搜索标签
-  component: React.FC;             // React 渲染组件 (Schema 驱动时可为 null)
+  component: React.FC<{ page: any; typography?: any }>; // React 渲染组件 (Schema 驱动时可为 null)
   schema?: TemplateSchema;         // JSON Schema 定义
   fields: FieldSchema[];           // 编辑器字段
   supportedRatios: AspectRatioType[]; // 支持的画幅
-  defaultData?: Partial<PageData>; // 默认数据
+  defaultData?: Partial<PageData>; // 模板级默认数据
 }
 ```
 
@@ -39,15 +39,6 @@ interface TemplateConfig {
 ```typescript
 // 按 ID 查找模板
 export function getTemplateById(id: string): TemplateConfig | undefined;
-
-// 按分类过滤模板
-export function getTemplatesByCategory(category: string): TemplateConfig[];
-
-// 按画幅过滤模板
-export function getTemplatesByRatio(ratio: AspectRatioType): TemplateConfig[];
-
-// 搜索模板（名称、标签、描述）
-export function searchTemplates(query: string): TemplateConfig[];
 ```
 
 ---

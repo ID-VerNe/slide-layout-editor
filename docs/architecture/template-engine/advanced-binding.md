@@ -210,16 +210,45 @@ console.warn('zIndex 循环引用检测：A -> B -> A');
 
 ---
 
+### 11.4 Repeater 布局属性
+
+Repeater 支持与 Container 类似的布局方式，通过 `layout` 和 `layoutProps` 属性控制循环项的排列方向：
+
+| 布局类型 | 说明 | 支持的 layoutProps |
+| :--- | :--- | :--- |
+| `flex` | Flexbox 排列 | `direction`, `align`, `justify`, `gap`, `wrap` |
+| `grid` | CSS Grid 排列 | `columns`, `rows`, `gap`, `areas` |
+
+> **注意**：Repeater 内部仅实现了 `flex` 和 `grid` 两种布局。
+> `absolute` 和 `modular` 布局类型虽在 TypeScript 类型定义中允许，但在 `renderRepeater` 的实现中不会被特殊处理。
+
+### 11.5 透明模式 (Transparent Repeater)
+
+当 Repeater 节点没有 `className`、`layout` 和额外样式时，会自动进入透明模式，直接渲染子元素而不包裹 `<div>`：
+
+```typescript
+// 透明模式判断条件
+const isTransparent = !className && Object.keys(finalStyle).length === 0 && !layout;
+
+if (isTransparent) {
+  return <React.Fragment>{renderedItems}</React.Fragment>;
+}
+```
+
+这对于需要直接扁平化输出子元素的场景非常有用，避免产生多余的 DOM 层级。
+
+---
+
 ## 12. 错误处理与调试
 
 ### 12.1 渲染错误边界
 
-所有模板渲染被 `TemplateRenderErrorBoundary` 包裹：
+所有模板渲染被 `TemplateErrorBoundary` 包裹：
 
 ```typescript
-<TemplateRenderErrorBoundary templateId={templateId}>
-  <LayoutRenderer node={schema.root} page={page} theme={theme} />
-</TemplateRenderErrorBoundary>
+<TemplateErrorBoundary>
+  <LayoutRenderer node={schema.root} page={page} theme={theme} designSystem={ds} resolveZIndex={resolveZIndex} />
+</TemplateErrorBoundary>
 ```
 
 当渲染错误时，显示友好的错误提示而不是白屏。
@@ -232,36 +261,33 @@ console.warn('zIndex 循环引用检测：A -> B -> A');
 if (import.meta.env.DEV) {
   const result = validateTemplateSchema(schema);
   if (!result.success) {
-    console.error(`模板 ${id} 校验失败:`, result.errors);
+    console.error(`模板 ${id} 校验失败:`, result.error);
   }
 }
 ```
 
 ### 12.3 表达式调试
 
-表达式求值器提供详细的错误信息：
+表达式求值失败时，求值器会记录警告信息并返回 `undefined`：
 
 ```typescript
 try {
   const value = evaluator.evaluate(expr, context);
-} catch (error) {
-  console.error(`表达式求值失败: "${expr}"`, {
-    context,
-    error: error.message
-  });
-  return fallbackValue;
+} catch (err) {
+  console.warn('[ExpressionEvaluator] Failed to evaluate:', expr, err?.message || err);
+  return undefined;
 }
 ```
 
 ### 12.4 网格可视化
 
-按 `Alt+;` 显示 24x24 网格辅助线，便于调试布局：
+按 `Alt+;` 显示 24x24 网格辅助线，便于调试布局。实现在 `PageFrame.tsx` 中：
 
 ```typescript
-// 快捷键监听
+// PageFrame - 快捷键监听
 useEffect(() => {
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.altKey && e.key === ';') {
+    if (e.altKey && (e.key === ';' || e.key === '；')) {
       setShowGrid(prev => !prev);
     }
   };

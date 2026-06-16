@@ -13,6 +13,11 @@
 - `'Conditional'` — 条件分支
 - `'Text'` — 纯文本节点
 
+**Z-Index 层叠声明系统**:
+- `ZIndexKeyword`: `'page.top' | 'bottom'`
+- `ZIndexReference`: `` `${string}.top` | `${string}.bottom` ``
+- `ZIndexDeclaration`: `ZIndexKeyword | ZIndexReference`
+
 **统一联合类型**: `TemplateNode = ContainerNode | ComponentNode | ConditionalNode | RepeaterNode | TextNode`
 
 ### 6.2 `BaseNode` (所有节点公有属性)
@@ -32,6 +37,7 @@ interface BaseNode {
   };
   presetKey?: string;       // DesignSystem 预设引用
   visibleWhen?: string;     // 可见性表达式
+  zIndex?: ZIndexDeclaration; // 层叠声明，默认 = 'page.top'
 }
 ```
 
@@ -55,6 +61,7 @@ interface ComponentNode extends BaseNode {
   type: 'Component';
   componentType: string;   // COMPONENT_REGISTRY 中的 key (e.g. "ZineDisplay")
   bind?: string;           // 数据绑定表达式 (e.g. "page.title")
+  fieldKey?: string;       // 显式绑定 PageData 中的字段键 (用于 styleOverrides)
   props?: Record<string, any>;  // 静态 Props
 }
 ```
@@ -66,7 +73,9 @@ interface ComponentNode extends BaseNode {
 interface RepeaterNode extends BaseNode {
   type: 'Repeater';
   bind: string;           // 数据源 (e.g. "page.agenda")
-  itemVariable?: string;  // 循环变量名 (e.g. "item")
+  itemVariable?: string;  // 循环变量名 (e.g. "item", "section")
+  layout?: 'flex' | 'grid' | 'absolute' | 'modular';
+  layoutProps?: FlexLayoutProps | GridLayoutProps | AbsoluteLayoutProps | ModularLayoutProps;
   template: TemplateNode; // 子模板
 }
 ```
@@ -83,8 +92,53 @@ interface ConditionalNode extends BaseNode {
 }
 ```
 
-### 6.7 `TemplateSchema`
-模板完整定义。
+### 6.7 `TextNode` / `ModularLayoutProps`
+
+纯文本节点与模组化布局属性。
+
+```typescript
+interface TextNode extends BaseNode {
+  type: 'Text';
+  content: string; // 支持表达式 e.g. "Page {index + 1}"
+}
+
+interface ModularLayoutProps {
+  gap?: string | number; // 基于 8px 的倍数或预设
+  columns?: number;      // 默认为 24
+  rows?: number;         // 默认为 24
+}
+```
+
+### 6.8 布局属性类型
+
+```typescript
+interface FlexLayoutProps {
+  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  align?: 'start' | 'center' | 'end' | 'baseline' | 'stretch';
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+  gap?: number | string;
+  wrap?: boolean | 'wrap-reverse';
+}
+
+interface GridLayoutProps {
+  columns?: number | string;
+  rows?: number | string;
+  gap?: number | string;
+  areas?: string[];
+}
+
+interface AbsoluteLayoutProps {
+  top?: number | string;
+  left?: number | string;
+  right?: number | string;
+  bottom?: number | string;
+  inset?: number | string;
+  zIndex?: number;
+}
+```
+
+### 6.9 `TemplateSchema`
+模板完整定义。**文件**: `src/templates/schemas/types.ts` (第 98-109 行)。
 
 ```typescript
 interface TemplateSchema {

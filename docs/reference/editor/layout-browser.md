@@ -9,7 +9,7 @@
 | 触发场景 | 模式 | 入口 |
 | :--- | :--- | :--- |
 | 新建项目 (PLACEHOLDER 页) | `create` | 自动弹出 |
-| 侧边栏 "+" 按钮 | `create` | `open-layout-browser` 事件 |
+| 侧边栏 "+" 按钮 | `create` | `onAddPage` 回调 |
 | 页面右键 "Change Layout" | `change` | `open-layout-browser` 事件 |
 
 ### 5.2 三步向导

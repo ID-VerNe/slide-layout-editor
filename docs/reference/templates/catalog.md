@@ -9,13 +9,14 @@
 interface TemplateConfig {
   id: string;               // 唯一 ID (如 'zine-classic')
   name: string;             // 显示名称
-  category: string;         // 分类: Cover / Product / Marketing / General / Gallery / Resume
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
   desc: string;             // 描述文案
   tags: string[];           // 搜索标签
-  component: React.FC;      // React 渲染组件 (Schema 驱动时可为 null)
+  component: React.FC<{ page: any; typography?: any }>;  // React 渲染组件 (Schema 驱动时设为 () => null)
   schema?: TemplateSchema;  // 模板 Schema 定义 (JSON 布局树)
   fields: FieldSchema[];    // 编辑器面板中显示的字段列表
   supportedRatios: AspectRatioType[]; // 支持的画面比例
+  defaultData?: Partial<PageData>;    // 模板级默认数据
 }
 ```
 
@@ -24,7 +25,7 @@ interface TemplateConfig {
 
 ## 2. 模板分类与物理结构
 
-为了方便开发者快速匹配代码与界面显示名称，模板 Schema 现在按照 `[Ratio]-[Category]` 模式存储在物理子目录中。
+为了方便开发者快速匹配代码与界面显示名称，模板 Schema 按照 `[Ratio]-[Category]` 或 `Universal-[Category]` 模式存储在物理子目录中。`Universal-` 前缀表示该模板支持多种画面比例。
 
 ### 2.1 封面类 (Cover)
 目录：`src/templates/schemas/Universal-Cover` (多比例) 或 `src/templates/schemas/23-Cover` (2:3)
@@ -59,7 +60,7 @@ interface TemplateConfig {
 | `editorial-split` | Editorial Split | 图片与结构化文本的平衡分割布局 | 16:9, 2:3 |
 
 ### 2.3 产品与营销 (Product & Marketing)
-目录：`src/templates/schemas/169-Product` 或 `src/templates/schemas/Universal-Product`
+目录：`src/templates/schemas/169-Product`、`src/templates/schemas/Universal-Product` 或 `src/templates/schemas/Universal-Marketing`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |

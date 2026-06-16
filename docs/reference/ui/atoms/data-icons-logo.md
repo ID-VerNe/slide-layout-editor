@@ -10,7 +10,7 @@ KPI 度量指标展示组件。将 `MetricData` 对象渲染为"大数字 + 单�
 
 | 属性 | 类型 | 默认值 | 说明 |
 | :--- | :--- | :--- | :--- |
-| `data` | `MetricData` | (必需) | 度量数据对象 (`{ value, label, unit?, subLabel? }`) |
+| `data` | `MetricData` | (必需) | 度量数据对象 (`{ id, value, label, icon?, unit?, subLabel? }`) |
 | `page` | `PageData` | `undefined` | 当前页面数据 (用于 styleOverrides) |
 | `typography` | `TypographySettings` | `undefined` | 排版设置 |
 | `className` | `string` | `''` | 额外 CSS 类名 |
@@ -20,11 +20,11 @@ KPI 度量指标展示组件。将 `MetricData` 对象渲染为"大数字 + 单�
 | `subLabelClassName` | `string` | `''` | 副标签区域的额外类名 |
 | `style` | `React.CSSProperties` | - | 自定义内联样式 |
 
-**特性**:
-- **KaTeX 单位渲染**: `data.unit` 通过 `katex.renderToString()` 渲染，支持数学公式（如 `"10^6"`, `"\\%"`）
-- **三段式布局**: 大数值 (font-weight 1000, tight tracking) + 单位 (35% 字号) + 标签行 (标签 + 可选副标签)
-- **颜色语义**: 数值使用 `theme.colors.primary`，标签使用 `theme.colors.accent`，副标签使用 `theme.colors.secondary`
-- **9 点对齐**: 标准化支持网格贴靠
+**内部实现**:
+- 使用 `useModularStyle` 解析样式 Token。
+- 数值通过 `Text` 原子组件渲染（`font-[1000]`、`tracking-[-0.05em]`）。
+- 单位通过 `katex.renderToString()` 渲染，支持 LaTeX 公式。
+- 标签/副标签也通过 `Text` 原子组件渲染，标签默认 `text-[10px] font-black uppercase tracking-widest`。
 
 **MetricData 结构**:
 ```typescript
@@ -34,15 +34,18 @@ interface MetricData {
   label: string;   // 标签文本 (如 "年营收")
   icon?: string;   // 可选图标
   unit?: string;   // 单位 (支持 LaTeX, 如 "\\text{USD}")
+  subLabel?: string; // 可选副标签
 }
 ```
 
-### 3.2 `BigDataMetrics` (New)
-自定义网格布局的大数据指标展示组件。基于 `ZineMetric` 的排版语义，但支持自定义行列数和从右下到左上的填充顺序，常用于制作类似金融数据看板的重型指标墙。
+---
+
+### 3.2 `BigDataMetrics`
+自定义网格布局的大数据指标展示组件。支持自定义行列数和填充顺序，常用于制作类似金融数据看板的重型指标墙。
 
 - **文件**: `src/components/ui/slide/atoms/BigDataMetrics.tsx`
 - **数据来源**: `MetricData[]`，解析优先级为 `metrics` prop > `text` prop > `page.metrics`
-- **网格配置来源**: `page.bigDataMetricsConfig` ({ rows, cols }) > `rows`/`cols` props > 默认值 `{ rows: 3, cols: 2 }`
+- **网格配置来源**: `page.bigDataMetricsConfig` (`{ rows, cols }`) > `rows`/`cols` props > 默认值 `{ rows: 3, cols: 2 }`
 
 **Props:**
 
@@ -53,18 +56,25 @@ interface MetricData {
 | `page` | `PageData` | `undefined` | 当前页面数据 |
 | `rows` | `number` | `undefined` | 网格行数 |
 | `cols` | `number` | `undefined` | 网格列数 |
-| `fillOrder` | `'bottom-right-to-top-left' \| 'top-left-to-bottom-right'` | `'bottom-right-to-top-left'` | 单元格填充顺序 |
+| `fillOrder` | `'bottom-right-to-top-left' \| 'top-left-to-bottom-right'` | `'bottom-right-to-top-left'` | 单元格填充顺序（当前始终按右下优先填充，此 prop 为预留） |
 | `gap` | `string` | `'1.5rem'` | 行列间距 |
 | `className` | `string` | `''` | 额外 CSS 类名 |
 | `style` | `React.CSSProperties` | - | 自定义内联样式 |
+
+**内部实现**:
+- 不使用 `ZineMetric`，直接通过 JSX 渲染每个指标项。
+- 按列优先从右到左填充：`metricIndex = (cols - 1 - colIndex) * rows + (rows - 1 - rowIndex)`。
+- 数值默认 `font-black tracking-tight leading-none`；标签默认 `uppercase font-black tracking-widest opacity-50`。
+- 使用 `page.styleOverrides.bigDataMetrics` 的 `value` / `label` / `unit` 分区控制样式。
+- 空数据时返回 `null`。
 
 **样式覆盖 (`page.styleOverrides.bigDataMetrics`)**:
 
 | 分区 | 字段 | 说明 |
 | :--- | :--- | :--- |
-| `value` | `size` (`×8px`), `fontFamily`, `bold`, `italic`, `color` | 大数值样式 |
-| `label` | `size` (`×8px`), `fontFamily`, `bold`, `italic`, `color` | 标签样式 |
-| `unit` | `size` (`×8px`), `fontFamily`, `bold`, `italic`, `color` | 单位样式 |
+| `value` | `size` (`×8px`, 默认 `3.5`), `fontFamily`, `bold`, `italic`, `color` | 大数值样式 |
+| `label` | `size` (`×8px`, 默认 `2.25`), `fontFamily`, `bold`, `italic`, `color` | 标签样式 |
+| `unit` | `size` (`×8px`, 默认 `1.5`), `fontFamily`, `bold`, `italic`, `color` | 单位样式 |
 
 **特性**:
 - **独立样式分区**: 数值、单位、标签可分别设置字号、字重、斜体、颜色与字体。
@@ -104,6 +114,7 @@ interface MetricData {
 **特性**:
 - **多源统一接口**: 同一个组件处理图片、Material Symbols、Lucide 三种图标源
 - **容错回退**: Lucide 查找失败时回退到 `HelpCircle` 图标
+- **useModularStyle**: 通过 Hook 解析样式 Token 与 Zine Mode 约束
 - **9 点对齐**: 标准化支持网格贴靠
 
 ### 4.2 `ZineLogo`

@@ -27,14 +27,24 @@ SlideGrid Studio 并非一个传统的浏览器应用，而是一个深度融合
 ### 2.1 核心 IPC 通道参考
 | 通道名称 | 职责 | 输入 | 输出 |
 | :--- | :--- | :--- | :--- |
-| `save-project` | 归档工程文件 | `content`, `filePath` | `{ success, filePath }` |
+| `get-app-paths` | 获取系统路径 | - | `{ userData, thumbnails }` |
+| `save-project` | 归档工程文件 | `content`, `filePath`, `defaultName` | `{ success, filePath }` |
 | `open-project` | 打开 .slgrid 文件 | - | `{ success, content, filePath }` |
+| `read-project` | 按路径读取项目 | `filePath` | `{ success, content }` |
 | `upload-asset` | 处理并保存图像资产 | `filename`, `base64Data` | `{ success, url }` |
 | `capture-page-to-thumbnail` | 生成页面缩略图 | `projectId`, `rect` | `dataUrl (base64)` |
-| `get-app-paths` | 获取系统路径 | - | `{ userData, thumbnails }` |
+| `select-directory` | 打开系统目录选择器 | - | `{ success, path }` |
+| `save-file-buffer` | 将 Base64 写入文件 | `filePath`, `base64Data` | `{ success }` |
+| `open-external` | 在系统浏览器打开 HTTPS 链接 | `url` | - |
+| `setActiveWorkspace` | 设置工作区根目录 | `path` | - |
+| `list-projects` | 扫描工作区下的所有项目 | - | `Array<project>` |
+| `setCurrentProject` | 设置当前活跃项目上下文 | `{ id, name }` | - |
+| `read-asset-file` | 读取资产文件返回 Base64 | `filename` | `base64 string | null` |
+| `process-responsive-images` | 多尺寸多格式响应式图像处理 | `{ input, formats }` | `{ success, result }` |
+| `delete-project` | 删除项目目录 | `projectPath` | `{ success }` |
 
 ### 2.2 预加载脚本 (Preload Script)
-`electron/preload.ts` 将以上通道封装为 `window.electronAPI` 挂载到渲染进程，确保了 API 的类型安全与沙盒隔离。
+`electron/preload.ts` 将以上通道封装为 `window.electronAPI` 挂载到渲染进程。它还包含路径参数校验逻辑（拒绝 `..` 路径遍历及非法字符），确保了 API 的类型安全与沙盒隔离。渲染侧通过 `src/utils/native-fs.ts` 的 `nativeFs` 对象访问，非 Electron 环境自动降级。
 
 ---
 
@@ -42,15 +52,15 @@ SlideGrid Studio 并非一个传统的浏览器应用，而是一个深度融合
 
 SlideGrid Studio 解决了“Web 应用数据易失”与“传统桌面应用保存繁琐”的矛盾：
 
-1.  **L1 - 内存状态 (Zustand)**: 响应毫秒级的 UI 变更，提供极致的编辑流畅度。
-2.  **L2 - 浏览器缓存 (IndexedDB)**: `utils/db.ts` 负责实时检查 `hasUnsavedChanges` 标志，并将其写入 IndexedDB。
-3.  **L3 - 物理归档 (.slgrid)**: 只有在触发 `Ctrl+S` 或手动保存时，才会调用 `archiveManager` 将数据持久化到物理磁盘，并封装为压缩包。
+1.  **L1 - 内存状态 (Zustand)**: 响应毫秒级的 UI 变更，提供极致的编辑流畅度。`hasUnsavedChanges` 标志在每次修改时置为 `true`，保存后通过 `markAsSaved` 置回 `false`。
+2.  **L2 - 浏览器缓存 (IndexedDB)**: `utils/db.ts` 封装了 IndexedDB 存取操作。`useProject` hook 在项目加载后调用 `saveProject(id, data)` 将状态写入 IndexedDB；`EditorPage.tsx` 中还有一个防抖 auto-save 定时器，在内容变更后自动触发 IndexedDB 持久化。
+3.  **L3 - 物理归档 (.slgrid)**: 只有在触发 `Ctrl+S` 或手动保存时，才会调用 `ProjectArchiveManager`（位于 `electron/archive-manager.ts`）将数据打包为 ZIP 写入磁盘。保存时同时更新文件夹中的 `project.json`，若目标是 `.slgrid` 文件则额外生成 ZIP 包。
 
 ---
 
 ## 4. 关键路径性能优化
 
-- **分包加载**: `vite.config.ts` 中手动定义了 `manualChunks`。将 `react`、`framer-motion`、`katex` 等大型库分离，利用浏览器缓存。
+- **分包加载**: `vite.config.ts` 中手动定义了 `manualChunks`，将 `react`/`react-dom`/`react-router-dom`（`vendor-react`）、`framer-motion`（`vendor-motion`）、`zustand`/`immer`/`lucide-react`（`vendor-utils`）、`katex`（`vendor-katex`）等分离为独立 chunk，利用浏览器缓存。
 - **离屏渲染 (Offscreen Rendering)**: 当导出高分辨率图片或生成缩略图时，应用会利用 `webContents.capturePage` 在后台进行渲染，避免干扰用户当前的编辑视图。
 - **GPU 加速**: 全面开启硬件加速，确保数百层 Framer Motion 动画在 4K 屏幕下依然丝滑。
 - **零拷贝资产协议**: `asset://` 协议直接从磁盘读取 Buffer 流入渲染进程，避免了 Base64 带来的 33% 内存额外开销。

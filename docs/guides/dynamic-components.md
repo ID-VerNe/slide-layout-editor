@@ -49,7 +49,7 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
   const metrics = page.metrics || [];
   // 实现 addItem, removeItem, updateItem 逻辑...
   return (
-    <FieldWrapper label="Metrics Grid" icon={Activity} ...>
+    <FieldWrapper page={page} onUpdate={onUpdate} fieldKey="metrics" label="Metrics Grid" icon={Activity}>
       {metrics.map((m, idx) => (
         <div className="group relative bg-slate-50 p-4 rounded-xl ...">
            {/* 输入框绑定 */}
@@ -122,6 +122,6 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
 ## 最佳实践与注意事项
 
 1.  **默认值处理**：在模板 Schema 的表达式中，建议使用 `{page.metrics || []}` 或在组件层处理空数组，防止渲染崩溃。
-2.  **样式黑名单**：在 `LayoutRenderer.tsx` 中，`filterZineClassName` 会强制剔除 `rounded-full` 或 `shadow-lg` 等不符合项目审美的 Tailwind 类名，即使在动态组件中也不应使用。
+2.  **样式黑名单**：在 `LayoutRenderer.tsx` 中，`filterZineClassName` 会强制剔除 `shadow-*`、`blur-*`、`drop-shadow-*` 或 `animate-bounce/pulse/wiggle` 等不符合项目审美的 Tailwind 类名，即使在动态组件中也不应使用。
 3.  **ID 管理**：虽然目前很多组件通过数组 `index` 操作，但为了更好的 React 渲染性能，建议在 `addItem` 时使用 `crypto.randomUUID()` 生成唯一 `id`。
 4.  **模块化对齐**：当使用 `layout: 'modular'` 时，`Repeater` 内部的 `template` 节点无需指定 `modular` 坐标，它们会自动按网格流式填充。

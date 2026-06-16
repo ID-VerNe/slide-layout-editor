@@ -4,7 +4,7 @@
 
 `PageData` 是应用中最核心的数据结构，每一页幻灯片都是此类型的一个实例。
 
-- **文件**: `src/types.ts` (第 161-220 行)
+- **文件**: `src/types.ts` (第 187-259 行)
 
 ### 2.1 基础标识
 
@@ -26,8 +26,8 @@
 | `bullets` | `string[]` | 列表项 |
 | `actionText` | `string` | 行动号召按钮文本 |
 | `footer` | `string` | 页脚文字 |
+| `signature` | `string` | 签名文字 |
 | `imageLabel` | `string` | 图片元数据标签 |
-| `imageSubLabel` | `string` | 图片副标签 |
 
 ### 2.3 媒体与视觉
 
@@ -51,6 +51,8 @@
 | `minimalCounter` | `boolean` | 极简页码模式 |
 | `counterStyle` | `CounterStyle` | 页码样式: `'number' \| 'alpha' \| 'roman' \| 'dots'` |
 | `counterColor` | `string` | 页码颜色 (Hex) |
+| `folioAlignment` | `'left' \| 'right' \| 'auto'` | 页码水平对齐位置 |
+| `artFont` | `string` | 装饰艺术字体 CSS 字族名 |
 
 ### 2.5 可见性与覆盖
 
@@ -70,6 +72,7 @@
 | `testimonials` | `TestimonialData[]` | Testimonial Card, Community Hub |
 | `gallery` | `any[]` | Gallery Capsule, Film Diptych |
 | `bentoItems` | `BentoItem[]` | Apple Bento Grid |
+| `partners` | `PartnerData[]` | 合作伙伴展示 |
 | `resumeSections` | `ResumeSection[]` | Academic Hybrid Resume |
 
 ### 2.7 列表配置 (模板特定)
@@ -78,6 +81,7 @@
 | :--- | :--- | :--- |
 | `bentoConfig` | `{ rows: number; cols: number }` | Bento Grid 网格行列数配置 |
 | `mosaicConfig` | `{ rows: number; cols: number; stagger?: boolean; tileColor?: string; icons?: Record<string, string> }` | Component Mosaic 布局配置 |
+| `bigDataMetricsConfig` | `{ rows: number; cols: number }` | 大数据指标网格行列数配置 |
 
 ### 2.8 简历元数据
 
@@ -90,7 +94,7 @@
 | 字段 | 类型 | 说明 |
 | :--- | :--- | :--- |
 | `freeformItems` | `any[]` | 自由排版元素列表 |
-| `freeformConfig` | `{ gridSize, snapToGrid, showGridOverlay, showAlignmentGuides }` | 自由排版配置 |
+| `freeformConfig` | `{ gridSize: number; snapToGrid: boolean; showGridOverlay: boolean; showAlignmentGuides: boolean }` | 自由排版配置 (网格尺寸、吸附、覆盖层、对齐参考线) |
 
 ---
 

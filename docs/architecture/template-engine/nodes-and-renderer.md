@@ -40,15 +40,17 @@ interface LayoutRendererProps {
   node: TemplateNode;               // 当前节点
   page: PageData;                   // 页面数据 (用于 bind 解析)
   theme: ProjectTheme;              // 全局主题
+  designSystem: DesignSystem;       // 设计系统 Tokens
   typography?: TypographySettings;  // 排版设置
   context?: EvaluationContext;      // 计算上下文 (Repeater 使用)
+  resolveZIndex?: ZIndexResolverFn; // zIndex 解析器，由 JsonTemplateRenderer 注入
 }
 ```
 
 ### 2.2 渲染流程
 
 ```
-LayoutRenderer(node, page, theme)
+LayoutRenderer(node, page, theme, designSystem, resolveZIndex)
   │
   ├─ 1. 可见性检查 (visibleWhen)
   │     └─ 不满足 → return null
@@ -58,22 +60,23 @@ LayoutRenderer(node, page, theme)
   │
   └─ 3. 按类型分发
         ├─ Container → renderContainer()
-        │   ├─ resolveBaseProps() → modular 网格 + preset 注入
+        │   ├─ resolveBaseProps() → modular 网格 + preset 注入 + zIndex
         │   ├─ 布局样式映射 (flex/grid/absolute/modular)
-        │   └─ 递归渲染 children
+        │   └─ 递归渲染 children (传递 ds, resolveZIndex)
         │
         ├─ Component → renderComponent()
         │   ├─ getComponent(componentType) → COMPONENT_REGISTRY
         │   ├─ 数据绑定 → 优先使用显式 fieldKey，否则由 bind 推断
-        │   ├─ 样式合并 → 智能合并 baseProps.style (定位) 与 dynamicProps.style (自定义)
-        │   └─ <Component page={...} fieldKey={...} theme={...} style={mergedStyle} />
+        │   ├─ 样式合并 → node.style 与 dynamicProps.style 合并后经白名单过滤
+        │   └─ <Component page={...} fieldKey={...} theme={...} designSystem={...} style={...} />
         │
         ├─ Repeater → renderRepeater()
         │   ├─ evaluator.evaluate(bind) → items[]
+        │   ├─ 布局处理 (flex/grid) 类似 Container，支持 transparent 模式
         │   ├─ 为每个 item 创建子 context (含 itemVar, index, $parent)
         │   └─ 递归渲染 template
         │
-        ├─ Text → 字符串插值 + <div>
+        ├─ Text → evaluator.interpolate(content) + <div>
         │
         └─ Conditional → conditionMet ? then : else
 ```

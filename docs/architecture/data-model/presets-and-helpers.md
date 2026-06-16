@@ -67,43 +67,62 @@ interface ProjectSaveData extends ProjectData {
 
 ## 8. 编辑器预设类型
 
-### 8.1 `PresetOption<T>`
-编辑器预设选项，用于字号、行高、字距的受控选择。
+### 8.1 预设常量 (Preset Constants)
+
+编辑器预设选项，用于字号、行高、字距的受控选择。所有预设数组使用 `as const` 声明以提供精确的类型推导。
 
 - **文件**: `src/constants/editorPresets.ts`
 
-```typescript
-interface PresetOption<T extends string | number> {
-  value: T;      // 预设值 (数字或字符串)
-  label: string; // 显示标签
-}
-```
-
-### 8.2 预设常量
-
 **字号预设** (`FONT_SIZE_PRESETS`):
 ```typescript
-PresetOption<number>[] = [
+readonly { value: number; label: string }[] = [
   { value: 6, label: '6pt (Micro)' },
   { value: 7, label: '7pt (Caption)' },
-  // ... 共 12 档
-];
+  { value: 10, label: '10pt (Body)' },
+  { value: 12, label: '12pt (Body+)' },
+  { value: 14, label: '14pt (Lead)' },
+  { value: 18, label: '18pt (Subhead)' },
+  { value: 24, label: '24pt (H3)' },
+  { value: 32, label: '32pt (H2)' },
+  { value: 48, label: '48pt (H1)' },
+  { value: 64, label: '64pt (Display)' },
+  { value: 80, label: '80pt (Hero)' },
+  { value: 120, label: '120pt (Art)' }
+] as const;
 ```
 
 **行高预设** (`LINE_HEIGHT_PRESETS`):
 ```typescript
-PresetOption<number>[] = [
+readonly { value: number; label: string }[] = [
   { value: 1.0, label: '1.0 (Tight)' },
-  // ... 共 7 档
-];
+  { value: 1.1, label: '1.1 (Display)' },
+  { value: 1.2, label: '1.2 (Compact)' },
+  { value: 1.4, label: '1.4 (Normal)' },
+  { value: 1.6, label: '1.6 (Relaxed)' },
+  { value: 1.8, label: '1.8 (Loose)' },
+  { value: 2.0, label: '2.0 (Double)' }
+] as const;
 ```
 
 **字距预设** (`LETTER_SPACING_PRESETS`):
 ```typescript
-PresetOption<string>[] = [
-  { value: '-0.05em', label: '-0.05em (Tight)' },
-  // ... 共 7 档
-];
+readonly { value: number; label: string }[] = [
+  { value: -0.05, label: '-0.05em (Tight)' },
+  { value: 0, label: '0 (Normal)' },
+  { value: 0.05, label: '0.05em (Wide)' },
+  { value: 0.1, label: '0.1em (Airy)' },
+  { value: 0.15, label: '0.15em (Tracking)' },
+  { value: 0.2, label: '0.2em (Caps)' },
+  { value: 0.3, label: '0.3em (Display)' }
+] as const;
+```
+
+### 8.2 类型推导
+
+```typescript
+type FontSizePreset = typeof FONT_SIZE_PRESETS[number]['value'];
+type LineHeightPreset = typeof LINE_HEIGHT_PRESETS[number]['value'];
+type LetterSpacingPreset = typeof LETTER_SPACING_PRESETS[number]['value'];
 ```
 
 ---
@@ -112,6 +131,9 @@ PresetOption<string>[] = [
 
 ```text
 ProjectData
+├── version: string
+├── id?: string
+├── title / projectTitle: string
 ├── pages: PageData[]
 │   ├── layoutId -> TEMPLATES[].id -> TemplateConfig.schema -> TemplateSchema
 │   ├── aspectRatio -> LAYOUT_CONFIG[ratio]
@@ -119,18 +141,23 @@ ProjectData
 │   ├── features: FeatureData[]
 │   ├── metrics: MetricData[]
 │   ├── testimonials: TestimonialData[]
+│   ├── partners: PartnerData[]
 │   ├── bentoItems: BentoItem[]
 │   ├── resumeSections: ResumeSection[] -> ResumeItem[]
 │   └── mosaic / gallery / freeformItems: any[]
-├── theme: ProjectTheme
-│   └── typography: { headingFont, bodyFont, ... }
-├── designSystem: DesignSystem
+├── theme?: ProjectTheme
+│   └── typography: { headingFont, bodyFont, captionFont?, headingFontZH?, bodyFontZH? }
+├── designSystem?: DesignSystem
 │   ├── tokens: DesignTokens
 │   │   ├── colors: Record<string, string>
 │   │   ├── spacing: { none, xs, sm, md, lg, xl, gutter }
 │   │   └── typography: { scales, body, caption, display }
 │   └── presets: { layout, effects }
 ├── customFonts: CustomFont[]
-├── printSettings: PrintSettings
-└── counterStyle: CounterStyle
+├── imageQuality?: number
+├── minimalCounter?: boolean
+├── counterStyle?: CounterStyle
+├── printSettings?: PrintSettings
+├── thumbnail?: string
+└── filePath?: string
 ```

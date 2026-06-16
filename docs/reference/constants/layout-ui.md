@@ -7,16 +7,40 @@
 ### 1.1 比例与尺寸 (`LAYOUT_CONFIG`)
 定义了编辑器画布在不同比例下的原始像素尺寸：
 
-| 比例 | 宽度 (px) | 高度 (px) | 描述 |
-| :--- | :--- | :--- | :--- |
-| `16:9` | 1920 | 1080 | 标准宽屏 |
-| `2:3` | 1080 | 1620 | 海报排版 |
-| `A4` | 1240 | 1754 | 专业简历 (Resume 专用) |
-| `1:1` | 1080 | 1080 | 正方形 |
+每个画幅对应一个 `LayoutDimensions` 对象，包含 `width`、`height`、`label`、`orientation` 四个属性：
 
-### 1.2 编辑器 UI 常量
+```typescript
+export interface LayoutDimensions {
+  width: number;
+  height: number;
+  label: string;
+  orientation: OrientationType;
+}
+```
+
+| 比例 | 宽度 (px) | 高度 (px) | 方向 (Orientation) | 标签 (Label) |
+| :--- | :--- | :--- | :--- | :--- |
+| `16:9` | 1920 | 1080 | `landscape` | Standard (16:9) |
+| `2:3` | 1080 | 1620 | `portrait` | Poster (2:3) |
+| `A4` | 1240 | 1754 | `resume` | Professional Resume |
+| `1:1` | 1080 | 1080 | `square` | Square (1:1) |
+
+### 1.2 类型定义
+
+```typescript
+export type OrientationType = 'landscape' | 'portrait' | 'square' | 'resume';
+export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+```
+
+- **`AspectRatioType`**: 插画比例标识，用于模板注册和页面创建
+- **`OrientationType`**: 方向类型，`resume` 是从 `portrait` 剥离的独立方向，专用于简历/文档类排版
+
+### 1.3 编辑器 UI 常量
 - `SIDEBAR_WIDTH`: 96px (左侧导航栏)
 - `EDITOR_PANEL_WIDTH`: 400px (右侧编辑面板)
+- `SIDEBAR_OFFSET`: -80px (侧边栏偏移量)
+
+这些常量也通过 `LAYOUT` 对象导出 (`LAYOUT.EDITOR_PANEL_WIDTH`、`LAYOUT.SIDEBAR_WIDTH`、`LAYOUT.SIDEBAR_OFFSET`)。
 
 ---
 

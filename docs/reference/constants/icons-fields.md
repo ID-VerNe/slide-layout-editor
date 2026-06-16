@@ -6,15 +6,20 @@
 - **图标库**: 基于 `lucide-react`。
 
 ### 3.1 `LUCIDE_ICON_MAP`
-将字符串 ID 映射到具体的 Lucide 组件，用于模板 Schema 动态渲染图标。支持 50+ 个 Lucide 图标。
+将字符串 ID 映射到具体的 Lucide 组件，用于模板 Schema 动态渲染图标。支持 85 个 Lucide 图标。
 
 ### 3.2 `CATEGORIZED_ICONS`
-用于图标选择器中的分组展示，同时支持 Material Symbols 和 Lucide 图标，包含：
-- Technology & Infrastructure (50+ 图标)
-- Biotech & Life Sciences (50+ 图标)
-- Finance & High-Growth (50+ 图标)
-- Communication & Global (40+ 图标)
-- Security & Systems (50+ 图标)
+用于图标选择器中的分组展示，同时支持 Material Symbols 和 Lucide 图标。每个分类包含一个代表图标 (`icon` 字段) 和图标列表 (`icons` 数组)，包含：
+
+| 分类 | 代表图标 | Lucide 图标数 | Material 图标数 | 总计 |
+|:---|:---|:---:|:---:|:---:|
+| Technology & Infrastructure | `Cpu` | 15 | ~55 | 70+ |
+| Biotech & Life Sciences | `Rocket` | 18 | ~45 | 60+ |
+| Finance & High-Growth | `BarChart3` | 13 | ~50 | 60+ |
+| Communication & Global | `Globe` | 14 | ~40 | 50+ |
+| Security & Systems | `ShieldCheck` | 15 | ~40 | 55+ |
+
+部分 Lucide 图标（如 `HelpCircle`、`Search`、`LayoutGrid`、`Upload`、`History`、`Image`）仅注册在 `LUCIDE_ICON_MAP` 中，未出现在分类列表里。
 
 ---
 
@@ -43,7 +48,7 @@ export const GLOBAL_FIELDS: Array<keyof PageData> = [
 
 ### 5.2 `withBaseFields` 辅助函数
 
-- **文件**: `src/templates/registry.ts`
+- **文件**: `src/templates/registry.ts`（模块内部常量，未导出）
 - **用途**: 为模板自动添加基础字段（背景色、页码）：
 
 ```typescript

@@ -34,6 +34,7 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
 | `createProject(title, templateId?)` | 创建新项目，返回项目 UUID |
 | `loadProject(idOrData, templateId?, filePath?)` | 异步加载项目，执行 V3 迁移，同步 Electron 上下文 |
 | `updatePage(updatedPage, silent?)` | 更新页面；`silent=true` 跳过历史记录写入 |
+| `updatePages(updates, silent?)` | 批量更新页面；`silent=true` 跳过历史记录写入 |
 | `addPage(ratio, layoutId)` | 追加新页面，继承当前主题样式 |
 | `removePage(id)` | 删除页面 (至少保留 1 页) |
 | `reorderPages(newPages)` | 页面重排序 |
@@ -63,7 +64,7 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
 - **触发时机**: 只有当发生真正的用户交互（如 `onBlur` 或按钮点击）时调用 `pushHistory()`，而非键盘输入的每一个字符。这防止了历史记录被微小增量填满。
 - **深度限制**: `past` 栈默认保留最近 **50 步**操作（`slice(-50)`）。
 - **不可变性**: 利用 `structuredClone()` 进行**深拷贝**（针对 `pages`、`theme`、`designSystem`、`printSettings`、`customFonts`），确保 Undo 后的状态不会被后续操作污染。
-- **页面索引追踪**: 每个快照包含 `currentPageIndex`，撤销时会恢复正确的编辑页面位置。
+- **页面索引与文件路径追踪**: 每个快照包含 `currentPageIndex` 和 `currentFilePath`，撤销/重做时会恢复正确的编辑页面位置和文件路径。
 
 ### 2.2 快照内容
 
@@ -81,6 +82,7 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
   imageQuality: number,
   customFonts: CustomFont[],  // 深拷贝
   currentPageIndex: number,
+  currentFilePath: string | null,
 }
 ```
 
@@ -150,8 +152,8 @@ if (snapshotSize > 5 * 1024 * 1024) { // 5MB 限制
 
 - **实时输入**: 键盘/选区变更直接写入 Zustand (内存)。
 - **定时保存**: [EditorPage.tsx](src/pages/EditorPage.tsx) 中每 **3000ms** 检查 `hasUnsavedChanges`。
-- **保存动作**: 调用 `saveToDB()` 将完整的 `ProjectData`（包含 version, title, pages, theme, designSystem 等）序列化存入 IndexedDB。
-- **崩溃恢复**: 重启时，[loadProject()](src/store/useStore.ts#L112) 优先从 IndexedDB 读取，确保未手动保存的内容不丢失。
+- **保存动作**: 调用 `saveProject()` 将完整的 `ProjectData`（包含 version, title, pages, theme, designSystem 等）序列化存入 IndexedDB。
+- **崩溃恢复**: 重启时，[loadProject()](src/store/useStore.ts#L136) 优先从 IndexedDB 读取，确保未手动保存的内容不丢失。
 
 ### 4.2 手动保存 (Ctrl+S)
 
@@ -195,12 +197,11 @@ const migratedData = migrateToV3(projectData);
 ### 6.1 职责范围
 
 - **全局弹窗 (Modals)**: 统一管理 `alert` 和 `confirm` 逻辑，解耦业务组件与 UI 实现。
-- **消息通知**: 处理成功、警告或错误的即时反馈。
 
 ### 6.2 核心 API
 
 - `alert(title, message)`: 触发全局警告弹窗。
-- `confirm(title, message, onConfirm, options?)`: 触发带回调的确认弹窗。
+- `confirm(title, message, onConfirm, options?)`: 触发带回调的确认弹窗。`onConfirm` 返回值若为 `false` 则阻止关闭弹窗。`options` 支持 `confirmText` 和 `cancelText` 自定义按钮文案。
 
 ### 6.3 使用方式
 
@@ -214,7 +215,7 @@ confirm(
   '删除页面',
   '确定要删除这个页面吗？此操作不可撤销。',
   () => { store.removePage(pageId); },
-  { confirmText: '删除', cancelText: '取消', danger: true }
+  { confirmText: '删除', cancelText: '取消' }
 );
 ```
 

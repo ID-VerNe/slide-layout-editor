@@ -21,11 +21,17 @@ pnpm install
 # 启动开发服务器
 pnpm dev
 
-# 运行测试
+# 运行测试（交互模式）
 pnpm test
 
-# 运行类型检查
-pnpm typecheck
+# 运行测试并生成覆盖率报告
+pnpm test:ci
+
+# 代码检查
+pnpm lint
+
+# 代码格式化
+pnpm format
 ```
 
 ### 1.3 技术栈
@@ -239,7 +245,7 @@ export default MyCustomField;
 
 ### 5.2 注册到 FieldRenderer
 
-在 [FieldRenderer.tsx](src/components/editor/FieldRenderer.tsx) 的 `FIELD_TO_COMPONENT_MAP` 中添加映射。
+在 [FieldRenderer.tsx](src/components/editor/FieldRenderer.tsx) 的 `componentMap` 中添加映射。
 
 ### 5.3 在模板中使用
 
@@ -264,8 +270,8 @@ fields: withBaseFields([
 
 ### 6.2 样式规范
 
-- **Tailwind CSS v3** 优先（不使用 v4）
-- 禁用的类名前缀: `rounded-*`, `shadow-*`, `blur-*`, `animate-bounce/pulse/wiggle`
+- Tailwind CSS v3 优先
+- 禁用的类名前缀: `shadow-*`, `blur-*`, `drop-shadow-*`, `animate-bounce/pulse/wiggle` (注意 `rounded-*` 已允许，以支持 ZineMedia 圆角特性)
 - 色值通过 DesignSystem Token 获取，不硬编码
 
 ### 6.3 类型规范
@@ -286,7 +292,7 @@ fields: withBaseFields([
 # 交互模式（watch）
 pnpm test
 
-# 单次运行（CI 模式）
+# 单次运行 + 覆盖率（CI 模式）
 pnpm test:ci
 ```
 
@@ -294,10 +300,10 @@ pnpm test:ci
 
 | 指标 | 最低要求 |
 |------|---------|
-| Statements | 55% |
-| Branches | 37% |
-| Functions | 42% |
-| Lines | 57% |
+| Statements | 62% |
+| Branches | 45% |
+| Functions | 49% |
+| Lines | 63% |
 
 测试覆盖范围：
 - **Schema 验证**: 确保 `validator.ts` 正确解析新 Schema
@@ -312,9 +318,9 @@ pnpm test:ci
 项目使用 GitHub Actions 运行自动化测试，配置文件：`.github/workflows/ci.yml`
 
 - **触发条件**: push 或 PR 到 `master`/`main` 分支
-- **环境**: Ubuntu latest, pnpm 9, Node.js 20
+- **环境**: Ubuntu latest, pnpm 9, Node.js 22
 - **步骤**: `pnpm install --frozen-lockfile` → `pnpm test:ci`
-- **覆盖率上报**: 可选上传至 Codecov
+- **覆盖率上报**: 自动上传至 Codecov
 
 ```powershell
 # 本地模拟 CI 运行
@@ -329,6 +335,8 @@ pnpm test:ci
 
 ### 7.4 类型检查
 
+项目使用 TypeScript 严格模式，可通过以下命令进行类型检查：
+
 ```powershell
-pnpm typecheck
+npx tsc --noEmit
 ```

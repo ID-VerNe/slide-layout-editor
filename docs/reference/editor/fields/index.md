@@ -85,7 +85,8 @@ import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 | `subtitle` | `SubtitleField` | `page.subtitle` | string |
 | `paragraph` | `ParagraphField` | `page.paragraph` | string |
 | `actionText` | `ActionTextField` | `page.actionText` | string |
-| `signature` | `SignatureField` | `page.signature` | string |
+| `signature` | `ImageField` | `page.signature` | asset |
+	| `bigDataMetrics` | `BigDataMetricsField` | `page.metrics` + `page.bigDataMetricsConfig` | structured |
 | `partnersTitle` | `PartnersTitleField` | `page.partnersTitle` | string |
 | `footer` | `FooterField` | `page.footer` | string |
 | `imageLabel` | `ImageLabelField` | `page.imageLabel` | string |

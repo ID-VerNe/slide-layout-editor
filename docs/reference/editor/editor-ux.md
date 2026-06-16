@@ -9,9 +9,7 @@
 | `Ctrl+S` | 智能保存 (Smart Save) |
 | `Ctrl+Shift+S` | 另存为 (Save As) |
 | `Ctrl+Z` | 撤销 |
-| `Ctrl+Shift+Z` | 重做 |
-| `Ctrl+Y` | 重做 (备选) |
-| `Alt+;` | 切换 24x24 调试网格 |
+| `Ctrl+Y` | 重做 |
 
 **智能保存 (Smart Save)** 的执行流程：
 1. 生成当前页面缩略图
@@ -42,7 +40,7 @@
 
 ### 6.2 缩略图存储
 
-- **位置**: `localStorage` (`magazine_recent_projects` key)
+- **位置**: `localStorage` (`slidegrid_recent_projects` key)
 - **数据**: Base64 DataURL
 - **容量**: 最多 48 个项目
 
@@ -50,7 +48,7 @@
 
 ## 7. 最近项目索引
 
-编辑器使用 `localStorage` 维护项目元数据索引 (`magazine_recent_projects`):
+编辑器使用 `localStorage` 维护项目元数据索引 (`slidegrid_recent_projects`):
 
 **索引条目结构**:
 
@@ -79,11 +77,11 @@ interface RecentProjectEntry {
 
 | 功能 | 说明 |
 | :--- | :--- |
-| `previewZoom` | 当前缩放倍率 (0.25 ~ 3.0) |
+| `previewZoom` | 当前缩放倍率 (0.1 ~ 1.5) |
 | `isAutoFit` | 是否自适应容器 |
-| `handleManualZoom(step)` | 手动缩放 (±0.1) |
+| `handleManualZoom(value)` | 手动设置缩放值 |
 | `toggleFit()` | 切换自适应模式 |
-| `handleOverflowChange(isOverflowing)` | 溢出检测回调 |
+| `handleOverflowChange(pageId, isOverflowing)` | 溢出检测回调 (pageId + 布尔值) |
 
 自适应模式 (`isAutoFit`) 下，系统根据容器大小动态计算最佳缩放。
 
@@ -118,7 +116,7 @@ document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
 | **文本对齐** (Text Align) | 左对齐/居中/两端对齐 | 非图片、非分割线字段 |
 | **9 点对齐** (9-Point Docking) | 垂直 (TOP/MID/BOT) + 水平 (LFT/CTR/RGT) | 所有字段 |
 | **调色盘** (Color Palette) | 从 `ds.tokens.colors` 中选择颜色 Token | 所有字段 |
-| **斜体模式** (Italic Mode) | 切换 `fontStyle: 'italic'` | 非分割线、非图片字段 |
+| **粗体与斜体** (Bold &amp; Italic) | 切换 `bold` 与 `italic` 覆盖 | 非分割线、非图片字段 |
 
 ### 11.2 状态管理
 
@@ -129,10 +127,19 @@ document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
 ### 11.3 字段类型识别逻辑
 
 ```typescript
-const isDivider = fieldKey.toLowerCase().includes('divider') 
+// mode 参数优先级最高，可通过 props 显式指定 'text'/'image'/'divider'
+// 默认模式走启发式自动判断:
+const isDivider = mode === 'divider' || (!mode && (
+  fieldKey.toLowerCase().includes('divider') 
   || fieldKey === 'separator' 
-  || fieldKey.toLowerCase().includes('line');
-const isImage = fieldKey.toLowerCase().includes('image') 
-  || fieldKey.toLowerCase().includes('logo') 
-  || fieldKey.toLowerCase().includes('media');
+  || fieldKey.toLowerCase().includes('line')
+));
+const isImage = mode === 'image' || (!mode && (
+  (fieldKey.toLowerCase().includes('image') 
+    || fieldKey.toLowerCase().includes('logo') 
+    || fieldKey.toLowerCase().includes('media'))
+  && !fieldKey.toLowerCase().includes('label')
+  && !fieldKey.toLowerCase().includes('text')
+));
+const isText = mode === 'text' || (!isDivider && !isImage);
 ```

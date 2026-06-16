@@ -26,7 +26,7 @@
 UI 的原子化属性，如 `color.primary`, `typography.body.fontSize`。禁止在代码中硬编码 Hex 色值或字号。所有渲染组件应通过 `useModularStyle` 消费 Token。
 
 ### 原子组件 (Zine Atom)
-最小的可复用渲染单元。位于 [src/components/ui/slide/atoms/](src/components/ui/slide/atoms/)，包括 `ZineDisplay`、`ZineBody`、`ZineCaption`、`ZineMedia`、`ZineResume`、`ZineDivider`。它们不具备复杂的业务逻辑，仅负责消费 Token 并将数据渲染为符合 SPEC 规范的视觉形式。
+最小的可复用渲染单元。位于 [src/components/ui/slide/atoms/](src/components/ui/slide/atoms/)，共 11 个注册组件：`ZineDisplay`、`ZineBody`、`ZineCaption`、`ZineMedia`、`ZineResume`、`ZineDivider`、`ZineIcon`、`ZineMetric`、`ZineLogo`、`ZineArtFont`、`BigDataMetrics`。它们不具备复杂的业务逻辑，仅负责消费 Token 并将数据渲染为符合 SPEC 规范的视觉形式。
 
 ### 样式流水线 (Style Pipeline)
 样式从 Schema 属性到最终 CSS 的转化过程，包含四个步骤：
@@ -36,7 +36,7 @@ UI 的原子化属性，如 `color.primary`, `typography.body.fontSize`。禁止
 4. Zine 约束过滤（`ALLOWED_PROPS` 白名单 + `filterZineClassName` 黑名单）
 
 ### Zine Mode (工业精密模式)
-项目的核心美学约束机制。通过 `LayoutRenderer.css` 的 `ALLOWED_PROPS` 白名单 (42 个允许的 CSS 属性，包含 `borderRadius`) 和 `filterZineClassName` 黑名单 (`shadow-*`, `blur-*`, `animate-*`)，强制执行去阴影、去模糊的极简工业感美学。**注意**: `rounded-*` 类名现已允许，以配合 `ZineMedia` 圆角特性。
+项目的核心美学约束机制。通过 `LayoutRenderer.tsx` 的 `ALLOWED_PROPS` 白名单（66 个允许的 CSS 属性，涵盖几何定位、排版、间距、颜色、边框与圆角、变换与过渡）和 `filterZineClassName` 黑名单（`shadow-*`、`blur-*`、`drop-shadow-*`、`animate-bounce/pulse/wiggle`），强制执行去阴影、去模糊的极简工业感美学。**注意**: `rounded-*` 类名现已允许，以配合 `ZineMedia` 圆角特性。
 
 ### 编辑器预设系统 (Editor Preset System)
 从 v3.0 开始引入的受控输入机制。字号、行高、字距等设计属性采用离散预设档位而非自由输入，确保设计一致性。由 `PresetSelect` 组件和 `editorPresets.ts` 常量共同实现。

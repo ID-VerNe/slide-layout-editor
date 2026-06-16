@@ -31,14 +31,16 @@
     *   英文: `Playfair Display`
     *   中文 (`lang: 'zh'`): `STFangsong` (仿宋)
 *   **`sans` (Boolean)**: 无衬线体。对应 `Inter`。
-*   **`caption` (Boolean)**: 标注体。对应 `Inter` 且默认开启全大写和宽字距。
-*   **`lang` ('en' | 'zh')**: 手动指定语言。影响 `serif/sans` 的具体映射。
+*   **`caption` (Boolean)**: 标注体。对应项目主题中的 `captionFont`（默认为 `Inter`），且默认开启全大写和宽字距。
+*   **`lang` ('en' | 'zh')**: 手动指定语言。影响 `serif/sans` 的具体映射（中文下 `serif` 默认映射到仿宋/宋体系）。
+*   **`zh` (Boolean)**: 同 `lang: 'zh'` 的中文简写。当 `zh` 和 `lang` 同时存在时 `zh` 优先。
 
 ### 3. 排版细节
 
 *   **`align`**: `'left' | 'center' | 'right' | 'justify'`
 *   **`bold`**: 加粗切换。
 *   **`italic`**: 斜体切换。
+*   **`weight`** (Number | String): 精确字体字重（如 `700`、`'bold'`），优先级高于 `bold`。
 *   **`tracking` (Number)**: 字距。单位为 `em` (如 `0.2` 为加宽 20%)。
 *   **`color`**: 直接传入颜色 Token 名称 (如 `primary`, `accent`) 或 十六进制值。
 
