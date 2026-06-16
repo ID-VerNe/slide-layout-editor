@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies
@@ -30,7 +30,8 @@ jobs:
 
       - name: Upload coverage to Codecov (optional)
         if: always()
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           directory: ./coverage
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
