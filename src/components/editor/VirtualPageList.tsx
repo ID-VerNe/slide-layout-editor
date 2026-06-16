@@ -6,6 +6,7 @@ import { BrandLogo } from '../ui/BrandLogo';
 import { LAYOUT_CONFIG } from '../../constants/layout';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useUI } from '../../context/UIContext';
+import ActionButton from '../ui/ActionButton';
 
 interface VirtualPageListProps {
   pages: PageData[];
@@ -240,27 +241,13 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
       </div>
 
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
-        <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} />
+        <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} size="sm" />
 
         <div className="h-px w-8 bg-slate-100 my-1" />
-        <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger />
-        <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger />
+        <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger size="sm" />
+        <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger size="sm" />
       </div>
     </motion.div>
   );
 };
-
-const ActionButton = ({ onClick, icon: Icon, title, active = false, danger = false }: any) => (
-  <button 
-    onClick={onClick}
-    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90
-      ${active ? 'bg-[#264376] text-white shadow-lg shadow-[#264376]/20' : 
-        danger ? 'text-slate-300 hover:bg-red-50 hover:text-red-500' : 
-        'text-slate-400 hover:bg-[#264376]/10 hover:text-[#264376]'}`}
-    title={title}
-  >
-    <Icon size={18} />
-  </button>
-);
-
 export default VirtualPageList;
