@@ -1,5 +1,6 @@
 import React from 'react';
 import { MetricData, PageData, TypographySettings } from '../../../../types';
+import DOMPurify from 'dompurify';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { useStore } from '../../../../store/useStore';

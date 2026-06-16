@@ -36,12 +36,18 @@ export const Text: React.FC<TextProps> = ({
   const textContent = content || (typeof children === 'string' ? children : '');
 
   const sanitizedContent = React.useMemo(() => {
-    if (!sanitize || !textContent) return textContent;
+    if (!sanitize || !textContent) return undefined;
     return DOMPurify.sanitize(textContent, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'span'],
       ALLOWED_ATTR: ['style', 'class']
     });
   }, [textContent, sanitize]);
+
+  React.useEffect(() => {
+    if (!sanitize && textContent) {
+      console.warn('[Text] Rendering with sanitize=false — potential XSS risk');
+    }
+  }, [sanitize, textContent]);
 
   if (autoFit && !children) {
     return (
