@@ -6,6 +6,7 @@ import { Label, Input, TextArea, Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 import { PresetSelect } from '../../ui/PresetSelect';
 import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
+import { isImageUrl, generateId } from '../../../utils/imageUrl';
 
 interface FieldProps {
   page: PageData;
@@ -26,7 +27,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     const features = page.features || [];
     if (features.some(f => !f.id)) {
       migratedRef.current.add(page.id);
-      const migrated = features.map(f => f.id ? f : { ...f, id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` });
+      const migrated = features.map(f => f.id ? f : { ...f, id: generateId("feat") });
       onUpdate({ ...page, features: migrated });
     }
   }, [page.id, page.features]);
@@ -60,7 +61,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     onUpdate({
       ...page,
       features: [...currentFeatures, { 
-        id: `feat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: generateId("feat"),
         title: 'New Feature', 
         description: 'Feature description goes here.', 
         icon: 'Globe' 
@@ -104,7 +105,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
 
   const renderCellPreview = (val: string) => {
     if (!val) return <Plus size={14} />;
-    const isImg = val.startsWith('data:image') || val.includes('http');
+    const isImg = isImageUrl(val);
     if (isImg) return <img src={val} className="w-full h-full object-cover rounded-md" />;
     const isMaterial = val.includes('_') || /^[a-z]/.test(val);
     if (isMaterial) return <span className="material-symbols-outlined notranslate text-[20px]" style={{ textTransform: 'none' }}>{val.toLowerCase()}</span>;
@@ -128,7 +129,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
       
       <div className={`space-y-6 ${!isVisible ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
         {(page.features || []).map((f, idx) => {
-          const isImg = f.icon?.startsWith('data:image') || f.icon?.includes('http');
+          const isImg = isImageUrl(f.icon || "");
           const isAdjusting = activeAdjustIdx === idx;
           const key = f.id || idx; // Fallback to idx while migration runs
 
