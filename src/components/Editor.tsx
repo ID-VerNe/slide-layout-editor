@@ -93,11 +93,10 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
     </div>
   );
 }, (prevProps, nextProps) => {
-  return (
-    prevProps.page === nextProps.page &&
-    prevProps.onUpdate === nextProps.onUpdate &&
-    shallowEqual(prevProps.customFonts, nextProps.customFonts)
-  );
+  const pageEqual = shallowEqual(prevProps.page, nextProps.page);
+  const onUpdateEqual = prevProps.onUpdate === nextProps.onUpdate;
+  const fontsEqual = shallowEqual(prevProps.customFonts, nextProps.customFonts);
+  return pageEqual && onUpdateEqual && fontsEqual;
 });
 
 export default Editor;
