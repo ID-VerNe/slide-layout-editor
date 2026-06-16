@@ -53,8 +53,8 @@ export function useImagePreload() {
 
     uniqueImages.forEach(img => {
       const isCurrentPageImage = currentPage ? extractPageImageUrls(currentPage).includes(img) : false;
-      imagePreloader.preload(img, isCurrentPageImage ? 'high' : 'normal').catch(() => {
-        // 单个图片预加载失败不应阻塞整体流程
+      imagePreloader.preload(img, isCurrentPageImage ? 'high' : 'normal').catch((err) => {
+        if (import.meta.env.DEV) console.debug('[ImagePreload] Failed:', img, err);
       });
     });
 

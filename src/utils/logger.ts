@@ -79,10 +79,17 @@ export function applyProdOverrides() {
       originalConsole.warn(...args);
     }
   };
-  
+
   console.error = (...args: any[]) => {
     originalConsole.error(...args);
   };
+
+  // Catch unhandled promise rejections and log them as errors
+  if (typeof window !== 'undefined') {
+    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+      console.error('[UnhandledRejection]', event.reason);
+    });
+  }
 }
 
 /**
