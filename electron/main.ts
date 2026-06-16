@@ -32,7 +32,7 @@ function createWindow() {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' asset: data: blob: https: http:; font-src 'self' asset: data: https://fonts.gstatic.com; connect-src 'self' https://api.gemini.com;"]
+        'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' asset: data: blob:; font-src 'self' asset: data: https://fonts.gstatic.com; connect-src 'self' https://api.gemini.com; object-src 'none'; frame-ancestors 'none';"]
       }
     });
   });
@@ -81,14 +81,21 @@ app.whenReady().then(async () => {
       return new Response(buffer, {
         headers: { 'Content-Type': mimeTypes[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'Access-Control-Allow-Origin': '*' }
       });
-    } catch (e) {
+    } catch (e: unknown) {
+      console.error('[Asset] Handler error:', e);
       return new Response(null, { status: 404 });
     }
   });
 
   createWindow();
 
-  ipcMain.handle('open-external', async (event, url) => { await shell.openExternal(url); });
+  ipcMain.handle('open-external', async (event, url) => {
+    if (typeof url !== 'string' || !url.startsWith('https://')) {
+      console.error('[open-external] Blocked non-HTTPS URL:', url);
+      return;
+    }
+    await shell.openExternal(url);
+  });
   ipcMain.handle('setActiveWorkspace', (event, path) => { archiveManager.setActiveWorkspace(path); });
   ipcMain.handle('list-projects', async () => { return await archiveManager.listProjects(); });
   ipcMain.handle('setCurrentProject', (event, { id, name }) => { archiveManager.setCurrentProject(id, name); });
@@ -102,7 +109,8 @@ app.whenReady().then(async () => {
       if (!existsSync(filePath)) return null;
       const buffer = await fs.readFile(filePath);
       return buffer.toString('base64');
-    } catch (e) {
+    } catch (e: unknown) {
+      console.error('[read-asset-file] Error:', e);
       return null;
     }
   });
@@ -113,7 +121,9 @@ app.whenReady().then(async () => {
       if (!win) return null;
       const image = await win.webContents.capturePage({ x: Math.floor(rect.x), y: Math.floor(rect.y), width: Math.floor(rect.width), height: Math.floor(rect.height) });
       return image.resize({ width: 400, quality: 'good' }).toDataURL();
-    } catch (e) { return null; }
+    } catch (e: unknown) {
+      console.error('[capture-page-to-thumbnail] Error:', e);
+      return null; }
   });
 
   ipcMain.handle('save-project', async (event, { filePath, content, defaultName }) => {
@@ -128,7 +138,7 @@ app.whenReady().then(async () => {
         if (canceled) return { success: false, canceled: true };
         targetPath = savePath;
       }
-      await archiveManager.saveProject(targetPath, content);
+      await archiveManager.saveProject(targetPath, JSON.parse(JSON.stringify(content)));
       return { success: true, filePath: targetPath };
     } catch (error: any) { return { success: false, error: error.message }; }
   });
