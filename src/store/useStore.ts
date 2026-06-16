@@ -82,6 +82,7 @@ interface ProjectState {
   setCurrentFilePath: (path: string | null) => void;
   markAsSaved: () => void;
   updatePage: (updatedPage: PageData, silent?: boolean) => void;
+  updatePages: (updates: Partial<PageData>[], silent?: boolean) => void;
   addPage: (ratio: AspectRatioType, layoutId: string) => void;
   removePage: (id: string) => void;
   reorderPages: (newPages: PageData[]) => void;
@@ -238,16 +239,17 @@ export const useStore = create<ProjectState>((set, get) => ({
       currentFilePath,
     };
 
-    // 粗略估算快照大小（通过 JSON 序列化长度）
+    // 保护：防止过大快照撑爆历史栈 —— 始终执行精确 JSON.stringify 大小校验
+    // 不用 pages.length * 2000 等粗略估算——单页可能包含超大字段（6MB+ 字符串、Base64 等）
+    const MAX_SNAPSHOT_SIZE = 5 * 1024 * 1024; // 5MB
     try {
-      const snapshotSize = JSON.stringify(snapshot).length;
-      const MAX_SNAPSHOT_SIZE = 5 * 1024 * 1024; // 5MB
-      if (snapshotSize > MAX_SNAPSHOT_SIZE) {
-        console.warn(`Snapshot too large (${(snapshotSize / 1024 / 1024).toFixed(2)}MB), skipping history`);
+      const actualSize = JSON.stringify(snapshot).length;
+      if (actualSize > MAX_SNAPSHOT_SIZE) {
+        console.warn(`Snapshot too large (${(actualSize / 1024 / 1024).toFixed(2)}MB), skipping history`);
         return;
       }
     } catch (e) {
-      console.error('Failed to estimate snapshot size:', e);
+      console.error('Failed to serialize snapshot for history:', e);
       return;
     }
 
@@ -277,26 +279,36 @@ export const useStore = create<ProjectState>((set, get) => ({
     if (!silent) get().pushHistory();
     const { pages } = get();
     const original = pages.find(p => p.id === updatedPage.id);
-    // 全局同步字段：统一从 constants/fields.ts 维护，避免双源定义不一致
-    let hasGlobalChange = false;
+
+    // 优化：预先计算需要同步的全局字段变更，避免在每页迭代中重复遍历 GLOBAL_FIELDS
+    const globalUpdates: Partial<PageData> = {};
     if (original) {
       GLOBAL_FIELDS.forEach(f => {
-        const next = (updatedPage as any)[f];
-        if (next !== undefined && next !== (original as any)[f]) hasGlobalChange = true;
+        const val = (updatedPage as any)[f];
+        if (val !== undefined && val !== (original as any)[f]) {
+          (globalUpdates as any)[f] = val;
+        }
       });
     }
-    let nextPages = pages.map(p => p.id === updatedPage.id ? updatedPage : p);
-    if (hasGlobalChange) {
-      nextPages = nextPages.map(p => {
-        if (p.id === updatedPage.id) return p;
-        const u: any = {};
-        GLOBAL_FIELDS.forEach(f => {
-          const next = (updatedPage as any)[f];
-          if (next !== undefined) u[f] = next;
-        });
-        return { ...p, ...u };
-      });
+
+    let nextPages: PageData[] = pages.map(p => (p.id === updatedPage.id ? updatedPage : p));
+
+    // 优化：仅在有全局同步字段变更时执行二次映射，并使用预计算对象避免重复 GLOBAL_FIELDS 遍历
+    const globalKeys = Object.keys(globalUpdates) as Array<keyof PageData>;
+    if (globalKeys.length > 0) {
+      nextPages = nextPages.map(p => (p.id === updatedPage.id ? p : { ...p, ...globalUpdates }));
     }
+
+    set({ pages: nextPages, hasUnsavedChanges: true });
+  },
+
+  updatePages: (updates, silent) => {
+    if (!silent) get().pushHistory();
+    const { pages } = get();
+    const nextPages = pages.map(page => {
+      const update = updates.find(u => 'id' in u && u.id === page.id);
+      return update ? { ...page, ...update } : page;
+    });
     set({ pages: nextPages, hasUnsavedChanges: true });
   },
 
