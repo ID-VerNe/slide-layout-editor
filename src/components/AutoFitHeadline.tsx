@@ -60,9 +60,17 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         console.error('Worker error:', e);
         workerRef.current?.terminate();
         workerRef.current = null;
+        // Worker failed — fall back to main-thread calculation
+        setIsCalculating(true);
+        setRetryCount(0);
+        setFontSize(maxSize);
       };
     } catch (e) {
       console.error('Failed to initialize font calculator worker', e);
+      // Worker init failed — fall back to main-thread calculation
+      setIsCalculating(true);
+      setRetryCount(0);
+      setFontSize(maxSize);
     }
     
     return () => {
@@ -160,6 +168,11 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   useEffect(() => {
     if (document.fonts) {
       document.fonts.ready.then(() => {
+        setIsCalculating(true);
+        setRetryCount(0);
+        setFontSize(maxSize);
+      }).catch(() => {
+        // Font loading failed — recalculate with default sizing
         setIsCalculating(true);
         setRetryCount(0);
         setFontSize(maxSize);
