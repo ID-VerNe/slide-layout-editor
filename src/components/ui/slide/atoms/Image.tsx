@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ImageConfig } from '../../../../types';
 
-export interface ImageConfig {
-  scale: number;
-  x: number;
-  y: number;
-}
+export type { ImageConfig };
 
 interface ImageProps {
   url?: string;
