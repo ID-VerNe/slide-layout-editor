@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 
 interface DebouncedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string;
@@ -7,40 +8,22 @@ interface DebouncedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEl
   debounce?: number;
 }
 
-export const DebouncedInput: React.FC<DebouncedInputProps> = ({ 
-  value: initialValue, 
-  onChange, 
+export const DebouncedInput: React.FC<DebouncedInputProps> = ({
+  value: initialValue,
+  onChange,
   onImmediateChange,
-  debounce = 300, 
-  ...props 
+  debounce = 300,
+  ...props
 }) => {
-  const [value, setValue] = useState(initialValue);
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
-    }
-    const handler = setTimeout(() => {
-      if (value !== initialValue) {
-        onChange(value);
-      }
-    }, debounce);
-
-    return () => clearTimeout(handler);
-  }, [value, debounce, onChange, initialValue]);
+  const [value, setValue] = useDebouncedValue(
+    initialValue,
+    onChange,
+    debounce,
+    onImmediateChange,
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = e.target.value;
-    setValue(newVal);
-    if (onImmediateChange) {
-      onImmediateChange(newVal);
-    }
+    setValue(e.target.value);
   };
 
   return (
@@ -60,40 +43,22 @@ interface DebouncedTextAreaProps extends Omit<React.TextareaHTMLAttributes<HTMLT
   debounce?: number;
 }
 
-export const DebouncedTextArea: React.FC<DebouncedTextAreaProps> = ({ 
-  value: initialValue, 
-  onChange, 
+export const DebouncedTextArea: React.FC<DebouncedTextAreaProps> = ({
+  value: initialValue,
+  onChange,
   onImmediateChange,
-  debounce = 300, 
-  ...props 
+  debounce = 300,
+  ...props
 }) => {
-  const [value, setValue] = useState(initialValue);
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-      return;
-    }
-    const handler = setTimeout(() => {
-      if (value !== initialValue) {
-        onChange(value);
-      }
-    }, debounce);
-
-    return () => clearTimeout(handler);
-  }, [value, debounce, onChange, initialValue]);
+  const [value, setValue] = useDebouncedValue(
+    initialValue,
+    onChange,
+    debounce,
+    onImmediateChange,
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newVal = e.target.value;
-    setValue(newVal);
-    if (onImmediateChange) {
-      onImmediateChange(newVal);
-    }
+    setValue(e.target.value);
   };
 
   return (
