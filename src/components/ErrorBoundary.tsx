@@ -1,6 +1,5 @@
-// @ts-nocheck
 import * as React from 'react';
-import { ErrorInfo, ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { logger } from '../utils/logger';
 import { AlertCircle, RefreshCcw, Home } from 'lucide-react';
 
