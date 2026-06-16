@@ -139,7 +139,7 @@ describe('IconPicker', () => {
     const dnaButton = screen.getByText(/^dna$/i).closest('button');
     fireEvent.click(dnaButton!);
 
-    const stored = JSON.parse(localStorage.getItem('magazine_editor_recent_assets') || '[]');
+    const stored = JSON.parse(localStorage.getItem('slidegrid_editor_recent_assets') || '[]');
     expect(stored).toContain('Dna');
   });
 
