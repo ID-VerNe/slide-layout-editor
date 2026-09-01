@@ -28,6 +28,7 @@ const preloadCommonTemplates = () => {
   }
 };
 
+// @lat: [[app]]
 export default function App() {
   useEffect(() => {
     preloadCommonTemplates();

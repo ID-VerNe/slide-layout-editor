@@ -36,6 +36,14 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({ layoutId, aspe
     backgroundColor: '#ffffff',
     accentColor: '#2a4a82',
     visibility: { logo: true },
+    // 双语专用 Mock
+    paragraphZH: '思源宋体对照译文，提供优美的文字影子层级。',
+    quoteZH: '极度纯粹的衬线排印与呼吸感金句译文。',
+    sideHeader: 'VOL. 01 // SELECTED ESSAYS',
+    vocabItems: [
+      { id: 'v1', word: 'SANCTUARY', pos: 'n.', phonetic: 'ˈsæŋk.tʃu.er.i', meaning: '圣所，庇护所' },
+      { id: 'v2', word: 'RESONANCE', pos: 'n.', phonetic: 'ˈrez.ən.əns', meaning: '共鸣；回响' }
+    ],
     // 简历专用 Mock
     resumeSections: [
       { title: 'EXPERIENCE', items: [{ title: 'Job', subtitle: 'Company', date: '2020', description: 'desc' }] },

@@ -9,6 +9,7 @@ enum LogLevel {
   ERROR = 3
 }
 
+// @lat: [[utils#logger.ts]]
 class Logger {
   private level: LogLevel = LogLevel.INFO;
 

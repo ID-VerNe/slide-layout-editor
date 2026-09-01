@@ -4,7 +4,7 @@
 
 // 核心重构：新增 resume 顶级分类
 export type OrientationType = 'landscape' | 'portrait' | 'square' | 'resume';
-export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+export type AspectRatioType = '16:9' | '2:3' | '3:4' | 'A4' | '1:1';
 
 export interface LayoutDimensions {
   width: number;
@@ -13,6 +13,7 @@ export interface LayoutDimensions {
   orientation: OrientationType;
 }
 
+// @lat: [[constants#layout.ts]]
 export const LAYOUT_CONFIG: Record<AspectRatioType, LayoutDimensions> = {
   '16:9': {
     width: 1920,
@@ -24,6 +25,12 @@ export const LAYOUT_CONFIG: Record<AspectRatioType, LayoutDimensions> = {
     width: 1080,
     height: 1620,
     label: 'Poster (2:3)',
+    orientation: 'portrait'
+  },
+  '3:4': {
+    width: 1080,
+    height: 1440,
+    label: 'Xiaohongshu (3:4)',
     orientation: 'portrait'
   },
   'A4': {

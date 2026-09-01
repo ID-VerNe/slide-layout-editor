@@ -1,6 +1,7 @@
 /**
  * 浅层比较对象，用于 React.memo 性能优化
  */
+// @lat: [[utils#comparison.ts]]
 export const shallowEqual = (objA: any, objB: any): boolean => {
   if (Object.is(objA, objB)) return true;
 

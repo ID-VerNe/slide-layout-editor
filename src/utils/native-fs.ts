@@ -34,6 +34,7 @@ declare global {
   }
 }
 
+// @lat: [[utils-native-fs]]
 export const nativeFs = {
   isElectron: (): boolean => {
     return !!window.electronAPI;

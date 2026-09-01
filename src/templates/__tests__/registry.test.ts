@@ -38,7 +38,7 @@ describe('Template Registry', () => {
   });
 
   it('category 枚举合法', () => {
-    const validCategories = ['Cover', 'Product', 'Marketing', 'General', 'Gallery', 'Resume'];
+    const validCategories = ['Cover', 'Product', 'Marketing', 'General', 'Gallery', 'Resume', 'Bilingual'];
     for (const t of TEMPLATES) {
       expect(validCategories).toContain(t.category);
     }

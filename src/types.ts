@@ -1,6 +1,6 @@
 import { TemplateId } from './templates/registry';
 
-export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+export type AspectRatioType = '16:9' | '2:3' | '3:4' | 'A4' | '1:1';
 export type CounterStyle = 'number' | 'alpha' | 'roman' | 'dots';
 export type BackgroundPatternType = 'none' | 'grid' | 'dots' | 'diagonal' | 'cross';
 
@@ -18,6 +18,17 @@ export interface TypographySettings {
 }
 
 // --- 数据结构定义 ---
+
+/** 策展式双语生词项 */
+export interface VocabItem {
+  id: string;
+  word: string;
+  phonetic?: string;
+  pos?: string; // 词性 如 adj. / n. / vt.
+  meaning: string;
+  example?: string;
+  exampleZH?: string;
+}
 
 export interface AgendaData {
   id: string;
@@ -140,6 +151,7 @@ export interface EditorialSplitData extends PageData {
 
 export type FieldType =
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph'
+  | 'paragraphZH' | 'quoteZH' | 'sideHeader' | 'vocabItems'
   | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
   | 'features' | 'bentoItems' | 'mosaic' | 'metrics'
   | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda'
@@ -195,6 +207,11 @@ export interface PageData {
   
   bullets?: string[];
   paragraph?: string;
+  paragraphZH?: string;
+  quoteZH?: string;
+  sideHeader?: string;
+  vocabItems?: VocabItem[];
+
   image?: string;
   imageLabel?: string;
   imageConfig?: {

@@ -6,7 +6,7 @@ describe('ComponentRegistry', () => {
     const expected = [
       'ZineDisplay', 'ZineBody', 'ZineCaption', 'ZineMedia',
       'ZineResume', 'ZineDivider', 'ZineIcon', 'ZineMetric',
-      'ZineLogo', 'ZineArtFont', 'BigDataMetrics',
+      'ZineLogo', 'ZineArtFont', 'BigDataMetrics', 'ZineVocabList',
     ];
     for (const name of expected) {
       const comp = COMPONENT_REGISTRY[name];

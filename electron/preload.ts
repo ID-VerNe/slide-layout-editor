@@ -11,6 +11,7 @@ function validatePathParam(name: string, value: string): string | null {
   return value;
 }
 
+// @lat: [[electron-preload]]
 contextBridge.exposeInMainWorld('electronAPI', {
   getAppPaths: async () => {
     try { return await ipcRenderer.invoke('get-app-paths'); }

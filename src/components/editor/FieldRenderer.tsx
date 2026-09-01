@@ -30,6 +30,10 @@ import { TitleYField } from './fields/TitleYField';
 import { GenericNumberField } from './fields/GenericNumberField';
 import { SeparatorField } from './fields/SeparatorField';
 import { ArtFontField } from './fields/ArtFontField';
+import { ParagraphZHField } from './fields/ParagraphZHField';
+import { QuoteZHField } from './fields/QuoteZHField';
+import { SideHeaderField } from './fields/SideHeaderField';
+import { VocabItemsField } from './fields/VocabItemsField';
 
 // 1. 定义具名组件映射 - 移到组件外部以保持引用稳定
 const componentMap: Record<string, React.FC<any>> = {
@@ -38,6 +42,10 @@ const componentMap: Record<string, React.FC<any>> = {
   subtitle: SubtitleField,
   actionText: ActionTextField,
   paragraph: ParagraphField,
+  paragraphZH: ParagraphZHField,
+  quoteZH: QuoteZHField,
+  sideHeader: SideHeaderField,
+  vocabItems: VocabItemsField,
   signature: ImageField,  // 签名现在使用 ImageField
   image: ImageField,
   imageLabel: ImageLabelField,

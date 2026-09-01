@@ -35,13 +35,17 @@ import {
   CommunityHubSchema,
   StepTimelineSchema,
   TableOfContentsSchema,
+  BilingualCoverSchema,
+  BilingualReaderSchema,
+  BilingualQuoteSchema,
+  BilingualGlossarySchema,
   TemplateSchema 
 } from './schemas';
 
 export interface TemplateConfig {
   id: string;
   name: string;
-  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Bilingual';
   desc: string;
   tags: string[];
   component: React.FC<{ page: any; typography?: any }>;
@@ -57,6 +61,7 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
   return [...base, ...custom];
 };
 
+// @lat: [[templates-registry]]
 export const TEMPLATES: TemplateConfig[] = [
   // --- Zine Modular Series (Phase 4) ---
   {
@@ -556,6 +561,191 @@ export const TEMPLATES: TemplateConfig[] = [
     schema: TableOfContentsSchema,
     fields: withBaseFields(['logo', 'title', 'subtitle', 'agenda']),
     supportedRatios: ['16:9', '2:3']
+  },
+
+  // --- 双语精读系列 (Bilingual Editorial Suite) ---
+  {
+    id: 'bilingual-cover',
+    name: 'Bilingual Cover',
+    category: 'Bilingual',
+    desc: 'Gallery-style bilingual editorial cover with high negative space and grand serif masthead.',
+    tags: ['Bilingual', 'Cover', 'Xiaohongshu', 'Cereal'],
+    component: () => null,
+    schema: BilingualCoverSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Magazine Masthead' },
+      { key: 'subtitle', label: 'Featured Article Title' },
+      { key: 'paragraphZH', label: 'Chinese Sub-Tagline' },
+      { key: 'image', label: 'Cover Image' },
+      { key: 'imageLabel', label: 'Photo Caption' },
+      { key: 'imageSubLabel', label: 'Issue Volume' },
+      { key: 'actionText', label: 'Edition Date/Year' },
+      { key: 'sideHeader', label: 'Side Stamp' }
+    ]),
+    defaultData: {
+      title: 'B I L I N G U A L  E S S A Y',
+      subtitle: 'The Quiet Architecture of Solitude',
+      paragraphZH: '独处的沉静建筑学：在喧嚣时代重建自我的精神画廊。',
+      image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1080&auto=format&fit=crop',
+      imageLabel: 'FIG. 01 — ARCHITECTURAL REFLECTION IN SILENCE',
+      imageSubLabel: 'VOL. 01 // ISSUE 04',
+      actionText: 'SPRING 2026',
+      sideHeader: 'SELECTED ESSAYS // THE TIMES',
+    },
+    supportedRatios: ['3:4', '2:3', '16:9']
+  },
+
+  {
+    id: 'bilingual-reader',
+    name: 'Bilingual Reader',
+    category: 'Bilingual',
+    desc: 'Editorial bilingual reading page with cinematic crop, drop cap, and curated vocabulary footnote.',
+    tags: ['Bilingual', 'Reader', 'Xiaohongshu', 'Editorial'],
+    component: () => null,
+    schema: BilingualReaderSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Chapter Header' },
+      { key: 'subtitle', label: 'Article Topic' },
+      { key: 'image', label: 'Cinematic Banner Image' },
+      { key: 'paragraph', label: 'English Body (Drop Cap)' },
+      { key: 'paragraphZH', label: 'Chinese Translation' },
+      { key: 'vocabItems', label: 'Curated Vocabulary' },
+      { key: 'sideHeader', label: 'Side Stamp' }
+    ]),
+    defaultData: {
+      title: 'THE ART OF LIVING',
+      subtitle: 'ESSAY // PART 01',
+      sideHeader: 'THE NEW YORKER // FEB 2026',
+      image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=1080&auto=format&fit=crop',
+      paragraph: 'Architecture begins where engineering ends. In the quiet morning light, we discover that solitude is not the absence of company, but the presence of oneself. It is an intentional sanctuary where thoughts find their authentic resonance.',
+      paragraphZH: '建筑在工程学止步之处诞生。在静谧晨光中，我们终将发现，独处并非陪伴的缺席，而是自我的真正驻足。它是一座静候沉思的心灵圣所。',
+      vocabItems: [
+        {
+          id: 'v1',
+          word: 'SANCTUARY',
+          pos: 'n.',
+          phonetic: 'ˈsæŋk.tʃu.er.i',
+          meaning: '圣所，庇护所；避难处'
+        },
+        {
+          id: 'v2',
+          word: 'RESONANCE',
+          pos: 'n.',
+          phonetic: 'ˈrez.ən.əns',
+          meaning: '共鸣；回响；深沉的声音'
+        },
+        {
+          id: 'v3',
+          word: 'AUTHENTIC',
+          pos: 'adj.',
+          phonetic: 'ɔːˈθen.tɪk',
+          meaning: '真实的，真正的；非仿造的'
+        },
+        {
+          id: 'v4',
+          word: 'SOLITUDE',
+          pos: 'n.',
+          phonetic: 'ˈsɒl.ɪ.tʃuːd',
+          meaning: '独处，独居；幽静'
+        }
+      ]
+    },
+    supportedRatios: ['3:4', '2:3', '16:9']
+  },
+
+  {
+    id: 'bilingual-quote',
+    name: 'Bilingual Quote',
+    category: 'Bilingual',
+    desc: 'High-impact typography quote slide with oversized serif aesthetic and subtle translation.',
+    tags: ['Bilingual', 'Quote', 'Xiaohongshu', 'Minimalist'],
+    component: () => null,
+    schema: BilingualQuoteSchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Section Topic' },
+      { key: 'paragraph', label: 'English Quote (Main Display)' },
+      { key: 'quoteZH', label: 'Chinese Quote Translation' },
+      { key: 'subtitle', label: 'Author / Speaker' },
+      { key: 'imageLabel', label: 'Book / Publication Source' },
+      { key: 'actionText', label: 'Volume Date' },
+      { key: 'sideHeader', label: 'Side Stamp' }
+    ]),
+    defaultData: {
+      title: 'WORDS OF RESONANCE',
+      actionText: 'VOL. 01 // 2026',
+      sideHeader: 'QUOTE OF THE DAY // ESSAYS',
+      paragraph: 'I was desperate to fit in, until I realized that belonging starts with self-acceptance.',
+      quoteZH: '我曾拼尽全力想要融入群体，直到后来才顿悟：真正的归属感，始于毫无保留地接纳自己。',
+      subtitle: 'ALAIN DE BOTTON',
+      imageLabel: 'FROM 《THE ARCHITECTURE OF HAPPINESS》'
+    },
+    supportedRatios: ['3:4', '2:3', '16:9']
+  },
+
+  {
+    id: 'bilingual-glossary',
+    name: 'Bilingual Glossary',
+    category: 'Bilingual',
+    desc: 'Curated gallery vocabulary cards with phonetic, part-of-speech, and contextual bilingual examples.',
+    tags: ['Bilingual', 'Vocabulary', 'Xiaohongshu', 'Lexicon'],
+    component: () => null,
+    schema: BilingualGlossarySchema,
+    fields: withBaseFields([
+      { key: 'title', label: 'Glossary Title' },
+      { key: 'subtitle', label: 'Volume / Section Header' },
+      { key: 'actionText', label: 'Term Count / Index' },
+      { key: 'vocabItems', label: 'Curated Vocabulary List' },
+      { key: 'paragraphZH', label: 'Reading Tips / Colophon' },
+      { key: 'imageLabel', label: 'Archive Tag' },
+      { key: 'sideHeader', label: 'Side Stamp' }
+    ]),
+    defaultData: {
+      title: 'CURATED VOCABULARY',
+      subtitle: 'THE ESSAY ARCHIVE // ISSUE 01',
+      actionText: '4 KEY TERMS',
+      sideHeader: 'LEXICON ARCHIVE // VOL. 01',
+      paragraphZH: '※ 重点词汇精选自本期外刊精读，建议结合原句语境进行沉浸式复述。',
+      imageLabel: 'ARCHIVE NO. 2026-04',
+      vocabItems: [
+        {
+          id: 'v1',
+          word: 'DESPERATE',
+          pos: 'adj.',
+          phonetic: 'ˈdes.pər.ət',
+          meaning: '拼命的，绝望的；极其渴望的',
+          example: 'He was desperate for any sign of approval.',
+          exampleZH: '他极度渴望得到一丝认可的迹象。'
+        },
+        {
+          id: 'v2',
+          word: 'EPHEMERAL',
+          pos: 'adj.',
+          phonetic: 'ɪˈfem.ər.əl',
+          meaning: '短暂的；瞬息即逝的',
+          example: 'Fame in the modern world is often ephemeral.',
+          exampleZH: '在现代社会，名声往往转瞬即逝。'
+        },
+        {
+          id: 'v3',
+          word: 'METICULOUS',
+          pos: 'adj.',
+          phonetic: 'məˈtɪk.jə.ləs',
+          meaning: '一丝不苟的，缜密的',
+          example: 'Her attention to typographical detail was meticulous.',
+          exampleZH: '她对排印细节的把控严谨而缜密。'
+        },
+        {
+          id: 'v4',
+          word: 'SERENDIPITY',
+          pos: 'n.',
+          phonetic: 'ˌser.ənˈdɪp.ə.ti',
+          meaning: '机缘凑巧；偶然发现珍奇事物的本领',
+          example: 'Finding this book was a pure moment of serendipity.',
+          exampleZH: '偶遇这本书是一次绝妙的机缘。'
+        }
+      ]
+    },
+    supportedRatios: ['3:4', '2:3', '16:9']
   }
 ];
 

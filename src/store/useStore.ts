@@ -96,6 +96,7 @@ const deepClone = <T>(obj: T): T => structuredClone(obj);
 /** loadProject 请求 ID，用于取消过时的异步加载 */
 let loadRequestId = 0;
 
+// @lat: [[store#Project State]]
 export const useStore = create<ProjectState>((set, get) => ({
   pages: [], 
   projectTitle: '', 
@@ -133,6 +134,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     return id;
   },
 
+  // @lat: [[store#Project Loading]]
   loadProject: async (idOrData, templateId, filePath) => {
     const reqId = ++loadRequestId;
 
@@ -221,6 +223,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     }
   },
 
+  // @lat: [[store#Undo-Redo]]
   pushHistory: () => {
     const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex, currentFilePath } = get();
 
@@ -275,6 +278,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   setCurrentFilePath: (currentFilePath) => set({ currentFilePath }),
   markAsSaved: () => set({ hasUnsavedChanges: false }),
 
+  // @lat: [[store#GLOBAL_FIELDS Sync]]
   updatePage: (updatedPage, silent) => {
     if (!silent) get().pushHistory();
     const { pages } = get();

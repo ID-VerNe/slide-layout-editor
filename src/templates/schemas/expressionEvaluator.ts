@@ -17,6 +17,7 @@ type Token =
   | { type: 'operator'; value: string }
   | { type: 'punct'; value: string };
 
+// @lat: [[templates-schemas#Expression Evaluator]]
 function tokenize(expr: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;

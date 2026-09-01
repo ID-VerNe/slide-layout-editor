@@ -36,3 +36,7 @@ export * from './Universal-Marketing/testimonial-card';
 export * from './Universal-Marketing/community-hub';
 export * from './Universal-General/step-timeline';
 export * from './Universal-General/table-of-contents';
+export * from './Bilingual-Editorial/bilingual-cover';
+export * from './Bilingual-Editorial/bilingual-reader';
+export * from './Bilingual-Editorial/bilingual-quote';
+export * from './Bilingual-Editorial/bilingual-glossary';

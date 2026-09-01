@@ -1,5 +1,6 @@
 import { ProjectTheme, PrintSettings, DesignSystem } from '../types';
 
+// @lat: [[constants#theme.ts|Design Tokens]]
 export const DEFAULT_THEME: ProjectTheme = {
   colors: { 
     primary: '#0F172A', 

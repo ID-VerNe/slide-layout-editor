@@ -10,11 +10,13 @@ import { ZineMetric } from '../../components/ui/slide/atoms/ZineMetric';
 import { ZineLogo } from '../../components/ui/slide/atoms/ZineLogo';
 import { ZineArtFont } from '../../components/ui/slide/atoms/ZineArtFont';
 import { BigDataMetrics } from '../../components/ui/slide/atoms/BigDataMetrics';
+import { ZineVocabList } from '../../components/ui/slide/atoms/ZineVocabList';
 
 /**
  * Zine V3 组件注册表
  * 仅保留全新的原子化组件，彻底移除旧版 Slide* 组件。
  */
+// @lat: [[templates-schemas#Component Registry]]
 export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   ZineDisplay,
   ZineBody,
@@ -27,6 +29,7 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   ZineLogo,
   ZineArtFont,
   BigDataMetrics,
+  ZineVocabList,
 };
 
 export type RegisteredComponentType = keyof typeof COMPONENT_REGISTRY;

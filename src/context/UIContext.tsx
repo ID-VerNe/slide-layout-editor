@@ -18,6 +18,7 @@ interface UIContextType {
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
+// @lat: [[context]]
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,

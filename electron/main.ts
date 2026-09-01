@@ -44,6 +44,7 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   // --- 核心修复：更稳健的资产协议处理器 ---
+  // @lat: [[electron-main#Asset Protocol]]
   protocol.handle('asset', async (req) => {
     try {
       // 1. 直接截取，不使用 URL 对象以防 hostname 解析失败

@@ -6,6 +6,7 @@ const STORE_PROJECTS = 'projects';
 const STORE_ASSETS = 'assets'; 
 const DB_VERSION = 3;
 
+// @lat: [[utils-db]]
 export function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);

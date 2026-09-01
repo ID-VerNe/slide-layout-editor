@@ -20,6 +20,7 @@ interface LayoutRendererProps {
  * LayoutRenderer - 递归渲染 JSON 模板节点
  * 强制全局 Zine Mode：支持 24x24 模块化网格与 Design System 审美约束
  */
+// @lat: [[templates-schemas#LayoutRenderer]]
 export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   node,
   page,
