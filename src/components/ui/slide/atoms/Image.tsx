@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ImageConfig } from '../../../../types';
-
-import { logger } from '../../../../utils/logger';
+import { calculateCoverBounds, resolveSafePanOffset } from '../../../../utils/imageGeometry';
 
 export type { ImageConfig };
 
@@ -42,11 +41,31 @@ export const Image: React.FC<ImageProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [showLqip, setShowLqip] = useState(true);
   const [imgRef, setImgRef] = useState<HTMLImageElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     setIsLoaded(false);
     setShowLqip(true);
   }, [url]);
+
+  // 测量容器尺寸用于亚像素级平移边界计算
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setContainerSize({ width: rect.width, height: rect.height });
+      }
+    };
+    updateSize();
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(updateSize);
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+  }, []);
 
   // 检查缓存图片是否已经加载完成
   useEffect(() => {
@@ -74,15 +93,43 @@ export const Image: React.FC<ImageProps> = ({
 
   const isContain = styleObjectFit === 'contain';
 
-  // 1. 缩放范围安全控制：
-  // 包含模式（如签名、Logo等独立资产）允许缩小至 0.05
-  // 裁切模式（Cover 满幅照片）最小保持 1（避免露出画框白边）
-  const minScale = isContain ? 0.05 : 1;
-  const safeScale = Math.max(minScale, config.scale !== undefined ? config.scale : 1);
+  // 1. 缩放与平移变换安全计算 (接入 imageGeometry 纯数学模型)
+  const { shiftX, shiftY, safeScale, isPixelUnit } = useMemo(() => {
+    if (isContain) {
+      const minScale = 0.05;
+      const s = Math.max(minScale, config.scale !== undefined ? config.scale : 1);
+      return {
+        shiftX: (config.x || 0) * 0.5,
+        shiftY: (config.y || 0) * 0.5,
+        safeScale: s,
+        isPixelUnit: false,
+      };
+    }
 
-  // 2. 平移变换：以中心为基准进行平滑 translate 平移
-  const translateX = (config.x || 0) * 0.5;
-  const translateY = (config.y || 0) * 0.5;
+    const scale = Math.max(1, config.scale !== undefined ? config.scale : 1);
+    const cW = containerSize.width;
+    const cH = containerSize.height;
+    const nW = imgRef?.naturalWidth || 0;
+    const nH = imgRef?.naturalHeight || 0;
+
+    if (cW > 0 && cH > 0 && nW > 0 && nH > 0) {
+      const bounds = calculateCoverBounds(cW, cH, nW, nH, scale);
+      const offset = resolveSafePanOffset(config.x || 0, config.y || 0, bounds);
+      return {
+        shiftX: offset.shiftX,
+        shiftY: offset.shiftY,
+        safeScale: scale,
+        isPixelUnit: true,
+      };
+    }
+
+    return {
+      shiftX: 0,
+      shiftY: 0,
+      safeScale: scale,
+      isPixelUnit: true,
+    };
+  }, [isContain, config.scale, config.x, config.y, containerSize.width, containerSize.height, imgRef?.naturalWidth, imgRef?.naturalHeight]);
 
   const containerStyle = useMemo(() => ({
     overflow: styleOverflow || (isContain ? 'visible' : 'hidden'),
@@ -95,16 +142,18 @@ export const Image: React.FC<ImageProps> = ({
   }), [aspectRatio, remainingStyle, styleOverflow, isContain]);
 
   const imageStyle = useMemo(() => ({
-    transform: `translate(${translateX}%, ${translateY}%) scale(${safeScale})`,
+    transform: isPixelUnit
+      ? `translate(${shiftX}px, ${shiftY}px) scale(${safeScale})`
+      : `translate(${shiftX}%, ${shiftY}%) scale(${safeScale})`,
     transformOrigin: 'center center',
     width: '100%',
     height: '100%',
     objectFit: styleObjectFit || 'cover',
     objectPosition: styleObjectPosition || 'center center'
-  }), [translateX, translateY, safeScale, styleObjectFit, styleObjectPosition]);
+  }), [isPixelUnit, shiftX, shiftY, safeScale, styleObjectFit, styleObjectPosition]);
 
   return (
-    <div className={className} style={containerStyle}>
+    <div ref={containerRef} className={className} style={containerStyle}>
       {/* LQIP Placeholder */}
       {lqip && showLqip && (
         <img

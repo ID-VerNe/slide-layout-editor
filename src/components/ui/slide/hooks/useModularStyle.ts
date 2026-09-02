@@ -13,113 +13,10 @@ interface UseModularStyleProps {
   page?: PageData; // 传入 page 以自动获取 styleOverrides
 }
 
-/** Resolves modular font size into exact physical pixel value */
-export function resolveModularFontSize(size: number | string | undefined | null): number | undefined {
-  if (size === undefined || size === null) return undefined;
+import { resolveModularFontSize, resolveModularLineHeight } from '../utils/typographyScale';
+import { resolveDockingStyle } from '../utils/dockingResolver';
 
-  // 1. 数字类型：严格按 8px 基线网格换算
-  if (typeof size === 'number') {
-    if (isNaN(size) || size <= 0) return undefined;
-    return Math.round(size * 8);
-  }
-
-  const str = String(size).trim();
-  if (!str) return undefined;
-
-  // 2. rem 与 em 单位：基准 16px 换算为像素
-  if (str.endsWith('rem') || str.endsWith('em')) {
-    const val = parseFloat(str);
-    return isNaN(val) ? undefined : Math.round(val * 16);
-  }
-
-  // 3. px 单位：直接读取像素数值
-  if (str.endsWith('px')) {
-    const val = parseFloat(str);
-    return isNaN(val) ? undefined : Math.round(val);
-  }
-
-  // 4. pt 单位：1pt = 4/3 px
-  if (str.endsWith('pt')) {
-    const val = parseFloat(str);
-    return isNaN(val) ? undefined : Math.round(val * (4 / 3));
-  }
-
-  // 5. 纯数字字符串：遵循 8px 基线网格换算
-  const num = parseFloat(str);
-  if (!isNaN(num) && num > 0) {
-    return Math.round(num * 8);
-  }
-
-  return undefined;
-}
-
-/** Resolves 9-point docking and self alignment across CSS Grid and Flexbox layouts */
-export function resolveDockingStyle(
-  style: React.CSSProperties,
-  overrides?: Record<string, any>
-): React.CSSProperties {
-  const finalStyle: React.CSSProperties = { ...style };
-  
-  const hasManualAlignment = Boolean(
-    overrides && 
-    (overrides.alignSelf !== undefined || overrides.justifySelf !== undefined)
-  );
-
-  // 判断是否为 CSS Grid 直接子节点（具有网格行列声明）
-  const isGridItem = Boolean(
-    finalStyle.gridColumnStart !== undefined ||
-    finalStyle.gridColumnEnd !== undefined ||
-    finalStyle.gridRowStart !== undefined ||
-    finalStyle.gridRowEnd !== undefined
-  );
-
-  if (hasManualAlignment && overrides) {
-    if (isGridItem) {
-      // CSS Grid 规范：alignSelf 为垂直轴，justifySelf 为水平轴
-      if (overrides.alignSelf !== undefined) {
-        finalStyle.alignSelf = overrides.alignSelf;
-      }
-      if (overrides.justifySelf !== undefined) {
-        finalStyle.justifySelf = overrides.justifySelf;
-      }
-      if (overrides.justifySelf && overrides.justifySelf !== 'stretch') {
-        finalStyle.width = style.width || undefined;
-      } else {
-        finalStyle.width = style.width || '100%';
-      }
-    } else {
-      // Flexbox column 规范：交叉轴为水平方向，主轴通过外边距控制
-      if (overrides.justifySelf !== undefined) {
-        const hVal = overrides.justifySelf;
-        finalStyle.alignSelf = hVal === 'start' ? 'flex-start' : hVal === 'end' ? 'flex-end' : hVal;
-      }
-
-      if (overrides.alignSelf === 'start') {
-        finalStyle.marginTop = '0';
-        finalStyle.marginBottom = 'auto';
-      } else if (overrides.alignSelf === 'end') {
-        finalStyle.marginTop = 'auto';
-        finalStyle.marginBottom = '0';
-      } else if (overrides.alignSelf === 'center') {
-        finalStyle.marginTop = 'auto';
-        finalStyle.marginBottom = 'auto';
-      }
-
-      delete finalStyle.justifySelf;
-
-      if (overrides.justifySelf && overrides.justifySelf !== 'stretch') {
-        finalStyle.width = style.width || undefined;
-      } else {
-        finalStyle.width = style.width || '100%';
-      }
-    }
-  } else {
-    // 未设置 9 点对齐时默认铺满宽度，保证文本对齐可以完整居中或贴边
-    finalStyle.width = style.width || '100%';
-  }
-
-  return finalStyle;
-}
+export { resolveModularFontSize, resolveModularLineHeight, resolveDockingStyle };
 
 /**
  * useModularStyle - 统一处理样式优先级与 Zine Mode 约束
@@ -313,7 +210,7 @@ export const useModularStyle = ({
       'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
       'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
       'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin',
-      'objectFit', 'objectPosition'
+      'objectFit', 'objectPosition', 'wordBreak', 'overflowWrap'
     ];
     
     const filteredStyle: any = {};

@@ -31,8 +31,26 @@ export const Section = ({ children, className = "" }: { children: React.ReactNod
   </section>
 );
 
-export const Slider = ({ label, value, min, max, step, onChange, unit = "" }: { label?: string, value: number, min: number, max: number, step: number, onChange: (val: number) => void, unit?: string }) => (
-  <div className={`grid ${label ? 'grid-cols-[120px_1fr_50px]' : 'grid-cols-[1fr_50px]'} items-center gap-4 group min-h-[32px]`}>
+export const Slider = ({ 
+  label, 
+  value, 
+  min, 
+  max, 
+  step, 
+  onChange, 
+  unit = "",
+  disabled = false
+}: { 
+  label?: string, 
+  value: number, 
+  min: number, 
+  max: number, 
+  step: number, 
+  onChange: (val: number) => void, 
+  unit?: string,
+  disabled?: boolean
+}) => (
+  <div className={`grid ${label ? 'grid-cols-[120px_1fr_50px]' : 'grid-cols-[1fr_50px]'} items-center gap-4 group min-h-[32px] ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
     {label && <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400 group-hover:text-slate-950 transition-colors truncate" title={label}>{label}</span>}
     <div className="flex items-center h-full">
       <input
@@ -41,11 +59,13 @@ export const Slider = ({ label, value, min, max, step, onChange, unit = "" }: { 
         max={max}
         step={step}
         value={value}
+        disabled={disabled}
         onChange={(e) => {
+          if (disabled) return;
           const parsed = parseFloat(e.target.value);
           onChange(Number.isNaN(parsed) ? value : parsed);
         }}
-        className="w-full h-[1px] bg-slate-200 appearance-none cursor-pointer accent-slate-950 hover:bg-slate-400 transition-all"
+        className="w-full h-[1px] bg-slate-200 appearance-none cursor-pointer accent-slate-950 hover:bg-slate-400 transition-all disabled:cursor-not-allowed"
       />
     </div>
     <div className="relative flex items-center h-full">
@@ -55,11 +75,13 @@ export const Slider = ({ label, value, min, max, step, onChange, unit = "" }: { 
         max={max}
         step={step}
         value={value}
+        disabled={disabled}
         onChange={(e) => {
+          if (disabled) return;
           const parsed = parseFloat(e.target.value);
           onChange(Number.isNaN(parsed) ? value : parsed);
         }}
-        className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-950 rounded-none px-1 py-1 text-[11px] font-black font-mono text-slate-950 text-right focus:outline-none transition-all appearance-none"
+        className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-950 rounded-none px-1 py-1 text-[11px] font-black font-mono text-slate-950 text-right focus:outline-none transition-all appearance-none disabled:cursor-not-allowed"
       />
     </div>
   </div>
