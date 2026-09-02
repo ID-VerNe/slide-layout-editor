@@ -17,11 +17,29 @@
 
 ### 1. 尺寸与行高 (Size & Leading)
 
-*   **`size` (Number)**: 使用 **8px 的倍数** 作为字号单位。
-    *   `size: 2` -> `16px`
-    *   `size: 10` -> `80px`
-    *   **优势**: 自动计算行高并吸附到 8px 基线。
-*   **`leading` (Number)**: 行高倍数，默认为 `1.2`。渲染引擎会自动对结果进行像素取整，确保文本行完美对齐网格基线。
+*   **`size` (Number | String)**: 基于 **8px 基线倍数** 进行换算（由 `resolveModularFontSize` 统一处理）：
+    *   `size: 1` -> `8px` (微型标注 / Caption)
+    *   `size: 1.25` -> `10px` (元数据标签 / Meta Tag)
+    *   `size: 1.5` -> `12px` (小字说明 / Subtitle)
+    *   `size: 2` -> `16px` (正文基准 / Body Base)
+    *   `size: 2.25` -> `18px` (双语生词 / Large Body)
+    *   `size: 3` -> `24px` (小标题 / H3)
+    *   `size: 4` -> `32px` (二级标题 / H2)
+    *   `size: 6` -> `48px` (主标题 / H1)
+    *   `size: 8` -> `64px` (巨幅展示标 / Display Hero)
+    *   `size: 10+` -> `80px+` (艺术刊头 / Masthead)
+*   **多单位与类型安全解析 (`resolveModularFontSize`)**:
+    *   **数字类型**: 严格按 8px 律动基线换算（`size * 8`）；
+    *   **纯数字字符串**: 如 `"1.5"`、`"2"` 同样自动换算为像素倍数（`12px`、`16px`）；
+    *   **CSS 单位字符串**:
+        *   `"1.5rem"` / `"1.5em"` -> 基于 16px 标准换算为 `24px`；
+        *   `"24px"` -> 直接保留为 `24px`；
+        *   `"12pt"` -> 按印刷 4/3 比率换算为 `16px`。
+*   **`leading` (Number)**: 行高倍数，默认为 `1.2`。渲染引擎会自动对 `fontSize * leading` 向上吸附取整到 8px 网格，确保文本行完美对齐基线。
+*   **原子组件可读性保护**:
+    *   `ZineVocabList`：默认基准字号为 `2.25`（18px），内部针对词头（≥16px）、释义（≥14px）、音标（≥12px）设置物理像素下限，避免极端缩放时文字坍塌；
+    *   `ZineMetric`：默认值基于 8px 网格规范（`72px`），消费 `variant: 'display'` Token；
+    *   `ZineIcon`：`size <= 10` 时智能识别为 8px 基线倍数（`size: 1.5` -> 12px），`size > 10` 时作为物理像素（如 `size: 24` -> 24px）。
 
 ### 2. 字体族选择 (Font Identity)
 
@@ -124,3 +142,5 @@
 1.  **基线吸附**: 确保 `fontSize * leading` 始终是 8 的倍数。
 2.  **黑名单过滤**: 自动剔除 `className` 中不符合 Zine Mode 工业审美的 Tailwind 类名（如阴影、模糊、动画）。
 3.  **负边距补偿**: 自动通过 `margin-right` 负值抵消 `letter-spacing` 在末尾字符产生的偏移，确保对齐完美。
+4.  **单位安全换算**: 内置 `resolveModularFontSize`，彻底杜绝字符串或带单位数值（如 `"1.5"`、`"1.5rem"`）被误吞为极小物理像素。
+5.  **画幅与视口自适应**: 横版 16:9（1920x1080）与竖版 2:3/3:4/A4 画布通过统一的 8px 模数保持严密的排版节奏与层级感。

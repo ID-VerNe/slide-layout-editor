@@ -21,7 +21,7 @@ export const GalleryCapsuleSchema: TemplateSchema = {
         layout: 'absolute',
         layoutProps: { inset: 0 },
         className: 'opacity-[0.02] pointer-events-none',
-        style: { backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '40px 40px' },
+        style: { backgroundImage: 'radial-gradient(currentColor 1px, transparent 1px)', backgroundSize: '40px 40px' },
         children: []
       },
 
@@ -64,28 +64,28 @@ export const GalleryCapsuleSchema: TemplateSchema = {
           {
             type: 'Container',
             modular: { colStart: 1, colSpan: 1, rowStart: 1, rowSpan: 1 },
-            className: 'mt-10 h-[80%] rounded-full border-[4px] border-white shadow-xl overflow-hidden',
+            className: 'mt-10 h-[80%] rounded-full border-[4px] border-zine-surface shadow-xl overflow-hidden',
             children: [{ type: 'Component', componentType: 'ZineMedia', props: { src: '{page.gallery[0]?.url}', className: 'w-full h-full', rounded: '9999px' } }]
           },
           // Capsule 2
           {
             type: 'Container',
             modular: { colStart: 2, colSpan: 1, rowStart: 1, rowSpan: 1 },
-            className: '-mt-10 h-[85%] rounded-full border-[4px] border-white shadow-xl overflow-hidden',
+            className: '-mt-10 h-[85%] rounded-full border-[4px] border-zine-surface shadow-xl overflow-hidden',
             children: [{ type: 'Component', componentType: 'ZineMedia', props: { src: '{page.gallery[1]?.url}', className: 'w-full h-full', rounded: '9999px' } }]
           },
           // Capsule 3
           {
             type: 'Container',
             modular: { colStart: 3, colSpan: 1, rowStart: 1, rowSpan: 1 },
-            className: 'mt-6 h-[82%] rounded-full border-[4px] border-white shadow-xl overflow-hidden',
+            className: 'mt-6 h-[82%] rounded-full border-[4px] border-zine-surface shadow-xl overflow-hidden',
             children: [{ type: 'Component', componentType: 'ZineMedia', props: { src: '{page.gallery[2]?.url}', className: 'w-full h-full', rounded: '9999px' } }]
           },
           // Capsule 4
           {
             type: 'Container',
             modular: { colStart: 4, colSpan: 1, rowStart: 1, rowSpan: 1 },
-            className: '-mt-4 h-[78%] rounded-full border-[4px] border-white shadow-xl overflow-hidden',
+            className: '-mt-4 h-[78%] rounded-full border-[4px] border-zine-surface shadow-xl overflow-hidden',
             children: [{ type: 'Component', componentType: 'ZineMedia', props: { src: '{page.gallery[3]?.url}', className: 'w-full h-full', rounded: '9999px' } }]
           }
         ]

@@ -71,8 +71,19 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   const isImage = mode === 'image' || (!mode && (fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('logo') || fieldKey.toLowerCase().includes('media')) && !fieldKey.toLowerCase().includes('label') && !fieldKey.toLowerCase().includes('text'));
   const isText = mode === 'text' || (!isDivider && !isImage);
   
-  // 语义化属性解析
-  const currentSize = overrides.size !== undefined ? overrides.size : (fieldKey === 'title' ? 4 : 1.5);
+  // 语义化属性解析（提供贴合排版层级的合理初始阶梯）
+  const getDefaultSizeForField = (key: string): number => {
+    const lk = key.toLowerCase();
+    if (lk === 'title' || lk === 'heading') return 4; // 32px (H2)
+    if (lk.includes('display') || lk.includes('hero')) return 6; // 48px (H1)
+    if (lk.includes('quote')) return 3; // 24px
+    if (lk.includes('metric') || lk.includes('number') || lk.includes('stat')) return 5; // 40px
+    if (lk.includes('sub') || lk.includes('desc') || lk.includes('para') || lk.includes('body')) return 2; // 16px (Body)
+    if (lk.includes('caption') || lk.includes('meta') || lk.includes('tag') || lk.includes('badge')) return 1.25; // 10px (Caption)
+    return 2; // 默认正文字号 16px，避免突降为 12px
+  };
+
+  const currentSize = overrides.size !== undefined ? overrides.size : getDefaultSizeForField(fieldKey);
   const currentThickness = overrides.thickness || 1;
   const currentLength = overrides.width || '100%';
   const currentColor = overrides.color || ds.tokens.colors.primary;

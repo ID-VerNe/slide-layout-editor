@@ -61,7 +61,7 @@ export const AppleBentoGridSchema: TemplateSchema = {
               type: 'Component',
               componentType: 'ZineDisplay',
               bind: 'page.metricValue',
-              props: { size: 7.5, className: 'text-white' }
+              props: { size: 7.5, color: 'surface' }
             }]
           }
         ]

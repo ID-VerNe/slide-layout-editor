@@ -76,12 +76,17 @@ export const KinfolkEssaySchema: TemplateSchema = {
                 condition: '{page.signature}',
                 then: {
                   type: 'Container',
-                  className: 'mt-4 self-end',
+                  className: 'mt-6 self-end',
                   children: [
                     {
                       type: 'Component',
                       componentType: 'ZineMedia',
-                      props: { src: '{page.signature}', className: 'h-16 w-auto mix-blend-multiply opacity-80', style: { objectFit: 'contain' } }
+                      fieldKey: 'signature',
+                      props: {
+                        fieldKey: 'signature',
+                        className: 'mix-blend-multiply opacity-85',
+                        style: { width: '12rem', height: '5rem', objectFit: 'contain' }
+                      }
                     }
                   ]
                 }
@@ -109,7 +114,7 @@ export const KinfolkEssaySchema: TemplateSchema = {
               className: 'mb-8',
               children: [
                 { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.label}', size: 1.125, bold: true, tracking: 0.4, sans: true, className: 'opacity-30 uppercase' } },
-                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 1.5, bold: true, tracking: -0.025, sans: true } }
+                { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.value}', size: 2.5, bold: true, tracking: -0.025, sans: true } }
               ]
             }
           }

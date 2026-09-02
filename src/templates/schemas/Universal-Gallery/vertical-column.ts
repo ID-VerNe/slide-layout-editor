@@ -38,7 +38,7 @@ export const VerticalColumnSchema: TemplateSchema = {
               layout: 'flex',
               layoutProps: { direction: 'row', align: 'center', justify: 'center', gap: 'spacing.md' },
               modular: { colStart: 1, colSpan: 8, rowStart: 1, rowSpan: 24 },
-              className: 'bg-white z-20',
+              className: 'bg-zine-surface z-20',
               children: [
                 {
                   type: 'Component',
@@ -87,7 +87,7 @@ export const VerticalColumnSchema: TemplateSchema = {
               layout: 'flex',
               layoutProps: { direction: 'row', align: 'center', justify: 'center', gap: 'spacing.md' },
               modular: { colStart: 17, colSpan: 8, rowStart: 1, rowSpan: 24 },
-              className: 'bg-white z-20',
+              className: 'bg-zine-surface z-20',
               children: [
                 {
                   type: 'Component',
@@ -127,7 +127,7 @@ export const VerticalColumnSchema: TemplateSchema = {
           align: '{page.layoutVariant === "right" ? "right" : "left"}',
           color: 'surface',
           sans: true,
-          className: '{page.layoutVariant === "right" ? "pr-12" : "pl-12"} opacity-60 mix-blend-difference !text-white'
+          className: '{page.layoutVariant === "right" ? "pr-12" : "pl-12"} opacity-60 mix-blend-difference'
         }
       }
     ]

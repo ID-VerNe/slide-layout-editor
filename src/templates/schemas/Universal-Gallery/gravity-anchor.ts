@@ -73,9 +73,9 @@ export const GravityAnchorIntroSchema: TemplateSchema = {
             modular: { colStart: 2, colSpan: 12, rowStart: 12, rowSpan: 1 },
             style: { position: 'absolute', bottom: '24px', left: '24px', mixBlendMode: 'difference' },
             props: {
-              color: 'secondary',
+              color: 'surface',
               sans: true,
-              className: '!text-white !opacity-70'
+              className: 'opacity-70'
             }
           }
         ]

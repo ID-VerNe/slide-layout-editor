@@ -18,7 +18,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-white',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
       // 1. 顶部页眉与来源 (Top Running Header)
       {
@@ -26,7 +26,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'between' },
         modular: { colStart: 3, colSpan: 19, rowStart: 3, rowSpan: 1 },
-        className: 'border-b border-slate-900/10 pb-2',
+        className: 'border-b border-zine-accent/10 pb-2',
         children: [
           {
             type: 'Component',
@@ -99,7 +99,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
           size: 4.5,
           leading: 1.35,
           align: 'left',
-          className: 'font-serif text-slate-900 tracking-tight',
+          className: 'font-serif text-zine-primary tracking-tight',
           color: 'primary',
         },
       },
@@ -109,7 +109,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 3, colSpan: 4, rowStart: 16, rowSpan: 1 },
-        className: 'border-t-2 border-slate-900/30 mt-2',
+        className: 'border-t-2 border-zine-accent/30 mt-2',
         children: [],
       },
 
@@ -124,7 +124,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
           size: 2.0,
           leading: 1.7,
           align: 'left',
-          className: 'text-slate-600 font-serif opacity-75',
+          className: 'text-zine-secondary font-serif opacity-75',
           color: 'secondary',
         },
       },
@@ -135,7 +135,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'start', justify: 'end' },
         modular: { colStart: 3, colSpan: 19, rowStart: 21, rowSpan: 2 },
-        className: 'border-t border-slate-900/10 pt-3',
+        className: 'border-t border-zine-accent/10 pt-3',
         children: [
           {
             type: 'Component',

@@ -70,7 +70,7 @@ export const ComponentMosaicSchema: TemplateSchema = {
         children: [
           {
             type: 'Container',
-            className: 'grid grid-cols-4 gap-4 w-full',
+            className: 'grid grid-cols-4 gap-zine-md w-full',
             children: [
               // 这里简化为固定 16 个格子的 Repeater 逻辑
               // 实际生产中应根据 page.mosaicConfig 动态生成
@@ -79,7 +79,7 @@ export const ComponentMosaicSchema: TemplateSchema = {
                 bind: 'page.mosaicItems',
                 template: {
                   type: 'Container',
-                  className: 'aspect-square bg-zine-surface rounded-2xl shadow-sm border border-black/[0.03] flex items-center justify-center hover:-translate-y-1 transition-all',
+                  className: 'aspect-square bg-zine-surface rounded-2xl shadow-sm border border-zine-accent/10 flex items-center justify-center hover:-translate-y-1 transition-all',
                   children: [
                     {
                       type: 'Component',

@@ -20,7 +20,7 @@ export const KinfolkMontageSchema: TemplateSchema = {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 6, colSpan: 16, rowStart: 5, rowSpan: 15 },
-        className: 'bg-white border-[6px] border-white shadow-2xl z-10 overflow-hidden p-0',
+        className: 'bg-zine-surface border-[6px] border-zine-surface shadow-2xl z-10 overflow-hidden p-0',
         children: [
           {
             type: 'Component',
@@ -39,7 +39,7 @@ export const KinfolkMontageSchema: TemplateSchema = {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 2, colSpan: 14, rowStart: 3, rowSpan: 11 },
-        className: 'bg-white border-[6px] border-white shadow-xl z-20 overflow-hidden p-0',
+        className: 'bg-zine-surface border-[6px] border-zine-surface shadow-xl z-20 overflow-hidden p-0',
         children: [
           {
             type: 'Component',

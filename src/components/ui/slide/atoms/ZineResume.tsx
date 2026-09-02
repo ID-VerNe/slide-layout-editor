@@ -29,9 +29,9 @@ export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({
   const parseContent = (text: string) => {
     let html = text
       .replace(/.*\[(.*?)\].*\((.*?)\)/g, `<a href="$2" class="resume-link hover:underline" data-url="$2" style="color: ${accentColor}">$1</a>`)
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-slate-950">$1</strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-zine-primary">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-slate-100 px-1 rounded-none text-[0.9em] font-mono">$1</code>');
+      .replace(/`(.*?)`/g, '<code class="bg-zine-accent/10 px-1 rounded-none text-[0.9em] font-mono text-zine-primary">$1</code>');
 
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: ['strong', 'em', 'code', 'del', 'br', 'span', 'b', 'i', 'a'],
@@ -50,7 +50,7 @@ export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({
           const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
           const cleanText = isBullet ? trimmed.substring(1).trim() : trimmed;
           return (
-            <li key={i} className="flex items-start gap-4 text-slate-600 text-justify leading-[16px] mb-2 font-zine-body">
+            <li key={i} className="flex items-start gap-4 text-zine-secondary text-justify leading-[16px] mb-2 font-zine-body">
               {isBullet && <div className="mt-1.5 w-1 h-1 shrink-0" style={{ backgroundColor: accentColor }} />}
               <span className="text-[11px] tracking-tight" dangerouslySetInnerHTML={{ __html: parseContent(cleanText) }} />
             </li>
@@ -68,19 +68,19 @@ export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({
             <h3 className="font-black uppercase tracking-[0.4em] whitespace-nowrap text-[14px] font-zine-sans" style={{ color: accentColor }}>
               {section.title}
             </h3>
-            <div className="h-[1px] w-full bg-slate-950/10" />
+            <div className="h-[1px] w-full bg-zine-accent/15" />
           </div>
           <div className="space-y-12 pl-1">
             {section.items.map((item) => (
               <div key={item.id} className="group">
                 <div className="flex justify-between items-baseline mb-2">
-                  <span className="font-black text-slate-950 uppercase tracking-tight text-[13px] font-zine-sans">{item.title}</span>
-                  <span className="font-black text-slate-400 tabular-nums uppercase text-[10px] font-zine-sans">{item.time}</span>
+                  <span className="font-black text-zine-primary uppercase tracking-tight text-[13px] font-zine-sans">{item.title}</span>
+                  <span className="font-black text-zine-secondary/60 tabular-nums uppercase text-[10px] font-zine-sans">{item.time}</span>
                 </div>
                 {(item.subtitle || item.location) && (
                   <div className="flex justify-between items-baseline mb-4">
-                    <span className="font-bold italic text-slate-500 text-[11px] font-zine-serif">{item.subtitle}</span>
-                    <span className="font-black text-slate-300 uppercase tracking-[0.2em] text-[9px] font-zine-sans">{item.location}</span>
+                    <span className="font-bold italic text-zine-secondary text-[11px] font-zine-serif">{item.subtitle}</span>
+                    <span className="font-black text-zine-secondary/40 uppercase tracking-[0.2em] text-[9px] font-zine-sans">{item.location}</span>
                   </div>
                 )}
                 {renderDescription(item.description)}

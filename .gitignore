@@ -34,3 +34,8 @@ metadata.json
 # Test coverage
 coverage/
 stats.html
+
+# Agent directories
+.claude/
+lat.md/
+

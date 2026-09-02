@@ -43,7 +43,7 @@ export const TableOfContentsSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column' },
-              className: 'w-[300px] rounded-[3rem] bg-zine-surface border border-white shadow-xl overflow-hidden hover:-translate-y-1 transition-all',
+              className: 'w-[300px] rounded-[3rem] bg-zine-surface border border-zine-accent/10 shadow-xl overflow-hidden hover:-translate-y-1 transition-all',
               children: [
                 // 卡片头部
                 {
@@ -60,7 +60,7 @@ export const TableOfContentsSchema: TemplateSchema = {
                 // 章节号
                 {
                   type: 'Container',
-                  className: 'px-8 py-4 bg-white/40 border-y border-white/60',
+                  className: 'px-8 py-4 bg-zine-bg/40 border-y border-zine-accent/10',
                   children: [
                     { type: 'Component', componentType: 'ZineDisplay', props: { text: '{item.number}', size: 4, bold: true, tracking: -0.05, color: 'primary', serif: true } }
                   ]

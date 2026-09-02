@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageData, VocabItem } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
-import { useModularStyle } from '../hooks/useModularStyle';
+import { useModularStyle, resolveModularFontSize } from '../hooks/useModularStyle';
 
 interface ZineVocabListProps {
   page: PageData;
@@ -9,7 +9,7 @@ interface ZineVocabListProps {
   items?: VocabItem[];
   columns?: number;
   showExample?: boolean;
-  size?: number; // 遵循 8px 基线倍数语义 (如 2.25 -> 18px, 1.5 -> 12px)
+  size?: number | string; // 遵循 8px 基线倍数语义 (如 2.25 -> 18px, 1.5 -> 12px)
   className?: string;
   style?: React.CSSProperties;
   [key: string]: any;
@@ -52,13 +52,13 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
   const rawItems: VocabItem[] = directItems || (page as any)[fieldKey] || page.vocabItems || [];
   if (!rawItems || rawItems.length === 0) return null;
 
-  // 基于 8px 基线计算根基准字号 (例如 size=2.25 -> 18px)
-  const basePx = typeof size === 'number' ? size * 8 : parseFloat(String(size)) * 8;
-  const wordPx = Math.round(basePx * 1.25); // ~22px
-  const meaningPx = Math.round(basePx * 0.95); // ~17px
-  const phoneticPx = Math.round(basePx * 0.78); // ~14px
-  const examplePx = Math.round(basePx * 0.85); // ~15px
-  const exampleZHPx = Math.round(basePx * 0.78); // ~14px
+  // 基于 8px 基线计算根基准字号 (例如 size=2.25 -> 18px)，设置合理的可读性下限
+  const basePx = resolveModularFontSize(size) || 18;
+  const wordPx = Math.max(16, Math.round(basePx * 1.25)); // ~22px
+  const meaningPx = Math.max(14, Math.round(basePx * 0.95)); // ~17px
+  const phoneticPx = Math.max(12, Math.round(basePx * 0.78)); // ~14px
+  const examplePx = Math.max(13, Math.round(basePx * 0.85)); // ~15px
+  const exampleZHPx = Math.max(12, Math.round(basePx * 0.78)); // ~14px
 
   const gridColsClass =
     columns === 1

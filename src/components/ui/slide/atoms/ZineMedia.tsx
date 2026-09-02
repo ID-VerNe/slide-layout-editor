@@ -6,6 +6,7 @@ import { generateLQIP } from '../../../../utils/lqip';
 import { useDataConnector } from '../hooks/useDataConnector';
 import { useModularStyle } from '../hooks/useModularStyle';
 import { Image, ImageConfig } from './Image';
+import { logger } from '../../../../utils/logger';
 
 interface ZineMediaProps {
   page: PageData;
@@ -38,14 +39,16 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   rounded,
   ...otherProps
 }) => {
+  const resolvedFieldKey = otherProps.fieldKey || fieldKey || 'image';
+
   // 1. 数据连接
-  const { content: pageSrc, isVisible } = useDataConnector(fieldKey, page);
-  const { content: pageConfig } = useDataConnector(fieldKey === 'image' ? 'imageConfig' : `${fieldKey}Config`, page);
+  const { content: pageSrc, isVisible } = useDataConnector(resolvedFieldKey, page);
+  const { content: pageConfig } = useDataConnector(resolvedFieldKey === 'image' ? 'imageConfig' : `${resolvedFieldKey}Config`, page);
 
   // 2. 样式解析 (利用 useModularStyle 处理 Zine Mode 等)
   const { style, className: resolvedClassName } = useModularStyle({
     page, 
-    fieldKey,
+    fieldKey: resolvedFieldKey,
     props: { 
       backgroundColor: '#000000',
       ...otherProps
@@ -90,20 +93,25 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
   
   // 检查是否有用户手动设置的对齐（通过 styleOverrides）
-  const hasManualAlignment = fieldKey && page.styleOverrides?.[fieldKey] && 
-    (page.styleOverrides[fieldKey].alignSelf !== undefined || 
-     page.styleOverrides[fieldKey].justifySelf !== undefined);
+  const hasManualAlignment = resolvedFieldKey && page.styleOverrides?.[resolvedFieldKey] && 
+    (page.styleOverrides[resolvedFieldKey].alignSelf !== undefined || 
+     page.styleOverrides[resolvedFieldKey].justifySelf !== undefined);
+
+  // 检查是否通过 style 或 className 显式指定了尺寸，若指定则不强行铺满 100%
+  const hasExplicitWidth = style.width !== undefined || /\bw-(auto|\d+|\[[^\]]+\])\b/.test(className);
+  const hasExplicitHeight = style.height !== undefined || /\bh-(auto|\d+|\[[^\]]+\])\b/.test(className);
 
   const containerStyle: React.CSSProperties = {
-    // 默认行为：如果没有 align/justify，则铺满容器
-    width: style.width || (hasManualAlignment ? undefined : '100%'),
-    height: style.height || (hasManualAlignment ? undefined : '100%'),
+    width: style.width || (hasManualAlignment || hasExplicitWidth ? undefined : '100%'),
+    height: style.height || (hasManualAlignment || hasExplicitHeight ? undefined : '100%'),
     ...style,
     borderRadius: rounded !== undefined 
       ? (typeof rounded === 'number' ? `${rounded}px` : rounded) 
       : (style.borderRadius || '0'), 
     aspectRatio: style.aspectRatio,
   };
+
+  logger.debug(`[ZineMedia] Render ${resolvedFieldKey}:`, { url, config, containerStyle });
 
   return (
     <Image
@@ -124,6 +132,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 }, (prevProps, nextProps) => {
   return (
     prevProps.page === nextProps.page &&
+    prevProps.fieldKey === nextProps.fieldKey &&
     prevProps.src === nextProps.src &&
     prevProps.config === nextProps.config &&
     prevProps.className === nextProps.className &&

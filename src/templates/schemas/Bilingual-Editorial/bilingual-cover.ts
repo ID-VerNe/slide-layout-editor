@@ -17,7 +17,7 @@ export const BilingualCoverSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-white',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
       // 1. 顶部刊名 (Magazine Masthead) - 宽字距全大写衬线
       {
@@ -41,7 +41,7 @@ export const BilingualCoverSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'between' },
         modular: { colStart: 3, colSpan: 19, rowStart: 4, rowSpan: 1 },
-        className: 'border-b border-slate-900/20 pb-2',
+        className: 'border-b border-zine-accent/20 pb-2',
         children: [
           {
             type: 'Component',

@@ -13,14 +13,14 @@ export const BackCoverMovieSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-[#111111]',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
       // 1. 核心图片区 (Rows 3-16) - 遵循天头原则
       {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 3, colSpan: 20, rowStart: 3, rowSpan: 14 },
-        className: 'mask-movie-feather', // 需要在 index.css 中定义这个遮罩
+        className: 'mask-movie-feather',
         style: {
           WebkitMaskImage: 'radial-gradient(ellipse, black 50%, transparent 100%)',
           maskImage: 'radial-gradient(ellipse, black 50%, transparent 100%)'
@@ -46,14 +46,14 @@ export const BackCoverMovieSchema: TemplateSchema = {
             componentType: 'ZineDisplay',
             bind: 'page.title',
             props: {
-              className: 'uppercase !text-white/80',
+              className: 'uppercase opacity-90',
               tracking: 0.5,
               size: 4,
               serif: true,
-              color: 'surface'
+              color: 'primary'
             }
           },
-          { type: 'Container', className: 'w-12 h-px bg-white/20 my-6', children: [] },
+          { type: 'Container', className: 'w-12 h-px bg-zine-accent/20 my-6', children: [] },
           {
             type: 'Component',
             componentType: 'ZineCaption',
@@ -62,7 +62,7 @@ export const BackCoverMovieSchema: TemplateSchema = {
               className: 'uppercase opacity-60',
               tracking: 0.8,
               sans: true,
-              color: 'surface'
+              color: 'secondary'
             }
           }
         ]

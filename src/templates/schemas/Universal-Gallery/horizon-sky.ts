@@ -46,7 +46,7 @@ export const HorizonSkySchema: TemplateSchema = {
               type: 'Component',
               componentType: 'ZineBody',
               bind: 'page.paragraph',
-              props: { align: 'center', italic: true, size: 1.5, color: 'secondary', serif: true, className: 'opacity-50 mt-6' }
+              props: { align: 'center', italic: true, size: 2, color: 'secondary', serif: true, className: 'opacity-50 mt-6' }
             }]
           }
         ]

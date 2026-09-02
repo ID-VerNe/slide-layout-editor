@@ -13,7 +13,7 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-white text-slate-800 px-[60px] py-[60px]',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg text-zine-primary px-16 py-16',
     children: [
       // 1. 头部 (Rows 1-4)
       {
@@ -34,7 +34,8 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
                 size: 4.75,
                 bold: true,
                 tracking: -0.05,
-                serif: true
+                serif: true,
+                color: 'primary'
               }
             }]
           },
@@ -45,7 +46,8 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
               componentType: 'ZineCaption',
               bind: 'page.subtitle',
               props: {
-                className: 'text-slate-500 uppercase',
+                className: 'uppercase opacity-60',
+                color: 'secondary',
                 size: 1.375,
                 bold: true,
                 tracking: 0.1,
@@ -79,7 +81,7 @@ export const AcademicHybridResumeSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'between' },
         modular: { colStart: 1, colSpan: 24, rowStart: 23, rowSpan: 2 },
-        className: 'mt-auto pt-8 opacity-20 border-t border-slate-100',
+        className: 'mt-auto pt-8 border-t border-zine-accent/15',
         children: [
           {
             type: 'Container',

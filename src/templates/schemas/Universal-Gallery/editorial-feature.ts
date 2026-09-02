@@ -29,7 +29,7 @@ export const KinfolkFeatureSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 7, colSpan: 17, rowStart: 3, rowSpan: 16 },
-              className: 'bg-white shadow-xl p-2 border-[0.5px] border-black/5',
+              className: 'bg-zine-surface shadow-xl p-2 border-[0.5px] border-zine-accent/10',
               children: [
                 {
                   type: 'Component',
@@ -42,7 +42,8 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   bind: 'page.imageLabel',
                   style: { position: 'absolute', bottom: '16px', right: '16px', mixBlendMode: 'difference' },
                   props: {
-                    className: '!text-white opacity-60',
+                    className: 'opacity-60',
+                    color: 'surface',
                     size: 1,
                     sans: true
                   }
@@ -105,7 +106,7 @@ export const KinfolkFeatureSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 2, colSpan: 17, rowStart: 3, rowSpan: 16 },
-              className: 'bg-white shadow-xl p-2 border-[0.5px] border-black/5',
+              className: 'bg-zine-surface shadow-xl p-2 border-[0.5px] border-zine-accent/10',
               children: [
                 {
                   type: 'Component',
@@ -118,7 +119,8 @@ export const KinfolkFeatureSchema: TemplateSchema = {
                   bind: 'page.imageLabel',
                   style: { position: 'absolute', bottom: '16px', left: '16px', mixBlendMode: 'difference' },
                   props: {
-                    className: '!text-white opacity-60',
+                    className: 'opacity-60',
+                    color: 'surface',
                     size: 1,
                     sans: true
                   }

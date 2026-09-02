@@ -20,7 +20,7 @@ export const FloatingGallerySchema: TemplateSchema = {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 5, colSpan: 16, rowStart: 3, rowSpan: 10 },
-        className: 'bg-white shadow-2xl p-0 overflow-hidden border-[1px] border-black/5',
+        className: 'bg-zine-surface shadow-2xl p-0 overflow-hidden border-[1px] border-zine-accent/10',
         children: [{ type: 'Component', componentType: 'ZineMedia', props: { className: 'w-full h-full' } }]
       },
 

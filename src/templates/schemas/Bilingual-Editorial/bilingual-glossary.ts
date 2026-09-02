@@ -17,7 +17,7 @@ export const BilingualGlossarySchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-white',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
       // 1. 顶部策展标题栏 (Curated Lexicon Masthead)
       {
@@ -25,7 +25,7 @@ export const BilingualGlossarySchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'start', justify: 'center' },
         modular: { colStart: 3, colSpan: 19, rowStart: 2, rowSpan: 3 },
-        className: 'border-b-2 border-slate-900 pb-3',
+        className: 'border-b-2 border-zine-primary pb-3',
         children: [
           {
             type: 'Component',
@@ -111,7 +111,7 @@ export const BilingualGlossarySchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'start', justify: 'between', gap: 'spacing.md' },
         modular: { colStart: 3, colSpan: 19, rowStart: 21, rowSpan: 2 },
-        className: 'border-t border-slate-900/15 pt-3',
+        className: 'border-t border-zine-accent/15 pt-3',
         children: [
           {
             type: 'Component',

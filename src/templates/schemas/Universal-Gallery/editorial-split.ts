@@ -125,7 +125,7 @@ export const EditorialSplitSchema: TemplateSchema = {
                   layout: 'flex',
                   layoutProps: { direction: 'column', gap: 'spacing.md' },
                   style: { position: 'absolute', bottom: '48px', left: '48px' },
-                  className: 'bg-white/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-white/50 max-w-[320px]',
+                  className: 'bg-zine-surface/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-zine-accent/15 max-w-[320px]',
                   children: [
                     {
                       type: 'Container',
@@ -271,7 +271,7 @@ export const EditorialSplitSchema: TemplateSchema = {
                   layout: 'flex',
                   layoutProps: { direction: 'column', gap: 'spacing.md' },
                   style: { position: 'absolute', bottom: '48px', right: '48px' },
-                  className: 'bg-white/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-white/50 max-w-[320px]',
+                  className: 'bg-zine-surface/95 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-2xl border border-zine-accent/15 max-w-[320px]',
                   children: [
                     {
                       type: 'Container',

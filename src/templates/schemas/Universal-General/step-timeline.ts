@@ -55,7 +55,7 @@ export const StepTimelineSchema: TemplateSchema = {
                 // 节点圆圈
                 {
                   type: 'Container',
-                  className: 'w-16 h-16 rounded-full bg-white border border-zine-accent/20 flex items-center justify-center shrink-0 shadow-sm',
+                  className: 'w-16 h-16 rounded-full bg-zine-surface border border-zine-accent/20 flex items-center justify-center shrink-0 shadow-sm',
                   children: [{ type: 'Component', componentType: 'ZineCaption', props: { text: '{index + 1}', bold: true, color: 'accent', sans: true } }]
                 },
                 // 文本描述
@@ -66,13 +66,13 @@ export const StepTimelineSchema: TemplateSchema = {
                   className: 'flex-1',
                   children: [
                     { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.title}', size: 2.4, bold: true, sans: true } },
-                    { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', size: 1.5, leading: 1.625, color: 'secondary', serif: true, className: 'opacity-60' } }
+                    { type: 'Component', componentType: 'ZineBody', props: { text: '{item.desc}', size: 1.75, leading: 1.625, color: 'secondary', serif: true, className: 'opacity-60' } }
                   ]
                 },
                 // 视觉卡片
                 {
                   type: 'Container',
-                  className: 'w-[400px] h-32 rounded-[2rem] bg-zine-surface shadow-lg border border-white/50 overflow-hidden shrink-0',
+                  className: 'w-[400px] h-32 rounded-[2rem] bg-zine-surface shadow-lg border border-zine-accent/15 overflow-hidden shrink-0',
                   children: [{ type: 'Component', componentType: 'ZineMedia', props: { src: '{item.icon}', className: 'w-full h-full object-cover' } }]
                 }
               ]

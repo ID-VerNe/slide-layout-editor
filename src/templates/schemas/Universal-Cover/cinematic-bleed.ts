@@ -13,7 +13,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-slate-950',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-primary',
     children: [
       // 1. 背景主图
       {
@@ -45,7 +45,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  props: { italic: true, tracking: 0.4, align: 'center', serif: true, className: 'text-white drop-shadow-2xl', color: 'surface' }
+                  props: { italic: true, tracking: 0.4, align: 'center', serif: true, className: 'drop-shadow-2xl', color: 'surface' }
                 }
               ]
             },
@@ -60,7 +60,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'text-white uppercase opacity-80', color: 'surface' }
+                  props: { align: 'center', tracking: 0.5, sans: true, bold: true, className: 'uppercase opacity-80', color: 'surface' }
                 }
               ]
             }
@@ -83,7 +83,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineCaption',
                   bind: 'page.subtitle',
-                  props: { align: 'center', tracking: 0.6, bold: true, sans: true, className: 'text-white uppercase', color: 'surface' }
+                  props: { align: 'center', tracking: 0.6, bold: true, sans: true, className: 'uppercase', color: 'surface' }
                 }
               ]
             },
@@ -99,7 +99,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
                   type: 'Component',
                   componentType: 'ZineDisplay',
                   bind: 'page.title',
-                  props: { italic: true, tracking: 0.3, align: 'center', serif: true, className: 'text-white drop-shadow-2xl', color: 'surface' }
+                  props: { italic: true, tracking: 0.3, align: 'center', serif: true, className: 'drop-shadow-2xl', color: 'surface' }
                 }
               ]
             }

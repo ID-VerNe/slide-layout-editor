@@ -21,7 +21,7 @@ export const CommunityHubSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'start', justify: 'center', gap: 'spacing.xl' },
         modular: { colStart: 1, colSpan: 11, rowStart: 1, rowSpan: 24 },
-        className: 'bg-white shadow-2xl px-16 relative z-10',
+        className: 'bg-zine-surface shadow-2xl px-16 relative z-10',
         children: [
           { type: 'Container', children: [{ type: 'Component', componentType: 'ZineCaption', bind: 'page.logo', props: { className: 'opacity-20', sans: true } }] },
           {
@@ -62,10 +62,10 @@ export const CommunityHubSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'column', align: 'center', justify: 'center', gap: 'spacing.lg' },
         modular: { colStart: 12, colSpan: 13, rowStart: 1, rowSpan: 24 },
-        className: 'bg-slate-50/50 px-12 relative',
+        className: 'bg-zine-bg px-12 relative',
         children: [
           // 背景装饰
-          { type: 'Container', className: 'absolute inset-0 opacity-[0.02] pointer-events-none', style: { backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '40px 40px' }, children: [] },
+          { type: 'Container', className: 'absolute inset-0 opacity-[0.02] pointer-events-none', style: { backgroundImage: 'radial-gradient(currentColor 1px, transparent 1px)', backgroundSize: '40px 40px' }, children: [] },
           // 证言卡片
           {
             type: 'Repeater',
@@ -74,16 +74,16 @@ export const CommunityHubSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'row', align: 'start', gap: 'spacing.md' },
-              className: 'p-8 bg-white rounded-[2rem] shadow-sm border border-white max-w-full',
+              className: 'p-8 bg-zine-surface rounded-[2rem] shadow-sm border border-zine-accent/10 max-w-full',
               children: [
-                { type: 'Container', className: 'w-12 h-12 rounded-full bg-slate-100 shrink-0', children: [] },
+                { type: 'Container', className: 'w-12 h-12 rounded-full bg-zine-accent/10 shrink-0', children: [] },
                 {
                   type: 'Container',
                   layout: 'flex',
                   layoutProps: { direction: 'column', gap: 'spacing.xs' },
                   children: [
                     { type: 'Component', componentType: 'ZineCaption', props: { text: '{item.name}', bold: true, sans: true } },
-                    { type: 'Component', componentType: 'ZineBody', props: { text: '"{item.quote}"', size: 1.5, serif: true, className: 'opacity-60' } }
+                    { type: 'Component', componentType: 'ZineBody', props: { text: '"{item.quote}"', size: 2, serif: true, className: 'opacity-60' } }
                   ]
                 }
               ]

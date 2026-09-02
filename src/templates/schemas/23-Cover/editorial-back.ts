@@ -52,7 +52,7 @@ export const EditorialBackCoverSchema: TemplateSchema = {
             bind: 'page.subtitle',
             props: {
               className: 'uppercase text-center',
-              size: 0.875,
+              size: 1.25,
               tracking: 0.5,
               leading: 2,
               sans: true,

@@ -3,14 +3,14 @@ import { LUCIDE_ICON_MAP } from '../../../../constants/icons';
 import { HelpCircle } from 'lucide-react';
 import { Icon as IconAtom } from './Icon';
 import { Image as ImageAtom } from './Image';
-import { useModularStyle } from '../hooks/useModularStyle';
+import { useModularStyle, resolveModularFontSize } from '../hooks/useModularStyle';
 import { PageData } from '../../../../types';
 
 interface ZineIconProps {
   name: string;
   page?: PageData;
   fieldKey?: string;
-  size?: number;
+  size?: number | string;
   className?: string;
   color?: string;
   weight?: number | string;
@@ -34,6 +34,10 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
   style: customStyle,
   ...otherProps
 }) => {
+  const resolvedSize = typeof size === 'number'
+    ? (size <= 10 ? Math.round(size * 8) : size)
+    : (resolveModularFontSize(size) || 24);
+
   const { style, className: resolvedClassName } = useModularStyle({
     page,
     fieldKey,
@@ -52,7 +56,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
         url={name}
         className={`flex items-center justify-center overflow-hidden ${resolvedClassName}`}
         imgClassName="object-contain"
-        style={{ width: size, height: size, ...style }}
+        style={{ width: resolvedSize, height: resolvedSize, ...style }}
       />
     );
   }
@@ -64,7 +68,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
     return (
       <IconAtom
         name={name.toLowerCase()}
-        size={`${size}px`}
+        size={`${resolvedSize}px`}
         color={style.color as string || 'inherit'}
         className={resolvedClassName}
         style={{
@@ -85,7 +89,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
 
   return (
     <LucideIcon 
-      size={size} 
+      size={resolvedSize} 
       strokeWidth={strokeWidth} 
       className={resolvedClassName} 
       style={{ color: style.color as string || 'inherit', ...style }} 

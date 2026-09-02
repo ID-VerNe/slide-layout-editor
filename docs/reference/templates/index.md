@@ -35,6 +35,52 @@ SlideGrid Studio 提供了 30+ 专业排版模板，涵盖封面、画册、产�
 }
 ```
 
+### 0.2 核心原则：强制遵循 Design Tokens 与严禁硬编码样式 🔥
+
+**模板 Schema 严禁硬编码任何物理颜色、边框或任意数值样式**，所有视觉表现必须完全基于项目统一的 Design Tokens（设计令牌）。硬编码颜色会彻底破坏深色模式与主题系统的动态切换（如导致浅色主题下出现死黑背景、文字对比度失效）。
+
+#### 1. 色彩语义令牌对照表（Color Tokens）
+
+| 语义角色 | Tailwind 类名 | CSS 变量 | 原子组件 `color` 属性 | 用途 |
+|---------|--------------|---------|---------------------|------|
+| **画布背景** | `bg-zine-bg` | `--zine-color-background` | - | 幻灯片根容器、大底板 |
+| **表面/卡片** | `bg-zine-surface` | `--zine-color-surface` | - | 悬浮卡片、弹层、头像底框 |
+| **主要文字** | `text-zine-primary` | `--zine-color-primary` | `color: 'primary'` | 主标题、核心数据、正文 |
+| **次要文字** | `text-zine-secondary` | `--zine-color-secondary` | `color: 'secondary'` | 副标题、出处、描述小字 |
+| **品牌强调** | `text-zine-accent`, `border-zine-accent`, `bg-zine-accent` | `--zine-color-accent` | `color: 'accent'` | 强调色、重点标签、高亮 |
+| **微弱分割** | `border-zine-accent/10`, `border-zine-accent/15`, `border-zine-accent/20` | - | - | 发丝分割线、网格线、卡片边框 |
+| **表面反色** | `text-zine-surface` | `--zine-color-surface` | `color: 'surface'` | 深色图片/强调底色上的浅色文字 |
+
+#### ❌ 常见硬编码反模式（严禁使用）
+- ❌ `bg-white`, `bg-black`, `bg-[#111111]`, `bg-slate-900` → 破坏主题底色！必须改为 `bg-zine-bg` 或 `bg-zine-surface`。
+- ❌ `border-white`, `border-slate-100`, `border-black/5` → 必须改为 `border-zine-accent/10` 或 `border-zine-surface`。
+- ❌ `text-slate-900`, `text-stone-800`, `text-slate-500` → 必须改为 `text-zine-primary`、`text-zine-secondary` 或使用原子属性 `color: 'primary' | 'secondary'`。
+- ❌ `text-white`、`!text-white` → 覆盖在深色图片上的文字，必须使用 `color: 'surface'` 或 `text-zine-surface`。
+- ❌ `radial-gradient(#000 1px, transparent 1px)` → 必须改为 `radial-gradient(currentColor 1px, transparent 1px)`。
+
+#### 2. 8px 律动基线字号系统（Typography Scale）
+所有 Zine 原子组件（`ZineDisplay`, `ZineBody`, `ZineCaption`, `ZineVocabList`）的 `size` 属性统一基于 8px 基线倍数阶梯（由 `resolveModularFontSize` 解析），**严禁在 `className` 中乱写 `text-[28px]`**：
+- `size: 1` = 8px (极小标注 / Caption)
+- `size: 1.25` = 10px (微型标签 / Meta)
+- `size: 1.5` = 12px (小字说明 / Subtitle)
+- `size: 1.75` = 14px (辅助段落 / Body Small)
+- `size: 2` = 16px (正文基准 / Body Base)
+- `size: 2.25` = 18px (双语生词 / Lead Body)
+- `size: 3` = 24px (三级标题 / H3)
+- `size: 4` = 32px (二级标题 / H2)
+- `size: 6` = 48px (主标题 / H1)
+- `size: 8` = 64px (展示大标 / Display Hero)
+- `size: 10+` = 80px+ (巨幅艺术标 / Masthead)
+
+> [!TIP]
+> **排版规范与踩坑预防**：
+> 1. **严禁正文过小**：正文叙事段落（`ZineBody`）推荐使用 `size: 2`（16px）或 `size: 1.75`（14px），切忌在正文直接使用 `size: 1.5`（12px）或低于 10px，否则在 16:9 画布缩放后将极难辨认。
+> 2. **类型安全**：无论是数字 `size: 1.5` 还是字符串 `"1.5"`、`"1.5rem"`、`"24px"`，系统均能通过 `resolveModularFontSize` 统一规范化为像素，并向上对齐行高。
+> 3. **组件字号保障**：`ZineVocabList`（生词表）默认采用 `size: 2.25`（18px 基准）；`ZineIcon` 支持 `size <= 10` 自动换算为 8px 基线倍数。
+
+#### 3. 间距语义令牌（Spacing Tokens）
+在 layoutProps 中使用规范的间距字符串：`spacing.none` (0), `spacing.xs` (4px), `spacing.sm` (8px), `spacing.md` (16px), `spacing.lg` (24px), `spacing.xl` (32px), `spacing.gutter` (24px)。在 Tailwind 类中若需指定间距，优先使用 `p-zine-md`, `gap-zine-sm` 等。
+
 ### 0.1.5 关键原则：组件容器独立性 🔥
 
 **每个可编辑的 Component 必须在独立的 Container 中**，确保用户使用 9-Point Docking 调整对齐时不会影响其他组件。
@@ -277,12 +323,16 @@ withBaseFields([
 
 在提交新模板之前，请确认：
 
-- [ ] Schema 中没有任何 `text: '固定文字'` 的硬编码
-- [ ] 所有显示内容都通过 `bind` 绑定到数据字段
-- [ ] 循环渲染使用 `{item.xxx}` 表达式
-- [ ] **每个可编辑的 Component 都在独立的 Container 中**（关键！）
-- [ ] Repeater 内部结构除外（它们作为整体重复）
-- [ ] **避免不必要的 `layout: 'absolute'` Container 嵌套**（直接将组件放在模块化网格中）
+- [ ] **100% 遵守 Design Tokens 规范**：严禁硬编码物理颜色（如 `bg-white`, `border-white`, `text-slate-900`, `#111111` 等）
+- [ ] **严格使用语义令牌**：`bg-zine-bg`, `bg-zine-surface`, `text-zine-primary`, `text-zine-secondary`, `border-zine-accent/xx`
+- [ ] **暗部/深色图文适配**：覆盖在深色背景或照片上的文字使用 `color: 'surface'` 或 `text-zine-surface`，严禁硬编码 `!text-white`
+- [ ] **字号遵循 8px 基线倍数**：使用原子组件的 `size: 1` ~ `10` 属性，严禁在 className 中硬编码任意像素字号
+- [ ] **间距遵循间距令牌**：使用系统 `spacing.none` ~ `spacing.xl`
+- [ ] **Schema 纯结构化**：Schema 中没有任何 `text: '固定文字'` 的硬编码
+- [ ] **数据动态绑定**：所有显示内容都通过 `bind` 绑定到数据字段
+- [ ] **循环动态项**：循环渲染使用 `{item.xxx}` 表达式
+- [ ] **容器独立性（关键！）**：每个可编辑的 Component 都在独立的 Container 中（Repeater 内部结构除外）
+- [ ] **网格直属组件**：避免不必要的 `layout: 'absolute'` Container 嵌套，直接将组件放在模块化网格中
 - [ ] 如果使用 `layout: 'absolute'` Container，确保设置了 `className: 'absolute inset-0'` 或具体位置样式
 - [ ] 在 `registry.ts` 中提供了 `defaultData` 或字段的 `defaultValue`
 - [ ] 字段配置包含清晰的 `label`（必需）

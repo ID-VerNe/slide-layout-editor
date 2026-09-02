@@ -18,7 +18,7 @@ export const BilingualReaderSchema: TemplateSchema = {
     type: 'Container',
     layout: 'modular',
     layoutProps: { columns: 24, rows: 24, gap: 'spacing.none' },
-    className: 'w-full h-full relative p-0 overflow-hidden bg-white',
+    className: 'w-full h-full relative p-0 overflow-hidden bg-zine-bg',
     children: [
       // 1. 顶部极简页眉 (Running Header)
       {
@@ -26,7 +26,7 @@ export const BilingualReaderSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'between' },
         modular: { colStart: 3, colSpan: 19, rowStart: 2, rowSpan: 1 },
-        className: 'border-b border-slate-900/10 pb-1.5',
+        className: 'border-b border-zine-accent/10 pb-1.5',
         children: [
           {
             type: 'Component',
@@ -97,7 +97,7 @@ export const BilingualReaderSchema: TemplateSchema = {
           size: 2.25,
           leading: 1.7,
           align: 'left',
-          className: 'text-slate-900 font-serif tracking-normal selection:bg-slate-200',
+          className: 'text-zine-primary font-serif tracking-normal selection:bg-zine-accent/20',
           color: 'primary',
         },
       },
@@ -113,7 +113,7 @@ export const BilingualReaderSchema: TemplateSchema = {
           size: 1.875,
           leading: 1.7,
           align: 'left',
-          className: 'text-slate-600 font-serif opacity-80',
+          className: 'text-zine-secondary font-serif opacity-80',
           color: 'secondary',
         },
       },
@@ -124,7 +124,7 @@ export const BilingualReaderSchema: TemplateSchema = {
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'between' },
         modular: { colStart: 3, colSpan: 19, rowStart: 19, rowSpan: 1 },
-        className: 'border-t border-slate-900/15 pt-2 mb-1',
+        className: 'border-t border-zine-accent/15 pt-2 mb-1',
         children: [
           {
             type: 'Component',
@@ -163,7 +163,7 @@ export const BilingualReaderSchema: TemplateSchema = {
         props: {
           columns: 2,
           showExample: false,
-          size: 1.5,
+          size: 2.25,
         },
       },
     ],

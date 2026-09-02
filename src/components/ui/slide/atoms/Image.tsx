@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ImageConfig } from '../../../../types';
 
+import { logger } from '../../../../utils/logger';
+
 export type { ImageConfig };
 
 interface ImageProps {
@@ -46,7 +48,7 @@ export const Image: React.FC<ImageProps> = ({
     setShowLqip(true);
   }, [url]);
 
-  // 修复：检查缓存图片是否已经加载完成
+  // 检查缓存图片是否已经加载完成
   useEffect(() => {
     if (imgRef && imgRef.complete && imgRef.naturalWidth > 0) {
       setIsLoaded(true);
@@ -63,9 +65,6 @@ export const Image: React.FC<ImageProps> = ({
     }
   }, [onLoad]);
 
-  const posX = (config.x + 100) / 2;
-  const posY = (config.y + 100) / 2;
-
   const { 
     objectFit: styleObjectFit, 
     objectPosition: styleObjectPosition, 
@@ -73,26 +72,36 @@ export const Image: React.FC<ImageProps> = ({
     ...remainingStyle 
   } = (style || {}) as any;
 
+  const isContain = styleObjectFit === 'contain';
+
+  // 1. 缩放范围安全控制：
+  // 包含模式（如签名、Logo等独立资产）允许缩小至 0.05
+  // 裁切模式（Cover 满幅照片）最小保持 1（避免露出画框白边）
+  const minScale = isContain ? 0.05 : 1;
+  const safeScale = Math.max(minScale, config.scale !== undefined ? config.scale : 1);
+
+  // 2. 平移变换：以中心为基准进行平滑 translate 平移
+  const translateX = (config.x || 0) * 0.5;
+  const translateY = (config.y || 0) * 0.5;
+
   const containerStyle = useMemo(() => ({
-    overflow: styleOverflow || 'hidden',
+    overflow: styleOverflow || (isContain ? 'visible' : 'hidden'),
     position: 'relative' as const,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     aspectRatio,
     ...remainingStyle
-  }), [aspectRatio, remainingStyle, styleOverflow]);
-
-  const safeScale = Math.max(1, config.scale !== undefined ? config.scale : 1);
+  }), [aspectRatio, remainingStyle, styleOverflow, isContain]);
 
   const imageStyle = useMemo(() => ({
-    transform: `scale(${safeScale})`,
-    objectPosition: styleObjectPosition || `${posX}% ${posY}%`,
-    transformOrigin: styleObjectPosition || `${posX}% ${posY}%`,
+    transform: `translate(${translateX}%, ${translateY}%) scale(${safeScale})`,
+    transformOrigin: 'center center',
     width: '100%',
     height: '100%',
-    objectFit: styleObjectFit || 'cover'
-  }), [safeScale, posX, posY, styleObjectFit, styleObjectPosition]);
+    objectFit: styleObjectFit || 'cover',
+    objectPosition: styleObjectPosition || 'center center'
+  }), [translateX, translateY, safeScale, styleObjectFit, styleObjectPosition]);
 
   return (
     <div className={className} style={containerStyle}>
@@ -132,8 +141,8 @@ export const Image: React.FC<ImageProps> = ({
       
       {/* Loading state */}
       {isLoading && !lqip && (
-        <div className="absolute inset-0 bg-slate-50 animate-pulse flex items-center justify-center">
-           <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin" />
+        <div className="absolute inset-0 bg-zine-accent/5 animate-pulse flex items-center justify-center">
+           <div className="w-8 h-8 rounded-full border-2 border-zine-accent/20 border-t-zine-accent animate-spin" />
         </div>
       )}
     </div>

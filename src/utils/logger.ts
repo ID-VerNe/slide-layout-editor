@@ -51,9 +51,23 @@ class Logger {
       console.error(this.formatMessage('ERROR', message), ...args);
     }
   }
+
+  action(module: string, action: string, details?: any) {
+    const message = `[ACTION][${module}] ${action}`;
+    if (details !== undefined) {
+      this.info(message, details);
+    } else {
+      this.info(message);
+    }
+  }
 }
 
 export const logger = new Logger();
+
+// 暴露给全局以便在控制台动态调试
+if (typeof window !== 'undefined') {
+  (window as any).__LOGGER__ = logger;
+}
 
 /**
  * 应用生产环境的 console 覆盖策略

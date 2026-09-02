@@ -13,6 +13,46 @@ interface UseModularStyleProps {
   page?: PageData; // 传入 page 以自动获取 styleOverrides
 }
 
+/** Resolves modular font size into exact physical pixel value */
+export function resolveModularFontSize(size: number | string | undefined | null): number | undefined {
+  if (size === undefined || size === null) return undefined;
+
+  // 1. 数字类型：严格按 8px 基线网格换算
+  if (typeof size === 'number') {
+    if (isNaN(size) || size <= 0) return undefined;
+    return Math.round(size * 8);
+  }
+
+  const str = String(size).trim();
+  if (!str) return undefined;
+
+  // 2. rem 与 em 单位：基准 16px 换算为像素
+  if (str.endsWith('rem') || str.endsWith('em')) {
+    const val = parseFloat(str);
+    return isNaN(val) ? undefined : Math.round(val * 16);
+  }
+
+  // 3. px 单位：直接读取像素数值
+  if (str.endsWith('px')) {
+    const val = parseFloat(str);
+    return isNaN(val) ? undefined : Math.round(val);
+  }
+
+  // 4. pt 单位：1pt = 4/3 px
+  if (str.endsWith('pt')) {
+    const val = parseFloat(str);
+    return isNaN(val) ? undefined : Math.round(val * (4 / 3));
+  }
+
+  // 5. 纯数字字符串：遵循 8px 基线网格换算
+  const num = parseFloat(str);
+  if (!isNaN(num) && num > 0) {
+    return Math.round(num * 8);
+  }
+
+  return undefined;
+}
+
 /**
  * useModularStyle - 统一处理样式优先级与 Zine Mode 约束
  */
@@ -98,8 +138,8 @@ export const useModularStyle = ({
     } = finalProps;
 
     // A. 字号与行高
-    if (size !== undefined) {
-      const fontSizePx = typeof size === 'number' ? size * 8 : parseFloat(size);
+    const fontSizePx = resolveModularFontSize(size);
+    if (fontSizePx !== undefined) {
       finalStyle.fontSize = `${fontSizePx}px`;
       
       // 如果手动指定了 size，默认行高也按 8px 基线自动对齐

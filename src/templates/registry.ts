@@ -444,7 +444,13 @@ export const TEMPLATES: TemplateConfig[] = [
     tags: ['General', 'Editorial', 'Narrative'],
     component: () => null,
     schema: KinfolkEssaySchema,
-    fields: withBaseFields(['title', 'subtitle', 'paragraph', 'signature', 'metrics']),
+    fields: withBaseFields([
+      'title',
+      'subtitle',
+      'paragraph',
+      { key: 'signature', label: 'Artist Signature' },
+      'metrics'
+    ]),
     supportedRatios: ['2:3', 'A4']
   },
   {

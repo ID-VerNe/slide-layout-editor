@@ -20,7 +20,7 @@ export const TestimonialCardSchema: TemplateSchema = {
         layout: 'modular',
         layoutProps: { columns: 20, rows: 18 },
         modular: { colStart: 3, colSpan: 20, rowStart: 4, rowSpan: 17 },
-        className: 'bg-zine-surface/60 backdrop-blur-xl rounded-[3.5rem] p-20 shadow-2xl border border-white/40',
+        className: 'bg-zine-surface/60 backdrop-blur-xl rounded-[3.5rem] p-20 shadow-2xl border border-zine-accent/15',
         children: [
           // 1. 左侧头像区 (Cols 1-6)
           {
@@ -34,7 +34,7 @@ export const TestimonialCardSchema: TemplateSchema = {
                 children: [{
                   type: 'Component',
                   componentType: 'ZineMedia',
-                  props: { className: 'aspect-square rounded-[3rem] border-[6px] border-white shadow-xl' }
+                  props: { className: 'aspect-square rounded-[3rem] border-[6px] border-zine-surface shadow-xl' }
                 }]
               },
               {

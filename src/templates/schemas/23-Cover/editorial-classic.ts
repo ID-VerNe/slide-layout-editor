@@ -32,7 +32,7 @@ export const EditorialClassicSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.imageSubLabel',
             style: { position: 'absolute', top: '40px', right: '40px', mixBlendMode: 'difference' },
-            props: { size: 0.9375, tracking: 0.6, italic: true, className: 'opacity-40', color: 'surface' }
+            props: { size: 1.25, tracking: 0.6, italic: true, className: 'opacity-40', color: 'surface' }
           }
         ]
       },

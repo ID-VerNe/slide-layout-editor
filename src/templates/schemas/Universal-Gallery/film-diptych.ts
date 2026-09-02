@@ -29,7 +29,7 @@ export const FilmDiptychSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 1, colSpan: 24, rowStart: 3, rowSpan: 14 },
-              className: 'bg-white shadow-sm overflow-hidden p-0',
+              className: 'bg-zine-surface shadow-sm overflow-hidden p-0',
               children: [
                 {
                   type: 'Component',
@@ -47,7 +47,7 @@ export const FilmDiptychSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 1, colSpan: 24, rowStart: 18, rowSpan: 3 },
-              className: 'bg-white shadow-sm overflow-hidden p-0',
+              className: 'bg-zine-surface shadow-sm overflow-hidden p-0',
               children: [
                 {
                   type: 'Component',
@@ -73,7 +73,7 @@ export const FilmDiptychSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 1, colSpan: 11, rowStart: 1, rowSpan: 24 },
-              className: 'bg-white shadow-sm overflow-hidden p-0',
+              className: 'bg-zine-surface shadow-sm overflow-hidden p-0',
               children: [
                 {
                   type: 'Component',
@@ -91,7 +91,7 @@ export const FilmDiptychSchema: TemplateSchema = {
               type: 'Container',
               layout: 'absolute',
               modular: { colStart: 13, colSpan: 12, rowStart: 1, rowSpan: 24 },
-              className: 'bg-white shadow-sm overflow-hidden p-0',
+              className: 'bg-zine-surface shadow-sm overflow-hidden p-0',
               children: [
                 {
                   type: 'Component',

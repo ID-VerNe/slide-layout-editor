@@ -149,48 +149,61 @@ Zine 原子组件的核心样式处理器，负责将语义化 Props 转换为�
 interface ModularStyleProps {
   page: PageData;
   fieldKey?: string;
-  size?: number;        // 字号（8px 的倍数）
-  serif?: boolean;      // 衬线体开关
-  sans?: boolean;       // 无衬线体开关
-  bold?: boolean;       // 加粗开关
-  italic?: boolean;     // 斜体开关
+  size?: number | string; // 字号（8px 基线倍数，支持纯数字如 1.5、字符串如 "1.5"、单位如 "1.5rem" / "24px"）
+  serif?: boolean;        // 衬线体开关
+  sans?: boolean;         // 无衬线体开关
+  bold?: boolean;         // 加粗开关
+  italic?: boolean;       // 斜体开关
   align?: 'left' | 'center' | 'right' | 'justify';
-  leading?: number;     // 行高倍数
-  tracking?: number;    // 字距（em）
-  color?: string;       // 颜色 Token 或 Hex
-  scale?: 'display' | 'body' | 'caption';  // 令牌规模
+  leading?: number;       // 行高倍数
+  tracking?: number;      // 字距（em）
+  color?: string;         // 颜色 Token 或 Hex
+  variant?: 'display' | 'body' | 'caption'; // 令牌规模
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 方向支持
 }
 ```
 
 ### 5.2 输出样式
 
 ```typescript
-const style = useModularStyle(props);
-// 返回 React.CSSProperties 对象
+const { style, className } = useModularStyle(props);
+// 返回解析后的 React.CSSProperties 与合规类名
 ```
 
 ### 5.3 核心逻辑
 
-1. **Token 合并**: 从 `designSystem.tokens.typography[scale]` 读取基础样式
+1. **Token 合并**: 从 `designSystem.tokens.typography[variant]` 读取基础样式
 2. **字体解析**: 优先使用 `styleOverrides[fieldKey].fontFamily`，次之 Props 意图（`serif`/`sans`），最后回退到 Token
-3. **基线吸附**: 当字号使用 `px`/无单位时，自动将行高对齐到 8px 网格
+3. **字号与基线吸附**: 使用 `resolveModularFontSize` 解析 `size`（8px 基线换算），并将行高向上吸附对齐到 8px 网格
 4. **颜色映射**: `color='primary'` → `theme.colors.primary` 或 `designSystem.tokens.colors.primary`
 5. **覆盖优先级**: `styleOverrides > Props > Tokens > Defaults`
 
-### 5.4 示例
+### 5.4 独立导出函数：`resolveModularFontSize`
+
+```typescript
+export function resolveModularFontSize(size: number | string | undefined | null): number | undefined
+```
+- **数字**: `size * 8`（如 `1.5` -> `12px`）
+- **纯数字字符串**: `parseFloat(size) * 8`（如 `"1.5"` -> `12px`）
+- **单位字符串**:
+  - `"1.5rem"` / `"1.5em"` -> `24px`
+  - `"24px"` -> `24px`
+  - `"12pt"` -> `16px`
+
+### 5.5 示例
 
 ```typescript
 // 在 ZineDisplay 中使用
-const style = useModularStyle({
+const { style } = useModularStyle({
   page,
   fieldKey: 'title',
-  size: 48,           // 48px
+  size: 6,            // 48px (6 * 8px)
   serif: true,        // 使用衬线体
   bold: true,         // 加粗
-  leading: 1.1,       // 行高 1.1（吸附到 48px）
+  leading: 1.1,       // 行高 1.1（向上吸附到 8px 的倍数）
   tracking: 0.05,     // 字距 +0.05em
   color: 'primary',   // 主色
-  scale: 'display'
+  variant: 'display'
 });
 ```
 

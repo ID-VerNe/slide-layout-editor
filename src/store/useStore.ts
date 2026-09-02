@@ -6,6 +6,7 @@ import { migrateToV3 } from '../utils/migrations/v2-to-v3';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
 import { GLOBAL_FIELDS } from '../constants/fields';
 import { TEMPLATES, getTemplateById } from '../templates/registry';
+import { logger } from '../utils/logger';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
@@ -280,6 +281,7 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   // @lat: [[store#GLOBAL_FIELDS Sync]]
   updatePage: (updatedPage, silent) => {
+    logger.action('Store', 'UpdatePage', { pageId: updatedPage.id, layoutId: updatedPage.layoutId });
     if (!silent) get().pushHistory();
     const { pages } = get();
     const original = pages.find(p => p.id === updatedPage.id);
@@ -307,6 +309,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   updatePages: (updates, silent) => {
+    logger.action('Store', 'UpdatePages', { count: updates.length });
     if (!silent) get().pushHistory();
     const { pages } = get();
     const nextPages = pages.map(page => {
@@ -317,6 +320,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   addPage: (ratio, layoutId) => {
+    logger.action('Store', 'AddPage', { ratio, layoutId });
     get().pushHistory();
     const { pages, theme, counterStyle } = get();
     const defaultPage = getDefaultPage(ratio, layoutId);
@@ -333,6 +337,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   removePage: (id) => {
+    logger.action('Store', 'RemovePage', { pageId: id });
     const { pages, currentPageIndex } = get();
     if (pages.length <= 1) {
       console.warn('Cannot remove the last page');
@@ -346,7 +351,11 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   setPages: (pages) => set({ pages }),
-  reorderPages: (newPages) => { get().pushHistory(); set({ pages: newPages, hasUnsavedChanges: true }); },
+  reorderPages: (newPages) => { 
+    logger.action('Store', 'ReorderPages', { count: newPages.length });
+    get().pushHistory(); 
+    set({ pages: newPages, hasUnsavedChanges: true }); 
+  },
 
   setTheme: (update, applyToAll = false) => {
     get().pushHistory();

@@ -67,7 +67,7 @@ export const FutureFocusSchema: TemplateSchema = {
                     size: 3.6, 
                     italic: true, 
                     bold: true,
-                    className: '!text-white mb-2', 
+                    className: 'mb-2', 
                     color: 'surface' 
                   }
                 }]
@@ -83,7 +83,7 @@ export const FutureFocusSchema: TemplateSchema = {
                     bold: true,
                     leading: 0.85,
                     tracking: -0.05,
-                    className: '!text-white uppercase', 
+                    className: 'uppercase', 
                     color: 'surface' 
                   }
                 }]
@@ -150,7 +150,7 @@ export const FutureFocusSchema: TemplateSchema = {
                   type: 'Container',
                   layout: 'absolute',
                   modular: { colStart: 1, colSpan: 5, rowStart: 1, rowSpan: 5 },
-                  className: 'rounded-full border-[5px] border-white shadow-xl overflow-hidden z-30',
+                  className: 'rounded-full border-[5px] border-zine-surface shadow-xl overflow-hidden z-30',
                   children: [
                     {
                       type: 'Component',
@@ -165,7 +165,7 @@ export const FutureFocusSchema: TemplateSchema = {
                   layout: 'modular',
                   layoutProps: { columns: 4, rows: 6 },
                   modular: { colStart: 4, colSpan: 8, rowStart: 3, rowSpan: 6 },
-                  className: 'bg-white p-4 shadow-2xl border border-slate-100 z-20 -rotate-3',
+                  className: 'bg-zine-surface p-4 shadow-2xl border border-zine-accent/10 z-20 -rotate-3',
                   children: [
                     {
                       type: 'Component',

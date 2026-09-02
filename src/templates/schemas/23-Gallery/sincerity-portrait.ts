@@ -78,7 +78,7 @@ export const SincerityPortraitSchema: TemplateSchema = {
         componentType: 'ZineMedia',
         modular: { colStart: 14, colSpan: 9, rowStart: 10, rowSpan: 12 },
         props: {
-          className: 'shadow-2xl z-20 border-[0.5px] border-white/20',
+          className: 'shadow-2xl z-20 border-[0.5px] border-zine-accent/20',
         }
       },
 

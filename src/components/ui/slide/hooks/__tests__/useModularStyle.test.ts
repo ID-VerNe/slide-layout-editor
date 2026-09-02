@@ -94,4 +94,32 @@ describe('useModularStyle', () => {
     // overrides 应包含 styleOverrides 中的内容
     expect(result.current).toBeDefined();
   });
+
+  describe('resolveModularFontSize & size 解析一致性', () => {
+    it('数字 1.5 应严格转换为 12px (1.5 * 8)', () => {
+      const { result } = renderHook(() => useModularStyle({ props: { size: 1.5 } }));
+      expect(result.current.style.fontSize).toBe('12px');
+    });
+
+    it('字符串 "1.5" 应正确转换为 12px 而不是 1.5px', () => {
+      const { result } = renderHook(() => useModularStyle({ props: { size: '1.5' } }));
+      expect(result.current.style.fontSize).toBe('12px');
+    });
+
+    it('字符串 "1.5rem" 应按 16px 基准换算为 24px', () => {
+      const { result } = renderHook(() => useModularStyle({ props: { size: '1.5rem' } }));
+      expect(result.current.style.fontSize).toBe('24px');
+    });
+
+    it('字符串 "24px" 应保持 24px', () => {
+      const { result } = renderHook(() => useModularStyle({ props: { size: '24px' } }));
+      expect(result.current.style.fontSize).toBe('24px');
+    });
+
+    it('字符串 "12pt" 应按 4/3 换算为 16px', () => {
+      const { result } = renderHook(() => useModularStyle({ props: { size: '12pt' } }));
+      expect(result.current.style.fontSize).toBe('16px');
+    });
+  });
 });
+

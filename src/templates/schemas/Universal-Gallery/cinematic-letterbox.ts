@@ -20,7 +20,7 @@ export const CinematicLetterboxSchema: TemplateSchema = {
         type: 'Container',
         layout: 'absolute',
         modular: { colStart: 1, colSpan: 24, rowStart: 5, rowSpan: 10 },
-        className: 'bg-black shadow-lg overflow-hidden p-0 relative',
+        className: 'bg-zine-primary shadow-lg overflow-hidden p-0 relative',
         children: [
           {
             type: 'Component',
@@ -43,7 +43,7 @@ export const CinematicLetterboxSchema: TemplateSchema = {
             bind: 'page.paragraph',
             style: { position: 'absolute', bottom: '24px', left: '48px', right: '48px' },
             props: {
-              className: '!text-white !normal-case drop-shadow-md',
+              className: 'drop-shadow-md',
               size: 1.7,
               serif: true,
               color: 'surface'

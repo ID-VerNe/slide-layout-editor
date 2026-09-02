@@ -42,11 +42,12 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
     fieldKey: 'metrics',
     page,
     props: otherProps,
+    variant: 'display',
     customStyle,
     className: `zine-metric ${className}`
   });
 
-  const finalValueSize = style.fontSize || '4.5rem';
+  const finalValueSize = style.fontSize || '72px';
   const valueColor = style.color || theme?.colors?.primary || '#0F172A';
   const labelColor = theme?.colors?.accent || '#264376';
   const subLabelColor = theme?.colors?.secondary || '#64748B';
