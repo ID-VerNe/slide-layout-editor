@@ -7,6 +7,7 @@ import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '..
 import { GLOBAL_FIELDS } from '../constants/fields';
 import { TEMPLATES, getTemplateById } from '../templates/registry';
 import { logger } from '../utils/logger';
+import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
@@ -182,6 +183,11 @@ export const useStore = create<ProjectState>((set, get) => ({
           past: [],
           future: []
         }));
+
+        // 自动将工程中的自定义字体注册载入 document.fonts
+        if (migratedData.customFonts && migratedData.customFonts.length > 0) {
+          loadCustomFontsIntoDOM(migratedData.customFonts);
+        }
       } else {
         const templateConfig = getTemplateById(templateId || 'modern-feature');
         set({
@@ -275,7 +281,10 @@ export const useStore = create<ProjectState>((set, get) => ({
     const updatedPages = pages.map(p => ({ ...p, counterStyle }));
     set({ counterStyle, pages: updatedPages, hasUnsavedChanges: true });
   },
-  setCustomFonts: (customFonts) => set({ customFonts, hasUnsavedChanges: true }),
+  setCustomFonts: (customFonts) => {
+    loadCustomFontsIntoDOM(customFonts);
+    set({ customFonts, hasUnsavedChanges: true });
+  },
   setCurrentFilePath: (currentFilePath) => set({ currentFilePath }),
   markAsSaved: () => set({ hasUnsavedChanges: false }),
 

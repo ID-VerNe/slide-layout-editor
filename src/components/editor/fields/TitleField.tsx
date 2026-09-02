@@ -46,7 +46,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, la
             className="text-sm font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
             style={{ 
               fontFamily: style.fontFamily || page.titleFont,
-              textAlign: style.textAlign,
+              textAlign: style.align || style.textAlign,
               color: '#0F172A' // 锁定为深色以保证编辑器可见性
             }} 
         />

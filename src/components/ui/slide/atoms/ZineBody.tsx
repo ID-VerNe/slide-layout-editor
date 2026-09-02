@@ -1,7 +1,7 @@
 import React from 'react';
 import { DesignSystem, PageData } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
-import { useModularStyle } from '../hooks/useModularStyle';
+import { useModularStyle, resolveDockingStyle } from '../hooks/useModularStyle';
 import { Text } from './Text';
 
 interface ZineBodyProps {
@@ -50,40 +50,8 @@ export const ZineBody: React.FC<ZineBodyProps> = ({
   const content = text || (fieldKey ? (page as any)[fieldKey] : page.paragraph);
   if (!content) return null;
 
-  // 检查是否有用户手动设置的 Grid 对齐（通过 styleOverrides）
-  const hasManualAlignment = fieldKey && page.styleOverrides?.[fieldKey] && 
-    (page.styleOverrides[fieldKey].alignSelf !== undefined || 
-     page.styleOverrides[fieldKey].justifySelf !== undefined);
-
-  // 修复：父容器是 Flexbox(column) 时，对齐属性的映射
-  // Flexbox(column): alignSelf=水平, justifySelf不生效
-  // 9-Point UI 语义: alignSelf=垂直, justifySelf=水平
-  // 解决方案：交换它们
-  const finalStyle: React.CSSProperties = { ...style };
-  
-  if (hasManualAlignment && fieldKey) {
-    const overrides = page.styleOverrides[fieldKey];
-    // 交换：用户的 justifySelf（水平意图）→ 实际的 alignSelf（Flexbox 交叉轴=水平）
-    //      用户的 alignSelf（垂直意图）→ 通过 margin 实现
-    finalStyle.alignSelf = overrides.justifySelf;  // 水平位置
-    
-    // 垂直位置通过 margin 实现
-    if (overrides.alignSelf === 'start') {
-      finalStyle.marginTop = '0';
-      finalStyle.marginBottom = 'auto';
-    } else if (overrides.alignSelf === 'end') {
-      finalStyle.marginTop = 'auto';
-      finalStyle.marginBottom = '0';
-    } else if (overrides.alignSelf === 'center') {
-      finalStyle.marginTop = 'auto';
-      finalStyle.marginBottom = 'auto';
-    }
-    
-    // 移除从 style 继承的错误 alignSelf/justifySelf
-    delete finalStyle.justifySelf;
-  }
-  
-  finalStyle.width = style.width || (hasManualAlignment ? undefined : '100%');
+  // 统一解析 9 点对齐与布局适应
+  const finalStyle = resolveDockingStyle(style, fieldKey ? page.styleOverrides?.[fieldKey] : undefined);
 
   if (dropCap) {
     return (

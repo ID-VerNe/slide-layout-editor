@@ -2,8 +2,9 @@ import React from 'react';
 import { PageData, DesignSystem, CustomFont } from '../../../types';
 import { useStore } from '../../../store/useStore';
 import { FontSelect } from '../../ui/FontSelect';
+import { getTemplateById } from '../../../templates/registry';
 import { 
-  Type, AlignLeft, AlignCenter, AlignJustify, Italic, Palette, 
+  Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, Italic, Palette, 
   MousePointer2, RotateCcw, Move, Maximize2, Type as TypeIcon
 } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   mode
 }) => {
   const ds = useStore(s => s.designSystem);
+  const theme = useStore(s => s.theme);
   const overrides = page.styleOverrides?.[fieldKey] || {};
 
   const updateOverride = (key: string, value: any) => {
@@ -89,11 +91,82 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   const currentColor = overrides.color || ds.tokens.colors.primary;
   const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
   
-  // 对齐属性 (9点定位支持)
-  // 注意：这里直接读取 overrides，而不是从 style 读取（style 可能被过滤）
+  // 智能推导当前文本对齐方式（优先从当前模板 Schema 中检索默认 align）
+  const getDefaultAlignForField = (key: string): string => {
+    try {
+      const tpl = getTemplateById(page.layoutId);
+      if (tpl?.schema) {
+        const findAlignInNode = (node: any): string | undefined => {
+          if (!node) return undefined;
+          if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
+            return node.props?.align || node.props?.textAlign;
+          }
+          if (node.children && Array.isArray(node.children)) {
+            for (const child of node.children) {
+              const res = findAlignInNode(child);
+              if (res) return res;
+            }
+          }
+          return undefined;
+        };
+        const defaultAlign = findAlignInNode(tpl.schema);
+        if (defaultAlign) return defaultAlign;
+      }
+    } catch {
+      // 降级使用 left
+    }
+    return 'left';
+  };
+
+  // 智能推导当前文本字体族（从模板 Schema 或 Design Token 继承）
+  const getDefaultFontFamilyForField = (key: string): string => {
+    try {
+      const tpl = getTemplateById(page.layoutId);
+      if (tpl?.schema) {
+        const findFontInNode = (node: any): string | undefined => {
+          if (!node) return undefined;
+          if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
+            if (node.props?.fontFamily) return node.props.fontFamily;
+            if (node.props?.serif) return theme.typography.headingFont;
+            if (node.props?.sans) return theme.typography.bodyFont;
+            if (node.props?.caption) return theme.typography.captionFont;
+          }
+          if (node.children && Array.isArray(node.children)) {
+            for (const child of node.children) {
+              const res = findFontInNode(child);
+              if (res) return res;
+            }
+          }
+          return undefined;
+        };
+        const defaultFont = findFontInNode(tpl.schema);
+        if (defaultFont) return defaultFont;
+      }
+    } catch {
+      // 忽略异常，降级到语义推导
+    }
+
+    const lk = key.toLowerCase();
+    if (lk === 'title' || lk === 'heading' || lk.includes('display') || lk.includes('hero')) {
+      return page.titleFont || theme.typography.headingFont;
+    }
+    if (lk.includes('caption') || lk.includes('meta') || lk.includes('tag') || lk.includes('badge') || lk === 'footer') {
+      return theme.typography.captionFont || theme.typography.bodyFont;
+    }
+    if (lk.includes('zh') || lk.includes('chinese')) {
+      return theme.typography.bodyFontZH;
+    }
+    return page.bodyFont || theme.typography.bodyFont;
+  };
+
+  const currentFontFamily = overrides.fontFamily || getDefaultFontFamilyForField(fieldKey);
   const currentAlign = overrides.alignSelf;
   const currentJustify = overrides.justifySelf;
-  const currentTextAlign = overrides.align || 'left';
+  const currentTextAlign = overrides.align || overrides.textAlign || getDefaultAlignForField(fieldKey);
+
+  const updateTextAlign = (val: 'left' | 'center' | 'right' | 'justify') => {
+    updateOverrides({ align: val, textAlign: val });
+  };
   
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -124,7 +197,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
             <span>Font Family</span>
           </div>
           <FontSelect 
-            value={overrides.fontFamily} 
+            value={currentFontFamily} 
             onChange={(v) => updateOverride('fontFamily', v)}
             customFonts={customFonts}
             compact
@@ -194,18 +267,23 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
             </div>
             <div className="flex bg-slate-50 border border-slate-100 rounded-lg p-1">
               <button 
-                onClick={() => updateOverride('align', 'left')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'left' ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateTextAlign('left')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'left' ? 'bg-white shadow-sm' : 'opacity-40 hover:opacity-100'}`}
                 title="Align Left"
               ><AlignLeft size={12} /></button>
               <button 
-                onClick={() => updateOverride('align', 'center')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'center' ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateTextAlign('center')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'center' ? 'bg-white shadow-sm' : 'opacity-40 hover:opacity-100'}`}
                 title="Align Center"
               ><AlignCenter size={12} /></button>
               <button 
-                onClick={() => updateOverride('align', 'justify')}
-                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'justify' ? 'bg-white shadow-sm' : 'opacity-40'}`}
+                onClick={() => updateTextAlign('right')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'right' ? 'bg-white shadow-sm' : 'opacity-40 hover:opacity-100'}`}
+                title="Align Right"
+              ><AlignRight size={12} /></button>
+              <button 
+                onClick={() => updateTextAlign('justify')}
+                className={`flex-1 py-1 flex items-center justify-center rounded transition-all ${currentTextAlign === 'justify' ? 'bg-white shadow-sm' : 'opacity-40 hover:opacity-100'}`}
                 title="Justify"
               ><AlignJustify size={12} /></button>
             </div>

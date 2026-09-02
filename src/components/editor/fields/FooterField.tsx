@@ -51,7 +51,7 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, l
             className="text-[10px] font-black uppercase tracking-widest border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
             style={{ 
               fontFamily: style.fontFamily || page.bodyFont || "'Inter', sans-serif",
-              textAlign: style.textAlign,
+              textAlign: style.align || style.textAlign,
               color: '#0F172A'
             }} 
         />

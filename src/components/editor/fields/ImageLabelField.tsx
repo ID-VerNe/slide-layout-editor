@@ -46,7 +46,7 @@ export const ImageLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdat
             className="text-xs font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
             style={{ 
               fontFamily: style.fontFamily || page.bodyFont || "'Inter', sans-serif",
-              textAlign: style.textAlign,
+              textAlign: style.align || style.textAlign,
               color: '#0F172A'
             }} 
         />

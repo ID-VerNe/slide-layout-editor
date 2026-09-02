@@ -98,4 +98,35 @@ describe('FontSelect', () => {
     const select = container.querySelector('select');
     expect(select?.className).toContain('py-2.5');
   });
+
+  it('正确渲染 customFonts 选项组', () => {
+    const customList = [
+      { name: 'MyHandwriting', family: 'custom-handwriting-123' },
+      { name: 'CorporateSans', family: 'custom-corp-456' },
+    ];
+    render(
+      <FontSelect
+        value="custom-handwriting-123"
+        onChange={() => {}}
+        customFonts={customList}
+      />
+    );
+    expect(screen.getByText('MyHandwriting')).toBeInTheDocument();
+    expect(screen.getByText('CorporateSans')).toBeInTheDocument();
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select.value).toBe('custom-handwriting-123');
+  });
+
+  it('支持字体名称规范化匹配（无引号或不同 fallback）', () => {
+    render(
+      <FontSelect
+        value="Playfair Display"
+        onChange={() => {}}
+        customFonts={[]}
+      />
+    );
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select.value).toBe("'Playfair Display', serif");
+  });
 });
+

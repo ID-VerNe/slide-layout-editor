@@ -51,7 +51,7 @@ export const ParagraphZHField: React.FC<FieldProps> = React.memo(
                 style.fontFamily ||
                 page.bodyFont ||
                 "'Noto Serif SC', 'STFangsong', serif",
-              textAlign: style.textAlign,
+              textAlign: style.align || style.textAlign,
               color: '#475569',
             }}
           />

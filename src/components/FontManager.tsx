@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 // Added Type to the lucide-react imports to fix "Cannot find name 'Type'" error
 import { Upload, X, Type } from 'lucide-react';
 import { CustomFont } from '../types';
+import { registerCustomFontInDOM, removeCustomFontFromDOM } from '../utils/fontLoader';
 
 const MAX_CUSTOM_FONTS = 20;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -25,35 +26,7 @@ interface FontManagerProps {
 const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) => {
   const registerFont = useCallback(async (name: string, dataUrl: string) => {
     const family = `custom-${Date.now()}-${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
-
-    // Validate dataUrl to prevent CSS injection
-    const isDataUrlValid =
-      dataUrl.startsWith('data:font/') ||
-      dataUrl.startsWith('data:application/x-font-') ||
-      dataUrl.startsWith('data:application/font-');
-    if (!isDataUrlValid) {
-      console.warn(`Font URL for "${name}" does not appear to be a valid font data URL — skipping.`);
-      return family;
-    }
-
-    try {
-      const font = new FontFace(family, `url(${dataUrl})`);
-      const loadedFont = await font.load();
-      document.fonts.add(loadedFont);
-    } catch (e) {
-      console.error("FontFace failed, using style fallback", e);
-      const style = document.createElement('style');
-      style.id = `${family.replace(/[^a-z0-9]/gi, '_')}-${Date.now()}`;
-      style.innerHTML = `
-        @font-face {
-          font-family: ${JSON.stringify(family)};
-          src: url(${JSON.stringify(dataUrl)});
-          font-weight: normal;
-          font-style: normal;
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    await registerCustomFontInDOM({ name, family, dataUrl });
     return family;
   }, []);
 
@@ -91,17 +64,7 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) 
   };
 
   const removeFont = (family: string) => {
-    // Try to remove from document.fonts
-    try {
-      const fonts = Array.from(document.fonts.values());
-      const font = fonts.find(f => f.family === family);
-      if (font) document.fonts.delete(font);
-    } catch (e) {
-      console.warn("Failed to remove font from document.fonts", e);
-    }
-
-    const styleEl = document.getElementById(`style-${family}`);
-    if (styleEl) styleEl.remove();
+    removeCustomFontFromDOM(family);
     onFontsChange(prev => prev.filter(f => f.family !== family));
   };
 
