@@ -1,14 +1,21 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-const INVALID_PATH_RE = /\.\.|[\x00-\x1f<>:"|?*\\]/;
-
-function validatePathParam(name: string, value: string): string | null {
-  if (typeof value !== 'string' || value.trim().length === 0) return null;
-  if (INVALID_PATH_RE.test(value)) {
-    console.warn(`[preload] Rejected invalid ${name}: "${value}"`);
+function validateFilePath(filePath: string): string | null {
+  if (typeof filePath !== 'string' || filePath.trim().length === 0) return null;
+  if (/[\x00-\x1f]/.test(filePath)) {
+    console.warn(`[preload] Rejected path with control characters: "${filePath}"`);
     return null;
   }
-  return value;
+  return filePath;
+}
+
+function validateFilename(filename: string): string | null {
+  if (typeof filename !== 'string' || filename.trim().length === 0) return null;
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\') || /[\x00-\x1f]/.test(filename)) {
+    console.warn(`[preload] Rejected invalid filename: "${filename}"`);
+    return null;
+  }
+  return filename;
 }
 
 // @lat: [[electron-preload]]
@@ -30,12 +37,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     catch (e) { console.error('[preload] openProject failed:', e); return null; }
   },
   readProject: async (filePath: string) => {
-    if (!validatePathParam('filePath', filePath)) return null;
+    if (!validateFilePath(filePath)) return null;
     try { return await ipcRenderer.invoke('read-project', filePath); }
     catch (e) { console.error('[preload] readProject failed:', e); return null; }
   },
   uploadAsset: async (filename: string, base64Data: string) => {
-    if (!validatePathParam('filename', filename)) return null;
+    if (!validateFilename(filename)) return null;
     try { return await ipcRenderer.invoke('upload-asset', { filename, base64Data }); }
     catch (e) { console.error('[preload] uploadAsset failed:', e); return null; }
   },
@@ -44,7 +51,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     catch (e) { console.error('[preload] selectDirectory failed:', e); return null; }
   },
   saveFileBuffer: async (filePath: string, base64Data: string) => {
-    if (!validatePathParam('filePath', filePath)) return null;
+    if (!validateFilePath(filePath)) return null;
     try { return await ipcRenderer.invoke('save-file-buffer', { filePath, base64Data }); }
     catch (e) { console.error('[preload] saveFileBuffer failed:', e); return null; }
   },
@@ -53,7 +60,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     catch (e) { console.error('[preload] openExternal failed:', e); return null; }
   },
   setActiveWorkspace: async (path: string) => {
-    if (!validatePathParam('workspace path', path)) return null;
+    if (!validateFilePath(path)) return null;
     try { return await ipcRenderer.invoke('setActiveWorkspace', path); }
     catch (e) { console.error('[preload] setActiveWorkspace failed:', e); return null; }
   },
@@ -66,7 +73,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     catch (e) { console.error('[preload] setCurrentProject failed:', e); return null; }
   },
   readAssetFile: async (filename: string) => {
-    if (!validatePathParam('filename', filename)) return null;
+    if (!validateFilename(filename)) return null;
     try { return await ipcRenderer.invoke('read-asset-file', filename); }
     catch (e) { console.error('[preload] readAssetFile failed:', e); return null; }
   },
@@ -75,7 +82,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     catch (e) { console.error('[preload] processResponsiveImages failed:', e); return null; }
   },
   deleteProject: async (projectPath: string) => {
-    if (!validatePathParam('projectPath', projectPath)) return null;
+    if (!validateFilePath(projectPath)) return null;
     try { return await ipcRenderer.invoke('delete-project', projectPath); }
     catch (e) { console.error('[preload] deleteProject failed:', e); return null; }
   }

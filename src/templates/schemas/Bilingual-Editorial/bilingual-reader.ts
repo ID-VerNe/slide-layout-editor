@@ -33,7 +33,7 @@ export const BilingualReaderSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.title',
             props: {
-              size: 0.75,
+              size: 1.25,
               bold: true,
               tracking: 0.3,
               sans: true,
@@ -46,7 +46,7 @@ export const BilingualReaderSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
             props: {
-              size: 0.75,
+              size: 1.25,
               tracking: 0.2,
               sans: true,
               className: 'uppercase opacity-40',
@@ -64,7 +64,7 @@ export const BilingualReaderSchema: TemplateSchema = {
         modular: { colStart: 23, colSpan: 1, rowStart: 3, rowSpan: 14, align: 'center', justify: 'center' },
         props: {
           orientation: 'vertical-rotate',
-          size: 0.7,
+          size: 1.25,
           bold: true,
           tracking: 0.35,
           sans: true,
@@ -77,6 +77,7 @@ export const BilingualReaderSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineMedia',
+        bind: 'page.image',
         modular: { colStart: 3, colSpan: 19, rowStart: 3, rowSpan: 5 },
         props: {
           className: 'overflow-hidden rounded-none',
@@ -93,8 +94,8 @@ export const BilingualReaderSchema: TemplateSchema = {
         props: {
           serif: true,
           dropCap: true,
-          size: 1.15,
-          leading: 1.75,
+          size: 2.25,
+          leading: 1.7,
           align: 'left',
           className: 'text-slate-900 font-serif tracking-normal selection:bg-slate-200',
           color: 'primary',
@@ -109,8 +110,8 @@ export const BilingualReaderSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 19, rowStart: 15, rowSpan: 4 },
         props: {
           zh: true,
-          size: 0.95,
-          leading: 1.65,
+          size: 1.875,
+          leading: 1.7,
           align: 'left',
           className: 'text-slate-600 font-serif opacity-80',
           color: 'secondary',
@@ -130,7 +131,7 @@ export const BilingualReaderSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             props: {
               text: 'VOCABULARY ARCHIVE',
-              size: 0.7,
+              size: 1.25,
               bold: true,
               tracking: 0.4,
               sans: true,
@@ -143,7 +144,7 @@ export const BilingualReaderSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             props: {
               text: 'CURATED // KEY TERMS',
-              size: 0.65,
+              size: 1.125,
               tracking: 0.25,
               sans: true,
               className: 'uppercase opacity-30',
@@ -162,6 +163,7 @@ export const BilingualReaderSchema: TemplateSchema = {
         props: {
           columns: 2,
           showExample: false,
+          size: 1.5,
         },
       },
     ],

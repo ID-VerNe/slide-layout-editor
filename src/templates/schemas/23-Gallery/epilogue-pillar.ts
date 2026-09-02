@@ -105,7 +105,8 @@ export const EpiloguePillarSchema: TemplateSchema = {
       // 3. Footer (底部元数据)
       {
         type: 'Component',
-        componentType: 'ZineFooter',
+        componentType: 'ZineCaption',
+        fieldKey: 'footer',
         bind: 'page.footer',
         modular: { colStart: 1, colSpan: 24, rowStart: 24, rowSpan: 1 },
         props: {

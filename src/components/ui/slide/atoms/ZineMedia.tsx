@@ -75,7 +75,9 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   useEffect(() => {
     if (url && !priority && !isLoaded) {
-      generateLQIP(url).then(setLqip).catch(console.error);
+      generateLQIP(url).then(setLqip).catch(() => {
+        // 静默降级：LQIP 生成失败不阻碍正常渲染
+      });
     }
   }, [url, priority, isLoaded]);
 
@@ -100,9 +102,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
     borderRadius: rounded !== undefined 
       ? (typeof rounded === 'number' ? `${rounded}px` : rounded) 
       : (style.borderRadius || '0'), 
-    aspectRatio: dimensions?.width && dimensions?.height 
-      ? `${dimensions.width} / ${dimensions.height}` 
-      : style.aspectRatio,
+    aspectRatio: style.aspectRatio,
   };
 
   return (

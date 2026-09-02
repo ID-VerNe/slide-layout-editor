@@ -432,18 +432,12 @@ export class ExpressionEvaluator {
         return this.interpolate(obj, context);
       }
 
-      // 判断是否为表达式（包含运算符或数据路径）
-      const hasOperator =
-        /\s*(\+|\-|\*|\/|&&|\|\||===|!==|==|!=|>=|<=|>|\?)\s*/.test(obj) ||
-        obj.includes('typeof ');
-      const hasContextPath = obj.includes('.');
-
-      if (hasOperator || hasContextPath) {
-        const firstSegment = obj.split(/[.\s\[]/, 1)[0];
-        if (
-          (firstSegment && Object.prototype.hasOwnProperty.call(context, firstSegment)) ||
-          hasOperator
-        ) {
+      // 仅当首个标识符是 context 顶层变量 (如 page, theme, index, $parent 等) 时才自动求值
+      // 杜绝将包含 '-'、'!' 等符号的常规 CSS 类名 (如 "!italic !tracking-normal", "text-slate-900") 误作为表达式解析
+      const firstIdentMatch = obj.trim().match(/^([A-Za-z_$][A-Za-z0-9_$]*)/);
+      if (firstIdentMatch) {
+        const rootVar = firstIdentMatch[1];
+        if (Object.prototype.hasOwnProperty.call(context, rootVar)) {
           return this.evaluate(obj, context);
         }
       }

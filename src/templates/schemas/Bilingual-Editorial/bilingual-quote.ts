@@ -33,9 +33,9 @@ export const BilingualQuoteSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.title',
             props: {
-              size: 0.75,
+              size: 1.25,
               bold: true,
-              tracking: 0.4,
+              tracking: 0.35,
               sans: true,
               className: 'uppercase opacity-50',
               color: 'primary',
@@ -46,7 +46,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.actionText',
             props: {
-              size: 0.75,
+              size: 1.25,
               tracking: 0.25,
               sans: true,
               className: 'uppercase opacity-40',
@@ -64,9 +64,9 @@ export const BilingualQuoteSchema: TemplateSchema = {
         modular: { colStart: 23, colSpan: 1, rowStart: 4, rowSpan: 16, align: 'center', justify: 'center' },
         props: {
           orientation: 'vertical-rotate',
-          size: 0.75,
+          size: 1.25,
           bold: true,
-          tracking: 0.4,
+          tracking: 0.35,
           sans: true,
           className: 'uppercase opacity-35',
           color: 'primary',
@@ -81,7 +81,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         props: {
           text: '“',
           serif: true,
-          size: 4.5,
+          size: 6,
           className: 'font-serif opacity-15 leading-none select-none -mb-4',
           color: 'accent',
         },
@@ -96,7 +96,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         props: {
           serif: true,
           italic: true,
-          size: 2.3,
+          size: 4.5,
           leading: 1.35,
           align: 'left',
           className: 'font-serif text-slate-900 tracking-tight',
@@ -121,7 +121,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 19, rowStart: 17, rowSpan: 3, align: 'start' },
         props: {
           zh: true,
-          size: 1.05,
+          size: 2.0,
           leading: 1.7,
           align: 'left',
           className: 'text-slate-600 font-serif opacity-75',
@@ -142,9 +142,9 @@ export const BilingualQuoteSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.subtitle',
             props: {
-              size: 0.85,
+              size: 1.75,
               bold: true,
-              tracking: 0.3,
+              tracking: 0.25,
               sans: true,
               className: 'uppercase opacity-70',
               color: 'primary',
@@ -155,7 +155,7 @@ export const BilingualQuoteSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.imageLabel',
             props: {
-              size: 0.75,
+              size: 1.25,
               tracking: 0.15,
               sans: true,
               className: 'opacity-40 italic mt-0.5',

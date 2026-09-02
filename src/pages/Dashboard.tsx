@@ -20,13 +20,13 @@ export default function Dashboard() {
     const initWorkspace = async () => {
       let savedWorkspace = localStorage.getItem('slidegrid_workspace');
       
-      // 如果没有设置 Workspace，使用默认路径
-      if (!savedWorkspace && nativeFs.isElectron()) {
+      if (nativeFs.isElectron()) {
         const paths = await nativeFs.getAppPaths();
-        if (paths?.userData) {
-          const defaultWorkspace = `${paths.userData}/Projects`;
-          savedWorkspace = defaultWorkspace;
-          localStorage.setItem('slidegrid_workspace', defaultWorkspace);
+        const defaultWs = (paths as any)?.defaultWorkspace || (paths as any)?.localWorkspace || (paths?.userData ? `${paths.userData}/Projects` : null);
+        if (!savedWorkspace || savedWorkspace.endsWith('/Projects') || savedWorkspace.endsWith('\\Projects')) {
+          // 优先使用探测到的实际工作区路径（如 ./workspace）
+          savedWorkspace = defaultWs;
+          if (savedWorkspace) localStorage.setItem('slidegrid_workspace', savedWorkspace);
         }
       }
       
@@ -37,38 +37,46 @@ export default function Dashboard() {
   }, []);
 
   const refreshProjects = async () => {
-    // 1. 如果有 Workspace，优先从物理目录扫描
-    if (workspace && nativeFs.isElectron()) {
+    const uniqueMap = new Map();
+
+    // 1. 如果是 Electron 环境，从物理工作区目录扫描（多源发现）
+    if (nativeFs.isElectron()) {
       try {
         const workspaceProjects = await nativeFs.listProjects();
         if (workspaceProjects && workspaceProjects.length > 0) {
-          // 去重：如果同一 Workspace 下存在相同 ID 的项目文件夹（可能是手动复制的），仅保留最近修改的那个
-          const uniqueMap = new Map();
           workspaceProjects.forEach(p => {
             const existing = uniqueMap.get(p.id);
-            if (!existing || p.lastModified > existing.lastModified) {
+            if (!existing || (p.lastModified || 0) > (existing.lastModified || 0)) {
               uniqueMap.set(p.id, p);
             }
           });
-          setProjects(Array.from(uniqueMap.values()));
-          return;
         }
       } catch (e) {
         console.error("Failed to scan workspace:", e);
       }
     }
 
-    // 2. 回退到 LocalStorage 记录 (兼容 Web 或 空目录)
+    // 2. 合并 LocalStorage 历史记录 (保证 Web 与迁移记录不丢失)
     const saved = localStorage.getItem(RECENT_KEY);
     if (saved) {
       try { 
         const recent = JSON.parse(saved);
-        const uniqueMap = new Map();
         recent.forEach((p: any) => {
-          if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p);
+          if (!uniqueMap.has(p.id)) {
+            uniqueMap.set(p.id, p);
+          }
         });
-        setProjects(Array.from(uniqueMap.values()));
-      } catch (e) { setProjects([]); }
+      } catch (e) {
+        console.error("Failed to parse recent localStorage:", e);
+      }
+    }
+
+    const mergedList = Array.from(uniqueMap.values()).sort((a: any, b: any) => (b.lastModified || 0) - (a.lastModified || 0));
+    setProjects(mergedList);
+
+    // 同步写回 LocalStorage 做持久化缓存备份
+    if (mergedList.length > 0) {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(mergedList.slice(0, 48)));
     }
   };
 

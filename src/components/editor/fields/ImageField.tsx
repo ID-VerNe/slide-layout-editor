@@ -119,7 +119,7 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
                 Fit to Container
               </button>
             </div>
-            <Slider label="Scale" value={(page as any)[configKey]?.scale || 1} min={0.5} max={3} step={0.1} onChange={(v) => handleConfigChange('scale', v)} />
+            <Slider label="Scale" value={(page as any)[configKey]?.scale !== undefined ? Math.max(1, (page as any)[configKey].scale) : 1} min={1} max={3} step={0.05} onChange={(v) => handleConfigChange('scale', v)} />
             <Slider label="Move Horiz." value={(page as any)[configKey]?.x || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('x', v)} />
             <Slider label="Move Vert." value={(page as any)[configKey]?.y || 0} min={-100} max={100} step={1} onChange={(v) => handleConfigChange('y', v)} />
             <button onClick={handleRemove} className="w-full py-2.5 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-red-100 mt-2">

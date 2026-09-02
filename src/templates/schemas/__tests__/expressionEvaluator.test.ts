@@ -330,9 +330,16 @@ describe('Expression Evaluator', () => {
       expect(evaluator.evaluate('page.items[page.index]', ctx)).toBe('b');
     });
 
-    it('字符串中含转义字符', () => {
-      const result = evaluator.evaluate('"hello world"', mockContext);
-      expect(result).toBe('hello world');
+    it('evaluateObject 不应误解析包含 - 或 ! 的 CSS 类名', () => {
+      const input = {
+        className: '!italic !tracking-normal text-right',
+        containerClass: 'w-full h-full bg-slate-900',
+        gap: 'spacing.none',
+      };
+      const result = evaluator.evaluateObject(input, mockContext);
+      expect(result.className).toBe('!italic !tracking-normal text-right');
+      expect(result.containerClass).toBe('w-full h-full bg-slate-900');
+      expect(result.gap).toBe('spacing.none');
     });
   });
 });

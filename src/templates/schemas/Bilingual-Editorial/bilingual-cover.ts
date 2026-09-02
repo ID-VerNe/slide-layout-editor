@@ -29,7 +29,7 @@ export const BilingualCoverSchema: TemplateSchema = {
           serif: true,
           bold: true,
           tracking: 0.25,
-          size: 3.2,
+          size: 4.5,
           className: 'uppercase tracking-[0.25em]',
           color: 'primary',
         },
@@ -48,9 +48,9 @@ export const BilingualCoverSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.imageSubLabel',
             props: {
-              size: 0.8,
+              size: 1.25,
               bold: true,
-              tracking: 0.3,
+              tracking: 0.25,
               sans: true,
               className: 'uppercase opacity-60',
               color: 'secondary',
@@ -61,7 +61,7 @@ export const BilingualCoverSchema: TemplateSchema = {
             componentType: 'ZineCaption',
             bind: 'page.actionText',
             props: {
-              size: 0.8,
+              size: 1.25,
               bold: true,
               tracking: 0.2,
               sans: true,
@@ -80,9 +80,9 @@ export const BilingualCoverSchema: TemplateSchema = {
         modular: { colStart: 23, colSpan: 1, rowStart: 6, rowSpan: 12, align: 'center', justify: 'center' },
         props: {
           orientation: 'vertical-rotate',
-          size: 0.75,
+          size: 1.25,
           bold: true,
-          tracking: 0.4,
+          tracking: 0.35,
           sans: true,
           className: 'uppercase opacity-40',
           color: 'primary',
@@ -93,6 +93,7 @@ export const BilingualCoverSchema: TemplateSchema = {
       {
         type: 'Component',
         componentType: 'ZineMedia',
+        bind: 'page.image',
         modular: { colStart: 3, colSpan: 19, rowStart: 6, rowSpan: 12 },
         props: {
           className: 'shadow-sm',
@@ -107,7 +108,7 @@ export const BilingualCoverSchema: TemplateSchema = {
         bind: 'page.imageLabel',
         modular: { colStart: 3, colSpan: 19, rowStart: 18, rowSpan: 1, align: 'start' },
         props: {
-          size: 0.75,
+          size: 1.25,
           sans: true,
           tracking: 0.15,
           className: 'opacity-40 italic',
@@ -124,7 +125,7 @@ export const BilingualCoverSchema: TemplateSchema = {
         props: {
           serif: true,
           italic: true,
-          size: 2.2,
+          size: 2.75,
           leading: 1.2,
           color: 'primary',
         },
@@ -138,7 +139,7 @@ export const BilingualCoverSchema: TemplateSchema = {
         modular: { colStart: 3, colSpan: 19, rowStart: 22, rowSpan: 2, align: 'start' },
         props: {
           zh: true,
-          size: 1.0,
+          size: 1.875,
           leading: 1.6,
           className: 'opacity-70',
           color: 'secondary',

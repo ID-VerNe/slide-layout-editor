@@ -83,14 +83,16 @@ export const Image: React.FC<ImageProps> = ({
     ...remainingStyle
   }), [aspectRatio, remainingStyle, styleOverflow]);
 
+  const safeScale = Math.max(1, config.scale !== undefined ? config.scale : 1);
+
   const imageStyle = useMemo(() => ({
-    transform: `scale(${config.scale})`,
+    transform: `scale(${safeScale})`,
     objectPosition: styleObjectPosition || `${posX}% ${posY}%`,
     transformOrigin: styleObjectPosition || `${posX}% ${posY}%`,
     width: '100%',
     height: '100%',
     objectFit: styleObjectFit || 'cover'
-  }), [config.scale, posX, posY, styleObjectFit, styleObjectPosition]);
+  }), [safeScale, posX, posY, styleObjectFit, styleObjectPosition]);
 
   return (
     <div className={className} style={containerStyle}>
@@ -117,12 +119,13 @@ export const Image: React.FC<ImageProps> = ({
             src={url} 
             srcSet={srcSet}
             sizes={sizes}
-            crossOrigin="anonymous"
+            crossOrigin={url?.startsWith('http') ? 'anonymous' : undefined}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             className={`transition-all duration-300 ease-out ${imgClassName} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
             style={imageStyle}
             onLoad={handleLoad}
+            onError={() => setIsLoaded(true)}
           />
         </picture>
       )}

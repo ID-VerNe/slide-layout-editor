@@ -30,6 +30,17 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
   ZineArtFont,
   BigDataMetrics,
   ZineVocabList,
+  // 别名与向后兼容映射
+  ZineFooter: ZineCaption,
+  ZineTitle: ZineDisplay,
+  ZineSubtitle: ZineCaption,
+  ZineText: ZineBody,
+  ZineImage: ZineMedia,
+  SlideTitle: ZineDisplay,
+  SlideSubtitle: ZineCaption,
+  SlideBody: ZineBody,
+  SlideImage: ZineMedia,
+  SlideDivider: ZineDivider,
 };
 
 export type RegisteredComponentType = keyof typeof COMPONENT_REGISTRY;

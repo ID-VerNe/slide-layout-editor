@@ -29,10 +29,14 @@ function createWindow() {
   });
 
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const isDev = Boolean(VITE_DEV_SERVER_URL);
+    const csp = isDev
+      ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' http: ws: data: blob: asset:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: ws:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com http:; img-src 'self' asset: data: blob: http: https:; font-src 'self' asset: data: https://fonts.gstatic.com http:; connect-src 'self' http: ws: https:; object-src 'none';"
+      : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' asset: data: blob: https:; font-src 'self' asset: data: https://fonts.gstatic.com; connect-src 'self' https://api.gemini.com; object-src 'none'; frame-ancestors 'none';";
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' asset: data: blob:; font-src 'self' asset: data: https://fonts.gstatic.com; connect-src 'self' https://api.gemini.com; object-src 'none'; frame-ancestors 'none';"]
+        'Content-Security-Policy': [csp]
       }
     });
   });
@@ -100,7 +104,16 @@ app.whenReady().then(async () => {
   ipcMain.handle('setActiveWorkspace', (event, path) => { archiveManager.setActiveWorkspace(path); });
   ipcMain.handle('list-projects', async () => { return await archiveManager.listProjects(); });
   ipcMain.handle('setCurrentProject', (event, { id, name }) => { archiveManager.setCurrentProject(id, name); });
-  ipcMain.handle('get-app-paths', () => ({ userData: app.getPath('userData'), thumbnails: THUMBNAIL_DIR }));
+  ipcMain.handle('get-app-paths', () => {
+    const localWorkspace = path.join(process.cwd(), 'workspace');
+    const defaultWs = existsSync(localWorkspace) ? localWorkspace : path.join(app.getPath('userData'), 'Projects');
+    return {
+      userData: app.getPath('userData'),
+      thumbnails: THUMBNAIL_DIR,
+      defaultWorkspace: defaultWs,
+      localWorkspace: existsSync(localWorkspace) ? localWorkspace : undefined
+    };
+  });
 
   // 核心：直接读取工作目录文件并返回 Base64
   ipcMain.handle('read-asset-file', async (event, filename) => {

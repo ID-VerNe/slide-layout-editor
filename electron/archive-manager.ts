@@ -25,34 +25,115 @@ export class ProjectArchiveManager {
   }
 
   public async listProjects() {
-    if (!this.workspacePath || !existsSync(this.workspacePath)) return [];
+    const searchDirs: string[] = [];
+    if (this.workspacePath && existsSync(this.workspacePath)) {
+      searchDirs.push(this.workspacePath);
+    }
+    // 自动发现项目根目录下的 workspace 目录
+    const localWorkspace = path.join(process.cwd(), 'workspace');
+    if (existsSync(localWorkspace) && !searchDirs.includes(localWorkspace)) {
+      searchDirs.push(localWorkspace);
+    }
+    const defaultWs = path.join(app.getPath('userData'), 'DefaultWorkspace');
+    if (existsSync(defaultWs) && !searchDirs.includes(defaultWs)) {
+      searchDirs.push(defaultWs);
+    }
+    const projectsWs = path.join(app.getPath('userData'), 'Projects');
+    if (existsSync(projectsWs) && !searchDirs.includes(projectsWs)) {
+      searchDirs.push(projectsWs);
+    }
 
-    const entries = await fs.readdir(this.workspacePath, { withFileTypes: true });
-    const projects = [];
+    const projects: any[] = [];
+    const seenIds = new Set<string>();
 
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const projectJsonPath = path.join(this.workspacePath, entry.name, 'project.json');
-        if (existsSync(projectJsonPath)) {
+    for (const wsDir of searchDirs) {
+      try {
+        const entries = await fs.readdir(wsDir, { withFileTypes: true });
+
+        // 1. 检查根目录下的 project.json
+        const rootProjectJson = path.join(wsDir, 'project.json');
+        if (existsSync(rootProjectJson)) {
           try {
-            const content = await fs.readFile(projectJsonPath, 'utf-8');
+            const content = await fs.readFile(rootProjectJson, 'utf-8');
             const data = JSON.parse(content);
-            const stats = await fs.stat(projectJsonPath);
-
-            projects.push({
-              id: data.id || entry.name.split('_').pop(),
-              title: data.projectTitle || data.title || 'Untitled',
-              date: new Date(stats.mtime).toLocaleDateString(),
-              lastModified: stats.mtimeMs,
-              type: data.pages?.[0]?.layoutId || 'standard',
-              aspectRatio: data.pages?.[0]?.aspectRatio || '16:9',
-              thumbnail: data.thumbnail || null,
-              filePath: path.join(this.workspacePath, entry.name)
-            });
+            const stats = await fs.stat(rootProjectJson);
+            const projId = data.id || path.basename(wsDir);
+            if (!seenIds.has(projId)) {
+              seenIds.add(projId);
+              projects.push({
+                id: projId,
+                title: data.projectTitle || data.title || 'Untitled',
+                date: new Date(stats.mtime).toLocaleDateString(),
+                lastModified: stats.mtimeMs,
+                type: data.pages?.[0]?.layoutId || 'standard',
+                aspectRatio: data.pages?.[0]?.aspectRatio || '16:9',
+                thumbnail: data.thumbnail || null,
+                filePath: wsDir
+              });
+            }
           } catch (e) {
-            console.error(`Failed to read project.json in ${entry.name}`, e);
+            console.error(`Failed to read root project.json in ${wsDir}`, e);
           }
         }
+
+        // 2. 扫描子目录与 .slgrid 文件
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            if (['assets', 'thumbnails', 'node_modules', '.git'].includes(entry.name)) continue;
+            const projectJsonPath = path.join(wsDir, entry.name, 'project.json');
+            if (existsSync(projectJsonPath)) {
+              try {
+                const content = await fs.readFile(projectJsonPath, 'utf-8');
+                const data = JSON.parse(content);
+                const stats = await fs.stat(projectJsonPath);
+                const projId = data.id || entry.name.split('_').pop() || entry.name;
+                if (!seenIds.has(projId)) {
+                  seenIds.add(projId);
+                  projects.push({
+                    id: projId,
+                    title: data.projectTitle || data.title || 'Untitled',
+                    date: new Date(stats.mtime).toLocaleDateString(),
+                    lastModified: stats.mtimeMs,
+                    type: data.pages?.[0]?.layoutId || 'standard',
+                    aspectRatio: data.pages?.[0]?.aspectRatio || '16:9',
+                    thumbnail: data.thumbnail || null,
+                    filePath: path.join(wsDir, entry.name)
+                  });
+                }
+              } catch (e) {
+                console.error(`Failed to read project.json in ${entry.name}`, e);
+              }
+            }
+          } else if (entry.isFile() && entry.name.endsWith('.slgrid')) {
+            try {
+              const slgridPath = path.join(wsDir, entry.name);
+              const zip = new AdmZip(slgridPath);
+              const projectJsonEntry = zip.getEntry('project.json');
+              if (projectJsonEntry) {
+                const data = JSON.parse(projectJsonEntry.getData().toString('utf8'));
+                const stats = await fs.stat(slgridPath);
+                const projId = data.id || entry.name.replace('.slgrid', '');
+                if (!seenIds.has(projId)) {
+                  seenIds.add(projId);
+                  projects.push({
+                    id: projId,
+                    title: data.projectTitle || data.title || entry.name.replace('.slgrid', ''),
+                    date: new Date(stats.mtime).toLocaleDateString(),
+                    lastModified: stats.mtimeMs,
+                    type: data.pages?.[0]?.layoutId || 'standard',
+                    aspectRatio: data.pages?.[0]?.aspectRatio || '16:9',
+                    thumbnail: data.thumbnail || null,
+                    filePath: slgridPath
+                  });
+                }
+              }
+            } catch (e) {
+              console.error(`Failed to read .slgrid in ${entry.name}`, e);
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`Failed to scan workspace ${wsDir}:`, e);
       }
     }
 
@@ -87,7 +168,8 @@ export class ProjectArchiveManager {
 
   private async _getProjectFolderInternal(): Promise<string> {
     if (!this.workspacePath) {
-      this.workspacePath = path.join(app.getPath('userData'), 'DefaultWorkspace');
+      const localWorkspace = path.join(process.cwd(), 'workspace');
+      this.workspacePath = existsSync(localWorkspace) ? localWorkspace : path.join(app.getPath('userData'), 'DefaultWorkspace');
     }
 
     if (!existsSync(this.workspacePath)) {

@@ -199,8 +199,8 @@ function resolveBaseProps(node: BaseNode, context: EvaluationContext, ds: Design
 /**
  * Zine Mode 类名过滤器 - 剔除不符合工业精密感的 Tailwind 类
  */
-function filterZineClassName(className: string): string {
-  if (!className) return '';
+function filterZineClassName(className: any): string {
+  if (!className || typeof className !== 'string') return '';
 
   const forbiddenPrefixes = [
     'shadow', 'blur', 'drop-shadow',
