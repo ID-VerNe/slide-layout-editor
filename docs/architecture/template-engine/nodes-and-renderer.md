@@ -29,64 +29,58 @@
 
 ---
 
-## 2. LayoutRenderer：递归渲染核心
+## 2. LayoutRenderer：解耦渲染管线架构
 
-`LayoutRenderer` 是模板引擎的核心入口。它接收一个 `TemplateNode` 根节点，递归地将其展开为 React 组件树。
+在最新架构中，`LayoutRenderer.tsx` 从单一庞大组件重构为**纯协调器 (Coordinator) 与顶层 ErrorBoundary**，具体渲染逻辑深度解耦到 `src/templates/schemas/renderer/` 子模块体系中。
 
-### 2.1 Props
+### 2.1 子渲染器分工
 
-```typescript
-interface LayoutRendererProps {
-  node: TemplateNode;               // 当前节点
-  page: PageData;                   // 页面数据 (用于 bind 解析)
-  theme: ProjectTheme;              // 全局主题
-  designSystem: DesignSystem;       // 设计系统 Tokens
-  typography?: TypographySettings;  // 排版设置
-  context?: EvaluationContext;      // 计算上下文 (Repeater 使用)
-  resolveZIndex?: ZIndexResolverFn; // zIndex 解析器，由 JsonTemplateRenderer 注入
-}
-```
+| 子模块 | 路径 | 核心职责 |
+| :--- | :--- | :--- |
+| `basePropsResolver` | `renderer/basePropsResolver.ts` | 统一解析 24 格网格定位、9 点对齐停靠 (docking)、预设注入、zIndex 映射与样式白名单过滤 |
+| `containerRenderer` | `renderer/containerRenderer.tsx` | 渲染 Flex、Grid、Absolute 与 Modular 容器，嵌套递归渲染子节点 |
+| `componentRenderer` | `renderer/componentRenderer.tsx` | 从 `COMPONENT_REGISTRY` 动态映射 React 原子组件，绑定数据并捕获组件级异常 |
+| `repeaterRenderer` | `renderer/repeaterRenderer.tsx` | 循环迭代集合数据（如 Agenda、VocabItems、Metrics），派生子评估上下文 |
+| `styleWhitelist` | `renderer/styleWhitelist.ts` | 维护严格的 CSS 样式白名单与类名安全过滤规则，防止软审美侵蚀 |
+| `tokenResolver` | `renderer/tokenResolver.ts` | 将语义化 Design Token 键名解析为实际 CSS 属性值 |
+| `modularFlex` | `utils/modularFlex.ts` | 提供嵌套 Flex 容器的尺寸占位与自适应网格辅助计算 |
 
-### 2.2 渲染流程
+### 2.2 协调分发流程
 
 ```
 LayoutRenderer(node, page, theme, designSystem, resolveZIndex)
   │
-  ├─ 1. 可见性检查 (visibleWhen)
-  │     └─ 不满足 → return null
+  ├─ 1. 可见性检查 (visibleWhen) ──> 不满足则返回 null
   │
-  ├─ 2. 条件分支检查 (Conditional)
-  │     └─ conditionMet ? then : else
+  ├─ 2. 条件分支检查 (Conditional) ──> evaluate(condition) ? then : else
   │
-  └─ 3. 按类型分发
-        ├─ Container → renderContainer()
-        │   ├─ resolveBaseProps() → modular 网格 + preset 注入 + zIndex
-        │   ├─ 布局样式映射 (flex/grid/absolute/modular)
-        │   └─ 递归渲染 children (传递 ds, resolveZIndex)
+  └─ 3. 委派专职子渲染器
+        ├─ Container ──> containerRenderer()
+        │     ├─ basePropsResolver(node) ──> 计算 grid 坐标、预设与 zIndex
+        │     ├─ 布局样式映射 (flex / grid / absolute / modular)
+        │     └─ 递归调用 LayoutRenderer 渲染 children
         │
-        ├─ Component → renderComponent()
-        │   ├─ getComponent(componentType) → COMPONENT_REGISTRY
-        │   ├─ 数据绑定 → 优先使用显式 fieldKey，否则由 bind 推断
-        │   ├─ 样式合并 → node.style 与 dynamicProps.style 合并后经白名单过滤
-        │   └─ <Component page={...} fieldKey={...} theme={...} designSystem={...} style={...} />
+        ├─ Component ──> componentRenderer()
+        │     ├─ COMPONENT_REGISTRY[componentType] 查找原子组件
+        │     ├─ 数据绑定 ──> 解析 bind 表达式或显式 fieldKey
+        │     ├─ 样式白名单过滤 ──> 剔除不合规的 CSS 属性与类名
+        │     └─ 渲染原子组件（包裹独立 ComponentErrorBoundary）
         │
-        ├─ Repeater → renderRepeater()
-        │   ├─ evaluator.evaluate(bind) → items[]
-        │   ├─ 布局处理 (flex/grid) 类似 Container，支持 transparent 模式
-        │   ├─ 为每个 item 创建子 context (含 itemVar, index, $parent)
-        │   └─ 递归渲染 template
+        ├─ Repeater ──> repeaterRenderer()
+        │     ├─ evaluate(bind) ──> 提取 items 数组
+        │     ├─ 创建带有 item、index、$parent 的子上下文
+        │     └─ 循环渲染子模板 node.template
         │
-        ├─ Text → evaluator.interpolate(content) + <div>
-        │
-        └─ Conditional → conditionMet ? then : else
+        └─ Text ──> interpolate(content) ──> 渲染纯文本 <div>
 ```
 
-### 2.3 resolveBaseProps — 样式解析管线
+### 2.3 basePropsResolver 样式解析管线
 
-`resolveBaseProps()` 是所有节点的样式解析入口：
+所有节点在挂载到 DOM 之前均经过 `basePropsResolver` 处理：
 
-1. **表达式求值**: `className` 和 `style` 中的 `{...}` 表达式被求值
-2. **Modular 网格映射**: `modular.colStart/colSpan/rowStart/rowSpan` → CSS Grid 属性
-3. **Preset 注入**: `presetKey` 从 `ds.presets.layout` 和 `ds.presets.effects` 获取预设样式
-4. **属性白名单过滤** (`ALLOWED_PROPS`): **Zine Mode 关键步骤** — 仅允许几何布局、定位、核心视觉属性通过，目前已支持 `borderRadius` 以实现胶囊形状等高级审美。
-5. **类名黑名单过滤**: 强制剔除 `shadow-*`、`blur-*`、`animate-*` 等"软审美" Tailwind 类名。**注意**: `rounded-*` 类名现在已被允许，以便配合 `ZineMedia` 的新圆角特性。
+1. **表达式求值**: `className` 和 `style` 中的 `{...}` 动态表达式由 `expressionEvaluator` 安全求值。
+2. **Modular 24 网格映射**: `modular.colStart/colSpan/rowStart/rowSpan` 转换为精确的 CSS Grid 坐标，对齐 8px 基线。
+3. **9 点网格停靠 (Docking)**: 支持 `align` (start/center/end/stretch) 与 `justify` (start/center/end/stretch) 轴向停靠。
+4. **Preset 注入**: `presetKey` 从 `ds.presets.layout` 和 `ds.presets.effects` 获取预设样式注入。
+5. **属性白名单过滤** (`ALLOWED_PROPS`): 严格限制仅允许几何布局、间距、排版与核心视觉属性，支持 `borderRadius` 胶囊圆角。
+6. **类名合规性过滤**: 剔除 `shadow-*`、`blur-*` 等未经设计令牌授权的修饰类名。

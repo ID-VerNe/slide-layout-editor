@@ -77,25 +77,36 @@
 ---
 
 ## 3. 数据持久化 (`db.ts`)
-IndexedDB 的封装层 (原生 API，无第三方依赖)，数据库名 `slidegrid_studio_db`，版本号 3。
+IndexedDB 的封装层 (原生 API，无第三方依赖)，数据库名 `slidegrid_studio_db`，当前版本号 4。
 
-- **存储结构**: `projects` (JSON) 和 `assets` (Base64 与 DataURL) 两个对象仓库。
+- **存储结构**:
+  - `projects`: 存储工程全量 JSON 数据。
+  - `assets`: 存储高保真资产文件（Base64 与 DataURL）。
+  - `projectThumbnails`: 存储项目的专属封面缩略图与 MIME 映射，解决 localStorage 配额压力。
 - **核心函数**:
-  - `initDB()`: 初始化并返回 `IDBDatabase` 实例，自动创建缺失的仓库。
+  - `initDB()`: 初始化并返回 `IDBDatabase` 实例，自动迁移与创建缺失的仓库。
   - `saveProject(id, data)`: 按 `id` 存储 `ProjectData` 对象。
   - `getProject(id)`: 按 `id` 读取指定项目，返回 `ProjectData | null`。
-  - `deleteProject(id)`: 按 `id` 删除指定项目。
+  - `deleteProject(id)`: 按 `id` 删除指定项目及其关联缩略图。
   - `saveAsset(dataUrl)`: 将 DataURL 存储至 assets 仓库。先通过 Web Crypto API (SHA-256) 生成 16 位哈希 ID；若 Crypto 不可用则回退时间戳+随机数。在 Electron 环境中优先通过 `nativeFs.uploadAsset()` 存储到物理文件系统，成功则返回 `asset://` 协议 URL。
   - `getAsset(assetId)`: 从 assets 仓库读取 DataURL。Electron 环境优先尝试 `nativeFs.readAssetFile()` 读取物理文件，失败时回退 IndexedDB。
   - `compressImage(file, quality)`: 浏览器端图片压缩。Canvas 绘制后以 WebP 格式输出，默认质量 `0.9`。
 
 ---
 
-## 4. 高性能计算与 Worker
+## 4. 高性能计算、格式化与 Worker
 
-### 4.1 `fontCalculator.ts`
-位于 `src/workers/`，通过 Web Worker 异步计算标题最佳字号，避免阻塞主线程。
+### 4.1 `fontCalculator.ts` 与 `fontCalculatorManager.ts`
+位于 `src/workers/`，通过 Web Worker 异步计算标题最佳字号，彻底避免阻塞主线程。
 
-- **算法**: 基于字符权重的二分查找。
-- **精度**: 0.5px。
+- **算法**: **$O(1)$ 闭式代数公式 (Closed-Form Formula)**。基于字符单位权重推导（ASCII: 0.6，CJK: 1.0），由容器宽高与行数限制瞬间解出最大允许字号，淘汰二分搜索逼近。
+- **调度管理**: 由 `fontCalculatorManager.ts` 作为全局唯一单例管理 Worker 线程生命周期，通过自增序列 ID 支持高并发请求，内置 2000ms 超时降级兜底。
 - **用途**: `AutoFitHeadline` 组件的核心计算逻辑。
+
+### 4.2 `numberFormatters.ts`
+位于 `src/utils/numberFormatters.ts`，提供多语言与出版级格式化工具：
+- `toRoman(num)`: 正整数转罗马数字（支持 1~3999）。
+- `toAlpha(num)`: 数字转字母序号（A, B, C... AA, AB...）。
+- `padLeadingZero(num, length)`: 补齐前导零。
+- `formatCounter(index, style)`: 依据页码样式（number, roman, alpha, dots）输出统一页码字符串。
+

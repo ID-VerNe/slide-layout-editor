@@ -159,4 +159,18 @@ Bento Grid 网格编辑。
 - **自动 ID 迁移**: 旧数据兼容 (自动生成 `id`)
 - **数量限制**: 最多 8 个合作伙伴
 
+### 3.11 `VocabItemsField` (双语生词卡片列表)
+双语精读阅读页面的生词列表编辑器。
+
+- **文件**: `fields/VocabItemsField.tsx`
+- **绑定字段**: `page.vocabItems: VocabItem[]`
+- **每种条目控件**:
+  - `word` (Input): 英文原词
+  - `phonetic` (Input): 国际音标 (IPA，如 `[prəˌnʌnsiˈeɪʃn]`)
+  - `pos` (Select/Input): 词性标记 (如 `n.`, `adj.`, `v.`)
+  - `meaning` (Input): 中文精确释义
+  - `example` (TextArea): 英文经典原句
+  - `exampleZH` (TextArea): 中文对照译文
+- **特性**: 支持条目动态增删、拖拽排序、批量清空与折叠卡片编辑
+
 ---

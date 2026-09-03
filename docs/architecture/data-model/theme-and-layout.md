@@ -143,7 +143,7 @@ typography: {
 - **文件**: `src/constants/layout.ts`
 
 ```typescript
-type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+type AspectRatioType = '16:9' | '2:3' | '3:4' | 'A4' | '1:1';
 type OrientationType = 'landscape' | 'portrait' | 'square' | 'resume';
 
 interface LayoutDimensions {
@@ -156,12 +156,13 @@ interface LayoutDimensions {
 
 **预定义尺寸**:
 
-| 比例 | 宽度 | 高度 | 方向 |
-| :--- | :--- | :--- | :--- |
-| 16:9 | 1920 | 1080 | landscape |
-| 2:3 | 1080 | 1620 | portrait |
-| A4 | 1240 | 1754 | resume |
-| 1:1 | 1080 | 1080 | square |
+| 比例 | 宽度 | 高度 | 方向 | 标签 |
+| :--- | :--- | :--- | :--- | :--- |
+| 16:9 | 1920 | 1080 | landscape | Standard (16:9) |
+| 2:3 | 1080 | 1620 | portrait | Poster (2:3) |
+| 3:4 | 1080 | 1440 | portrait | Xiaohongshu (3:4) |
+| A4 | 1240 | 1754 | resume | Professional Resume |
+| 1:1 | 1080 | 1080 | square | Square (1:1) |
 
 ### 5.2 编辑器布局常量
 

@@ -83,14 +83,17 @@ import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 | :--- | :--- | :--- | :--- |
 | `title` | `TitleField` | `page.title` | string |
 | `subtitle` | `SubtitleField` | `page.subtitle` | string |
-| `paragraph` | `ParagraphField` | `page.paragraph` | string |
-| `actionText` | `ActionTextField` | `page.actionText` | string |
+| `paragraph` | `ParagraphField` | `page.paragraph` | string (GenericTextField) |
+| `paragraphZH` | `ParagraphZHField` | `page.paragraphZH` | string (GenericTextField) |
+| `quoteZH` | `QuoteZHField` | `page.quoteZH` | string (GenericTextField) |
+| `sideHeader` | `SideHeaderField` | `page.sideHeader` | string (GenericTextField) |
+| `actionText` | `ActionTextField` | `page.actionText` | string (GenericTextField) |
 | `signature` | `ImageField` | `page.signature` | asset |
-	| `bigDataMetrics` | `BigDataMetricsField` | `page.metrics` + `page.bigDataMetricsConfig` | structured |
+| `bigDataMetrics` | `BigDataMetricsField` | `page.metrics` + `page.bigDataMetricsConfig` | structured |
 | `partnersTitle` | `PartnersTitleField` | `page.partnersTitle` | string |
 | `footer` | `FooterField` | `page.footer` | string |
-| `imageLabel` | `ImageLabelField` | `page.imageLabel` | string |
-| `imageSubLabel` | `ImageSubLabelField` | `page.imageSubLabel` | string |
+| `imageLabel` | `ImageLabelField` | `page.imageLabel` | string (GenericTextField) |
+| `imageSubLabel` | `ImageSubLabelField` | `page.imageSubLabel` | string (GenericTextField) |
 | `image` | `ImageField` | `page.image` | asset |
 | `logo` | `LogoField` | `page.logo` | asset |
 | `features` | `FeaturesField` | `page.features` | array |
@@ -102,9 +105,10 @@ import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 | `gallery` | `GalleryField` | `page.gallery` | array |
 | `mosaic` | `MosaicField` | `page.mosaic` | array |
 | `partners` | `PartnersField` | `page.partners` | array |
+| `vocabItems` | `VocabItemsField` | `page.vocabItems` | array |
 | `resumeSections` | `ResumeSectionsField` | `page.resumeSections` | structured |
 | `artFont` | `ArtFontField` | `page.artFont` | string |
-| `variant` | `VariantField` | `page.layoutVariant` | enum |
+| `variant` | `VariantField` | `page.layoutVariant` | enum (DirectionSwitcher) |
 | `backgroundColor` | `ColorField` | `page.backgroundColor` | color |
 | `pageNumber` | `PageNumberField` | `page.pageNumber` | boolean |
 | `titleY` | `TitleYField` | `page.titleY` | number |

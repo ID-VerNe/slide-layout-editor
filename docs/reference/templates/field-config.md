@@ -21,6 +21,7 @@ export interface FieldSchema {
 ```typescript
 export type FieldType =
   | 'logo' | 'title' | 'subtitle' | 'actionText' | 'paragraph'
+  | 'paragraphZH' | 'quoteZH' | 'sideHeader' | 'vocabItems'
   | 'signature' | 'image' | 'imageLabel' | 'imageSubLabel'
   | 'features' | 'bentoItems' | 'mosaic' | 'metrics'
   | 'partnersTitle' | 'partners' | 'testimonials' | 'agenda'

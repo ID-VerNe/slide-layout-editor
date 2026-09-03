@@ -13,7 +13,7 @@
 | `id` | `string` | 页面唯一 ID (`slide-{timestamp}`) |
 | `type` | `'slide' \| 'freeform'` | 页面类型: `slide` 为模板驱动，`freeform` 为自由排版 |
 | `layoutId` | `TemplateId` | 关联的模板 ID (见模板注册表) |
-| `aspectRatio` | `AspectRatioType` | 画面比例: `'16:9' \| '2:3' \| 'A4' \| '1:1'` |
+| `aspectRatio` | `AspectRatioType` | 画面比例: `'16:9' \| '2:3' \| '3:4' \| 'A4' \| '1:1'` |
 | `layoutVariant` | `string` | 模板变体 (如 `'left'` / `'right'` / `'top'` / `'bottom'`) |
 
 ### 2.2 文本内容
@@ -23,11 +23,17 @@
 | `title` | `string` (必需) | 主标题 |
 | `subtitle` | `string` | 副标题 |
 | `paragraph` | `string` | 段落正文 |
+| `paragraphZH` | `string` | 双语阅读中文字段 |
+| `quoteZH` | `string` | 双语经典引言中文字段 |
+| `sideHeader` | `string` | 侧边栏/小节标题文案 |
 | `bullets` | `string[]` | 列表项 |
 | `actionText` | `string` | 行动号召按钮文本 |
 | `footer` | `string` | 页脚文字 |
 | `signature` | `string` | 签名文字 |
 | `imageLabel` | `string` | 图片元数据标签 |
+| `imageSubLabel` | `string` | 图片次级描述标签 |
+| `pageNumberText` | `string` | 自定义显示页码文本 |
+| `partnersTitle` | `string` | 合作伙伴展示区标题 |
 
 ### 2.3 媒体与视觉
 
@@ -74,6 +80,7 @@
 | `bentoItems` | `BentoItem[]` | Apple Bento Grid |
 | `partners` | `PartnerData[]` | 合作伙伴展示 |
 | `resumeSections` | `ResumeSection[]` | Academic Hybrid Resume |
+| `vocabItems` | `VocabItem[]` | Bilingual Glossary 策展生词卡片 |
 
 ### 2.7 列表配置 (模板特定)
 
@@ -206,6 +213,21 @@ interface ResumeItem {
   time?: string;        // 时间
   location?: string;    // 地点
   description?: string; // 详细描述 (支持 Markdown)
+}
+```
+
+### 3.8 `VocabItem`
+策展式双语生词项 (Bilingual Suite)。
+
+```typescript
+export interface VocabItem {
+  id: string;
+  word: string;         // 生词名称
+  phonetic?: string;    // 音标标注
+  pos?: string;         // 词性 (如 adj. / n. / vt.)
+  meaning: string;      // 中文释义
+  example?: string;     // 英文原句例句
+  exampleZH?: string;   // 中文对照翻译
 }
 ```
 

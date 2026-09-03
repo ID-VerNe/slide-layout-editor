@@ -19,6 +19,7 @@
 - **`ActionButton`**: 紧凑的动作按钮组件。
 - **`DebouncedBase`**: 防抖版本的 Base 组件（Input/TextArea），带延迟更新。
 - **`Modal`**: 通用浮层容器，支持 alert/confirm/custom 模式。
+- **`DirectionSwitcher`**: 可视化分段选择器 (`src/components/ui/DirectionSwitcher.tsx`)，带有平滑物理弹性胶囊指示器，用于布局方向与版式变体切换。
 - **`FontSelect`**: 字体选择下拉框。支持 `label`、`compact` 模式、`customFonts`（当前支持 Zine Spec 预设字体：仿宋、Playfair Display、Inter 等）。
 - **`IconPicker`**: 样式化的图标选择器，支持 Lucide / Material Symbols 图标、本地上传图片、项目级历史图片复用。
 - **`PresetSelect`**: 受控预设选择器，用于字号/行高/字距等设计属性。泛型支持 `string | number`，自动映射最接近的预设值。

@@ -67,20 +67,23 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 |---------|---------|------|
 | `title` | `TitleField` | 主标题文本 |
 | `subtitle` | `SubtitleField` | 副标题文本 |
-| `paragraph` | `ParagraphField` | 段落正文 |
-| `actionText` | `ActionTextField` | CTA 按钮文本 |
+| `paragraph` | `ParagraphField` | 段落正文（基于 `GenericTextField`） |
+| `paragraphZH` | `ParagraphZHField` | 双语中文正文（基于 `GenericTextField`） |
+| `quoteZH` | `QuoteZHField` | 双语引言中文字段（基于 `GenericTextField`） |
+| `sideHeader` | `SideHeaderField` | 侧边栏小标题（基于 `GenericTextField`） |
+| `actionText` | `ActionTextField` | CTA 按钮文本（基于 `GenericTextField`） |
 | `signature` | `SignatureField` | 签名/结语 |
 | `partnersTitle` | `PartnersTitleField` | 合作伙伴标题 |
 | `footer` | `FooterField` | 页脚 |
-| `imageLabel` | `ImageLabelField` | 图片主标签 |
-| `imageSubLabel` | `ImageSubLabelField` | 图片副标签 |
+| `imageLabel` | `ImageLabelField` | 图片主标签（基于 `GenericTextField`） |
+| `imageSubLabel` | `ImageSubLabelField` | 图片副标签（基于 `GenericTextField`） |
 | `image` | `ImageField` | 图片上传 |
 | `logo` | `LogoField` | Logo 上传 |
 | `backgroundColor` | `ColorField` | 背景色 |
 | `pageNumber` | `PageNumberField` | 页码开关/样式 |
 | `logoSize` | `GenericNumberField` | Logo 尺寸 |
 | `titleY` | `TitleYField` | 标题 Y 偏移 |
-| `variant` | `VariantField` | 布局变体选择 |
+| `variant` | `VariantField` | 布局变体（使用 `DirectionSwitcher` 分段器） |
 | `separator` | `SeparatorField` | 分割线控制 |
 | `features` | `FeaturesField` | 功能特性列表 |
 | `bentoItems` | `BentoField` | Bento Grid |
@@ -92,6 +95,7 @@ const withBaseFields = (fields: (FieldType | FieldSchema)[]): FieldSchema[] => {
 | `bullets` | `BulletsField` | 无序列表 |
 | `partners` | `PartnersField` | 合作伙伴 Logo |
 | `resumeSections` | `ResumeSectionsField` | 简历区块 |
+| `vocabItems` | `VocabItemsField` | 策展双语生词卡片列表 |
 | `artFont` | `ArtFontField` | SVG 艺术字 |
 | `group` | `GroupField` | 字段分组折叠 |
 | `bigDataMetrics` | `BigDataMetricsField` | 可视化网格指标 |

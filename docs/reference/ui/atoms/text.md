@@ -115,12 +115,17 @@
 ---
 
 ### 1.6 `AutoFitHeadline` (自适应大标题)
-基于 Web Worker 与二分查找的动态字号适配组件，使大标题在限定容器内完美贴合。
+基于全局单例 Web Worker 与闭式代数公式的动态字号自适应组件，使大标题在限定容器内瞬间计算出完美贴合尺寸。
 
 - **文件**: [src/components/AutoFitHeadline.tsx](src/components/AutoFitHeadline.tsx)
+- **底层调度**: [src/workers/fontCalculatorManager.ts](src/workers/fontCalculatorManager.ts)
 
 **特性**:
+- **$O(1)$ 闭式代数公式 (Closed-Form Calculation)**:
+  彻底淘汰二分逼近遍历循环，Worker 内部通过字符权重推导（`ASCII: 0.6`, `CJK: 1.0`）结合容器宽高与行数限制，以代数公式瞬时解算最佳字号，无任何主线程阻塞。
+- **全局 Worker 单例与并发安全 (FontCalculatorManager)**:
+  采用全局唯一 Worker 管理器，使用自增消息 ID 严格匹配异步 Promise 响应，杜绝组件并发挂载时重复创建 Worker 导致的内存与句柄暴涨。
 - **容器宽度感知缓存 (Width Bucket Isolation)**:
-  缓存 Key 纳入容器物理宽度的 20px 离散分桶（`w${Math.round(containerWidth / 20) * 20}`），确保相同标题在 16:9 宽屏、2:3 竖屏或列表缩略图中各自计算独立字号，不发生跨屏幕溢出或字号过小。
+  缓存 Key 纳入容器物理宽度的 20px 离散分桶（`w${Math.round(containerWidth / 20) * 20}`），确保相同标题在 16:9 宽屏、2:3 竖屏或 3:4 小红书比例中各自计算独立字号，不发生跨比例溢出。
 - **容量保护**: 内部设置最大 500 条缓存上限，淘汰老旧条目，防止长时间编辑内存泄漏。
-- **可见性安全**: 移除计算期 `0.01` 不透明度，避免导出与页面截图时捕获到空白标题。
+- **可见性安全**: 移除计算期 `0.01` 不透明度，避免离屏导出与页面截图时捕获到半透明或空白标题。

@@ -111,3 +111,21 @@ SlideGrid Studio 使用工作区来管理项目在磁盘上的布局：
 - **版本号升级**: 将 `version` 设为 `3.0.0`
 
 > 注意：旧版 JSON 中 `data:image` 引用的提取与瘦身由 `ProjectArchiveManager.migrateLegacyAssets()` 在打开旧 JSON 时于主进程中完成，与 `v2-to-v3.ts` 是独立的两个阶段。
+
+---
+
+## 7. 安全沙箱与防护机制 (Security Hardening)
+
+随着应用支持外部工程导入与本地磁盘读写，主进程实施了企业级安全防御：
+
+1. **路径穿越拦截与沙箱边界**:
+   - 在 `read-asset-file`、`upload-asset` 与 `save-project` 中使用 `path.relative(workspaceRoot, targetPath)` 进行归一化校验。
+   - 任何尝试使用 `..` 逃逸工作区根目录、或包含非法控制字符的请求，均直接抛出安全异常并阻断。
+2. **ZIP 解压安全性（Zip Slip & ADS 防护）**:
+   - `openProject` 解压 ZIP 条目时，强制校验条目解压目标路径严格位于临时工作区之内。
+   - **ADS 过滤**: 过滤包含 `:` 的 NTFS 备用数据流（Alternate Data Streams），防止隐藏恶意流。
+   - **保留设备名过滤**: 严格拦截 Windows 保留设备名称（如 `CON`, `PRN`, `AUX`, `NUL`, `COM1`~`COM9`, `LPT1`~`LPT9`）。
+3. **预加载脚本驱动器验证**:
+   - `preload.ts` 严格支持包含驱动器盘符的绝对路径（如 `C:\...`），同时禁止包含非预期二进制控制字符。
+4. **导出文件类型限制**:
+   - `save-file-buffer` 严格校验目标文件扩展名（仅允许白名单如 `.png`, `.jpg`, `.jpeg`, `.pdf`, `.slgrid`），禁止导出可执行文件。

@@ -9,14 +9,22 @@
 | `ZineDisplay` | `ZineDisplay` | 工业感大标题 (Zine) |
 | `ZineBody` | `ZineBody` | 诗性正文字体 (Zine) |
 | `ZineCaption` | `ZineCaption` | 小字标注/元数据 (Zine) |
-| `ZineMedia` | `ZineMedia` | 模块化网格图像 (Zine) |
+| `ZineMedia` | `ZineMedia` | 模块化网格图像 (Zine，亚像素平移与边界钳制) |
+| `ZineVocabList` | `ZineVocabList` | 策展双语生词表卡片 (Bilingual Suite) |
 | `ZineResume` | `ZineResume` | 简历区块渲染 (Zine) |
 | `ZineDivider` | `ZineDivider` | 精密刻度线 (Zine) |
 | `ZineIcon` | `ZineIcon` | 多源图标渲染器 (Lucide / Material Symbols / 图片) |
 | `ZineMetric` | `ZineMetric` | KPI 度量指标 (大数字 + 单位 + 标签) |
 | `BigDataMetrics` | `BigDataMetrics` | 自定义行列网格大数据指标墙 |
 | `ZineLogo` | `ZineLogo` | 品牌 Logo 渲染 |
-| `ZineArtFont` | `ZineArtFont` | SVG 高级艺术字 (实心/空心描边) |
+| `ZineArtFont` | `ZineArtFont` | SVG 高级艺术字 (实心/空心描边与离屏测量) |
+
+此外注册表包含向后兼容映射：
+- `ZineFooter` / `ZineSubtitle` / `SlideSubtitle` → 映射至 `ZineCaption`
+- `ZineTitle` / `SlideTitle` → 映射至 `ZineDisplay`
+- `ZineText` / `SlideBody` → 映射至 `ZineBody`
+- `ZineImage` / `SlideImage` → 映射至 `ZineMedia`
+- `SlideDivider` → 映射至 `ZineDivider`
 
 ---
 

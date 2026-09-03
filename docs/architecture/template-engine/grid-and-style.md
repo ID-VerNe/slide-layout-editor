@@ -60,6 +60,15 @@ const centered = {
 - `alignSelf`: 控制垂直方向 (`start` 置顶 / `center` 居中 / `end` 置底 / `stretch` 拉伸)
 - `justifySelf`: 控制水平方向 (`start` 靠左 / `center` 居中 / `end` 靠右 / `stretch` 拉伸)
 
+### 3.4 模块化 Flex 占位模式 (`modularFlex.ts`)
+
+为了平衡“工业网格的绝对定位”与“流式内容的自适应浮动”，项目确立了核心架构规范：
+> **网格定外框 (WHERE)，Flex 排内部 (HOW)**
+
+通过 `src/templates/schemas/utils/modularFlex.ts` 中的 `createModularFlexContainer()`：
+1. **外层约束**: 强制将外框定死在 24 格网格指定的 `modular` 物理范围内 (`w-full h-full overflow-hidden`)。
+2. **内部流排布**: 内部子元素遵循 Flex 规范（支持 `direction`, `align`, `justify`, `gap`, `wrap`），在框内自适应浮动排列。
+3. 杜绝子组件随意脱离网格产生版面塌陷，同时兼顾复杂标签组或动态文本的自适应高度。
 
 ---
 

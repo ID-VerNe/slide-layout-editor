@@ -152,5 +152,24 @@ interface TemplateSchema {
 }
 ```
 
+### 6.10 `TemplateDefinition` (独立 JSON 规范)
+自模板解耦重构后，所有 36 个模板均以独立的 `.json` 文件存储在 `src/templates/definitions/<Category>/` 目录下：
+
+```typescript
+export interface TemplateDefinition {
+  id: string;
+  name: string;
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Bilingual';
+  desc: string;
+  tags: string[];
+  supportedRatios: AspectRatioType[];
+  fields: (FieldType | FieldSchema)[];
+  defaultData?: Partial<PageData>;
+  root: TemplateNode;
+}
+```
+
+由 `src/templates/registry.ts` 通过 `import.meta.glob('./definitions/**/*.json', { eager: true })` 静态载入，并映射为 `TEMPLATES` 供系统使用。
+
 ---
 

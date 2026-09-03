@@ -9,23 +9,23 @@
 interface TemplateConfig {
   id: string;               // 唯一 ID (如 'zine-classic')
   name: string;             // 显示名称
-  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Bilingual';
   desc: string;             // 描述文案
   tags: string[];           // 搜索标签
   component: React.FC<{ page: any; typography?: any }>;  // React 渲染组件 (Schema 驱动时设为 () => null)
   schema?: TemplateSchema;  // 模板 Schema 定义 (JSON 布局树)
   fields: FieldSchema[];    // 编辑器面板中显示的字段列表
-  supportedRatios: AspectRatioType[]; // 支持的画面比例
+  supportedRatios: AspectRatioType[]; // 支持的画面比例 (含 3:4)
   defaultData?: Partial<PageData>;    // 模板级默认数据
 }
 ```
 
-### 1.2 `TemplateSchema` 定义
-每个模板的布局由 [src/templates/schemas/](src/templates/schemas/) 下按 **“比例-分类”** 组织的 TS 文件定义。Schema 使用 `Container`、`Component`、`Repeater`、`Conditional`、`Text` 五种节点类型构建渲染树。详见 [模板引擎文档](../architecture/template-engine/index.md)。目前所有 Zine 原子组件均支持 **9 点网格对齐 (9-point docking)**，极大地增强了布局的灵活性。
+### 1.2 `TemplateDefinition` 物理存储
+在最新解耦架构中，全量 36 个模板作为独立的 `.json` 文件规范保存在 [src/templates/definitions/](src/templates/definitions/) 下按**分类目录**归档。`registry.ts` 通过 Vite 的 `import.meta.glob('./definitions/**/*.json', { eager: true })` 静态载入。Schema 使用 `Container`、`Component`、`Repeater`、`Conditional`、`Text` 五种节点类型构建 24×24 网格渲染树。所有原子组件均支持 **9 点网格对齐 (9-point docking)** 与 8px 基线字阶。
 
 ## 2. 模板分类与物理结构
 
-为了方便开发者快速匹配代码与界面显示名称，模板 Schema 按照 `[Ratio]-[Category]` 或 `Universal-[Category]` 模式存储在物理子目录中。`Universal-` 前缀表示该模板支持多种画面比例。
+物理模板按照 7 大分类子目录存储在 `src/templates/definitions/<Category>/` 目录中：
 
 ### 2.1 封面类 (Cover)
 目录：`src/templates/schemas/Universal-Cover` (多比例) 或 `src/templates/schemas/23-Cover` (2:3)
@@ -83,10 +83,21 @@ interface TemplateConfig {
 | `table-of-contents` | Table of Contents | 卡片式导航目录页 | 16:9, 2:3 |
 
 ### 2.5 简历类 (Resume)
-目录：`src/templates/schemas/A4-Resume`
+目录：`src/templates/definitions/Resume/`
 
 | 模板 ID | 名称 | 说明 | 支持比例 |
 | :--- | :--- | :--- | :--- |
 | `academic-hybrid-resume` | Dynamic Resume Pro | 基于区块的技术简历，支持智能格式化与模块化列表 | A4 |
 
 > 注：虽然只有 1 个简历模板，但它通过 `ResumeContentHub`（集中内容管理器）提供了极高的自由度——支持多区块、多条目、拖放排序、跨页迁移等功能。
+
+### 2.6 双语阅读类 (Bilingual)
+目录：`src/templates/definitions/Bilingual/`
+
+| 模板 ID | 名称 | 说明 | 支持比例 |
+| :--- | :--- | :--- | :--- |
+| `bilingual-cover` | Bilingual Cover | 经典画廊风双语刊头封面与精要导读 | 3:4, 2:3, 16:9 |
+| `bilingual-reader` | Bilingual Reader | 编辑部精选对齐式双语正文精读与侧边栏 | 3:4, 2:3, 16:9 |
+| `bilingual-quote` | Bilingual Quote | 名人名言双语对照排版，大字号衬线聚焦 | 3:4, 2:3, 16:9 |
+| `bilingual-glossary` | Bilingual Glossary | 策展式词汇精读卡片，包含音标、词性与双语对照例句 | 3:4, 2:3, 16:9 |
+

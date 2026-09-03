@@ -17,6 +17,18 @@
   - 自动排版间距与分割线（accent 颜色的细水平线分隔区块标题）。
   - 不依赖外部 Resume 组件，完全自包含。
 
+### 5.2 `ZineVocabList` (双语生词表卡片)
+双语阅读系列专属原子组件，用于杂志风英文生词表的高精度排版与展示。
+
+- **文件**: `src/components/ui/slide/atoms/ZineVocabList.tsx`
+- **数据来源**: `page.vocabItems: VocabItem[]`
+- **Props**: `page`, `fieldKey` (默认 `'vocabItems'`), `size`, `className`, `style`
+- **内部实现与特性**:
+  - **模数化字阶与基线对齐**: 结合 `useModularStyle` 与 `resolveModularFontSize`，默认采用 `size: 2.25` (18px) 基准字阶。
+  - **视口防塌陷物理下限**: 针对不同画幅（特别是 3:4 与移动端缩放），硬编码安全下限保护：词头 $\ge 16\text{px}$、释义 $\ge 14\text{px}$、音标 $\ge 12\text{px}$，避免极端缩放下文字无法识别。
+  - **结构化元数据药丸**: 词性与音标采用精密等宽字体（`font-mono`）与微型药丸底框包裹渲染。
+  - **中英双语对照例句**: 精选例句与中文译文分层对齐，采用次要文本令牌（`text-zine-secondary`）与诗性斜体排版。
+
 ---
 ## 6. 内部原子构建块
 

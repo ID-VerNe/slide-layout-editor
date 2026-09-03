@@ -52,3 +52,19 @@ interface NativeResponse {
 2. **ContextBridge**: 通过 `window.electronAPI` 访问暴露的 IPC 方法。
 3. **IPC 调用**: `ipcRenderer.invoke('save-project', ...)`
 4. **主进程响应**: Electron `main.ts` 中的 handler 处理文件 I/O 并返回结果。
+
+---
+
+## 3. IPC 安全加固与文件系统防护
+
+为了抵御潜在的恶意 ZIP 炸弹、路径穿越与 Windows 原生漏洞攻击，原生通信层在 Electron 主进程中强制实行多重安全校验：
+
+1. **路径穿越沙箱防御 (`path.relative`)**:
+   在解包工程归档时，严格校验目标释放路径，若 `path.relative(destDir, targetPath)` 以 `..` 开头或为绝对路径，立即阻断并抛出异常。
+2. **NTFS 备用数据流 (ADS) 阻断**:
+   解包文件名与资产命名中严禁出现 `:`（冒号），彻底封死 `file.txt:stream` 形式的隐藏流注入与权限绕过。
+3. **Windows 保留设备名免疫**:
+   文件名严格过滤 Windows 保留设备名称（`CON`, `PRN`, `AUX`, `NUL`, `COM1`~`COM9`, `LPT1`~`LPT9`），避免引发底层驱动死锁或系统异常。
+4. **盘符格式与扩展名限制**:
+   Windows 物理绝对路径强制通过 `^[a-zA-Z]:[/\\]` 校验；导出与导入操作仅限合规的文件后缀（`.slgrid`, `.png`, `.pdf`, `.json`）。
+

@@ -143,4 +143,19 @@
 2.  **黑名单过滤**: 自动剔除 `className` 中不符合 Zine Mode 工业审美的 Tailwind 类名（如阴影、模糊、动画）。
 3.  **负边距补偿**: 自动通过 `margin-right` 负值抵消 `letter-spacing` 在末尾字符产生的偏移，确保对齐完美。
 4.  **单位安全换算**: 内置 `resolveModularFontSize`，彻底杜绝字符串或带单位数值（如 `"1.5"`、`"1.5rem"`）被误吞为极小物理像素。
-5.  **画幅与视口自适应**: 横版 16:9（1920x1080）与竖版 2:3/3:4/A4 画布通过统一的 8px 模数保持严密的排版节奏与层级感。
+5.  **画幅与视口自适应**: 横版 16:9（1920x1080）与竖版 2:3/3:4/A4/1:1 画布通过统一的 8px 模数保持严密的排版节奏与层级感。
+6.  **双轴 9 点停靠 (9-point Docking)**: 结合 `resolveDockingStyle`，将 `alignSelf` 与 `justifySelf` 精确映射为 Flex 容器与文本对齐样式，并强制施加 `min-w-0` 与断词保护 (`break-words`)，杜绝排版宽度坍塌。
+
+---
+
+## 字体与排版基础设施
+
+### 1. 全局字体加载器 (`src/utils/fontLoader.ts`)
+- **协议兼容**: 支持 `data:font/*`、`http(s)://`、`blob:` 以及原生 `asset://` 协议自定义字体。
+- **双重注入**: 优先调用标准 `new FontFace()` 注册至 `document.fonts`；失败时优雅降级为动态注入 `@font-face` `<style>` 标签。
+- **生命周期保全**: 支持按字族名精确清理与批量载入，防止多次切换工程导致的字体污染。
+
+### 2. 闭式字号计算引擎 (`src/workers/fontCalculatorManager.ts`)
+- **$O(1)$ 闭式代数公式**: 彻底淘汰低效的二分逼近循环，基于字符单位权重推导（ASCII: 0.6，CJK: 1.0），瞬间计算出不超过容器宽度与行数限制的最大允许字号。
+- **全局共享 Worker 单例**: 通过 `fontCalculatorManager` 集中调度 Web Worker 线程，杜绝多实例创建造成的线程爆炸，带有 2000ms 超时安全保护。
+

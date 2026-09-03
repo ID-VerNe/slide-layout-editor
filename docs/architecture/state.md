@@ -61,28 +61,28 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
 
 ### 2.1 历史栈管理
 
-- **触发时机**: 只有当发生真正的用户交互（如 `onBlur` 或按钮点击）时调用 `pushHistory()`，而非键盘输入的每一个字符。这防止了历史记录被微小增量填满。
+- **触发时机**: 只有当发生真正的用户交互（如 `onBlur` 或按钮点击）时调用 `pushHistory()`，而非键盘输入的每一个字符。对于瞬态更新，`updatePage(page, silent=true)` 会跳过历史快照记录。
 - **深度限制**: `past` 栈默认保留最近 **50 步**操作（`slice(-50)`）。
-- **不可变性**: 利用 `structuredClone()` 进行**深拷贝**（针对 `pages`、`theme`、`designSystem`、`printSettings`、`customFonts`），确保 Undo 后的状态不会被后续操作污染。
+- **不可变性**: 利用 `deepClone()` 生成独立的 `HistorySnapshot` 快照，确保撤销还原时和后续操作完全物理隔离，杜绝引用泄漏与污染。
 - **页面索引与文件路径追踪**: 每个快照包含 `currentPageIndex` 和 `currentFilePath`，撤销/重做时会恢复正确的编辑页面位置和文件路径。
 
-### 2.2 快照内容
+### 2.2 快照内容 (`HistorySnapshot`)
 
-每次 `pushHistory()` 存储以下完整状态：
+每次 `pushHistory()` 通过 `buildSnapshot(state)` 生成以下完整快照：
 
 ```typescript
-{
-  pages: PageData[],          // 深拷贝
-  projectTitle: string,
-  theme: ProjectTheme,        // 深拷贝
-  designSystem: DesignSystem,  // 深拷贝
-  printSettings: PrintSettings, // 深拷贝
-  minimalCounter: boolean,
-  counterStyle: CounterStyle,
-  imageQuality: number,
-  customFonts: CustomFont[],  // 深拷贝
-  currentPageIndex: number,
-  currentFilePath: string | null,
+export interface HistorySnapshot {
+  pages: PageData[];             // deepClone 物理深拷贝
+  projectTitle: string;
+  theme: ProjectTheme;           // deepClone 物理深拷贝
+  designSystem: DesignSystem;     // deepClone 物理深拷贝
+  printSettings?: PrintSettings; // deepClone 物理深拷贝
+  minimalCounter?: boolean;
+  counterStyle?: CounterStyle;
+  imageQuality?: number;
+  customFonts?: CustomFont[];     // deepClone 物理深拷贝
+  currentPageIndex?: number;
+  currentFilePath?: string | null;
 }
 ```
 
@@ -90,16 +90,16 @@ SlideGrid Studio 的状态管理不仅负责数据存储，还集成了历史追
 
 ```
 pushHistory():
-  past.push(currentSnapshot)  ->  past.slice(-50)   // 限制深度
-  future = []                                        // 清空重做栈
+  past.push(buildSnapshot(state))  ->  past.slice(-50) // 限制 50 步深度
+  future = []                                          // 清空重做栈
 
 undo():
-  currentSnapshot = deepClone(state)  ->  future.unshift(currentSnapshot)
-  prevSnapshot = past.pop()           ->  restore state from prevSnapshot
+  currentSnapshot = buildSnapshot(state)  ->  future.unshift(currentSnapshot)
+  prevSnapshot = past.pop()               ->  restore deepClone(prevSnapshot)
 
 redo():
-  currentSnapshot = deepClone(state)  ->  past.push(currentSnapshot)
-  nextSnapshot = future.shift()       ->  restore state from nextSnapshot
+  currentSnapshot = buildSnapshot(state)  ->  past.push(currentSnapshot)
+  nextSnapshot = future.shift()           ->  restore deepClone(nextSnapshot)
 ```
 
 ### 2.4 快照大小限制
@@ -144,7 +144,7 @@ if (snapshotSize > 5 * 1024 * 1024) { // 5MB 限制
 
 ---
 
-## 4. 持久化循环：从内存到 IndexedDB
+## 4. 持久化循环：从内存到 IndexedDB 与工程归档
 
 应用采用了 **Hybrid Auto-save** 三级缓存策略 (详见 [架构总览](../architecture/overview.md) 第 3 节)：
 
@@ -152,16 +152,16 @@ if (snapshotSize > 5 * 1024 * 1024) { // 5MB 限制
 
 - **实时输入**: 键盘/选区变更直接写入 Zustand (内存)。
 - **定时保存**: [EditorPage.tsx](src/pages/EditorPage.tsx) 中每 **3000ms** 检查 `hasUnsavedChanges`。
-- **保存动作**: 调用 `saveProject()` 将完整的 `ProjectData`（包含 version, title, pages, theme, designSystem 等）序列化存入 IndexedDB。
+- **保存动作**: 调用 `saveProject()` 将完整的 `ProjectData` 序列化存入 IndexedDB；缩略图分离存入 `projectThumbnails` 表。
 - **崩溃恢复**: 重启时，[loadProject()](src/store/useStore.ts#L136) 优先从 IndexedDB 读取，确保未手动保存的内容不丢失。
 
 ### 4.2 手动保存 (Ctrl+S)
 
-1. 生成当前页面缩略图
-2. 构建完整项目内容对象
+1. 生成当前页面缩略图（优先原生截取，回退 html-to-image）
+2. 构建完整项目内容对象（version: "3.0"）
 3. Electron 环境: 调用 `nativeFs.saveProject()` → IPC → 主进程打包 .slgrid ZIP
-4. Web 环境: 仅写入 IndexedDB
-5. 更新 localStorage 中最近项目索引 (`magazine_recent_projects`)
+4. Web 环境: 写入 IndexedDB
+5. 调用 `services/recentProjects.ts` 中的 `upsertRecentProject()`：写入 `slidegrid_recent_projects`，内置配额三级保护与旧版 `magazine_recent_projects` 自动平滑迁移。
 
 ---
 

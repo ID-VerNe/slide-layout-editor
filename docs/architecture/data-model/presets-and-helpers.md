@@ -125,6 +125,12 @@ type LineHeightPreset = typeof LINE_HEIGHT_PRESETS[number]['value'];
 type LetterSpacingPreset = typeof LETTER_SPACING_PRESETS[number]['value'];
 ```
 
+### 8.3 8px 基线与模数化字阶解析 (`resolveModularFontSize`)
+为确保在不同画幅中保持精密韵律，字体系统通过 `resolveModularFontSize` 将数值或预设单位换算为 8px 基线倍数：
+- 若输入为纯数字且 $\le 10$（例如 `2`、`4`、`6`），将其解释为 8px 的倍数（`16px`、`32px`、`48px`）。
+- 若为字符串尺寸（如 `'18px'`、`'1.5rem'`、`'24pt'`），自动完成单位转换。
+- 文本原子组件（`ZineDisplay`、`ZineBody`、`ZineCaption`、`ZineVocabList`）统一遵守该规则。
+
 ---
 
 ## 9. 类型关系图
@@ -135,8 +141,8 @@ ProjectData
 ├── id?: string
 ├── title / projectTitle: string
 ├── pages: PageData[]
-│   ├── layoutId -> TEMPLATES[].id -> TemplateConfig.schema -> TemplateSchema
-│   ├── aspectRatio -> LAYOUT_CONFIG[ratio]
+│   ├── layoutId -> TEMPLATES[].id -> TemplateDefinition (src/templates/definitions/*.json)
+│   ├── aspectRatio -> LAYOUT_CONFIG['16:9' | '2:3' | '3:4' | 'A4' | '1:1']
 │   ├── agenda: AgendaData[]
 │   ├── features: FeatureData[]
 │   ├── metrics: MetricData[]
@@ -144,6 +150,7 @@ ProjectData
 │   ├── partners: PartnerData[]
 │   ├── bentoItems: BentoItem[]
 │   ├── resumeSections: ResumeSection[] -> ResumeItem[]
+│   ├── vocabItems: VocabItem[]
 │   └── mosaic / gallery / freeformItems: any[]
 ├── theme?: ProjectTheme
 │   └── typography: { headingFont, bodyFont, captionFont?, headingFontZH?, bodyFontZH? }

@@ -8,8 +8,8 @@ SlideGrid Studio 采用声明式、组件化的扩展方式。本章将指导你
 
 ### 1.1 环境要求
 
-- **Node.js** >= 18
-- **pnpm** (包管理器)
+- **Node.js** >= 22
+- **pnpm** (包管理器，项目强制使用 pnpm)
 - **Windows** / macOS / Linux
 
 ### 1.2 安装与运行
@@ -18,11 +18,17 @@ SlideGrid Studio 采用声明式、组件化的扩展方式。本章将指导你
 # 安装依赖
 pnpm install
 
-# 启动开发服务器
+# 启动开发服务器（Electron + Vite 热更新）
 pnpm dev
 
-# 运行测试（交互模式）
+# 运行完整测试套件（串行执行 Vitest 单元测试与 Playwright E2E 测试）
 pnpm test
+
+# 仅运行 Vitest 单元测试
+pnpm test:unit:run
+
+# 仅运行 Playwright E2E 测试
+pnpm test:e2e
 
 # 运行测试并生成覆盖率报告
 pnpm test:ci
@@ -39,104 +45,93 @@ pnpm format
 | 技术 | 用途 |
 | :--- | :--- |
 | React 19 + TypeScript 5.8 | UI 框架 |
-| Vite | 构建工具 |
-| Zustand | 状态管理 |
-| Framer Motion | 交互动画 |
+| Vite 6 | 构建工具 |
+| Zustand 4 | 状态管理（深度快照隔离） |
+| Framer Motion 12 | 交互动画（支持离屏旁路） |
 | Tailwind CSS v3 | 样式框架 |
 | TanStack Virtual | 虚拟滚动 |
 | React Router v7 | 路由 |
 | Lucide React | 图标库 |
-| html-to-image | DOM → 图片导出 |
-| jsPDF | PDF 导出 |
-| Electron + Sharp | 桌面端 + 图像处理 |
+| html-to-image + jsPDF | DOM → 图片/PDF 离屏导出 |
+| Electron 39 + Sharp 0.34 | 桌面端 + 原生图形处理 |
+| Vitest 4 + Playwright 1.62 | 单元测试 + 端到端测试 |
 
 ---
 
 ## 2. 核心扩展流程
 
-添加一个新排版涉及三个层级的协同工作：
+添加一个新模板遵循极简的**声明式工作流**：
 
-1. **Schema 定义**: 使用 JSON 描述布局结构、网格位置与数据绑定。
-2. **原子开发 (可选)**: 如果现有的组件（如 `ZineDisplay`）无法满足视觉需求，需开发新的原子组件。
-3. **注册中心**: 在系统注册表中登记，并定义其在编辑器侧边栏显示的表单字段。
+1. **创建 JSON 规范**: 在 `src/templates/definitions/<Category>/` 目录下新建 `<id>.json`。
+2. **自动加载**: 系统的 `registry.ts` 通过 `import.meta.glob` 自动识别并载入所有 JSON 模板，**无需修改任何 TS 注册代码**！
+3. **验证与表单**: 启动开发服务器后，右侧面板根据你在 JSON 中定义的 `fields` 自动生成表单控件。
 
 ---
 
 ## 3. 教程：构建一个"电影感双焦"布局
 
-### 3.1 创建 Schema 文件
+### 3.1 创建 JSON 规范文件
 
-在 [src/templates/schemas/](src/templates/schemas/) 下创建 `cinematic-focus.ts`：
+在 `src/templates/definitions/Cover/` 下创建 `cinematic-focus.json`：
 
-```typescript
-import { TemplateSchema } from './types';
-
-export const CinematicFocusSchema: TemplateSchema = {
-  id: 'cinematic-focus',
-  name: 'Cinematic Focus',
-  category: 'Cover',
-  supportedRatios: ['16:9'],
-  root: {
-    type: 'Container',
-    layout: 'modular',
-    className: 'bg-primary h-full w-full',
-    children: [
-      // 背景大图 (全屏网格)
+```json
+{
+  "id": "cinematic-focus",
+  "name": "Cinematic Focus",
+  "category": "Cover",
+  "desc": "非对称电影感全屏双焦封面布局",
+  "tags": ["Cinematic", "Cover", "FullBleed"],
+  "supportedRatios": ["16:9", "2:3", "3:4"],
+  "fields": [
+    "title",
+    "subtitle",
+    "image",
+    "variant"
+  ],
+  "defaultData": {
+    "title": "THE HORIZON",
+    "subtitle": "A visual exploration of light and space",
+    "variant": "bottom"
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "className": "bg-primary h-full w-full relative",
+    "children": [
       {
-        type: 'Component',
-        componentType: 'ZineMedia',
-        modular: { colStart: 1, colSpan: 24, rowStart: 1, rowSpan: 24 },
-        bind: 'page.image',
-        props: { objectFit: 'cover', opacity: 0.6 }
+        "type": "Component",
+        "componentType": "ZineMedia",
+        "modular": { "colStart": 1, "colSpan": 24, "rowStart": 1, "rowSpan": 24 },
+        "bind": "page.image",
+        "props": { "objectFit": "cover", "opacity": 0.6 }
       },
-      // 浮动标题区
       {
-        type: 'Container',
-        modular: { colStart: 4, colSpan: 10, rowStart: 18, rowSpan: 4 },
-        layout: 'flex',
-        layoutProps: { direction: 'column' },
-        children: [
-          { type: 'Component', componentType: 'ZineDisplay', bind: 'page.title' },
-          { type: 'Component', componentType: 'ZineBody', bind: 'page.subtitle' }
+        "type": "Container",
+        "modular": { "colStart": 3, "colSpan": 18, "rowStart": 17, "rowSpan": 6 },
+        "layout": "flex",
+        "layoutProps": { "direction": "column", "gap": "spacing.sm" },
+        "children": [
+          { "type": "Component", "componentType": "ZineDisplay", "bind": "page.title" },
+          { "type": "Component", "componentType": "ZineBody", "bind": "page.subtitle" }
         ]
       }
     ]
   }
-};
-```
-
-### 3.2 导出 Schema
-
-在 [src/templates/schemas/index.ts](src/templates/schemas/index.ts) 中添加导出：
-
-```typescript
-export { CinematicFocusSchema } from './cinematic-focus';
-```
-
-### 3.3 注册到模板注册表
-
-在 [src/templates/registry.ts](src/templates/registry.ts) 中：
-
-1. 导入 Schema
-2. 添加 `TemplateConfig` 条目
-
-```typescript
-{
-  id: 'cinematic-focus',
-  name: 'Cinematic Focus',
-  category: 'Cover',
-  desc: '非对称电影感双焦布局',
-  tags: ['Cinematic', 'Cover'],
-  component: () => null,  // Schema 驱动，不需要组件
-  schema: CinematicFocusSchema,
-  fields: withBaseFields([
-    { key: 'title', label: 'Headline' },
-    { key: 'subtitle', label: 'Subtitle' },
-    { key: 'image', label: 'Background Image' }
-  ]),
-  supportedRatios: ['16:9']
 }
 ```
+
+### 3.2 自动生效机制
+
+在 `src/templates/registry.ts` 中，所有模板规范通过静态 Glob 机制全量动态装配：
+
+```typescript
+const templateModules = import.meta.glob<{ default: TemplateDefinition }>(
+  './definitions/**/*.json',
+  { eager: true }
+);
+```
+
+这意味着：保存 `cinematic-focus.json` 后，Vite 的 HMR 会立即热重载该模板，你可以在模板选择抽屉与画廊中直接看到并使用它！
 
 ---
 

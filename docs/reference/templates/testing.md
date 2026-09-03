@@ -6,19 +6,23 @@
 
 | 测试文件 | 覆盖范围 | 工具 |
 | :--- | :--- | :--- |
-| `src/templates/__tests__/registry.test.ts` | 模板注册表验证：ID 唯一性、必需字段、分类枚举、基础字段包含 | Vitest |
+| `src/templates/__tests__/registry.test.ts` | 模板注册表验证：ID 唯一性、必需字段、分类枚举、基础字段包含、全量 36 个 JSON 模板完整性 | Vitest |
 | `src/templates/schemas/__tests__/validator.test.ts` | Schema 结构验证：节点类型检查、24x24 模块化坐标边界、嵌套节点、ZIndex 格式、版本元数据 | Vitest + Zod |
-| `src/templates/schemas/__tests__/componentRegistry.test.tsx` | 组件注册表：11 个原子组件的注册状态、已知/未知名称查找 | Vitest |
+| `src/templates/schemas/__tests__/componentRegistry.test.tsx` | 组件注册表：12 个原子组件（含 ZineVocabList）的注册状态、别名映射与未知名称查找 | Vitest |
 | `src/templates/schemas/__tests__/LayoutRenderer.test.tsx` | 布局渲染器：Container 布局变体、Component/Text/Conditional/Repeater 节点、visibleWhen、presetKey、ErrorBoundary、Zine 样式约束、嵌套 Repeater 上下文 | Vitest + Testing Library |
-| `src/templates/schemas/__tests__/expressionEvaluator.test.ts` | 表达式引擎：属性访问、算术/比较/逻辑/三元运算符、字符串插值、对象求值、可选链、nullish coalescing、边界情况 | Vitest |
+| `src/templates/schemas/__tests__/expressionEvaluator.test.ts` | 表达式引擎：属性访问、原型链污染防御、算术/比较/逻辑/三元运算符、字符串插值、对象求值、可选链、nullish coalescing、边界情况 | Vitest |
 | `src/templates/schemas/__tests__/zIndexResolver.test.ts` | Z-Index 解析器：关键字声明、相对引用、自引用/循环引用检测、Conditional/Repeater 节点遍历 | Vitest |
 | `src/components/__tests__/JsonTemplateRenderer.integration.test.tsx` | 集成测试：完整 Schema 渲染、嵌套容器、条件渲染、24x24 模块化布局、样式预设、错误边界、大型模板性能 | Vitest + Testing Library |
 
 ## 2. 运行测试
 
-### 运行所有模板测试
+### 运行所有单元测试
 
 ```bash
+# 运行 Vitest 单元测试
+pnpm test:unit:run
+
+# 运行完整自动化测试套件（包含 Playwright E2E 测试）
 pnpm test
 ```
 
@@ -26,7 +30,7 @@ pnpm test
 
 ```bash
 # 注册表测试
-pnpm test -- src/templates/__tests__/registry.test.ts
+pnpm test:unit:run -- src/templates/__tests__/registry.test.ts
 
 # Schema 验证测试
 pnpm test -- src/templates/schemas/__tests__/validator.test.ts

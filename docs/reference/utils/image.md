@@ -49,3 +49,13 @@ SlideGrid Studio 针对高精度排版与高性能预览，在 `src/utils/` 下�
 - **自动 crossOrigin**: 对外部 HTTP/HTTPS 图片自动设置 `crossOrigin = 'anonymous'`。
 - **去重**: 相同 URL 不会重复发起请求（内部通过 `loadingPromises` Map 跟踪）。
 - **调度**: 内部使用 `setTimeout(50ms)` 延迟批量处理，避免同步突发大量请求。
+
+### 1.5 `imageGeometry.ts`
+负责计算图片在容器内 `object-fit: cover` 模式下的物理几何约束与平移安全边界。
+
+**核心接口与函数**:
+- `CoverBounds`: `{ maxShiftX, maxShiftY, canMoveHoriz, canMoveVert, scaledWidth, scaledHeight }`
+- `calculateCoverBounds(containerW, containerH, imageW, imageH, scale)`:
+  依据容器宽高比与图片原始比例，精确计算放大后的实际尺寸及允许的最大水平/垂直平移物理范围，杜绝用户在编辑器中拖拽图片时露出空白底板。
+- `clampOffset(offset, bounds)`: 将用户拖拽偏移量强制钳制在安全区间内。
+- `calculateModularImageAspect(templateId, modular)`: 根据模板 24 格网格坐标推导目标图片单元格的理想长宽比。

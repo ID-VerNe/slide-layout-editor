@@ -22,6 +22,7 @@ export interface LayoutDimensions {
 | :--- | :--- | :--- | :--- | :--- |
 | `16:9` | 1920 | 1080 | `landscape` | Standard (16:9) |
 | `2:3` | 1080 | 1620 | `portrait` | Poster (2:3) |
+| `3:4` | 1080 | 1440 | `portrait` | Xiaohongshu (3:4) |
 | `A4` | 1240 | 1754 | `resume` | Professional Resume |
 | `1:1` | 1080 | 1080 | `square` | Square (1:1) |
 
@@ -29,10 +30,10 @@ export interface LayoutDimensions {
 
 ```typescript
 export type OrientationType = 'landscape' | 'portrait' | 'square' | 'resume';
-export type AspectRatioType = '16:9' | '2:3' | 'A4' | '1:1';
+export type AspectRatioType = '16:9' | '2:3' | '3:4' | 'A4' | '1:1';
 ```
 
-- **`AspectRatioType`**: 插画比例标识，用于模板注册和页面创建
+- **`AspectRatioType`**: 画布比例标识，用于模板注册和页面创建
 - **`OrientationType`**: 方向类型，`resume` 是从 `portrait` 剥离的独立方向，专用于简历/文档类排版
 
 ### 1.3 编辑器 UI 常量

@@ -83,3 +83,5 @@ evaluator.interpolate('Chart {index + 1}: {item.title}', context);
    匹配 `/[a-zA-Z0-9_]-[a-zA-Z0-9_]/` 模式的连字符标识符（如 `"page-header"`, `"text-slate-900"`）被直接识别为 CSS 类名或标识符，杜绝误识别为减法算术运算产生 `NaN`。
 3. **顶层上下文白名单**:
    首个单词必须是当前 Context 中实际存在的顶层标识符（如 `page`, `theme`, `index`, `item`, `$parent`）才触发求值尝试，未绑定的自由文本（如 `"spacing.none"`）保持原值。
+4. **原型链污染防御 (Prototype Pollution Defense)**:
+   在对象成员解析（Dot Notation 与 Bracket Notation）过程中，严格禁止访问 `__proto__`、`prototype` 与 `constructor` 关键字，防止不受信任的 Schema 模板数据注入篡改全局对象原型。

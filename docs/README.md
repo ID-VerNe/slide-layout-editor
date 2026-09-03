@@ -15,38 +15,38 @@
   - [主题与布局系统](architecture/data-model/theme-and-layout.md)
   - [模板 Schema 类型](architecture/data-model/template-schema.md)
   - [辅助类型与预设](architecture/data-model/presets-and-helpers.md)
-- [状态管理策略](architecture/state.md)
+- [状态管理策略](architecture/state.md) — Zustand 深度快照、Undo/Redo、存储配额分级保护
 - [模板引擎与渲染机制](architecture/template-engine/index.md)
-  - [节点系统与 LayoutRenderer](architecture/template-engine/nodes-and-renderer.md)
-  - [24×24 网格与样式流水线](architecture/template-engine/grid-and-style.md)
-  - [表达式引擎与数据绑定](architecture/template-engine/expressions.md)
-  - [组件注册表、校验器与虚拟预览](architecture/template-engine/registry-validation-preview.md)
+  - [节点系统与 LayoutRenderer 解耦架构](architecture/template-engine/nodes-and-renderer.md) — 专职子渲染器体系
+  - [24×24 网格与样式流水线](architecture/template-engine/grid-and-style.md) — 样式白名单与 modularFlex
+  - [表达式引擎与数据绑定](architecture/template-engine/expressions.md) — 防原型链污染与双向绑定
+  - [组件注册表、校验器与虚拟预览](architecture/template-engine/registry-validation-preview.md) — 动态 JSON 规范导入
   - [zIndex、条件渲染与 Repeater](architecture/template-engine/advanced-binding.md)
-- [原生集成 (Electron)](architecture/native.md)
+- [原生集成 (Electron)](architecture/native.md) — 资产协议、沙箱越界检查与 ADS 安全拦截
 
 ### 2. 参考手册 (Reference)
 详细的 API、组件与工具函数说明。
 
 - [核心 Hooks 参考](reference/hooks.md)
-- [模板库参考](reference/templates/index.md)
-  - [模板分类目录](reference/templates/catalog.md)
+- [模板库参考](reference/templates/index.md) — 涵盖 7 大分类 36 个独立 JSON 模板
+  - [模板分类目录](reference/templates/catalog.md) — Cover, Gallery, Product, Marketing, General, Resume, Bilingual
   - [模板字段配置](reference/templates/field-config.md)
-  - [模板测试与验证](reference/templates/testing.md)
+  - [模板测试与验证](reference/templates/testing.md) — Playwright E2E 与 Vitest 联合验证
 - [全局常量与配置](reference/constants/index.md)
-  - [布局与 UI 常量](reference/constants/layout-ui.md)
+  - [布局与 UI 常量](reference/constants/layout-ui.md) — 5 种画幅（含 3:4）与 UI 尺寸
   - [编辑器预设](reference/constants/editor-presets.md)
-  - [Design Tokens 与主题默认值](reference/constants/design-tokens.md)
-  - [图标与字段配置](reference/constants/icons-fields.md)
+  - [Design Tokens 与主题默认值](reference/constants/design-tokens.md) — 8px 基线字阶与间距阶梯
+  - [图标与字段配置](reference/constants/icons-fields.md) — 包含双语字段类型
   - [模板注册表常量与示例](reference/constants/templates-and-examples.md)
 
 #### 🎨 UI 组件
 - [核心原子组件 (Atoms)](reference/ui/atoms/index.md)
-  - [文本类原子组件](reference/ui/atoms/text.md)
-  - [媒体与图形类原子组件](reference/ui/atoms/media-and-divider.md)
+  - [文本类原子组件](reference/ui/atoms/text.md) — AutoFitHeadline 闭式推导与 9 点停靠
+  - [媒体与图形类原子组件](reference/ui/atoms/media-and-divider.md) — 亚像素平移与边界计算
   - [数据、图标与 Logo 原子组件](reference/ui/atoms/data-icons-logo.md)
-  - [专用与内部原子组件](reference/ui/atoms/dedicated-and-internal.md)
+  - [专用与内部原子组件](reference/ui/atoms/dedicated-and-internal.md) — 包含 ZineVocabList 策展双语生词表
 - [布局与块组件 (Blocks)](reference/ui/blocks.md)
-- [复合与功能组件 (Molecules)](reference/ui/molecules.md) — **包含 PresetSelect 与 IconPicker 组件**
+- [复合与功能组件 (Molecules)](reference/ui/molecules.md) — **包含 DirectionSwitcher、PresetSelect、IconPicker 与 OffscreenExportRenderer 组件**
 
 #### 🛠️ 工具函数 (Utilities)
 - [原生桥接 (Native FS)](reference/utils/native-fs.md)

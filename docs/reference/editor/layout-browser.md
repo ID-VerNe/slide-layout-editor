@@ -23,7 +23,7 @@ Step 1: 选择方向 (Orientation)
 
 Step 2: 选择比例 (Ratio)
 ├── 16:9  (Landscape)
-├── 2:3   (Portrait)
+├── 2:3 / 3:4 (Portrait)
 └── 1:1   (Square)
 
 Step 3: 选择模板 (Template)

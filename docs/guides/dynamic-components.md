@@ -125,3 +125,16 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
 2.  **样式黑名单**：在 `LayoutRenderer.tsx` 中，`filterZineClassName` 会强制剔除 `shadow-*`、`blur-*`、`drop-shadow-*` 或 `animate-bounce/pulse/wiggle` 等不符合项目审美的 Tailwind 类名，即使在动态组件中也不应使用。
 3.  **ID 管理**：虽然目前很多组件通过数组 `index` 操作，但为了更好的 React 渲染性能，建议在 `addItem` 时使用 `crypto.randomUUID()` 生成唯一 `id`。
 4.  **模块化对齐**：当使用 `layout: 'modular'` 时，`Repeater` 内部的 `template` 节点无需指定 `modular` 坐标，它们会自动按网格流式填充。
+
+---
+
+## 典型实现案例：双语生词表 (`ZineVocabList` 与 `VocabItemsField`)
+
+双语阅读套件（Bilingual Suite）是动态数组组件的最佳实践：
+
+1. **数据模型 (`src/types.ts`)**:
+   `VocabItem` 包含 `id`, `word`, `phonetic`, `pos`, `meaning`, `example`, `exampleZH`，挂载在 `PageData.vocabItems`。
+2. **编辑器表单 (`src/components/editor/fields/VocabItemsField.tsx`)**:
+   提供词汇列表的可视化抽屉编辑、音标快速输入与中英对照例句折叠卡片。
+3. **原子组件 (`src/components/ui/slide/atoms/ZineVocabList.tsx`)**:
+   内置多列自适应排版、8px 基线字阶解析 (`resolveModularFontSize`)，并硬编码了物理像素下限（词头 $\ge 16\text{px}$、释义 $\ge 14\text{px}$、音标 $\ge 12\text{px}$），彻底防止在极端视口缩放时文字坍塌。

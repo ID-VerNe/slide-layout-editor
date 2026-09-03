@@ -6,31 +6,36 @@
 
 ### 7.1 模板分类
 
-模板按以下 6 个分类组织（定义在 `TemplateConfig.category` 联合类型中）：
+模板按以下 7 个分类组织（定义在 `TemplateDefinition.category` 联合类型中）：
 
 | 分类 | 值 | 说明 |
 |:---|:---|:---|
-| Cover | `'Cover'` | 封面类 |
-| Gallery | `'Gallery'` | 画册类 |
-| Product | `'Product'` | 产品展示 |
-| Marketing | `'Marketing'` | 营销宣传 |
-| General | `'General'` | 通用排版 |
-| Resume | `'Resume'` | 简历类 |
+| Cover | `'Cover'` | 封面类 (3 个模板) |
+| Gallery | `'Gallery'` | 画册类 (17 个模板) |
+| Product | `'Product'` | 产品展示 (3 个模板) |
+| Marketing | `'Marketing'` | 营销宣传 (3 个模板) |
+| General | `'General'` | 通用排版 (5 个模板) |
+| Resume | `'Resume'` | 简历类 (1 个模板) |
+| Bilingual | `'Bilingual'` | 双语阅读类 (4 个模板) |
 
-### 7.2 模板配置结构
+### 7.2 模板配置与定义结构
 
 ```typescript
-interface TemplateConfig {
+export interface TemplateDefinition {
   id: string;                      // 唯一标识
   name: string;                    // 显示名称
-  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume';
+  category: 'Cover' | 'Product' | 'Marketing' | 'General' | 'Gallery' | 'Resume' | 'Bilingual';
   desc: string;                    // 描述
   tags: string[];                  // 搜索标签
-  component: React.FC<{ page: any; typography?: any }>; // React 渲染组件 (Schema 驱动时可为 null)
-  schema?: TemplateSchema;         // JSON Schema 定义
-  fields: FieldSchema[];           // 编辑器字段
-  supportedRatios: AspectRatioType[]; // 支持的画幅
+  supportedRatios: AspectRatioType[]; // 支持的画幅 (含 '3:4')
+  fields: (FieldType | FieldSchema)[]; // 编辑器字段
   defaultData?: Partial<PageData>; // 模板级默认数据
+  root: TemplateNode;              // 渲染树根节点
+}
+
+export interface TemplateConfig extends Omit<TemplateDefinition, 'root'> {
+  component: React.FC<{ page: any; typography?: any }>;
+  schema?: TemplateSchema;
 }
 ```
 
@@ -71,24 +76,27 @@ const spacing = DEFAULT_DESIGN_SYSTEM.tokens.spacing.md;
 }
 ```
 
-### 9.3 注册新模板
+### 9.3 编写新模板 JSON 规范
 
-```typescript
-import { TEMPLATES } from '../templates/registry';
+在 `src/templates/definitions/Gallery/my-custom-template.json` 中直接写入声明式定义，无需手动编写 TypeScript 注册代码：
 
-TEMPLATES.push({
-  id: 'my-custom-template',
-  name: 'My Custom Template',
-  category: 'Gallery',
-  desc: '自定义画册模板',
-  tags: ['gallery', 'photo', 'portrait'],
-  component: () => null,
-  schema: MyTemplateSchema,
-  fields: withBaseFields(['title', 'image', 'description']),
-  supportedRatios: ['2:3'],
-  defaultData: {
-    title: '画册标题',
-    description: '描述文字'
+```json
+{
+  "id": "my-custom-template",
+  "name": "My Custom Template",
+  "category": "Gallery",
+  "desc": "自定义画册模板",
+  "tags": ["gallery", "photo", "portrait"],
+  "supportedRatios": ["2:3", "3:4"],
+  "fields": ["title", "image", "paragraph"],
+  "defaultData": {
+    "title": "画册标题",
+    "paragraph": "描述文字"
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "children": []
   }
-});
+}
 ```

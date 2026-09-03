@@ -41,6 +41,13 @@ const designSystem = useStore(s => s.designSystem);
 - `setCounterStyle` 自动同步到所有页面的 `counterStyle` 字段
 - `setTheme(update, applyToAll=true)` 同步 `backgroundColor`/`accentColor`/`titleFont`/`bodyFont` 到所有页面
 
+### 1.4 快照隔离历史机制 (`HistorySnapshot`)
+
+撤销/重做栈使用不可变深度克隆 (`deepClone`) 记录完整的项目快照：
+- 快照对象包含：`pages`, `projectTitle`, `theme`, `designSystem`, `printSettings`, `counterStyle`, `customFonts`, `imageQuality`, `minimalCounter`
+- 支持 `silent: true` 参数（在拖拽滑块或高频连续变更时跳过快照生成，避免污染撤销栈）
+- 快照栈深度上限为 30 层，先进先出自动截断。
+
 ---
 
 ## 2. `useProject`
@@ -77,7 +84,7 @@ const {
 `saveToDB(previewRef, forceThumbnail?)` 执行：
 1. 检查项目 ID、加载状态、页面数量
 2. 将 `ProjectData` (version, title, pages, theme, designSystem, ...) 写入 IndexedDB
-3. 更新 localStorage 中 `magazine_recent_projects` 索引 (保留原缩略图)
+3. 委派至 `src/services/recentProjects.ts` 更新最近项目索引，自动执行三级配额防御机制，防止 base64 缩略图溢出崩溃。
 
 ### 2.3 后台缩略图生成
 

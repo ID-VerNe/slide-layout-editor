@@ -38,17 +38,21 @@
    - Electron: 240px 宽截图
    - Web: 超低保真截图 (`pixelRatio: 0.1, quality: 0.1`)
 
-### 6.2 缩略图存储
+### 6.2 缩略图存储与持久化服务 (`recentProjects.ts`)
 
-- **位置**: `localStorage` (`slidegrid_recent_projects` key)
-- **数据**: Base64 DataURL
-- **容量**: 最多 48 个项目
+为彻底根治大型项目中频繁 base64 截图塞满 `localStorage` 导致的 `QuotaExceededError` 崩溃，系统引入了专用的 `src/services/recentProjects.ts` 服务并协同 IndexedDB：
+
+- **双轨存储**: 缩略图高保真原图异步写入 IndexedDB 的 `projectThumbnails` 独立对象仓库，同时按配额受控同步至 `localStorage`。
+- **三级配额防御机制 (3-Tier Quota Defense)**:
+  1. **Tier 1 (全量模式)**: 正常保存最近所有项目的完整元数据与 Base64 缩略图。
+  2. **Tier 2 (前 6 项保留)**: 发生存储配额溢出时，自动剔除第 7 项以后的缩略图，仅为最近活跃的前 6 个项目保留缩略图。
+  3. **Tier 3 (纯元数据兜底)**: 若配额依然紧张，清空所有条目的缩略图，仅保留项目标题、路径、时间戳与模板元数据，确保工程历史索引绝不丢失。
 
 ---
 
 ## 7. 最近项目索引
 
-编辑器使用 `localStorage` 维护项目元数据索引 (`slidegrid_recent_projects`):
+编辑器由 `recentProjects.ts` 统一管理项目元数据索引 (`slidegrid_recent_projects`):
 
 **索引条目结构**:
 
@@ -59,14 +63,14 @@ interface RecentProjectEntry {
   date: string;        // 创建日期 (locale string)
   lastModified: number; // 最后修改时间戳
   type: string;        // 首页模板 ID
-  aspectRatio: string; // 首页比例
-  thumbnail: string | null; // 缩略图 Base64
+  aspectRatio: string; // 首页比例 (含 '3:4')
+  thumbnail: string | null; // 缩略图 Base64 (遵循 3 级配额防御)
   filePath: string | null;  // .slgrid 物理文件路径
 }
 ```
 
 **更新时机**:
-- 手动保存 (`Ctrl+S`) 时更新 `updateIndex()`
+- 手动保存 (`Ctrl+S`) 时调用 `recentProjects.updateRecentProject()`
 - 后台自动保存 (`saveToDB`) 时静默更新元数据 (保留原缩略图)
 
 ---

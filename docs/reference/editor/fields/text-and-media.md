@@ -2,6 +2,15 @@
 
 ## 1. 文本类字段
 
+### 1.0 通用文本字段包装器 (`GenericTextField`)
+为了遵循 DRY 原则，所有结构相似的单行/多行文本字段已统一重构为使用 `GenericTextField`。它统一封装了：
+- 防抖输入控制（`DebouncedInput` / `DebouncedTextArea`）
+- `FieldWrapper` 折叠、可见性开关（Eye Toggle）与图标
+- `ZineStylePanel` 样式抽屉面板（`showStyleConfig=true`）集成
+- 页面数据字段与 `styleOverrides` 的双向响应式同步
+
+- **文件**: `fields/GenericTextField.tsx`
+
 ### 1.1 `TitleField`
 主标题编辑。基于 `DebouncedTextArea`（多行文本区域），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
@@ -19,15 +28,39 @@
 - **图标**: `Type`
 
 ### 1.3 `ParagraphField`
-段落/正文编辑。基于 `DebouncedTextArea`（5 行大号多行文本区域），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
+段落/正文编辑。基于 `GenericTextField`（多行文本），通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
 
 - **文件**: `fields/ParagraphField.tsx`
 - **绑定字段**: `page.paragraph`
 - **样式配置**: `showStyleConfig=true` — 使用 `styleMode="text"` 的 ZineStylePanel
 - **图标**: `Type`
 
+### 1.3.1 `ParagraphZHField` (双语中文正文)
+双语精读阅读页面的中文译文正文编辑。基于 `GenericTextField`（多行文本），支持中文字体族切换与独立样式调整。
+
+- **文件**: `fields/ParagraphZHField.tsx`
+- **绑定字段**: `page.paragraphZH`
+- **样式配置**: `showStyleConfig=true`
+- **图标**: `Languages`
+
+### 1.3.2 `QuoteZHField` (双语引言译文)
+名言双语对照模板的中文引言译文编辑。基于 `GenericTextField`。
+
+- **文件**: `fields/QuoteZHField.tsx`
+- **绑定字段**: `page.quoteZH`
+- **样式配置**: `showStyleConfig=true`
+- **图标**: `Quote`
+
+### 1.3.3 `SideHeaderField` (侧边栏小标题)
+双语阅读与排版模板的侧栏/章节标题。基于 `GenericTextField`。
+
+- **文件**: `fields/SideHeaderField.tsx`
+- **绑定字段**: `page.sideHeader`
+- **样式配置**: `showStyleConfig=true`
+- **图标**: `AlignLeft`
+
 ### 1.4 `ActionTextField`
-行动号召 (CTA) 按钮文本编辑。基于单行 `DebouncedInput`，通过 `FieldWrapper` 内嵌 `ZineStylePanel` 样式面板。
+行动号召 (CTA) 按钮文本编辑。基于 `GenericTextField`（单行输入）。
 
 - **文件**: `fields/ActionTextField.tsx`
 - **绑定字段**: `page.actionText`

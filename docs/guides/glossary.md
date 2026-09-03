@@ -26,12 +26,12 @@
 UI 的原子化属性，如 `color.primary`, `typography.body.fontSize`。禁止在代码中硬编码 Hex 色值或字号。所有渲染组件应通过 `useModularStyle` 消费 Token。
 
 ### 原子组件 (Zine Atom)
-最小的可复用渲染单元。位于 [src/components/ui/slide/atoms/](src/components/ui/slide/atoms/)，共 11 个注册组件：`ZineDisplay`、`ZineBody`、`ZineCaption`、`ZineMedia`、`ZineResume`、`ZineDivider`、`ZineIcon`、`ZineMetric`、`ZineLogo`、`ZineArtFont`、`BigDataMetrics`。它们不具备复杂的业务逻辑，仅负责消费 Token 并将数据渲染为符合 SPEC 规范的视觉形式。
+最小的可复用渲染单元。位于 [src/components/ui/slide/atoms/](src/components/ui/slide/atoms/)，共 12 个注册组件：`ZineDisplay`、`ZineBody`、`ZineCaption`、`ZineVocabList`、`ZineMedia`、`ZineResume`、`ZineDivider`、`ZineIcon`、`ZineMetric`、`ZineLogo`、`ZineArtFont`、`BigDataMetrics`。它们不具备复杂的业务逻辑，仅负责消费 Token 并将数据渲染为符合 SPEC 规范的视觉形式。
 
 ### 样式流水线 (Style Pipeline)
 样式从 Schema 属性到最终 CSS 的转化过程，包含四个步骤：
 1. Token 注入（`ds.tokens`）
-2. 基线微调（`useModularStyle`）
+2. 基线微调与 9 点停靠（`useModularStyle` + `resolveDockingStyle`）
 3. 模板属性应用（`evaluateObject`）
 4. Zine 约束过滤（`ALLOWED_PROPS` 白名单 + `filterZineClassName` 黑名单）
 
@@ -61,10 +61,10 @@ SlideGrid Studio 的专有归档格式。本质上是一个包含 `project.json`
 Store 中的 `hasUnsavedChanges` 标志。当 Zustand Store 中的数据通过 `pushHistory()` 标记为变更后，驱动 UI 显示"未保存"圆点，并触发 3 秒定时自动保存 (`saveToDB`)。
 
 ### 表达式绑定 (Expression Binding)
-模板 Schema 中通过 `{...}` 语法引用动态数据的能力。`ExpressionEvaluator` 支持路径访问 (`page.title`)、空值合并 (`??`)、三元运算 (`? : `)、字符串插值等。详见 [表达式引擎文档](../architecture/template-engine/expressions.md)。
+模板 Schema 中通过 `{...}` 语法引用动态数据的能力。`ExpressionEvaluator` 支持路径访问 (`page.title`)、空值合并 (`??`)、三元运算 (`? : `)、字符串插值等，具备原型链污染免疫防护。详见 [表达式引擎文档](../architecture/template-engine/expressions.md)。
 
 ### Repeater (循环渲染器)
-模板引擎的循环节点类型。通过 `bind` 属性绑定数据集合（如 `page.agenda`），为每个元素创建独立的 `EvaluationContext`（含 `item`、`index`、`$parent`），递归渲染子模板。
+模板引擎的循环节点类型。通过 `bind` 属性绑定数据集合（如 `page.agenda`、`page.vocabItems`），为每个元素创建独立的 `EvaluationContext`（含 `item`、`index`、`$parent`），递归渲染子模板。
 
 ### V3 数据迁移 (V2-to-V3 Migration)
 当旧版本项目数据加载时自动执行的升级流水线。在 `useStore.loadProject()` 中调用 `migrateToV3()`，完成资产解耦、令牌注入和架构重组。
@@ -74,7 +74,7 @@ Store 中的 `hasUnsavedChanges` 标志。当 Zustand Store 中的数据通过 `
 ## 4. 角色与进程 (Roles)
 
 ### 主进程 (Main Process)
-Electron 的后端环境 ([electron/main.ts](src/../../electron/main.ts))。负责磁盘 IO、Sharp 图像处理、ZIP 归档打包、`asset://` 协议拦截及窗口管理。
+Electron 的后端环境 ([electron/main.ts](src/../../electron/main.ts))。负责磁盘 IO、Sharp 图像处理、ZIP 归档打包、`asset://` 协议拦截及窗口管理，内置严格的路径越界与 ADS 防御。
 
 ### 渲染进程 (Renderer Process)
 Electron 的前端环境（React + Vite）。负责 UI 交互、模板 Schema 计算、Framer Motion 动画表演。出于安全考虑，禁用了 Node.js 集成。
@@ -87,7 +87,19 @@ Electron 的前端环境（React + Vite）。负责 UI 交互、模板 Schema �
 
 ---
 
-## 5. 组件架构术语
+## 5. 组件与基础设施术语
+
+### DirectionSwitcher (方向/变体分段器)
+位于 [src/components/ui/DirectionSwitcher.tsx](src/components/ui/DirectionSwitcher.tsx)。用于在编辑器中以可视化分段控件（Segmented Control）切换布局方向与版式变体（如 left-right, top-bottom, capsule 等）。
+
+### GenericTextField (通用文本字段包装器)
+位于 [src/components/editor/fields/GenericTextField.tsx](src/components/editor/fields/GenericTextField.tsx)。统一收拢多行/单行防抖输入、Zine 样式微调抽屉以及与 Store 状态同步逻辑，消除重复代码。
+
+### OffscreenExportRenderer (离屏无感导出器)
+位于 [src/pages/EditorPage.tsx](src/pages/EditorPage.tsx)。在用户视口不可见区域渲染目标页面，等待字体与高保真资产就绪后直接截取，杜绝导出时用户编辑视口剧烈翻页、闪烁及入场动画半透明问题。
+
+### FontCalculatorManager (字体计算单例管理器)
+位于 [src/workers/fontCalculatorManager.ts](src/workers/fontCalculatorManager.ts)。集中调度闭式代数 $O(1)$ 计算 Web Worker 线程，杜绝多实例创建造成的句柄泄漏与卡顿。
 
 ### Component Registry (组件注册表)
 [componentRegistry.ts](src/templates/schemas/componentRegistry.ts) 中的 `COMPONENT_REGISTRY` 对象。将组件名字符串映射到 React 组件，是 Schema `Component` 节点到实际 React 视图的桥梁。
