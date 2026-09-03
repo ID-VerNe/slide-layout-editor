@@ -42,11 +42,24 @@ export const Image: React.FC<ImageProps> = ({
   const [showLqip, setShowLqip] = useState(true);
   const [imgRef, setImgRef] = useState<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lqipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+
+  const scheduleHideLqip = useCallback(() => {
+    if (lqipTimerRef.current) clearTimeout(lqipTimerRef.current);
+    lqipTimerRef.current = setTimeout(() => setShowLqip(false), 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (lqipTimerRef.current) clearTimeout(lqipTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     setIsLoaded(false);
     setShowLqip(true);
+    if (lqipTimerRef.current) clearTimeout(lqipTimerRef.current);
   }, [url]);
 
   // 测量容器尺寸用于亚像素级平移边界计算
@@ -71,18 +84,18 @@ export const Image: React.FC<ImageProps> = ({
   useEffect(() => {
     if (imgRef && imgRef.complete && imgRef.naturalWidth > 0) {
       setIsLoaded(true);
-      setTimeout(() => setShowLqip(false), 300);
+      scheduleHideLqip();
       onLoad?.();
     }
-  }, [imgRef, onLoad]);
+  }, [imgRef, onLoad, scheduleHideLqip]);
 
   const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     if (e.currentTarget.complete) {
       setIsLoaded(true);
-      setTimeout(() => setShowLqip(false), 300);
+      scheduleHideLqip();
       onLoad?.();
     }
-  }, [onLoad]);
+  }, [onLoad, scheduleHideLqip]);
 
   const { 
     objectFit: styleObjectFit, 

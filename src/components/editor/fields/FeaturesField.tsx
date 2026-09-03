@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { PageData, FeatureData, CustomFont } from '../../../types';
 import { Eye, EyeOff, Layout, Plus, X, SlidersHorizontal, RotateCcw, HelpCircle } from 'lucide-react';
 import { LUCIDE_ICON_MAP } from '../../../constants/icons';
@@ -17,20 +17,7 @@ interface FieldProps {
 
 export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFonts, pages }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
-  // 用 Set 跟踪已迁移的页面 ID，避免跨页面迁移被跳过
-  const migratedRef = useRef<Set<string>>(new Set());
   const isVisible = page.visibility?.features !== false;
-
-  // 为遗留数据补充缺失的唯一标识符（静默更新，不污染历史栈）
-  React.useEffect(() => {
-    if (migratedRef.current.has(page.id)) return;
-    const features = page.features || [];
-    if (features.some(f => !f.id)) {
-      migratedRef.current.add(page.id);
-      const migrated = features.map(f => f.id ? f : { ...f, id: generateId("feat") });
-      onUpdate({ ...page, features: migrated }, true);
-    }
-  }, [page.id, page.features, onUpdate]);
 
   const toggle = () => {
     onUpdate({

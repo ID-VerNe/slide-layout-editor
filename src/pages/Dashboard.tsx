@@ -15,7 +15,9 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { alert, confirm } = useUI();
-  const { createProject, loadProject, setCurrentFilePath } = useStore();
+  const createProject = useStore(s => s.createProject);
+  const loadProject = useStore(s => s.loadProject);
+  const setCurrentFilePath = useStore(s => s.setCurrentFilePath);
   const [workspace, setWorkspace] = useState<string | null>(null);
   const [projects, setProjects] = useState<any[]>([]);
 

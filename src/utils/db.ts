@@ -44,7 +44,21 @@ export async function saveAsset(dataUrl: string): Promise<string> {
     hashId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   }
   
-  const ext = dataUrl.substring(dataUrl.indexOf('/') + 1, dataUrl.indexOf(';'));
+  // 解析 MIME 类型并提取干净的扩展名，兼容含有参数的复杂 Data URL
+  const mimeMatch = dataUrl.match(/^data:([^;,]+)/);
+  const rawMime = mimeMatch ? mimeMatch[1].toLowerCase() : '';
+  let ext = 'png';
+  if (rawMime.includes('svg')) {
+    ext = 'svg';
+  } else if (rawMime.includes('jpeg') || rawMime.includes('jpg')) {
+    ext = 'jpg';
+  } else if (rawMime.includes('webp')) {
+    ext = 'webp';
+  } else if (rawMime.includes('gif')) {
+    ext = 'gif';
+  } else if (rawMime.includes('/')) {
+    ext = rawMime.split('/')[1] || 'png';
+  }
   const filename = `asset_${hashId}.${ext}`;
 
   // 2. 直接检查 Electron 环境
@@ -85,6 +99,7 @@ export async function getAsset(assetId: string): Promise<string | null> {
         const ext = filename.split('.').pop()?.toLowerCase();
         const mimeMap: Record<string, string> = {
           svg: 'image/svg+xml',
+          'svg+xml': 'image/svg+xml',
           webp: 'image/webp',
           png: 'image/png',
           jpg: 'image/jpeg',

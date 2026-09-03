@@ -69,10 +69,9 @@ app.whenReady().then(async () => {
       const filePath = path.join(assetRoot, sanitized);
       
       // 4. 二次验证：确保最终路径在 assetRoot 内
-      const normalizedPath = path.normalize(filePath);
-      const normalizedRoot = path.normalize(assetRoot);
-      if (!normalizedPath.startsWith(normalizedRoot)) {
-        console.error(`[Asset] Path escape attempt blocked: ${normalizedPath}`);
+      const relPath = path.relative(assetRoot, filePath);
+      if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
+        console.error(`[Asset] Path escape attempt blocked: ${filePath}`);
         return new Response(null, { status: 403 });
       }
       
@@ -83,7 +82,14 @@ app.whenReady().then(async () => {
 
       const buffer = await fs.readFile(filePath);
       const ext = path.extname(filename).toLowerCase();
-      const mimeTypes: any = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
+      const mimeTypes: Record<string, string> = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.svg': 'image/svg+xml',
+        '.gif': 'image/gif'
+      };
 
       return new Response(buffer, {
         headers: { 'Content-Type': mimeTypes[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'Access-Control-Allow-Origin': '*' }
@@ -133,10 +139,9 @@ app.whenReady().then(async () => {
       const filePath = path.join(assetRoot, sanitized);
 
       // 确保最终路径未逃逸出资产根目录
-      const normalizedPath = path.normalize(filePath);
-      const normalizedRoot = path.normalize(assetRoot);
-      if (!normalizedPath.startsWith(normalizedRoot)) {
-        console.error(`[read-asset-file] Path escape attempt blocked: ${normalizedPath}`);
+      const relPath = path.relative(assetRoot, filePath);
+      if (relPath.startsWith('..') || path.isAbsolute(relPath)) {
+        console.error(`[read-asset-file] Path escape attempt blocked: ${filePath}`);
         return null;
       }
 

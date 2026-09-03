@@ -19,39 +19,16 @@ function calculateFontSize(
   containerWidth: number,
   maxSize: number,
   minSize: number,
-  lineHeight: number,
+  _lineHeight: number,
   maxLines: number,
 ): number {
   if (!text || !containerWidth) return maxSize;
 
-  let fontSize = maxSize;
-  const range = { min: minSize, max: maxSize };
-  let retryCount = 0;
+  const unitWeight = estimateTextWidth(text, 1);
+  if (unitWeight <= 0) return maxSize;
 
-  while (retryCount <= 12 && range.max - range.min > 0.5) {
-    const estimatedWidth = estimateTextWidth(text, fontSize);
-    const estimatedHeight =
-      (estimatedWidth / containerWidth) * fontSize * lineHeight;
-    const maxHeight = fontSize * lineHeight * maxLines;
-
-    if (
-      estimatedHeight > maxHeight ||
-      (maxLines === 1 && estimatedWidth > containerWidth)
-    ) {
-      const newMax = fontSize - 0.5;
-      if (newMax <= range.min) break;
-      range.max = newMax;
-      fontSize = (range.min + range.max) / 2;
-    } else {
-      const newMin = fontSize + 0.5;
-      if (newMin > range.max) break;
-      range.min = newMin;
-      fontSize = (range.min + range.max) / 2;
-    }
-    retryCount++;
-  }
-
-  return Math.floor(fontSize);
+  const maxAllowed = Math.floor((containerWidth * maxLines) / unitWeight);
+  return Math.max(minSize, Math.min(maxSize, maxAllowed));
 }
 
 describe('fontCalculator', () => {

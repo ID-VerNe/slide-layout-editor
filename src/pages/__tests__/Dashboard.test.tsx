@@ -13,17 +13,23 @@ vi.mock('framer-motion', () => ({
 
 const navigateMock = vi.fn();
 
-const loadProjectMock = vi.fn();
-const createProjectMock = vi.fn(() => 'new-project-id');
-const setCurrentFilePathMock = vi.fn();
+const { createProjectMock, loadProjectMock, setCurrentFilePathMock } = vi.hoisted(() => ({
+  createProjectMock: vi.fn(() => 'new-project-id'),
+  loadProjectMock: vi.fn(),
+  setCurrentFilePathMock: vi.fn(),
+}));
 
-vi.mock('../../store/useStore', () => ({
-  useStore: vi.fn(() => ({
+vi.mock('../../store/useStore', () => {
+  const mockState = {
     createProject: createProjectMock,
     loadProject: loadProjectMock,
     setCurrentFilePath: setCurrentFilePathMock,
-  })),
-}));
+  };
+  const mockUseStore = vi.fn((selector?: (state: any) => any) => {
+    return typeof selector === 'function' ? selector(mockState) : mockState;
+  });
+  return { useStore: mockUseStore };
+});
 
 vi.mock('../../utils/native-fs', () => ({
   nativeFs: {

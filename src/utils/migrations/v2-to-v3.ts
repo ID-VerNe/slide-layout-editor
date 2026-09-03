@@ -94,6 +94,38 @@ function ensureTheme(theme: any): any {
   };
 }
 
+/** 为页面集合元素（features, bentoItems 等）补全缺失的唯一标识符 */
+function ensureCollectionIds(pages: any[] = []): any[] {
+  if (!Array.isArray(pages)) return pages;
+  return pages.map((page, pIdx) => {
+    if (!page || typeof page !== 'object') return page;
+    let modified = false;
+    const pageCopy = { ...page };
+
+    if (Array.isArray(pageCopy.features)) {
+      pageCopy.features = pageCopy.features.map((feat: any, fIdx: number) => {
+        if (feat && typeof feat === 'object' && !feat.id) {
+          modified = true;
+          return { ...feat, id: `feat_${pIdx}_${fIdx}_${Math.random().toString(36).slice(2, 8)}` };
+        }
+        return feat;
+      });
+    }
+
+    if (Array.isArray(pageCopy.bentoItems)) {
+      pageCopy.bentoItems = pageCopy.bentoItems.map((item: any, bIdx: number) => {
+        if (item && typeof item === 'object' && !item.id) {
+          modified = true;
+          return { ...item, id: `bento_${pIdx}_${bIdx}_${Math.random().toString(36).slice(2, 8)}` };
+        }
+        return item;
+      });
+    }
+
+    return modified ? pageCopy : page;
+  });
+}
+
 /**
  * Zine V3 迁移器
  * 负责：
@@ -102,12 +134,16 @@ function ensureTheme(theme: any): any {
  * 3. 清理废弃字段
  * 4. 补全 theme 结构
  * 5. 注入 DesignSystem
+ * 6. 统一补全集合元素唯一标识符 (id)
  */
 export function migrateToV3(data: any): ProjectData {
   if (!data) return data;
 
-  // 如果已经是 v3+，且包含 designSystem，则跳过
+  // 如果已经是 v3+，且包含 designSystem，确保集合元素 id 完整后返回
   if (data.version && parseFloat(data.version) >= 3.0 && data.designSystem) {
+    if (Array.isArray(data.pages)) {
+      data.pages = ensureCollectionIds(data.pages);
+    }
     return data as ProjectData;
   }
 
@@ -120,6 +156,7 @@ export function migrateToV3(data: any): ProjectData {
     version: '3.0.0',
     designSystem: migratedData.designSystem || DEFAULT_DESIGN_SYSTEM,
     theme: ensureTheme(migratedData.theme),
+    pages: ensureCollectionIds(migratedData.pages),
   };
 
   return upgradedData as ProjectData;

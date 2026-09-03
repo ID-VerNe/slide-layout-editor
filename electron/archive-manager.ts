@@ -374,7 +374,8 @@ export class ProjectArchiveManager {
     // 安全检查：防止路径遍历
     const sanitized = path.basename(finalFilename);
     const targetPath = path.join(assetsDir, sanitized);
-    if (!targetPath.startsWith(assetsDir)) {
+    const rel = path.relative(assetsDir, targetPath);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
       throw new Error('Invalid asset filename');
     }
 
@@ -414,7 +415,10 @@ export class ProjectArchiveManager {
 
     const resolved = path.resolve(projectPath);
     // 安全边界校验：目标路径必须严格位于合法工作区之内，且不可是工作区根目录自身
-    const isWithinWorkspace = searchDirs.some(ws => resolved.startsWith(ws) && resolved !== ws);
+    const isWithinWorkspace = searchDirs.some(ws => {
+      const rel = path.relative(ws, resolved);
+      return !rel.startsWith('..') && !path.isAbsolute(rel) && rel !== '';
+    });
     if (!isWithinWorkspace) {
       return { success: false, error: 'Access denied: Target path is not within active workspaces' };
     }

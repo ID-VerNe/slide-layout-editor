@@ -394,13 +394,13 @@ export const useStore = create<ProjectState>((set, get) => ({
     };
     const restoredIndex = prev.currentPageIndex !== undefined ? Math.min(prev.currentPageIndex, prev.pages.length - 1) : 0;
     set({
-      pages: prev.pages, projectTitle: prev.projectTitle,
-      theme: prev.theme, designSystem: prev.designSystem,
-      printSettings: prev.printSettings || DEFAULT_PRINT_SETTINGS,
+      pages: deepClone(prev.pages), projectTitle: prev.projectTitle,
+      theme: deepClone(prev.theme), designSystem: deepClone(prev.designSystem),
+      printSettings: prev.printSettings ? deepClone(prev.printSettings) : DEFAULT_PRINT_SETTINGS,
       minimalCounter: prev.minimalCounter ?? false,
       counterStyle: prev.counterStyle || 'number',
       imageQuality: prev.imageQuality ?? 0.95,
-      customFonts: prev.customFonts || [],
+      customFonts: deepClone(prev.customFonts || []),
       currentFilePath: prev.currentFilePath !== undefined ? prev.currentFilePath : currentFilePath,
       past: past.slice(0, -1),
       future: [currentSnapshot, ...future],
@@ -421,13 +421,13 @@ export const useStore = create<ProjectState>((set, get) => ({
     };
     const restoredIndex = next.currentPageIndex !== undefined ? Math.min(next.currentPageIndex, next.pages.length - 1) : 0;
     set({
-      pages: next.pages, projectTitle: next.projectTitle,
-      theme: next.theme, designSystem: next.designSystem,
-      printSettings: next.printSettings || DEFAULT_PRINT_SETTINGS,
+      pages: deepClone(next.pages), projectTitle: next.projectTitle,
+      theme: deepClone(next.theme), designSystem: deepClone(next.designSystem),
+      printSettings: next.printSettings ? deepClone(next.printSettings) : DEFAULT_PRINT_SETTINGS,
       minimalCounter: next.minimalCounter ?? false,
       counterStyle: next.counterStyle || 'number',
       imageQuality: next.imageQuality ?? 0.95,
-      customFonts: next.customFonts || [],
+      customFonts: deepClone(next.customFonts || []),
       currentFilePath: next.currentFilePath !== undefined ? next.currentFilePath : currentFilePath,
       past: [...past, currentSnapshot],
       future: future.slice(1),

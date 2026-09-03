@@ -10,6 +10,19 @@ interface NativeResponse {
   url?: string;
 }
 
+export interface NativeProjectSummary {
+  id: string;
+  title?: string;
+  name?: string;
+  filePath?: string;
+  path?: string;
+  date?: string;
+  lastModified?: number;
+  type?: string;
+  aspectRatio?: string;
+  thumbnail?: string | null;
+}
+
 interface ElectronAPI {
   getAppPaths: () => Promise<{ userData: string; thumbnails: string }>;
   captureThumbnail: (projectId: string, rect: { x: number; y: number; width: number; height: number }) => Promise<string | null>;
@@ -21,7 +34,7 @@ interface ElectronAPI {
   saveFileBuffer: (filePath: string, base64Data: string) => Promise<NativeResponse>;
   openExternal: (url: string) => Promise<void>;
   setActiveWorkspace: (path: string) => Promise<void>;
-  listProjects: () => Promise<Array<{ id: string; name: string; path: string; lastModified?: number }>>;
+  listProjects: () => Promise<NativeProjectSummary[]>;
   setCurrentProject: (id: string, name: string) => Promise<void>;
   deleteProject: (projectPath: string) => Promise<NativeResponse>;
   readAssetFile: (filename: string) => Promise<string | null>;
@@ -64,7 +77,7 @@ export const nativeFs = {
     await window.electronAPI?.setActiveWorkspace(path);
   },
 
-  async listProjects(): Promise<Array<{ id: string; name: string; path: string; lastModified?: number }>> {
+  async listProjects(): Promise<NativeProjectSummary[]> {
     if (!window.electronAPI) return [];
     return await window.electronAPI.listProjects();
   },
