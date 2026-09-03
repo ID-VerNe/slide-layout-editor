@@ -12,7 +12,7 @@ import { logger } from '../../../utils/logger';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   fieldKey?: string;
   label?: string;
   pages?: PageData[];
@@ -63,13 +63,13 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
     }
   };
 
-  const handleConfigChange = (key: string, val: number) => {
-    logger.action('ImageField', 'ChangeConfig', { fieldKey, [key]: val });
+  const handleConfigChange = (key: string, val: number, silent: boolean = true) => {
+    logger.action('ImageField', 'ChangeConfig', { fieldKey, [key]: val, silent });
     const currentConfig = (page as any)[configKey] || { scale: 1, x: 0, y: 0 };
     onUpdate({
       ...page,
       [configKey]: { ...currentConfig, [key]: val }
-    });
+    }, silent);
   };
 
   const handleFit = () => {
@@ -83,7 +83,11 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
 
   const handleRemove = () => {
     logger.action('ImageField', 'RemoveAsset', { fieldKey });
-    onUpdate({ ...page, [fieldKey]: '' });
+    onUpdate({
+      ...page,
+      [fieldKey]: '',
+      [configKey]: { scale: 1, x: 0, y: 0 }
+    });
   };
 
   return (
@@ -143,7 +147,8 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
               min={1} 
               max={3} 
               step={0.05} 
-              onChange={(v) => handleConfigChange('scale', v)} 
+              onChange={(v) => handleConfigChange('scale', v, true)} 
+              onChangeEnd={(v) => handleConfigChange('scale', v, false)} 
             />
             <Slider 
               label={canMoveHoriz ? "Move Horiz." : "Move Horiz. (Locked)"} 
@@ -151,8 +156,9 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
               min={-100} 
               max={100} 
               step={1} 
-              disabled={!canMoveHoriz}
-              onChange={(v) => handleConfigChange('x', v)} 
+              disabled={!canMoveHoriz} 
+              onChange={(v) => handleConfigChange('x', v, true)} 
+              onChangeEnd={(v) => handleConfigChange('x', v, false)} 
             />
             <Slider 
               label={canMoveVert ? "Move Vert." : "Move Vert. (Locked)"} 
@@ -160,8 +166,9 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
               min={-100} 
               max={100} 
               step={1} 
-              disabled={!canMoveVert}
-              onChange={(v) => handleConfigChange('y', v)} 
+              disabled={!canMoveVert} 
+              onChange={(v) => handleConfigChange('y', v, true)} 
+              onChangeEnd={(v) => handleConfigChange('y', v, false)} 
             />
             <button onClick={handleRemove} className="w-full py-2.5 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-red-100 mt-2">
               <Trash2 size={14} /> Remove Asset

@@ -14,7 +14,7 @@
 - 自动跳过已升级的数据（检测 `version >= 3.0 && designSystem` 存在）。
 - 递归迁移字段：
   - 字段重命名：`desc` → `description`，`quote` → `content`，`name` → `author`（仅当与现有 `author` 冲突时覆盖）
-  - 布局 ID 映射：`layout` → `layoutId`（映射表：`TwoColumnLayout → modern-feature`, `GalleryLayout → floating-gallery`, `HeroLayout → typography-hero`）
+  - 布局 ID 映射：`layout` → `layoutId`（映射表：`TwoColumnLayout → modern-feature`, `GalleryLayout → floating-gallery`, `HeroLayout → typography-hero`）。**注意：该重命名仅作用于幻灯片页面根对象，容器节点（`type === 'container'`）的 `layout: 'grid' | 'modular' | 'flex' | 'absolute'` 属性受到绝对保护，严禁篡改为 `layoutId`**。
   - 跳过已存在的目标字段（防止覆盖）
 - 补全 `theme` 结构（`colors` + `typography` 的默认值填充）
 - 注入 `DesignSystem` 令牌（使用 `DEFAULT_DESIGN_SYSTEM` 常量）
@@ -41,6 +41,12 @@
 
 - 先通过 `Object.is` 进行引用相等判断。
 - 再逐 key 比较：长度不同则跳过，`hasOwnProperty` 检查后逐个值进行 `Object.is` 比较。
+
+### 1.4 `fontLoader.ts`
+动态字体注册与 DOM 注入器，管理跨环境字体注入与安全校验。
+
+- **安全协议白名单**: 支持标准 Base64 `data:` URI 与 Electron 归档模式的 `asset://` 虚拟协议，严格过滤 `javascript:`、`ftp://` 等不安全协议。
+- **FontFace 注册**: 将合法字体封装为 `FontFace` 并调用 `document.fonts.add()`，供 Canvas 导出与 CSS 渲染无缝使用。
 
 ---
 

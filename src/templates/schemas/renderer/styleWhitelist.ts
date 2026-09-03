@@ -11,12 +11,15 @@ export const ALLOWED_CSS_PROPERTIES = [
   'position', 'top', 'left', 'right', 'bottom', 'inset', 'zIndex',
   'opacity', 'mixBlendMode', 'transform', 'transition', 'transitionDuration',
   'width', 'height', 'maxWidth', 'maxHeight', 'minWidth', 'minHeight',
-  'aspectRatio', 'overflow', 'backgroundColor', 'borderColor', 'borderWidth',
+  'aspectRatio', 'overflow', 'backgroundColor', 'background', 'backgroundImage',
+  'backgroundSize', 'backgroundPosition', 'backgroundRepeat',
+  'borderColor', 'borderWidth',
   'borderTopWidth', 'borderBottomWidth', 'borderLeftWidth', 'borderRightWidth',
   'borderStyle', 'textAlign', 'fontFamily', 'fontSize', 'fontWeight', 'lineHeight',
-  'letterSpacing', 'textTransform', 'color', 'verticalAlign', 'visibility',
+  'letterSpacing', 'textTransform', 'textDecoration', 'textDecorationLine',
+  'color', 'verticalAlign', 'visibility',
   'fontStyle', 'borderRadius', 'writingMode', 'textOrientation', 'whiteSpace', 'transformOrigin',
-  'objectFit', 'objectPosition', 'wordBreak', 'overflowWrap', 'boxSizing'
+  'objectFit', 'objectPosition', 'wordBreak', 'overflowWrap', 'boxSizing', 'clipPath'
 ] as const;
 
 /** Filters out soft aesthetic utility classes (blur, shadow, bounce) */

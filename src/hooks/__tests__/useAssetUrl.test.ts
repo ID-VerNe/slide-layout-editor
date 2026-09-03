@@ -74,6 +74,22 @@ describe('useAssetUrl', () => {
     expect(db.getAsset).not.toHaveBeenCalled();
   });
 
+  it('Electron 环境下正确识别 WebP 与 JPEG 扩展名的 MIME 类型', async () => {
+    const { nativeFs } = await import('../../utils/native-fs');
+    const readAssetFile = vi.fn().mockResolvedValue('rawdata');
+    (nativeFs.readAssetFile as ReturnType<typeof vi.fn>).mockImplementation(readAssetFile);
+
+    const { result: webpResult } = renderHook(() => useAssetUrl('asset://photo.webp'));
+    await waitFor(() => {
+      expect(webpResult.current.url).toBe('data:image/webp;base64,rawdata');
+    }, { timeout: 3000 });
+
+    const { result: jpegResult } = renderHook(() => useAssetUrl('asset://photo.jpg'));
+    await waitFor(() => {
+      expect(jpegResult.current.url).toBe('data:image/jpeg;base64,rawdata');
+    }, { timeout: 3000 });
+  });
+
   it('Electron 读取失败时回退到 IndexedDB', async () => {
     const assetId = 'asset://fallback-id';
     const { nativeFs } = await import('../../utils/native-fs');

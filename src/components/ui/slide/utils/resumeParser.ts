@@ -5,7 +5,11 @@ export function parseResumeContent(text: string, accentColor: string = '#264376'
   if (!text) return '';
 
   const html = text
-    .replace(/.*\[(.*?)\].*\((.*?)\)/g, `<a href="$2" class="resume-link hover:underline" data-url="$2" style="color: ${accentColor}">$1</a>`)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text, url) => {
+      // 防止 javascript: 伪协议注入
+      const safeUrl = String(url).trim().toLowerCase().startsWith('javascript:') ? '#' : url;
+      return `<a href="${safeUrl}" class="resume-link hover:underline" data-url="${safeUrl}" style="color: ${accentColor}">${text}</a>`;
+    })
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-zine-primary">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
     .replace(/`(.*?)`/g, '<code class="bg-zine-accent/10 px-1 rounded-none text-[0.9em] font-mono text-zine-primary">$1</code>');

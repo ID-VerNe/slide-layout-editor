@@ -129,6 +129,10 @@ class Parser {
     return result;
   }
 
+  hasUnconsumedTokens(): boolean {
+    return this.pos < this.tokens.length;
+  }
+
   private stringifyTokens(): string {
     return this.tokens
       .map((t) => (t.type === 'string' ? `"${t.value}"` : String(t.value)))
@@ -373,7 +377,12 @@ export class ExpressionEvaluator {
     try {
       const tokens = tokenize(cleanExpr);
       if (tokens.length === 0) return undefined;
-      return new Parser(tokens, context).parseExpression();
+      const parser = new Parser(tokens, context);
+      const result = parser.parseExpression();
+      if (parser.hasUnconsumedTokens()) {
+        return undefined;
+      }
+      return result;
     } catch (err: any) {
       console.warn('[ExpressionEvaluator] Failed to evaluate:', expr, err?.message || err);
       return undefined;
@@ -432,13 +441,18 @@ export class ExpressionEvaluator {
         return this.interpolate(obj, context);
       }
 
-      // 仅当首个标识符是 context 顶层变量 (如 page, theme, index, $parent 等) 时才自动求值
-      // 杜绝将包含 '-'、'!' 等符号的常规 CSS 类名 (如 "!italic !tracking-normal", "text-slate-900") 误作为表达式解析
-      const firstIdentMatch = obj.trim().match(/^([A-Za-z_$][A-Za-z0-9_$]*)/);
-      if (firstIdentMatch) {
+      // 仅当首个标识符是 context 顶层变量 (如 page, theme, index, $parent 等) 且非连字符命名的类名时尝试求值
+      // 杜绝将包含 '-'、'!' 等符号的常规 CSS 类名 (如 "!italic !tracking-normal", "text-slate-900")
+      // 或连字符/多词自然语言文本 (如 "page 1", "page-header") 误作为表达式解析
+      const trimmed = obj.trim();
+      const firstIdentMatch = trimmed.match(/^([A-Za-z_$][A-Za-z0-9_$]*)/);
+      if (firstIdentMatch && !/[a-zA-Z0-9_]-[a-zA-Z0-9_]/.test(trimmed)) {
         const rootVar = firstIdentMatch[1];
         if (Object.prototype.hasOwnProperty.call(context, rootVar)) {
-          return this.evaluate(obj, context);
+          const evalResult = this.evaluate(trimmed, context);
+          if (evalResult !== undefined && !(typeof evalResult === 'number' && isNaN(evalResult))) {
+            return evalResult;
+          }
         }
       }
 

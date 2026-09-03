@@ -35,15 +35,40 @@ Step 3: 选择模板 (Template)
 
 ### 5.3 确认动作 (`handleFinalAction`)
 
+当用户选定新版式确认时，系统会自动提取目标模板的 `defaultData` 与各个字段的 `defaultValue` 进行默认数据兜底补全，防止切换到含特定数组结构（如词汇表、Bento 栅格、简历卡片）的新版式时因缺少对应字段而呈现空态：
+
 ```typescript
+const targetTemplate = getTemplateById(layoutId);
+const mergedDefaultData = {
+  ...(targetTemplate?.defaultData || {}),
+};
+if (targetTemplate?.fields) {
+  for (const f of targetTemplate.fields) {
+    if (f.defaultValue !== undefined && mergedDefaultData[f.name] === undefined) {
+      mergedDefaultData[f.name] = f.defaultValue;
+    }
+  }
+}
+
 if (modalMode === 'create' && 是 PLACEHOLDER 页) {
-  // 替换占位页
-  updatePage({ ...pages[0], layoutId, aspectRatio: selectedRatio, title: 'New Slide' });
+  // 替换占位页并合并模板默认数据
+  updatePage({
+    ...pages[0],
+    ...mergedDefaultData,
+    layoutId,
+    aspectRatio: selectedRatio,
+    title: pages[0].title === 'New Slide' ? (targetTemplate?.name || 'New Slide') : pages[0].title,
+  });
 } else if (modalMode === 'create') {
   // 追加新页
   addPage(selectedRatio, layoutId);
 } else {
-  // 更改当前页布局
-  updatePage({ ...currentPage, layoutId, aspectRatio: selectedRatio });
+  // 更改当前页布局（继承现有内容，补全缺失的专属字段）
+  updatePage({
+    ...mergedDefaultData,
+    ...currentPage,
+    layoutId,
+    aspectRatio: selectedRatio,
+  });
 }
 ```

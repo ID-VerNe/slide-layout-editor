@@ -134,12 +134,21 @@ app.whenReady().then(async () => {
   ipcMain.handle('capture-page-to-thumbnail', async (event, { projectId, rect }) => {
     try {
       const win = BrowserWindow.fromWebContents(event.sender);
-      if (!win) return null;
-      const image = await win.webContents.capturePage({ x: Math.floor(rect.x), y: Math.floor(rect.y), width: Math.floor(rect.width), height: Math.floor(rect.height) });
+      if (!win || !rect) return null;
+      const bounds = win.getContentBounds();
+      const x = Math.max(0, Math.floor(rect.x || 0));
+      const y = Math.max(0, Math.floor(rect.y || 0));
+      const maxWidth = Math.max(1, bounds.width - x);
+      const maxHeight = Math.max(1, bounds.height - y);
+      const width = Math.min(Math.max(1, Math.floor(rect.width || 100)), maxWidth);
+      const height = Math.min(Math.max(1, Math.floor(rect.height || 100)), maxHeight);
+
+      const image = await win.webContents.capturePage({ x, y, width, height });
       return image.resize({ width: 400, quality: 'good' }).toDataURL();
     } catch (e: unknown) {
       console.error('[capture-page-to-thumbnail] Error:', e);
-      return null; }
+      return null;
+    }
   });
 
   ipcMain.handle('save-project', async (event, { filePath, content, defaultName }) => {

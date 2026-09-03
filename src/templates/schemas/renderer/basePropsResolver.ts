@@ -67,10 +67,11 @@ export function resolveBaseProps(
   }
 
   // 3. Zine Mode 审美约束 (强制白名单过滤)
+  // 核心规则：以 presetStyle 为基底，节点自定义 finalStyle 具有更高优先级进行覆盖
   const filteredStyle: any = {};
   ALLOWED_CSS_PROPERTIES.forEach(p => {
-    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p];
     if ((presetStyle as any)[p] !== undefined) filteredStyle[p] = (presetStyle as any)[p];
+    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p];
   });
 
   finalStyle = filteredStyle;
@@ -86,6 +87,6 @@ export function resolveBaseProps(
 
   return {
     className: dynamicClassName,
-    style: { ...presetStyle, ...finalStyle }
+    style: finalStyle
   };
 }

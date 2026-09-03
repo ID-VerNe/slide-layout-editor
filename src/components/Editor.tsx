@@ -21,6 +21,7 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
   if (!page || !page.layoutId) return null;
 
   const template = useMemo(() => getTemplateById(page.layoutId), [page.layoutId]);
+  const fields = template?.fields || [];
   const parentRef = useRef<HTMLDivElement>(null);
 
   const handleOpenBrowser = useCallback(() => {
@@ -31,7 +32,7 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
 
   // 虚拟化列表项：0 是顶部设置，1+ 是各个字段
   const rowVirtualizer = useVirtualizer({
-    count: template.fields.length + 1,
+    count: fields.length + 1,
     getScrollElement: () => document.getElementById('editor-scroll-container'),
     estimateSize: (index) => index === 0 ? 100 : 120,
     overscan: 5,
@@ -68,23 +69,25 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
                 >
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 border border-slate-200 bg-white flex items-center justify-center text-slate-950 group-hover:invert transition-all"><Layout size={20} strokeWidth={2.5} /></div>
-                     <div className="text-left">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-500">{page.aspectRatio} // {template.category}</p>
-                        <p className="text-xs font-black text-slate-950 uppercase tracking-[0.1em] group-hover:text-white">{template.name}</p>
-                     </div>
+                      <div className="text-left">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-500">{page.aspectRatio} // {template?.category || 'Custom'}</p>
+                        <p className="text-xs font-black text-slate-950 uppercase tracking-[0.1em] group-hover:text-white">{template?.name || `Template (${page.layoutId})`}</p>
+                      </div>
                   </div>
                   <ChevronRight size={18} className="text-slate-950 group-hover:text-white transition-colors" />
                 </button>
               </Section>
             ) : (
               <div className="px-1">
-                <FieldRenderer
-                  schema={template.fields[virtualRow.index - 1]}
-                  page={page}
-                  onUpdate={onUpdate}
-                  customFonts={customFonts}
-                  pages={pages}
-                />
+                {fields[virtualRow.index - 1] ? (
+                  <FieldRenderer
+                    schema={fields[virtualRow.index - 1]}
+                    page={page}
+                    onUpdate={onUpdate}
+                    customFonts={customFonts}
+                    pages={pages}
+                  />
+                ) : null}
               </div>
             )}
           </div>
@@ -96,7 +99,8 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
   const pageEqual = shallowEqual(prevProps.page, nextProps.page);
   const onUpdateEqual = prevProps.onUpdate === nextProps.onUpdate;
   const fontsEqual = shallowEqual(prevProps.customFonts, nextProps.customFonts);
-  return pageEqual && onUpdateEqual && fontsEqual;
+  const pagesEqual = shallowEqual(prevProps.pages, nextProps.pages);
+  return pageEqual && onUpdateEqual && fontsEqual && pagesEqual;
 });
 
 export default Editor;

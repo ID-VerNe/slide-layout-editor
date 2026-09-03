@@ -36,7 +36,11 @@ export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = 
     let targetWidth, targetHeight;
 
     if (printSettings?.enabled) {
-      const ppi = designDims.width / (printSettings.widthMm - (designDims.orientation === 'portrait' ? printSettings.gutterMm : 0));
+      const orientation = designDims.orientation;
+      const config = (printSettings?.configs && (printSettings.configs[orientation as keyof typeof printSettings.configs] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
+      const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
+      const netWidthMm = isHorizontalBinding ? (printSettings.widthMm - printSettings.gutterMm) : printSettings.widthMm;
+      const ppi = designDims.width / Math.max(1, netWidthMm);
       targetWidth = printSettings.widthMm * ppi;
       targetHeight = printSettings.heightMm * ppi;
     } else {

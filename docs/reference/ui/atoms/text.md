@@ -97,3 +97,30 @@
 | `mixBlendMode` | `React.CSSProperties['mixBlendMode']` | `'normal'` | 混合模式 (如 `multiply`, `overlay`) |
 | `className` | `string` | `''` | 额外类名 |
 | `style` | `React.CSSProperties` | - | 自定义内联样式 |
+
+---
+
+### 1.5 `Text` (底层基础原子组件)
+所有文本类原子的基石，负责 24 格物理隔离、安全断词与智能 XSS/符号保留。
+
+- **文件**: [src/components/ui/slide/atoms/Text.tsx](src/components/ui/slide/atoms/Text.tsx)
+
+**特性**:
+- **智能纯文本/HTML 分流**:
+  通过 `/<[a-z][\s\S]*>/i` 探测文本中是否包含实际 HTML 标记：
+  - **纯文本模式**: 直接作为原生 React 节点渲染，**完整保留数学运算与比较符号（如 `< $10M`、`A < B`、`Count <= 5`）**，彻底避免被 DOMPurify 误杀。
+  - **HTML 模式**: 仅在文本包含标记时调用 `DOMPurify.sanitize()`，过滤未授权标签与脚本注入。
+- **物理安全样式**: 自动注入 `wordBreak: 'break-word'`, `overflowWrap: 'break-word'`, `boxSizing: 'border-box'`，防止长英文撑破网格单元。
+
+---
+
+### 1.6 `AutoFitHeadline` (自适应大标题)
+基于 Web Worker 与二分查找的动态字号适配组件，使大标题在限定容器内完美贴合。
+
+- **文件**: [src/components/AutoFitHeadline.tsx](src/components/AutoFitHeadline.tsx)
+
+**特性**:
+- **容器宽度感知缓存 (Width Bucket Isolation)**:
+  缓存 Key 纳入容器物理宽度的 20px 离散分桶（`w${Math.round(containerWidth / 20) * 20}`），确保相同标题在 16:9 宽屏、2:3 竖屏或列表缩略图中各自计算独立字号，不发生跨屏幕溢出或字号过小。
+- **容量保护**: 内部设置最大 500 条缓存上限，淘汰老旧条目，防止长时间编辑内存泄漏。
+- **可见性安全**: 移除计算期 `0.01` 不透明度，避免导出与页面截图时捕获到空白标题。

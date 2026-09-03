@@ -31,6 +31,19 @@ export function useAssetUrl(assetSource: string | undefined) {
     (async () => {
       let finalUrl: string | null = null;
 
+function getMimeType(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'svg': return 'image/svg+xml';
+    case 'webp': return 'image/webp';
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg';
+    case 'gif': return 'image/gif';
+    case 'avif': return 'image/avif';
+    default: return 'image/png';
+  }
+}
+
       // 1. 非 asset:// 协议直接使用；仍然需要读取尺寸
       if (!assetSource.startsWith('asset://')) {
         finalUrl = assetSource;
@@ -40,7 +53,18 @@ export function useAssetUrl(assetSource: string | undefined) {
         const cached = assetCache.get(assetSource);
         if (isMounted) {
           setUrl(cached);
-          setDimensions(dimensionCache.get(assetSource) || { width: 0, height: 0 });
+          const cachedDims = dimensionCache.get(assetSource);
+          if (cachedDims && cachedDims.width > 0) {
+            setDimensions(cachedDims);
+          } else if (cached) {
+            const img = new Image();
+            img.onload = () => {
+              const dims = { width: img.naturalWidth, height: img.naturalHeight };
+              dimensionCache.set(assetSource, dims);
+              if (isMounted) setDimensions(dims);
+            };
+            img.src = cached;
+          }
         }
         return;
       } else {
@@ -50,7 +74,7 @@ export function useAssetUrl(assetSource: string | undefined) {
           const base64Data = await nativeFs.readAssetFile(filename);
 
           if (base64Data) {
-            const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+            const mime = getMimeType(filename);
             finalUrl = `data:${mime};base64,${base64Data}`;
           }
         } catch (err) {

@@ -17,6 +17,7 @@ interface PreviewAreaProps {
   onUpdatePage?: (page: PageData) => void;
   handleManualZoom?: (zoom: number) => void;
   toggleFit?: () => void;
+  disableAnimation?: boolean;
 }
 
 const PreviewArea: React.FC<PreviewAreaProps> = ({
@@ -31,7 +32,8 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   minimalCounter,
   onUpdatePage,
   handleManualZoom,
-  toggleFit
+  toggleFit,
+  disableAnimation
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -68,13 +70,28 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
     setLastPos({ x: e.clientX, y: e.clientY });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  useEffect(() => {
     if (!isDragging) return;
-    const deltaX = e.clientX - lastPos.x;
-    const deltaY = e.clientY - lastPos.y;
-    setDragOffset(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
-    setLastPos({ x: e.clientX, y: e.clientY });
-  };
+
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - lastPos.x;
+      const deltaY = e.clientY - lastPos.y;
+      setDragOffset(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
+      setLastPos({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleWindowMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleWindowMouseMove);
+    window.addEventListener('mouseup', handleWindowMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMouseMove);
+      window.removeEventListener('mouseup', handleWindowMouseUp);
+    };
+  }, [isDragging, lastPos]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     // Ctrl + 双击：切换 fit mode
@@ -95,9 +112,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
         ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       ref={previewContainerRef}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={() => setIsDragging(false)}
-      onMouseLeave={() => setIsDragging(false)}
       onWheel={handleWheel}
       onDoubleClick={handleDoubleClick}
     >
@@ -124,6 +138,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
               printSettings={printSettings}
               minimalCounter={minimalCounter}
               onUpdate={onUpdatePage} // 核心修复：透传更新函数
+              disableAnimation={disableAnimation}
             />
           </div>
         )}

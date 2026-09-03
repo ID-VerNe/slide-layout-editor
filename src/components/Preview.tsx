@@ -15,9 +15,10 @@ interface PreviewProps {
   typography?: TypographySettings;
   minimalCounter?: boolean;
   onUpdate?: (page: PageData) => void;
+  disableAnimation?: boolean;
 }
 
-const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter, onUpdate }) => {
+const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPages, printSettings, typography, minimalCounter, onUpdate, disableAnimation }) => {
   const isMinimal = minimalCounter ?? page.minimalCounter ?? false;
 
   const renderTemplate = () => {
@@ -76,13 +77,21 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
         className="w-full h-full relative transition-all duration-700 isolate"
         style={isPrintEnabled ? { transform: `scale(${scaleFactor})`, transformOrigin: `${getOriginX()} ${getOriginY()}`, outline: printSettings?.showContentFrame ? '0.5px solid rgba(0,0,0,0.15)' : 'none', outlineOffset: '-0.5px' } : {}}
       >
-        <AnimatePresence mode="wait">
-          <motion.div key={page.id + page.layoutId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative z-10">
+        {disableAnimation ? (
+          <div key={page.id + page.layoutId} className="w-full h-full relative z-10">
             <PageFrame page={page} pageIndex={pageIndex} totalPages={totalPages}>
               {renderTemplate()}
             </PageFrame>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div key={page.id + page.layoutId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative z-10">
+              <PageFrame page={page} pageIndex={pageIndex} totalPages={totalPages}>
+                {renderTemplate()}
+              </PageFrame>
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
 
       {isPrintEnabled && (

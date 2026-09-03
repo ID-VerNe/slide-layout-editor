@@ -72,3 +72,14 @@ evaluator.evaluate('page.image ?? theme.colors.accent', { page, theme });
 evaluator.interpolate('Chart {index + 1}: {item.title}', context);
 // => 'Chart 3: Revenue Growth'
 ```
+
+### 4.6 自然语言与 CSS 类名安全解析机制
+
+在 `evaluateObject` 递归处理模板对象时，为防止非表达式字符串被误解析为 JavaScript 代码，引擎引入了三重安全屏障：
+
+1. **Token 完整消费校验 (`hasUnconsumedTokens`)**:
+   解析器在计算表达式后，若发现未消费的剩余 Token（例如 `"page 1 of 5"` 中，`page` 变量被读取后仍留存 `1`、`of` 等 Token），立即判定为非合法独立表达式并返回 `undefined`，保留原字符串，避免篡改为 `[object Object]`。
+2. **Kebab-Case 连字符保护**:
+   匹配 `/[a-zA-Z0-9_]-[a-zA-Z0-9_]/` 模式的连字符标识符（如 `"page-header"`, `"text-slate-900"`）被直接识别为 CSS 类名或标识符，杜绝误识别为减法算术运算产生 `NaN`。
+3. **顶层上下文白名单**:
+   首个单词必须是当前 Context 中实际存在的顶层标识符（如 `page`, `theme`, `index`, `item`, `$parent`）才触发求值尝试，未绑定的自由文本（如 `"spacing.none"`）保持原值。

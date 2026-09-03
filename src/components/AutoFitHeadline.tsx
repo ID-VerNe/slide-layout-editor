@@ -13,11 +13,22 @@ interface AutoFitHeadlineProps {
   children?: React.ReactNode; 
 }
 
-// 缓存系统
+// 缓存系统 (容量限制保护)
+const MAX_CACHE_ENTRIES = 500;
 const fontCache = new Map<string, number>();
 
-const getCacheKey = (text: string, maxSize: number, fontFamily: string, maxLines: number, minSize: number) => {
-  return `${text}-${maxSize}-${fontFamily}-${maxLines}-${minSize}`;
+const setCache = (key: string, val: number) => {
+  if (fontCache.size >= MAX_CACHE_ENTRIES) {
+    const firstKey = fontCache.keys().next().value;
+    if (firstKey) fontCache.delete(firstKey);
+  }
+  fontCache.set(key, val);
+};
+
+const getCacheKey = (text: string, maxSize: number, fontFamily: string, maxLines: number, minSize: number, containerWidth?: number) => {
+  // 容器宽度按 20px 分桶，既能复用相似宽度计算，又能避免横竖屏或缩略图跨视口复用错误
+  const widthBucket = containerWidth ? Math.round(containerWidth / 20) * 20 : 0;
+  return `${text}-${maxSize}-${fontFamily}-${maxLines}-${minSize}-w${widthBucket}`;
 };
 
 /**
@@ -35,9 +46,21 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   style = {},
   children
 }) => {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
+  useLayoutEffect(() => {
+    if (ref.current) {
+      const width = ref.current.offsetWidth;
+      if (width > 0 && Math.abs(width - containerWidth) > 10) {
+        setContainerWidth(width);
+      }
+    }
+  }, [text, containerWidth]);
+
   const cacheKey = useMemo(() => 
-    getCacheKey(text, maxSize, fontFamily, maxLines, minSize),
-    [text, maxSize, fontFamily, maxLines, minSize]
+    getCacheKey(text, maxSize, fontFamily, maxLines, minSize, containerWidth),
+    [text, maxSize, fontFamily, maxLines, minSize, containerWidth]
   );
 
   const cachedFontSize = useMemo(() => fontCache.get(cacheKey), [cacheKey]);
@@ -46,7 +69,6 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   const [range, setRange] = useState({ min: minSize, max: maxSize });
   const [isCalculating, setIsCalculating] = useState(!cachedFontSize);
   const [retryCount, setRetryCount] = useState(0); 
-  const ref = useRef<HTMLHeadingElement>(null);
   const workerRef = useRef<Worker | null>(null);
 
   // 初始化 Worker
@@ -160,7 +182,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   // 缓存计算结果
   useEffect(() => {
     if (!isCalculating && !cachedFontSize) {
-      fontCache.set(cacheKey, fontSize);
+      setCache(cacheKey, fontSize);
     }
   }, [isCalculating, fontSize, cacheKey, cachedFontSize]);
 
@@ -194,7 +216,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
         fontFamily,
         fontSize: `${fontSize}px`,
         lineHeight: lineHeight,
-        opacity: isCalculating ? 0.01 : 1,
+        opacity: isCalculating && !cachedFontSize ? 0.95 : 1,
         transition: 'opacity 0.15s ease-out'
       }}
     >

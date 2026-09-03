@@ -85,22 +85,23 @@ margin, marginTop, marginBottom, marginLeft, marginRight,
 position, top, left, right, bottom, inset, zIndex,
 opacity, mixBlendMode, transform, transition, transitionDuration,
 width, height, maxWidth, maxHeight, minWidth, minHeight,
-aspectRatio, overflow, backgroundColor, borderColor, borderWidth,
+aspectRatio, overflow, background, backgroundImage, backgroundSize, backgroundPosition, backgroundRepeat,
+backgroundColor, borderColor, borderWidth,
 borderTopWidth, borderBottomWidth, borderLeftWidth, borderRightWidth,
 borderStyle, textAlign, fontFamily, fontSize, fontWeight, lineHeight,
-letterSpacing, textTransform, color, verticalAlign, visibility,
-fontStyle, borderRadius, writingMode, textOrientation, whiteSpace, transformOrigin
+letterSpacing, textTransform, textDecoration, textDecorationLine, color, verticalAlign, visibility,
+fontStyle, borderRadius, clipPath, writingMode, textOrientation, whiteSpace, transformOrigin
 ```
 
-**注意**: `borderRadius` 已被允许，以便配合 `ZineMedia` 的圆角特性和 `ZineDivider` 的胶囊形状效果。`writingMode` 和 `textOrientation` 支持竖排文字，由 `useModularStyle` hook 在原子组件中使用。
+**注意**: `background` / `backgroundImage`（渐变与背景纹理）、`clipPath`（蒙版裁切）与 `textDecoration` 现已进入白名单支持。`writingMode` 和 `textOrientation` 支持竖排文字。
 
-#### 智能样式合并 (Style Merging)
-在 `renderComponent` 中，渲染引擎将 `node.style` 与 `dynamicProps.style` 合并后统一经过白名单过滤，以保证定位优先级：
-- **Level 1 (网格定位)**: 由 `modular` 属性计算出的 `gridColumnStart` 等。
-- **Level 2 (预设注入)**: 由 `presetKey` 从 `ds.presets.layout` / `ds.presets.effects` 注入的预设样式。
-- **Level 3 (自定义样式)**: 模板 Schema 中 `props.style` 和 `node.style` 定义的样式。
+#### 智能样式合并与覆盖优先级 (Style Merging & Precedence)
+在 `basePropsResolver` 与渲染引擎中，样式的合并层级与覆盖顺序严格如下：
+1. **Level 1 (网格物理约束)**: 由 `modular` 属性计算出的 `gridColumnStart` 等，拥有最高的版面结构保全性。
+2. **Level 2 (预设底色/基准样式)**: 由 `presetKey` 从 `ds.presets.layout` / `ds.presets.effects` 注入的通用预设样式（例如 `safe-area` 注入的基准 padding）。
+3. **Level 3 (用户/模板个性化覆盖)**: 模板 Schema 中 `node.style` 与 `props.style`。**当用户或模板指定具体样式属性时，明确覆盖 Level 2 的预设值**（如预设 padding 24px，但该卡片指定了 12px 时以 12px 为准）。
 
-引擎确保所有层级都经过 `ALLOWED_PROPS` 白名单过滤，且 preset 优先级高于内联样式。
+引擎确保所有层级经过 `ALLOWED_PROPS` 白名单过滤后安全产出。
 
 ### 5.2 禁止的类名前缀
 

@@ -36,19 +36,25 @@ export const Text: React.FC<TextProps> = ({
 }) => {
   const textContent = content || (typeof children === 'string' ? children : '');
 
+  // 仅当文本中明确包含 HTML 标签时才使用 DOMPurify 与 dangerouslySetInnerHTML
+  // 纯文本直接作为 React 节点渲染，防止数学比较符（如 `< $10M`）被误杀
+  const hasHtml = useMemo(() => {
+    return /<[a-z][\s\S]*>/i.test(textContent);
+  }, [textContent]);
+
   const sanitizedContent = useMemo(() => {
-    if (!sanitize || !textContent) return undefined;
+    if (!sanitize || !textContent || !hasHtml) return undefined;
     return DOMPurify.sanitize(textContent, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br', 'span'],
       ALLOWED_ATTR: ['style', 'class']
     });
-  }, [textContent, sanitize]);
+  }, [textContent, sanitize, hasHtml]);
 
   useEffect(() => {
-    if (!sanitize && textContent) {
+    if (!sanitize && textContent && hasHtml) {
       console.warn('[Text] Rendering with sanitize=false — potential XSS risk');
     }
-  }, [sanitize, textContent]);
+  }, [sanitize, textContent, hasHtml]);
 
   // 物理封闭与智能排版安全样式
   const computedStyle: React.CSSProperties = useMemo(() => {
@@ -83,9 +89,9 @@ export const Text: React.FC<TextProps> = ({
     <Component 
       className={className} 
       style={computedStyle}
-      dangerouslySetInnerHTML={sanitize ? { __html: sanitizedContent } : undefined}
+      dangerouslySetInnerHTML={hasHtml && sanitize ? { __html: sanitizedContent } : undefined}
     >
-      {!sanitize ? children || textContent : undefined}
+      {!hasHtml || !sanitize ? children || textContent : undefined}
     </Component>
   );
 };

@@ -45,10 +45,13 @@ function migrateFields(obj: any): any {
         continue;
       }
       
-      // 布局 ID 映射：layout -> layoutId
+      // 布局 ID 映射：仅当属于页面级布局时将 layout -> layoutId，保留容器节点的 layout (grid/flex/modular/absolute)
       if (key === 'layout' && typeof value === 'string') {
-        result.layoutId = LAYOUT_ID_MAP[value] || value;
-        continue; // 跳过旧 layout 字段
+        const isContainerLayout = value === 'flex' || value === 'grid' || value === 'modular' || value === 'absolute' || obj.type === 'container' || Array.isArray(obj.children);
+        if (!isContainerLayout) {
+          result.layoutId = LAYOUT_ID_MAP[value] || value;
+          continue; // 跳过旧 layout 字段
+        }
       }
       
       // 跳过废弃字段（如果新字段已存在）

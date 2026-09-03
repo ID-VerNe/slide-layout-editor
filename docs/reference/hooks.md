@@ -248,7 +248,55 @@ export const ZineLogo: React.FC<Props> = ({ page, fieldKey = 'logo' }) => {
 
 ---
 
-## 7. 其他 Hooks
+---
+
+## 7. `useDebouncedValue`
+
+高频输入防抖与自动刷盘 Hook，保障流畅输入的同时杜绝数据丢失。
+
+- **文件**: [src/hooks/useDebouncedValue.ts](src/hooks/useDebouncedValue.ts)
+
+### 7.1 接口签名
+
+```typescript
+const [value, setValue, flush] = useDebouncedValue<T>(
+  initialValue: T,
+  onChange: (val: T) => void,
+  debounceMs: number = 300,
+  onImmediateChange?: (val: T) => void
+);
+```
+
+### 7.2 核心特性与防丢机制
+
+1. **Unmount 自动刷盘 (Flush on Unmount)**: 
+   当输入组件因虚拟滚动（TanStack Virtual）滚出视口而卸载时，若内部存在尚未到期的 300ms 防抖计时器且当前值与初始值不一致，会在 `useEffect` 清理函数中**立即同步执行 `onChangeRef.current(currentValue)`**，彻底根除虚拟列表滚动导致的输入丢失。
+2. **主动 `flush()` 刷盘**: 
+   暴露第三个返回值 `flush`。在输入框 `onBlur` 或用户按快捷键保存时可主动调用，立即强制提交变更，无需等待防抖延迟。
+3. **即时回调**: 支持 `onImmediateChange`，在每次按键触发 `setValue` 时同步通知轻量监听器（如字符计数器），不影响防抖落盘。
+
+---
+
+## 8. `useAssetUrl`
+
+本地与网络资产加载适配器，管理协议解析、MIME 数据包装与图片尺寸缓存。
+
+- **文件**: [src/hooks/useAssetUrl.ts](src/hooks/useAssetUrl.ts)
+
+### 8.1 核心特性
+
+1. **多格式 MIME 映射**:
+   在 Electron 本地归档模式下，根据文件真实扩展名精准映射 MIME 类型：
+   - `.webp` → `image/webp`
+   - `.jpg` / `.jpeg` → `image/jpeg`
+   - `.svg` → `image/svg+xml`
+   - `.png` → `image/png`
+2. **尺寸缓存锁 (Dimension Lock)**:
+   针对先命中 URL 缓存但先前实例仍在异步加载尺寸的情况，后挂载组件会自动挂接 Image 探测，确保返回真实宽高而非残留的 `{ width: 0, height: 0 }`。
+
+---
+
+## 9. 其他 Hooks
 
 | Hook | 文件 | 说明 |
 | :--- | :--- | :--- |

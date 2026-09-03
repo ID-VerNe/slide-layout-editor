@@ -31,22 +31,24 @@ export const Section = ({ children, className = "" }: { children: React.ReactNod
   </section>
 );
 
-export const Slider = ({ 
-  label, 
-  value, 
-  min, 
-  max, 
-  step, 
-  onChange, 
-  unit = "",
-  disabled = false
-}: { 
-  label?: string, 
-  value: number, 
-  min: number, 
-  max: number, 
-  step: number, 
-  onChange: (val: number) => void, 
+export const Slider = ({
+  label,
+  value,
+  onChange,
+  onChangeEnd,
+  min = 0,
+  max = 100,
+  step = 1,
+  unit,
+  disabled
+}: {
+  label?: string,
+  value: number,
+  onChange: (v: number) => void,
+  onChangeEnd?: (v: number) => void,
+  min?: number,
+  max?: number,
+  step?: number,
   unit?: string,
   disabled?: boolean
 }) => (
@@ -65,6 +67,16 @@ export const Slider = ({
           const parsed = parseFloat(e.target.value);
           onChange(Number.isNaN(parsed) ? value : parsed);
         }}
+        onPointerUp={(e) => {
+          if (disabled || !onChangeEnd) return;
+          const parsed = parseFloat((e.target as HTMLInputElement).value);
+          onChangeEnd(Number.isNaN(parsed) ? value : parsed);
+        }}
+        onKeyUp={(e) => {
+          if (disabled || !onChangeEnd) return;
+          const parsed = parseFloat((e.target as HTMLInputElement).value);
+          onChangeEnd(Number.isNaN(parsed) ? value : parsed);
+        }}
         className="w-full h-[1px] bg-slate-200 appearance-none cursor-pointer accent-slate-950 hover:bg-slate-400 transition-all disabled:cursor-not-allowed"
       />
     </div>
@@ -80,6 +92,11 @@ export const Slider = ({
           if (disabled) return;
           const parsed = parseFloat(e.target.value);
           onChange(Number.isNaN(parsed) ? value : parsed);
+        }}
+        onBlur={(e) => {
+          if (disabled || !onChangeEnd) return;
+          const parsed = parseFloat(e.target.value);
+          onChangeEnd(Number.isNaN(parsed) ? value : parsed);
         }}
         className="w-full bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-950 rounded-none px-1 py-1 text-[11px] font-black font-mono text-slate-950 text-right focus:outline-none transition-all appearance-none disabled:cursor-not-allowed"
       />

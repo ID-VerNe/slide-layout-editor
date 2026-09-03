@@ -30,37 +30,57 @@ const FontManager: React.FC<FontManagerProps> = ({ fonts = [], onFontsChange }) 
     return family;
   }, []);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file: File) => {
+    const validFiles: File[] = [];
+    let currentCount = fonts.length;
+
+    for (const file of Array.from(files)) {
       // Validate font file type
       if (file.type && !ALLOWED_FONT_TYPES.includes(file.type)) {
         console.warn(`File "${file.name}" has unrecognized MIME type "${file.type}" — skipping.`);
-        return;
+        continue;
       }
 
       // Reject files larger than 5 MB
       if (file.size > MAX_FILE_SIZE_BYTES) {
         console.warn(`File "${file.name}" exceeds the 5 MB size limit — skipping.`);
-        return;
+        continue;
       }
 
       // Limit the number of custom fonts
-      if (fonts.length >= MAX_CUSTOM_FONTS) {
+      if (currentCount >= MAX_CUSTOM_FONTS) {
         console.warn(`Cannot add "${file.name}": maximum of ${MAX_CUSTOM_FONTS} custom fonts reached.`);
-        return;
+        break;
       }
 
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const dataUrl = event.target?.result as string;
-        const family = await registerFont(file.name, dataUrl);
-        onFontsChange(prev => [...prev, { name: file.name, family, dataUrl }]);
-      };
-      reader.readAsDataURL(file);
-    });
+      validFiles.push(file);
+      currentCount++;
+    }
+
+    const loadedFonts = await Promise.all(
+      validFiles.map(file => new Promise<{ name: string; family: string; dataUrl: string } | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const dataUrl = event.target?.result as string;
+          try {
+            const family = await registerFont(file.name, dataUrl);
+            resolve({ name: file.name, family, dataUrl });
+          } catch {
+            resolve(null);
+          }
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      }))
+    );
+
+    const newFonts = loadedFonts.filter((f): f is { name: string; family: string; dataUrl: string } => f !== null);
+    if (newFonts.length > 0) {
+      onFontsChange(prev => [...prev, ...newFonts]);
+    }
   };
 
   const removeFont = (family: string) => {

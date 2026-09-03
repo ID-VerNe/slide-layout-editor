@@ -10,14 +10,15 @@ export async function registerCustomFontInDOM(font: CustomFont): Promise<void> {
 
   if (loadedFontFamilies.has(font.family)) return;
 
-  // 校验 Data URL 前缀，防止非法内容
+  // 校验 Data URL 前缀，防止非法内容（支持 asset:// 协议以配合 Electron 归档）
   const isDataUrlValid =
     font.dataUrl.startsWith('data:font/') ||
     font.dataUrl.startsWith('data:application/x-font-') ||
     font.dataUrl.startsWith('data:application/font-') ||
     font.dataUrl.startsWith('http://') ||
     font.dataUrl.startsWith('https://') ||
-    font.dataUrl.startsWith('blob:');
+    font.dataUrl.startsWith('blob:') ||
+    font.dataUrl.startsWith('asset://');
 
   if (!isDataUrlValid) {
     console.warn(`[fontLoader] Invalid font URL for "${font.name}" — skipping.`);

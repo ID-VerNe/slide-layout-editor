@@ -220,14 +220,57 @@ export default function EditorPage() {
   };
 
   const handleFinalAction = (layoutId: string) => {
+    const templateConfig = getTemplateById(layoutId);
+    const mergeDefaults = (target: PageData): PageData => {
+      const merged: PageData = {
+        ...target,
+        layoutId: layoutId as any,
+        aspectRatio: selectedRatio
+      };
+      if (templateConfig?.defaultData) {
+        for (const [k, v] of Object.entries(templateConfig.defaultData)) {
+          if ((merged as any)[k] === undefined || (merged as any)[k] === null) {
+            (merged as any)[k] = v;
+          }
+        }
+      }
+      if (templateConfig?.fields) {
+        templateConfig.fields.forEach((field: any) => {
+          if (field.defaultValue !== undefined && (merged as any)[field.key] === undefined) {
+            (merged as any)[field.key] = field.defaultValue;
+          }
+        });
+      }
+      return merged;
+    };
+
     if (modalMode === 'create' && pages[0]?.title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
-      updatePage({ ...pages[0], layoutId: layoutId as any, aspectRatio: selectedRatio, title: 'New Slide' });
+      updatePage(mergeDefaults({ ...pages[0], title: 'New Slide' }));
     } else {
-      if (modalMode === 'create') addPage(selectedRatio, layoutId);
-      else updatePage({ ...currentPage, layoutId: layoutId as any, aspectRatio: selectedRatio });
+      if (modalMode === 'create') {
+        addPage(selectedRatio, layoutId);
+      } else {
+        updatePage(mergeDefaults(currentPage));
+      }
     }
     setShowLayoutModal(false);
   };
+
+  const getExportDimensions = useCallback((page: PageData) => {
+    const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
+    if (printSettings?.enabled) {
+      const orientation = designDims.orientation;
+      const config = (printSettings?.configs && (printSettings.configs[orientation as keyof typeof printSettings.configs] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
+      const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
+      const netWidthMm = isHorizontalBinding ? (printSettings.widthMm - printSettings.gutterMm) : printSettings.widthMm;
+      const ppi = designDims.width / Math.max(1, netWidthMm);
+      return {
+        width: Math.round(printSettings.widthMm * ppi),
+        height: Math.round(printSettings.heightMm * ppi)
+      };
+    }
+    return { width: designDims.width, height: designDims.height };
+  }, [printSettings]);
 
   const handleExport = useCallback(async (format: 'png' | 'pdf') => {
     if (!previewRef.current) return;
@@ -255,7 +298,8 @@ export default function EditorPage() {
           setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
         }
       } else if (format === 'pdf') {
-        const doc = new jsPDF({ unit: 'px', format: [LAYOUT_CONFIG[pages[0].aspectRatio].width, LAYOUT_CONFIG[pages[0].aspectRatio].height], hotfixes: ["px_scaling"] });
+        const firstDims = getExportDimensions(pages[exportIndices[0]]);
+        const doc = new jsPDF({ unit: 'px', format: [firstDims.width, firstDims.height], hotfixes: ["px_scaling"] });
         for (let i = 0; i < exportIndices.length; i++) {
           if (exportCancelledRef.current) return;
           const idx = exportIndices[i]; setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 800));
@@ -263,22 +307,28 @@ export default function EditorPage() {
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
-          if (i > 0) doc.addPage([LAYOUT_CONFIG[pages[idx].aspectRatio].width, LAYOUT_CONFIG[pages[idx].aspectRatio].height]);
-          doc.addImage(dataUrl, 'PNG', 0, 0, LAYOUT_CONFIG[pages[idx].aspectRatio].width, LAYOUT_CONFIG[pages[idx].aspectRatio].height);
+          const currentDims = getExportDimensions(pages[idx]);
+          if (i > 0) doc.addPage([currentDims.width, currentDims.height]);
+          doc.addImage(dataUrl, 'PNG', 0, 0, currentDims.width, currentDims.height);
           const pageRect = el.getBoundingClientRect();
           el.querySelectorAll('.resume-link').forEach((linkEl: any) => { const rect = linkEl.getBoundingClientRect(); const url = linkEl.getAttribute('data-url'); if (url) doc.link(rect.left - pageRect.left, rect.top - pageRect.top, rect.width, rect.height, { url }); });
           setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
         }
         if (!exportCancelledRef.current) doc.save(`${projectTitle || fallbackTitle}.pdf`);
       } else {
-        for (const idx of exportIndices) {
+        for (let i = 0; i < exportIndices.length; i++) {
+          const idx = exportIndices[i];
           if (exportCancelledRef.current) return;
           setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 600));
           if (exportCancelledRef.current) return;
           const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
-          const link = document.createElement('a'); link.download = `${projectTitle}_${idx + 1}.png`; link.href = dataUrl; link.click();
+          const link = document.createElement('a'); link.download = `${projectTitle || fallbackTitle}_${idx + 1}.png`; link.href = dataUrl; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+          setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
+          if (exportIndices.length > 1) {
+            await new Promise(r => setTimeout(r, 200));
+          }
         }
       }
     } finally {
@@ -329,7 +379,7 @@ export default function EditorPage() {
       <div className="flex-1 flex overflow-hidden">
         <motion.div initial={false} animate={{ flex: 1 }} className="bg-neutral-200/50 flex flex-col overflow-hidden relative">
           <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} enforceA4={false} onToggleEnforceA4={()=>{}} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={(all) => { setExportScope(all?'all':'current'); setShowExportModal(true); }} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={() => setShowEditor(!showEditor)} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
-          <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} />
+          <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} disableAnimation={isExporting} />
         </motion.div>
         <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} /></motion.div>
       </div>

@@ -13,9 +13,10 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
   onChange,
   onImmediateChange,
   debounce = 300,
+  onBlur,
   ...props
 }) => {
-  const [value, setValue] = useDebouncedValue(
+  const [value, setValue, flush] = useDebouncedValue(
     initialValue,
     onChange,
     debounce,
@@ -26,11 +27,17 @@ export const DebouncedInput: React.FC<DebouncedInputProps> = ({
     setValue(e.target.value);
   };
 
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    flush();
+    if (onBlur) onBlur(e);
+  };
+
   return (
     <input
       {...props}
       value={value}
       onChange={handleChange}
+      onBlur={handleBlur}
       className={`w-full bg-slate-50 border-transparent focus:border-[#264376] focus:bg-white focus:ring-2 focus:ring-[#264376]/20 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 transition-all placeholder-slate-400 ${props.className || ''}`}
     />
   );
@@ -48,9 +55,10 @@ export const DebouncedTextArea: React.FC<DebouncedTextAreaProps> = ({
   onChange,
   onImmediateChange,
   debounce = 300,
+  onBlur,
   ...props
 }) => {
-  const [value, setValue] = useDebouncedValue(
+  const [value, setValue, flush] = useDebouncedValue(
     initialValue,
     onChange,
     debounce,
@@ -61,11 +69,17 @@ export const DebouncedTextArea: React.FC<DebouncedTextAreaProps> = ({
     setValue(e.target.value);
   };
 
+  const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    flush();
+    if (onBlur) onBlur(e);
+  };
+
   return (
     <textarea
       {...props}
       value={value}
       onChange={handleChange}
+      onBlur={handleBlur}
       className={`w-full bg-slate-50 border-transparent focus:border-[#264376] focus:bg-white focus:ring-2 focus:ring-[#264376]/20 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 transition-all placeholder-slate-400 min-h-[100px] ${props.className || ''}`}
     />
   );
