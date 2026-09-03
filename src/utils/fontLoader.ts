@@ -69,10 +69,10 @@ export function removeCustomFontFromDOM(family: string): void {
   if (document.fonts) {
     try {
       const fonts = Array.from(document.fonts.values());
-      const target = fonts.find(f => f.family === family);
-      if (target) {
+      const targets = fonts.filter(f => f.family === family);
+      targets.forEach(target => {
         document.fonts.delete(target);
-      }
+      });
     } catch (e) {
       console.warn('[fontLoader] Failed to delete font from document.fonts', e);
     }

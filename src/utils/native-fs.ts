@@ -47,82 +47,101 @@ declare global {
   }
 }
 
+const getElectronAPI = (): ElectronAPI | undefined => {
+  return typeof window !== 'undefined' ? window.electronAPI : undefined;
+};
+
 // @lat: [[utils-native-fs]]
 export const nativeFs = {
   isElectron: (): boolean => {
-    return !!window.electronAPI;
+    return Boolean(getElectronAPI());
   },
 
   async getAppPaths(): Promise<{ userData: string; thumbnails: string }> {
-    if (!window.electronAPI) return { userData: '', thumbnails: '' };
-    return await window.electronAPI.getAppPaths();
+    const api = getElectronAPI();
+    if (!api) return { userData: '', thumbnails: '' };
+    return await api.getAppPaths();
   },
 
   async captureThumbnail(projectId: string, rect: { x: number; y: number; width: number; height: number }): Promise<string | null> {
-    if (!window.electronAPI) return null;
-    return await window.electronAPI.captureThumbnail(projectId, rect);
+    const api = getElectronAPI();
+    if (!api) return null;
+    return await api.captureThumbnail(projectId, rect);
   },
 
   async readAssetFile(filename: string): Promise<string | null> {
-    if (!window.electronAPI) return null;
-    return await window.electronAPI.readAssetFile(filename);
+    const api = getElectronAPI();
+    if (!api) return null;
+    return await api.readAssetFile(filename);
   },
 
   async processResponsiveImages(input: string | Buffer, formats: string[]): Promise<any> {
-    if (!window.electronAPI) return [];
-    return await window.electronAPI.processResponsiveImages(input, formats);
+    const api = getElectronAPI();
+    if (!api) return [];
+    return await api.processResponsiveImages(input, formats);
   },
 
   async setActiveWorkspace(path: string) {
-    await window.electronAPI?.setActiveWorkspace(path);
+    const api = getElectronAPI();
+    await api?.setActiveWorkspace(path);
   },
 
   async listProjects(): Promise<NativeProjectSummary[]> {
-    if (!window.electronAPI) return [];
-    return await window.electronAPI.listProjects();
+    const api = getElectronAPI();
+    if (!api) return [];
+    return await api.listProjects();
   },
 
   async setCurrentProject(id: string, name: string) {
-    await window.electronAPI?.setCurrentProject(id, name);
+    const api = getElectronAPI();
+    await api?.setCurrentProject(id, name);
   },
 
   async openExternal(url: string) {
-    if (window.electronAPI) await window.electronAPI.openExternal(url);
-    else window.open(url, '_blank');
+    const api = getElectronAPI();
+    if (api) await api.openExternal(url);
+    else if (typeof window !== 'undefined') window.open(url, '_blank');
   },
 
   async selectDirectory(): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, canceled: true };
-    return await window.electronAPI.selectDirectory();
+    const api = getElectronAPI();
+    if (!api) return { success: false, canceled: true };
+    return await api.selectDirectory();
   },
 
   async saveFileBuffer(filePath: string, base64Data: string): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.saveFileBuffer(filePath, base64Data);
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.saveFileBuffer(filePath, base64Data);
   },
 
   async saveProject(projectData: ProjectSaveData, filePath?: string, defaultName?: string): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.saveProject(projectData, filePath, defaultName);
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.saveProject(projectData, filePath, defaultName);
   },
 
   async openProject(): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.openProject();
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.openProject();
   },
 
   async readProject(filePath: string): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.readProject(filePath);
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.readProject(filePath);
   },
 
   async uploadAsset(filename: string, base64Data: string): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.uploadAsset(filename, base64Data);
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.uploadAsset(filename, base64Data);
   },
 
   async deleteProject(projectPath: string): Promise<NativeResponse> {
-    if (!window.electronAPI) return { success: false, error: "API not found" };
-    return await window.electronAPI.deleteProject(projectPath);
+    const api = getElectronAPI();
+    if (!api) return { success: false, error: "API not found" };
+    return await api.deleteProject(projectPath);
   }
 };

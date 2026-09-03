@@ -268,11 +268,21 @@ export class ProjectArchiveManager {
         throw new Error(`Archive total size exceeds limit (${totalUncompressedSize} > ${MAX_ARCHIVE_SIZE}) — possible zip bomb`);
       }
 
-      // Security: validate each entry path to prevent path traversal
+      // Security: validate each entry path to prevent path traversal, alternate data streams, and reserved device names
+      const WINDOWS_RESERVED_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
       for (const entry of entries) {
         const normalizedEntryPath = path.normalize(entry.entryName);
-        if (normalizedEntryPath.startsWith('..') || path.isAbsolute(normalizedEntryPath) || normalizedEntryPath.includes('..')) {
+        if (
+          normalizedEntryPath.startsWith('..') ||
+          path.isAbsolute(normalizedEntryPath) ||
+          normalizedEntryPath.includes('..') ||
+          entry.entryName.includes(':')
+        ) {
           throw new Error(`Archive contains entry with invalid path: ${entry.entryName}`);
+        }
+        const baseName = path.basename(normalizedEntryPath);
+        if (WINDOWS_RESERVED_NAMES.test(baseName)) {
+          throw new Error(`Archive contains entry with reserved device name: ${entry.entryName}`);
         }
       }
 

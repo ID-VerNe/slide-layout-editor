@@ -33,7 +33,7 @@ export default function App() {
   useEffect(() => {
     preloadCommonTemplates();
 
-    // 核心修复：应用启动时立即同步 Workspace 到主进程
+    // 核心修复：应用启动时立即同步工作区路径到主进程
     // 解决刷新编辑器页面或重启开发服务器后资产路径丢失的问题
     const savedWorkspace = localStorage.getItem('slidegrid_workspace');
     if (savedWorkspace && nativeFs.isElectron()) {

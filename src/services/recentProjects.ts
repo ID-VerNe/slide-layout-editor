@@ -23,7 +23,7 @@ export function getRecentProjects(): RecentProjectEntry[] {
     console.warn('[RecentProjects] Failed to parse primary recent projects:', e);
   }
 
-  // 迁移与读取旧版存储
+  // 迁移并清理旧版存储
   try {
     const legacyRaw = localStorage.getItem(LEGACY_RECENT_KEY);
     if (legacyRaw) {
@@ -32,26 +32,50 @@ export function getRecentProjects(): RecentProjectEntry[] {
         primaryList = legacyList;
         saveRecentProjects(primaryList);
       }
+      localStorage.removeItem(LEGACY_RECENT_KEY);
     }
   } catch (e) {
-    console.warn('[RecentProjects] Failed to parse legacy recent projects:', e);
+    console.warn('[RecentProjects] Failed to migrate legacy recent projects:', e);
   }
 
   return (primaryList || []).filter((p): p is RecentProjectEntry => Boolean(p && p.id));
 }
 
-/** 保存近期工程列表 */
+/** 保存近期工程列表（内置存储配额保护） */
 export function saveRecentProjects(projects: RecentProjectEntry[]): void {
   const sanitized = (projects || [])
     .filter((p): p is RecentProjectEntry => Boolean(p && p.id))
     .slice(0, MAX_RECENT_PROJECTS);
-  try {
-    const serialized = JSON.stringify(sanitized);
-    localStorage.setItem(PRIMARY_RECENT_KEY, serialized);
-    // 兼容可能读取旧键名的代码
-    localStorage.setItem(LEGACY_RECENT_KEY, serialized);
-  } catch (e) {
-    console.warn('[RecentProjects] Failed to persist recent projects to localStorage:', e);
+
+  const tryPersist = (list: RecentProjectEntry[]): boolean => {
+    try {
+      const serialized = JSON.stringify(list);
+      localStorage.setItem(PRIMARY_RECENT_KEY, serialized);
+      // 兼容读取旧键名的代码与既有用例
+      try {
+        localStorage.setItem(LEGACY_RECENT_KEY, serialized);
+      } catch {
+        // 忽略兼容键写入失败
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // 1. 优先尝试完整保存
+  if (tryPersist(sanitized)) return;
+
+  // 2. 配额超限降级：仅保留最近 6 个工程的缩略图
+  console.warn('[RecentProjects] Quota pressure detected, trimming older thumbnails');
+  const partialThumbs = sanitized.map((p, idx) => (idx < 6 ? p : { ...p, thumbnail: null }));
+  if (tryPersist(partialThumbs)) return;
+
+  // 3. 极端降级：剥离所有缩略图以绝对保障工程元数据（标题、路径、修改时间）不丢失
+  console.warn('[RecentProjects] Stripping all thumbnails to protect project metadata');
+  const metadataOnly = sanitized.map(p => ({ ...p, thumbnail: null }));
+  if (!tryPersist(metadataOnly)) {
+    console.error('[RecentProjects] Critical: Unable to persist recent projects to localStorage');
   }
 }
 

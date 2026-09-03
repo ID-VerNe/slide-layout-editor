@@ -68,7 +68,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   const [isCalculating, setIsCalculating] = useState(!cachedFontSize);
   const [retryCount, setRetryCount] = useState(0); 
 
-  // 1. 关键属性改变时，优先尝试共享 Worker 预计算
+  // 1. 关键属性改变时优先尝试预计算
   useLayoutEffect(() => {
     if (cachedFontSize) {
       setFontSize(cachedFontSize);
@@ -104,7 +104,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
     };
   }, [cacheKey, cachedFontSize, maxSize, minSize, lineHeight, maxLines, text]);
 
-  // 2. 递归缩放算法 (最终精确校准)
+  // 2. 递归缩放算法
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !isCalculating) return;
@@ -121,7 +121,7 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
       if (isOverflowing) {
         const newMax = fontSize - 1;
         if (newMax <= range.min) {
-          // 已经收敛到最小可用字号，回退到 range.min 后结束
+          // 已经收敛到最小可用字号时回退到下限并结束
           setFontSize(range.min);
           setIsCalculating(false);
         } else {
@@ -161,17 +161,19 @@ const AutoFitHeadline: React.FC<AutoFitHeadlineProps> = ({
   useEffect(() => {
     if (document.fonts) {
       document.fonts.ready.then(() => {
+        if (cachedFontSize) return;
         setIsCalculating(true);
         setRetryCount(0);
         setFontSize(maxSize);
       }).catch(() => {
         // Font loading failed — recalculate with default sizing
+        if (cachedFontSize) return;
         setIsCalculating(true);
         setRetryCount(0);
         setFontSize(maxSize);
       });
     }
-  }, [fontFamily, maxSize]);
+  }, [fontFamily, maxSize, cachedFontSize]);
 
   return (
     <Tag 

@@ -178,7 +178,33 @@ export async function compressImage(file: File, quality: number = 0.9): Promise<
   });
 }
 
+/** 保存工程缩略图到 IndexedDB 资产仓库 */
+export async function saveProjectThumbnail(projectId: string, dataUrl: string): Promise<string> {
+  const assetKey = `thumb_${projectId}`;
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_ASSETS, 'readwrite');
+    const store = transaction.objectStore(STORE_ASSETS);
+    const request = store.put(dataUrl, assetKey);
+    request.onsuccess = () => resolve(assetKey);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/** 从 IndexedDB 资产仓库获取工程缩略图 */
+export async function getProjectThumbnail(projectId: string): Promise<string | null> {
+  const assetKey = `thumb_${projectId}`;
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_ASSETS, 'readonly');
+    const store = transaction.objectStore(STORE_ASSETS);
+    const request = store.get(assetKey);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 // 供 E2E 自动化测试精准验证底层持久化与跨生命周期恢复
 if (typeof window !== 'undefined') {
-  (window as any).__SLIDEGRID_DB__ = { initDB, saveProject, getProject, deleteProject };
+  (window as any).__SLIDEGRID_DB__ = { initDB, saveProject, getProject, deleteProject, saveProjectThumbnail, getProjectThumbnail };
 }

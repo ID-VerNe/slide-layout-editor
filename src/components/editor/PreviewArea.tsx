@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Preview from '../Preview';
 import { PageData, PrintSettings } from '../../types';
 
@@ -37,7 +37,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
+  const lastPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     if (isAutoFit) {
@@ -48,7 +48,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') return;
     
-    // Ctrl + 滚轮：缩放
+    // Zoom with Ctrl/Meta + wheel
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       if (handleManualZoom) {
@@ -67,17 +67,17 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isAutoFit) setIsAutoFit(false);
     setIsDragging(true);
-    setLastPos({ x: e.clientX, y: e.clientY });
+    lastPosRef.current = { x: e.clientX, y: e.clientY };
   };
 
   useEffect(() => {
     if (!isDragging) return;
 
     const handleWindowMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - lastPos.x;
-      const deltaY = e.clientY - lastPos.y;
+      const deltaX = e.clientX - lastPosRef.current.x;
+      const deltaY = e.clientY - lastPosRef.current.y;
       setDragOffset(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
-      setLastPos({ x: e.clientX, y: e.clientY });
+      lastPosRef.current = { x: e.clientX, y: e.clientY };
     };
 
     const handleWindowMouseUp = () => {
@@ -91,10 +91,10 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       window.removeEventListener('mousemove', handleWindowMouseMove);
       window.removeEventListener('mouseup', handleWindowMouseUp);
     };
-  }, [isDragging, lastPos]);
+  }, [isDragging]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
-    // Ctrl + 双击：切换 fit mode
+    // Toggle fit mode with Ctrl/Meta + double click
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       if (toggleFit) {

@@ -18,6 +18,7 @@ import { TEMPLATES, getTemplateById } from '../templates/registry';
 import { nativeFs } from '../utils/native-fs';
 import { useStore } from '../store/useStore';
 import { TemplatePreview } from '../components/ui/TemplatePreview';
+import { OffscreenExportRenderer } from '../components/editor/OffscreenExportRenderer';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { upsertRecentProject } from '../services/recentProjects';
 import { PageData } from '../types';
@@ -67,6 +68,30 @@ export default function EditorPage() {
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const exportCancelledRef = useRef(false);
+
+  const [offscreenTarget, setOffscreenTarget] = useState<{ page: PageData; index: number } | null>(null);
+  const offscreenResolveRef = useRef<((el: HTMLElement) => void) | null>(null);
+
+  const waitForOffscreenRender = useCallback((targetPage: PageData, targetIndex: number) => {
+    return new Promise<HTMLElement>((resolve, reject) => {
+      offscreenResolveRef.current = resolve;
+      setOffscreenTarget({ page: targetPage, index: targetIndex });
+      const timer = setTimeout(() => {
+        if (offscreenResolveRef.current === resolve) {
+          offscreenResolveRef.current = null;
+          reject(new Error(`Offscreen render timeout for page ${targetIndex + 1}`));
+        }
+      }, 15000);
+    });
+  }, []);
+
+  const handleOffscreenReady = useCallback((element: HTMLElement) => {
+    if (offscreenResolveRef.current) {
+      const fn = offscreenResolveRef.current;
+      offscreenResolveRef.current = null;
+      fn(element);
+    }
+  }, []);
 
   const fallbackTitle = pages[0]?.title || 'Untitled Project';
 
@@ -266,24 +291,23 @@ export default function EditorPage() {
   }, [printSettings]);
 
   const handleExport = useCallback(async (format: 'png' | 'pdf') => {
-    if (!previewRef.current) return;
     exportCancelledRef.current = false;
     setIsExporting(true); setShowExportModal(false); setExportProgress(0);
-    const prevZoom = previewZoom; const prevIdx = currentPageIndex;
     try {
-      setPreviewZoom(1); await document.fonts.ready;
+      await document.fonts.ready;
       if (exportCancelledRef.current) return;
       const exportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
       const opt = { pixelRatio: 2, backgroundColor: '#ffffff', filter: (n: any) => !(n.tagName === 'LINK' && n.rel === 'stylesheet' && n.href && !n.href.includes(window.location.origin)) };
+
       if (nativeFs.isElectron() && format === 'png' && exportScope === 'all') {
         const dirResult = await nativeFs.selectDirectory();
         if (exportCancelledRef.current) return;
         if (dirResult.canceled) { setIsExporting(false); return; }
         for (let i = 0; i < exportIndices.length; i++) {
           if (exportCancelledRef.current) return;
-          const idx = exportIndices[i]; setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 800));
+          const idx = exportIndices[i];
+          const el = await waitForOffscreenRender(pages[idx], idx);
           if (exportCancelledRef.current) return;
-          const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
           const fileName = `${projectTitle || 'Export'}_Page_${String(idx + 1).padStart(2, '0')}.png`;
@@ -295,9 +319,9 @@ export default function EditorPage() {
         const doc = new jsPDF({ unit: 'px', format: [firstDims.width, firstDims.height], hotfixes: ["px_scaling"] });
         for (let i = 0; i < exportIndices.length; i++) {
           if (exportCancelledRef.current) return;
-          const idx = exportIndices[i]; setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 800));
+          const idx = exportIndices[i];
+          const el = await waitForOffscreenRender(pages[idx], idx);
           if (exportCancelledRef.current) return;
-          const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
           const currentDims = getExportDimensions(pages[idx]);
@@ -312,32 +336,27 @@ export default function EditorPage() {
         for (let i = 0; i < exportIndices.length; i++) {
           const idx = exportIndices[i];
           if (exportCancelledRef.current) return;
-          setCurrentPageIndex(idx); await new Promise(r => setTimeout(r, 600));
+          const el = await waitForOffscreenRender(pages[idx], idx);
           if (exportCancelledRef.current) return;
-          const el = previewRef.current.querySelector('.magazine-page') as HTMLElement;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
           const link = document.createElement('a'); link.download = `${projectTitle || fallbackTitle}_${idx + 1}.png`; link.href = dataUrl; document.body.appendChild(link); link.click(); document.body.removeChild(link);
           setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
           if (exportIndices.length > 1) {
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 100));
           }
         }
       }
+    } catch (exportErr) {
+      console.error('[Export] Export failed:', exportErr);
     } finally {
-      try {
-        if (!exportCancelledRef.current) {
-          setPreviewZoom(prevZoom);
-          setCurrentPageIndex(prevIdx);
-        }
-      } catch (recoveryError) {
-        console.error('Failed to restore preview state after export:', recoveryError);
-      }
+      setOffscreenTarget(null);
+      offscreenResolveRef.current = null;
       if (!exportCancelledRef.current) {
         setIsExporting(false); setExportProgress(0);
       }
     }
-  }, [previewZoom, currentPageIndex, exportScope, pages, projectTitle, fallbackTitle, setPreviewZoom, setCurrentPageIndex, setIsExporting, setShowExportModal, setExportProgress]);
+  }, [exportScope, pages, currentPageIndex, projectTitle, fallbackTitle, getExportDimensions, waitForOffscreenRender]);
 
   useEffect(() => {
     return () => { exportCancelledRef.current = true; };
@@ -428,7 +447,7 @@ export default function EditorPage() {
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
                       {TEMPLATES.filter(t => t.category === cat && t.supportedRatios.includes(selectedRatio))
-                        .sort((a, b) => a.name.localeCompare(b.name)) // 核心新增：按名称 A-Z 排序
+                        .sort((a, b) => a.name.localeCompare(b.name)) // 按字母升序排列
                         .map(t => (
                         <button 
                           key={t.id} 
@@ -453,6 +472,16 @@ export default function EditorPage() {
         </div>
       </Modal>
       <Modal isOpen={showExportModal} onClose={() => setShowExportModal(false)} title="Export" type="custom"><div className="grid grid-cols-2 gap-4 p-4"><button onClick={() => handleExport('png')} className="p-8 border-2 rounded-2xl flex flex-col items-center gap-2 hover:border-[#264376] transition-all"><span className="text-xs font-black uppercase">Export PNG</span></button><button onClick={() => handleExport('pdf')} className="p-8 border-2 rounded-2xl flex flex-col items-center gap-2 hover:border-[#264376] transition-all"><span className="text-xs font-black uppercase">Export PDF</span></button></div></Modal>
+      {offscreenTarget && (
+        <OffscreenExportRenderer
+          page={offscreenTarget.page}
+          pageIndex={offscreenTarget.index}
+          totalPages={pages.length}
+          printSettings={printSettings}
+          minimalCounter={minimalCounter}
+          onReady={handleOffscreenReady}
+        />
+      )}
     </div>
   );
 }

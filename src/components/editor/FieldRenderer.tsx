@@ -76,7 +76,7 @@ const componentMap: Record<string, React.FC<any>> = {
 interface FieldRendererProps {
   schema: FieldSchema;
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
   pages?: PageData[];
 }
@@ -89,7 +89,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   // 2. 匹配组件：优先找具名组件
   let Component = componentMap[key];
 
-  // 3. Fallback 逻辑
+  // 3. 兜底逻辑
   if (!Component && type === 'number') {
     return (
       <GenericNumberField
@@ -102,7 +102,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     );
   }
 
-  // 特殊处理 separator 类型，如果 key 没匹配到，看 type
+  // 分隔线类型的特殊处理
   if (!Component && type === 'separator') {
     Component = SeparatorField;
   }

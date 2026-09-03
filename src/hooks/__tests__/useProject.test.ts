@@ -157,7 +157,7 @@ describe('useProject', () => {
       })
     );
 
-    const stored = localStorage.getItem('magazine_recent_projects');
+    const stored = localStorage.getItem('slidegrid_recent_projects') || localStorage.getItem('magazine_recent_projects');
     expect(stored).toBeTruthy();
     const index = JSON.parse(stored!);
     expect(index[0].id).toBe('proj-1');

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import Preview from '../Preview';
-import { PageData } from '../../types';
+import { PageData, PrintSettings } from '../../types';
 
 interface OffscreenExportRendererProps {
   page: PageData;
   pageIndex: number;
   totalPages: number;
+  printSettings?: PrintSettings;
+  minimalCounter?: boolean;
   onReady: (element: HTMLElement) => void;
 }
 
@@ -17,6 +19,8 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
   page,
   pageIndex,
   totalPages,
+  printSettings,
+  minimalCounter,
   onReady
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -104,7 +108,7 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
       active = false;
       timeouts.forEach(id => clearTimeout(id));
     };
-  }, [page.id, onReady]);
+  }, [page.id, pageIndex, onReady]);
 
   return (
     <div
@@ -116,6 +120,9 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
         page={page}
         pageIndex={pageIndex}
         totalPages={totalPages}
+        printSettings={printSettings}
+        minimalCounter={minimalCounter}
+        disableAnimation={true}
       />
     </div>
   );

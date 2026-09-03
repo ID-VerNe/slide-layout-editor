@@ -8,6 +8,7 @@ export interface EvaluationContext {
 
 const MAX_EXPRESSION_DEPTH = 50;
 const MAX_OBJECT_DEPTH = 20;
+const FORBIDDEN_PROPERTIES = new Set(['__proto__', 'prototype', 'constructor']);
 
 type Token =
   | { type: 'number'; value: number }
@@ -325,8 +326,10 @@ class Parser {
           throw new SyntaxError('Expected property name after "."');
         }
         this.consume();
+        const prop = getTokenValue(token);
+        if (FORBIDDEN_PROPERTIES.has(prop)) return undefined;
         if (current == null) return undefined;
-        current = current[getTokenValue(token)];
+        current = current[prop];
       } else if (this.match('?.')) {
         this.consume('?.');
         const token = this.peek();
@@ -334,12 +337,15 @@ class Parser {
           throw new SyntaxError('Expected property name after "?."');
         }
         this.consume();
+        const prop = getTokenValue(token);
+        if (FORBIDDEN_PROPERTIES.has(prop)) return undefined;
         if (current == null) return undefined;
-        current = current[getTokenValue(token)];
+        current = current[prop];
       } else if (this.match('[')) {
         this.consume('[');
         const index = this.parseExpression();
         this.consume(']');
+        if (FORBIDDEN_PROPERTIES.has(String(index))) return undefined;
         if (current == null) return undefined;
         current = current[index];
       } else {

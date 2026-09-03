@@ -65,12 +65,5 @@
     "vite": "^6.2.0",
     "vite-plugin-electron": "^0.29.0",
     "vitest": "^4.1.8"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "sharp",
-      "esbuild"
-    ]
   }
 }

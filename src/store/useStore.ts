@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { PageData, AspectRatioType, ProjectTheme, PrintSettings, CustomFont, CounterStyle, DesignSystem } from '../types';
+import { PageData, AspectRatioType, ProjectTheme, PrintSettings, CustomFont, CounterStyle, DesignSystem, ProjectData } from '../types';
 import { getProject } from '../utils/db';
 import { nativeFs } from '../utils/native-fs';
 import { migrateToV3 } from '../utils/migrations/v2-to-v3';
@@ -51,6 +51,34 @@ const getDefaultPage = (ratio: AspectRatioType, layoutId: string, templateConfig
   return base;
 };
 
+export interface HistorySnapshot {
+  pages: PageData[];
+  projectTitle: string;
+  theme: ProjectTheme;
+  designSystem: DesignSystem;
+  printSettings?: PrintSettings;
+  minimalCounter?: boolean;
+  counterStyle?: CounterStyle;
+  imageQuality?: number;
+  customFonts?: CustomFont[];
+  currentPageIndex?: number;
+  currentFilePath?: string | null;
+}
+
+const buildSnapshot = (state: ProjectState): HistorySnapshot => ({
+  pages: deepClone(state.pages),
+  projectTitle: state.projectTitle,
+  theme: deepClone(state.theme),
+  designSystem: deepClone(state.designSystem),
+  printSettings: deepClone(state.printSettings),
+  minimalCounter: state.minimalCounter,
+  counterStyle: state.counterStyle,
+  imageQuality: state.imageQuality,
+  customFonts: deepClone(state.customFonts),
+  currentPageIndex: state.currentPageIndex,
+  currentFilePath: state.currentFilePath,
+});
+
 interface ProjectState {
   pages: PageData[];
   projectTitle: string;
@@ -66,11 +94,11 @@ interface ProjectState {
   activeProjectId: string | null;
   currentFilePath: string | null;
   hasUnsavedChanges: boolean;
-  past: any[];
-  future: any[];
+  past: HistorySnapshot[];
+  future: HistorySnapshot[];
 
   createProject: (title: string, templateId?: string) => string;
-  loadProject: (idOrData: string | any, templateId?: string | null, filePath?: string | null) => Promise<void>;
+  loadProject: (idOrData: string | (Partial<ProjectData> & Record<string, any>), templateId?: string | null, filePath?: string | null) => Promise<void>;
   setPages: (pages: PageData[]) => void;
   setProjectTitle: (title: string) => void;
   setTheme: (themeUpdate: { colors?: Partial<ProjectTheme['colors']>; typography?: Partial<ProjectTheme['typography']> } & Omit<Partial<ProjectTheme>, 'colors' | 'typography'>, applyToAll?: boolean) => void;
@@ -232,25 +260,7 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   // @lat: [[store#Undo-Redo]]
   pushHistory: () => {
-    const { pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentPageIndex, currentFilePath } = get();
-
-    // 优化：检查快照大小，避免过大的状态占用内存
-    const snapshot = {
-      pages: deepClone(pages),
-      projectTitle,
-      theme: deepClone(theme),
-      designSystem: deepClone(designSystem),
-      printSettings: deepClone(printSettings),
-      minimalCounter,
-      counterStyle,
-      imageQuality,
-      customFonts: deepClone(customFonts),
-      currentPageIndex,
-      currentFilePath,
-    };
-
-    // 保护：防止过大快照撑爆历史栈 —— 始终执行精确 JSON.stringify 大小校验
-    // 不用 pages.length * 2000 等粗略估算——单页可能包含超大字段（6MB+ 字符串、Base64 等）
+    const snapshot = buildSnapshot(get());
     const MAX_SNAPSHOT_SIZE = 5 * 1024 * 1024; // 5MB
     try {
       const actualSize = JSON.stringify(snapshot).length;
@@ -382,26 +392,22 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   undo: () => {
-    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentFilePath } = get();
+    const { past, future } = get();
     if (past.length === 0) return;
     const prev = past[past.length - 1];
-    // 构建完整的当前快照（用于 redo），包含 currentPageIndex 与 currentFilePath
-    const currentSnapshot = {
-      pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
-      printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
-      currentPageIndex: get().currentPageIndex,
-      currentFilePath,
-    };
+    const currentSnapshot = buildSnapshot(get());
     const restoredIndex = prev.currentPageIndex !== undefined ? Math.min(prev.currentPageIndex, prev.pages.length - 1) : 0;
     set({
-      pages: deepClone(prev.pages), projectTitle: prev.projectTitle,
-      theme: deepClone(prev.theme), designSystem: deepClone(prev.designSystem),
+      pages: deepClone(prev.pages),
+      projectTitle: prev.projectTitle,
+      theme: deepClone(prev.theme),
+      designSystem: deepClone(prev.designSystem),
       printSettings: prev.printSettings ? deepClone(prev.printSettings) : DEFAULT_PRINT_SETTINGS,
       minimalCounter: prev.minimalCounter ?? false,
       counterStyle: prev.counterStyle || 'number',
       imageQuality: prev.imageQuality ?? 0.95,
       customFonts: deepClone(prev.customFonts || []),
-      currentFilePath: prev.currentFilePath !== undefined ? prev.currentFilePath : currentFilePath,
+      currentFilePath: prev.currentFilePath !== undefined ? prev.currentFilePath : get().currentFilePath,
       past: past.slice(0, -1),
       future: [currentSnapshot, ...future],
       currentPageIndex: restoredIndex,
@@ -410,25 +416,22 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   redo: () => {
-    const { past, future, pages, projectTitle, theme, designSystem, printSettings, minimalCounter, counterStyle, imageQuality, customFonts, currentFilePath } = get();
+    const { past, future } = get();
     if (future.length === 0) return;
     const next = future[0];
-    const currentSnapshot = {
-      pages: deepClone(pages), projectTitle, theme: deepClone(theme), designSystem: deepClone(designSystem),
-      printSettings: deepClone(printSettings), minimalCounter, counterStyle, imageQuality, customFonts: deepClone(customFonts),
-      currentPageIndex: get().currentPageIndex,
-      currentFilePath,
-    };
+    const currentSnapshot = buildSnapshot(get());
     const restoredIndex = next.currentPageIndex !== undefined ? Math.min(next.currentPageIndex, next.pages.length - 1) : 0;
     set({
-      pages: deepClone(next.pages), projectTitle: next.projectTitle,
-      theme: deepClone(next.theme), designSystem: deepClone(next.designSystem),
+      pages: deepClone(next.pages),
+      projectTitle: next.projectTitle,
+      theme: deepClone(next.theme),
+      designSystem: deepClone(next.designSystem),
       printSettings: next.printSettings ? deepClone(next.printSettings) : DEFAULT_PRINT_SETTINGS,
       minimalCounter: next.minimalCounter ?? false,
       counterStyle: next.counterStyle || 'number',
       imageQuality: next.imageQuality ?? 0.95,
       customFonts: deepClone(next.customFonts || []),
-      currentFilePath: next.currentFilePath !== undefined ? next.currentFilePath : currentFilePath,
+      currentFilePath: next.currentFilePath !== undefined ? next.currentFilePath : get().currentFilePath,
       past: [...past, currentSnapshot],
       future: future.slice(1),
       currentPageIndex: restoredIndex,
