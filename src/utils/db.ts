@@ -38,7 +38,7 @@ export async function saveAsset(dataUrl: string): Promise<string> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     hashId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
-  } catch (_e) {
+  } catch {
     // 降级方案：使用时间戳 + 随机数
     console.warn('Crypto API not available, using fallback hash');
     hashId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -82,7 +82,16 @@ export async function getAsset(assetId: string): Promise<string | null> {
     try {
       const base64Data = await nativeFs.readAssetFile(filename);
       if (base64Data) {
-        const mime = filename.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+        const ext = filename.split('.').pop()?.toLowerCase();
+        const mimeMap: Record<string, string> = {
+          svg: 'image/svg+xml',
+          webp: 'image/webp',
+          png: 'image/png',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+          gif: 'image/gif',
+        };
+        const mime = (ext && mimeMap[ext]) || 'image/png';
         return `data:${mime};base64,${base64Data}`;
       }
     } catch (e) {

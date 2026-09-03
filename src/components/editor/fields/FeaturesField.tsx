@@ -10,7 +10,7 @@ import { isImageUrl, generateId } from '../../../utils/imageUrl';
 
 interface FieldProps {
   page: PageData;
-  onUpdate: (page: PageData) => void;
+  onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
   pages?: PageData[];
 }
@@ -21,16 +21,16 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
   const migratedRef = useRef<Set<string>>(new Set());
   const isVisible = page.visibility?.features !== false;
 
-  // Auto-generate IDs for legacy data（每个页面仅执行一次）
+  // 为遗留数据补充缺失的唯一标识符（静默更新，不污染历史栈）
   React.useEffect(() => {
     if (migratedRef.current.has(page.id)) return;
     const features = page.features || [];
     if (features.some(f => !f.id)) {
       migratedRef.current.add(page.id);
       const migrated = features.map(f => f.id ? f : { ...f, id: generateId("feat") });
-      onUpdate({ ...page, features: migrated });
+      onUpdate({ ...page, features: migrated }, true);
     }
-  }, [page.id, page.features]);
+  }, [page.id, page.features, onUpdate]);
 
   const toggle = () => {
     onUpdate({

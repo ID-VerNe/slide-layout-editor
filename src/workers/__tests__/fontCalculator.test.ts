@@ -25,7 +25,7 @@ function calculateFontSize(
   if (!text || !containerWidth) return maxSize;
 
   let fontSize = maxSize;
-  let range = { min: minSize, max: maxSize };
+  const range = { min: minSize, max: maxSize };
   let retryCount = 0;
 
   while (retryCount <= 12 && range.max - range.min > 0.5) {

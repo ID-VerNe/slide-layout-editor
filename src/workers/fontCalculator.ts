@@ -1,15 +1,15 @@
 // src/workers/fontCalculator.ts
 
 self.onmessage = (e) => {
-  const { text, maxSize, lineHeight, maxLines, minSize, containerWidth } = e.data;
+  const { id, text, maxSize, lineHeight, maxLines, minSize, containerWidth } = e.data;
   
   if (!text || !containerWidth) {
-    self.postMessage({ fontSize: maxSize });
+    self.postMessage({ id, fontSize: maxSize });
     return;
   }
 
   let fontSize = maxSize;
-  let range = { min: minSize, max: maxSize };
+  const range = { min: minSize, max: maxSize };
   let retryCount = 0;
   
   // 模拟计算逻辑：基于字符估算的二分查找
@@ -37,7 +37,7 @@ self.onmessage = (e) => {
     retryCount++;
   }
   
-  self.postMessage({ fontSize: Math.floor(fontSize) });
+  self.postMessage({ id, fontSize: Math.floor(fontSize) });
 };
 
 function estimateTextWidth(text: string, fontSize: number): number {

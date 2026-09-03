@@ -365,9 +365,19 @@ export default function EditorPage() {
     else { const firstRatio = Object.keys(LAYOUT_CONFIG).find(k => LAYOUT_CONFIG[k as AspectRatioType].orientation === ori) as AspectRatioType; setSelectedRatio(firstRatio || '16:9'); setCreationStage('ratio'); }
   };
 
+  const handleOpenAddPageModal = useCallback(() => {
+    setModalMode('create');
+    setCreationStage('orientation');
+    setShowLayoutModal(true);
+  }, []);
+
+  const handleOpenExportModal = useCallback(() => {
+    setShowExportModal(true);
+  }, []);
+
   return (
     <div className="flex h-screen bg-neutral-100 overflow-hidden font-sans">
-      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={() => window.dispatchEvent(new CustomEvent('open-layout-browser', { detail: { mode: 'create' } }))} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={() => useStore.getState().loadProject(projectId!, null)} onImport={() => fileInputRef.current?.click()} onExport={handleExportProject} onToggleFontManager={() => setShowSettings(!showSettings)} showFontManager={showSettings} onNavigateHome={() => navigate('/')} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
+      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={handleOpenAddPageModal} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={() => useStore.getState().loadProject(projectId!, null)} onImport={() => fileInputRef.current?.click()} onExport={handleOpenExportModal} onToggleFontManager={() => setShowSettings(!showSettings)} showFontManager={showSettings} onNavigateHome={() => navigate('/')} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
       <AnimatePresence>{isExporting && exportProgress > 0 && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-[#264376]/90 backdrop-blur-xl flex flex-col items-center justify-center text-white p-10"><div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-6"><motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: `${exportProgress}%` }} /></div><p className="text-[10px] font-black uppercase tracking-[0.4em]">Exporting Archive {exportProgress}%</p></motion.div>)}</AnimatePresence>
       <div className="flex-1 flex overflow-hidden">
         <motion.div initial={false} animate={{ flex: 1 }} className="bg-neutral-200/50 flex flex-col overflow-hidden relative">

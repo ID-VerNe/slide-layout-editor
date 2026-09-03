@@ -120,8 +120,26 @@ app.whenReady().then(async () => {
   // 核心：直接读取工作目录文件并返回 Base64
   ipcMain.handle('read-asset-file', async (event, filename) => {
     try {
+      if (typeof filename !== 'string' || filename.trim().length === 0) return null;
+
+      // 防止路径遍历攻击
+      const sanitized = path.basename(filename);
+      if (sanitized !== filename || filename.includes('..') || path.isAbsolute(filename)) {
+        console.error(`[read-asset-file] Path traversal attempt blocked: ${filename}`);
+        return null;
+      }
+
       const assetRoot = await archiveManager.getAssetRoot();
-      const filePath = path.join(assetRoot, filename);
+      const filePath = path.join(assetRoot, sanitized);
+
+      // 确保最终路径未逃逸出资产根目录
+      const normalizedPath = path.normalize(filePath);
+      const normalizedRoot = path.normalize(assetRoot);
+      if (!normalizedPath.startsWith(normalizedRoot)) {
+        console.error(`[read-asset-file] Path escape attempt blocked: ${normalizedPath}`);
+        return null;
+      }
+
       if (!existsSync(filePath)) return null;
       const buffer = await fs.readFile(filePath);
       return buffer.toString('base64');
@@ -198,12 +216,20 @@ app.whenReady().then(async () => {
     return { success: true, path: filePaths[0] };
   });
 
+  const ALLOWED_EXPORT_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.pdf', '.slgrid', '.json', '.webp', '.svg']);
+
   ipcMain.handle('save-file-buffer', async (event, { filePath, base64Data }) => {
     try {
       if (typeof filePath !== 'string' || !base64Data || /[\x00-\x1f]/.test(filePath)) {
         return { success: false, error: 'Invalid file path or data' };
       }
-      await fs.writeFile(path.resolve(filePath), Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64'));
+      const resolvedPath = path.resolve(filePath);
+      const ext = path.extname(resolvedPath).toLowerCase();
+      if (!ALLOWED_EXPORT_EXTENSIONS.has(ext)) {
+        console.error(`[save-file-buffer] Blocked unallowed file extension: ${ext}`);
+        return { success: false, error: `Disallowed file extension: ${ext}` };
+      }
+      await fs.writeFile(resolvedPath, Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64'));
       return { success: true };
     } catch (error: any) { return { success: false, error: error.message }; }
   });

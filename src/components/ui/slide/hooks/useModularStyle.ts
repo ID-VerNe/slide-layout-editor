@@ -18,16 +18,18 @@ import { resolveDockingStyle } from '../utils/dockingResolver';
 
 export { resolveModularFontSize, resolveModularLineHeight, resolveDockingStyle };
 
+const EMPTY_OBJECT = Object.freeze({});
+
 /**
- * useModularStyle - 统一处理样式优先级与 Zine Mode 约束
+ * 统一处理样式优先级与排版规范约束
  */
 export const useModularStyle = ({
   fieldKey,
-  overrides: directOverrides = {},
-  props = {},
+  overrides: directOverrides = EMPTY_OBJECT,
+  props = EMPTY_OBJECT,
   variant,
-  orientation = 'horizontal', // 默认为水平
-  customStyle = {},
+  orientation = 'horizontal',
+  customStyle = EMPTY_OBJECT,
   className = '',
   page
 }: UseModularStyleProps) => {
@@ -45,13 +47,13 @@ export const useModularStyle = ({
   const resolvedStyle = useMemo(() => {
     let finalStyle: React.CSSProperties = { ...customStyle };
 
-    // 1. 获取 Variant 基础样式 (Design System Tokens)
+    // 1. 获取基础排版样式
     const variantKey = (variant === 'h1' || variant === 'h2') ? 'display' : variant;
     if (variantKey && (ds?.tokens?.typography as any)?.[variantKey]) {
       const token = (ds.tokens.typography as any)[variantKey];
       finalStyle.fontSize = token.fontSize;
       
-      // Zine Mode 基线吸附逻辑
+      // 基线吸附逻辑
       if (token.lineHeight && !isNaN(Number(token.lineHeight))) {
         const fontSizeVal = parseFloat(token.fontSize);
         const unit = token.fontSize.includes('pt') ? 'pt' : 'px';
@@ -72,21 +74,16 @@ export const useModularStyle = ({
       if (token.fontStyle) finalStyle.fontStyle = token.fontStyle;
     }
 
-    // 2. 处理方向性逻辑 (Vertical Red Lines)
+    // 2. 处理排版方向逻辑
     if (orientation === 'vertical-stack') {
-      // 竖排堆叠：强制全大写，加宽字距，使用 CSS 竖排模式
       finalStyle.writingMode = 'vertical-rl';
       finalStyle.textOrientation = 'upright';
       finalStyle.textTransform = 'uppercase';
       
-      // Spec 细节控制 (v1.0): 
-      // Display All Caps: !tracking-[0.2em] !leading-none
-      // Metadata/Caption: !tracking-widest (0.2em+)
       const specTracking = variant === 'display' ? '0.2em' : '0.2em'; 
       finalStyle.letterSpacing = specTracking;
-      finalStyle.lineHeight = '1'; // 保持竖排“柱状”精密感
+      finalStyle.lineHeight = '1';
     } else if (orientation === 'vertical-rotate') {
-      // 侧边栏旋转：逆时针旋转 90 度
       finalStyle.transform = finalStyle.transform 
         ? `${finalStyle.transform} rotate(-90deg)` 
         : 'rotate(-90deg)';
@@ -94,9 +91,7 @@ export const useModularStyle = ({
       finalStyle.transformOrigin = 'center';
     }
 
-    // 3. 语义化排版处理 (Abstract Typography Configuration)
-    // 优先级：overrides > semantic props > variant tokens
-    // 将 overrides 中的语义化属性合并到 props 中进行解析
+    // 3. 处理语义化排版属性
     const finalProps = { ...props, ...overrides };
     const { 
       size, serif, sans, caption, zh, align, textAlign, bold, italic, leading, tracking,
