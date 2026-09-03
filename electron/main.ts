@@ -10,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
+// 确保直接启动或在测试环境中未显式传入时能正确回退到 dist 目录
+process.env.DIST = process.env.DIST || path.join(__dirname, '../dist');
 const THUMBNAIL_DIR = path.join(app.getPath('userData'), 'thumbnails');
 const archiveManager = new ProjectArchiveManager();
 

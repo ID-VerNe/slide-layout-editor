@@ -1,6 +1,5 @@
 import React from 'react';
-import { MetricData, PageData, TypographySettings } from '../../../../types';
-import DOMPurify from 'dompurify';
+import { MetricData, PageData, TypographySettings, DesignSystem, ProjectTheme } from '../../../../types';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { useStore } from '../../../../store/useStore';
@@ -17,11 +16,14 @@ interface ZineMetricProps {
   unitClassName?: string;
   subLabelClassName?: string;
   style?: React.CSSProperties;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
   [key: string]: any;
 }
 
 /**
- * ZineMetric - 已重构：使用 Atomic Text 组件与 Modular Hooks
+ * ZineMetric - 指标数据原子组件
+ * 严格遵循 24 格网格物理隔离与 Token 传参优先
  */
 export const ZineMetric: React.FC<ZineMetricProps> = ({ 
   data, 
@@ -33,9 +35,12 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
   unitClassName = "",
   subLabelClassName = "",
   style: customStyle,
+  designSystem: propsDs,
+  theme: propsTheme,
   ...otherProps
 }) => {
-  const theme = useStore((state) => state.theme);
+  const storeTheme = useStore((state) => state.theme);
+  const theme = propsTheme || storeTheme;
   
   // 1. 样式解析
   const { style, className: resolvedClassName } = useModularStyle({
@@ -52,8 +57,17 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
   const labelColor = theme?.colors?.accent || '#264376';
   const subLabelColor = theme?.colors?.secondary || '#64748B';
 
+  const containerStyle: React.CSSProperties = {
+    minWidth: 0,
+    minHeight: 0,
+    maxWidth: '100%',
+    maxHeight: '100%',
+    boxSizing: 'border-box',
+    ...style,
+  };
+
   return (
-    <div className={`flex flex-col gap-2 ${resolvedClassName}`} style={style}>
+    <div className={`flex flex-col gap-2 ${resolvedClassName}`} style={containerStyle}>
       <div className="flex items-baseline gap-1">
         <Text
           as="span"

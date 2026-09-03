@@ -153,3 +153,8 @@ export async function compressImage(file: File, quality: number = 0.9): Promise<
     reader.onerror = () => reject(reader.error || new Error(`Failed to read file: ${file.name}`));
   });
 }
+
+// 供 E2E 自动化测试精准验证底层持久化与跨生命周期恢复
+if (typeof window !== 'undefined') {
+  (window as any).__SLIDEGRID_DB__ = { initDB, saveProject, getProject, deleteProject };
+}

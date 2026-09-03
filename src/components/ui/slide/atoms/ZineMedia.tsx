@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { PageData } from '../../../../types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { DesignSystem, PageData, ProjectTheme, TypographySettings } from '../../../../types';
 import { useAssetUrl } from '../../../../hooks/useAssetUrl';
 import { useResponsiveImage } from '../../../../hooks/useResponsiveImage';
 import { generateLQIP } from '../../../../utils/lqip';
@@ -18,13 +18,16 @@ interface ZineMediaProps {
   style?: React.CSSProperties;
   priority?: boolean;
   sizes?: string;
-  rounded?: string | number; // 新增：支持圆角 (e.g., "9999px", 20)
+  rounded?: string | number;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
+  typography?: TypographySettings;
   [key: string]: any;
 }
 
 /**
  * ZineMedia - 媒体原子组件 (V3 Modular)
- * 彻底合并 SlideImage 逻辑，完全独立化。
+ * 与 imageGeometry 及 24 格物理硬约束彻底贯通
  */
 export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({ 
   page, 
@@ -37,11 +40,14 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
   priority = false,
   sizes = "(max-width: 768px) 100vw, 50vw",
   rounded,
+  designSystem: propsDs,
+  theme: propsTheme,
+  typography: propsTypography,
   ...otherProps
 }) => {
   const resolvedFieldKey = otherProps.fieldKey || fieldKey || 'image';
 
-  // 1. 数据连接
+  // 1. 统一提取数据连接与可见性状态
   const { content: pageSrc, isVisible } = useDataConnector(resolvedFieldKey, page);
   const { content: pageConfig } = useDataConnector(resolvedFieldKey === 'image' ? 'imageConfig' : `${resolvedFieldKey}Config`, page);
 
@@ -54,10 +60,10 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
       ...otherProps
     },
     customStyle,
-    className: `zine-media ${className}` // 移除强制 w-full h-full，让 align/justify 生效
+    className: `zine-media ${className}`
   });
 
-  // 3. 资源解析
+  // 3. 资源解析与占位降级
   const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//') 
     ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1) 
@@ -65,7 +71,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
     
   const rawSrc = overrideSrc || pageSrc || placeholderSrc;
   
-  const { url, isLoading, dimensions } = useAssetUrl(rawSrc);
+  const { url, isLoading } = useAssetUrl(rawSrc);
   const { srcSet, variants } = useResponsiveImage(rawSrc, { priority, sizes });
   const isAssetProtocol = rawSrc.startsWith('asset://');
   
@@ -97,11 +103,16 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
     (page.styleOverrides[resolvedFieldKey].alignSelf !== undefined || 
      page.styleOverrides[resolvedFieldKey].justifySelf !== undefined);
 
-  // 检查是否通过 style 或 className 显式指定了尺寸，若指定则不强行铺满 100%
   const hasExplicitWidth = style.width !== undefined || /\bw-(auto|\d+|\[[^\]]+\])\b/.test(className);
   const hasExplicitHeight = style.height !== undefined || /\bh-(auto|\d+|\[[^\]]+\])\b/.test(className);
 
+  // 严格保留 24 格物理隔离约束 (minWidth: 0, minHeight: 0, maxWidth: 100%, maxHeight: 100%, boxSizing)
   const containerStyle: React.CSSProperties = {
+    minWidth: 0,
+    minHeight: 0,
+    maxWidth: '100%',
+    maxHeight: '100%',
+    boxSizing: 'border-box',
     width: style.width || (hasManualAlignment || hasExplicitWidth ? undefined : '100%'),
     height: style.height || (hasManualAlignment || hasExplicitHeight ? undefined : '100%'),
     ...style,

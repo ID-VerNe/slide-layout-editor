@@ -31,8 +31,10 @@ metadata.json
 .trae/
 .code-review-graph/
 
-# Test coverage
+# Test coverage & reports
 coverage/
+playwright-report/
+test-results/
 stats.html
 
 # Agent directories

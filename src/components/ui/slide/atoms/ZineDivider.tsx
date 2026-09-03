@@ -1,7 +1,8 @@
 import React from 'react';
-import { DesignSystem, PageData } from '../../../../types';
+import { DesignSystem, PageData, ProjectTheme, TypographySettings } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
 import { useModularStyle } from '../hooks/useModularStyle';
+import { useDataConnector } from '../hooks/useDataConnector';
 
 interface ZineDividerProps {
   page: PageData;
@@ -11,11 +12,14 @@ interface ZineDividerProps {
   color?: keyof DesignSystem['tokens']['colors'] | string;
   className?: string;
   style?: React.CSSProperties;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
+  typography?: TypographySettings;
 }
 
 /**
  * ZineDivider - 工业感分割线/精密刻度线
- * 遵循 Zine Mode 审美约束，支持 Modular Grid 定位与 9 点对齐
+ * 遵循 Zine Mode 审美约束，支持 24 格物理硬隔离与双轴几何尺寸模型
  */
 export const ZineDivider: React.FC<ZineDividerProps> = ({
   page,
@@ -24,11 +28,19 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
   thickness = '1px',
   color = 'accent',
   className = '',
-  style: customStyle = {}
+  style: customStyle = {},
+  designSystem: propsDs,
+  theme: propsTheme,
+  typography: propsTypography,
 }) => {
-  const ds = useStore(s => s.designSystem);
+  const storeDs = useStore(s => s.designSystem);
+  const ds = propsDs || storeDs;
   
   const isHorizontal = orientation === 'horizontal';
+
+  // 1. 统一提取数据连接与可见性状态
+  const { isVisible, overrides } = useDataConnector(fieldKey, page);
+  if (!isVisible) return null;
   
   const { style, className: resolvedClassName } = useModularStyle({
     page,
@@ -38,24 +50,21 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
     className
   });
 
-  // 1. 可见性检查
-  const isVisible = fieldKey ? page.visibility?.[fieldKey] !== false : true;
-  if (!isVisible) return null;
-
-  // 2. 智能厚度与长度逻辑
-  // 我们支持通过 styleOverrides 直接控制 width 和 height
-  // 修复：优先读取 styleOverrides.thickness，并自动添加 px 单位
-  const overrideThickness = fieldKey && page.styleOverrides?.[fieldKey]?.thickness;
+  // 2. 智能厚度计算：优先读取 styleOverrides.thickness
+  const overrideThickness = overrides?.thickness;
   const thicknessValue = overrideThickness || thickness;
   const resolvedThickness = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
 
   const finalStyle: React.CSSProperties = {
+    minWidth: 0,
+    minHeight: 0,
+    maxWidth: '100%',
+    maxHeight: '100%',
+    boxSizing: 'border-box',
     ...style,
     backgroundColor: style.color || (ds.tokens.colors as any)[color] || color,
     
-    // 长度逻辑：
-    // 如果是水平线：width 默认为 100% (除非 style 中有显式 width)
-    // 如果是垂直线：height 默认为 100% (除非 style 中有显式 height)
+    // 长度与厚度几何模型
     width: isHorizontal 
       ? (style.width || '100%') 
       : resolvedThickness,
@@ -65,12 +74,10 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
       
     opacity: style.opacity ?? 1,
     
-    // 强制执行对齐方式 (由 LayoutRenderer 或 styleOverrides 传入)
-    // 修复：Flexbox(column) 中需要交换 alignSelf 和 justifySelf
+    // 对齐方式 (由 LayoutRenderer 或 styleOverrides 传入)
     alignSelf: style.alignSelf || (isHorizontal ? 'center' : 'stretch'),
     justifySelf: style.justifySelf || (isHorizontal ? 'stretch' : 'center'),
     
-    // 确保 zIndex 至少为 1
     zIndex: style.zIndex || 1,
   };
 

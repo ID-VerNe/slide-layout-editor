@@ -48,7 +48,7 @@ export default defineConfig(({ mode }) => {
             manualChunks: {
               'vendor-react': ['react', 'react-dom', 'react-router-dom'],
               'vendor-motion': ['framer-motion'],
-              'vendor-utils': ['zustand', 'immer', 'lucide-react'],
+              'vendor-utils': ['zustand', 'lucide-react'],
               'vendor-katex': ['katex'],
             }
           }

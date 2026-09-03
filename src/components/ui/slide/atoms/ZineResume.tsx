@@ -1,20 +1,32 @@
 import React from 'react';
-import { PageData } from '../../../../types';
+import { PageData, DesignSystem, ProjectTheme } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
-import DOMPurify from 'dompurify';
 import { useModularStyle } from '../hooks/useModularStyle';
+import { parseResumeContent, parseResumeDescription } from '../utils/resumeParser';
+
+interface ZineResumeProps {
+  page: PageData;
+  className?: string;
+  style?: React.CSSProperties;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
+  [key: string]: any;
+}
 
 /**
  * ZineResume - 简历原子组件
- * 封装了 AcademicHybridResume 的核心渲染逻辑，使其可在 JSON Schema 中作为原子使用。
+ * 纯视图组件，渲染逻辑与 Markdown 语法解析彻底解耦 (SRP)
  */
-export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({ 
+export const ZineResume: React.FC<ZineResumeProps> = ({ 
   page, 
   className = "", 
   style: customStyle,
+  designSystem: propsDs,
+  theme: propsTheme,
   ...otherProps 
 }) => {
-  const theme = useStore((state) => state.theme);
+  const storeTheme = useStore((state) => state.theme);
+  const theme = propsTheme || storeTheme;
   
   const { style, className: resolvedClassName } = useModularStyle({
     page,
@@ -26,42 +38,36 @@ export const ZineResume: React.FC<{ page: PageData; [key: string]: any }> = ({
 
   const accentColor = style.color || theme.colors.accent || '#264376';
 
-  const parseContent = (text: string) => {
-    let html = text
-      .replace(/.*\[(.*?)\].*\((.*?)\)/g, `<a href="$2" class="resume-link hover:underline" data-url="$2" style="color: ${accentColor}">$1</a>`)
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-zine-primary">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-zine-accent/10 px-1 rounded-none text-[0.9em] font-mono text-zine-primary">$1</code>');
-
-    return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['strong', 'em', 'code', 'del', 'br', 'span', 'b', 'i', 'a'],
-      ALLOWED_ATTR: ['class', 'style', 'href', 'data-url']
-    });
+  const finalContainerStyle: React.CSSProperties = {
+    minWidth: 0,
+    minHeight: 0,
+    maxWidth: '100%',
+    maxHeight: '100%',
+    boxSizing: 'border-box',
+    ...style,
   };
 
   const renderDescription = (text?: string) => {
-    if (!text) return null;
-    const lines = text.split('\n');
+    const bullets = parseResumeDescription(text);
+    if (bullets.length === 0) return null;
+
     return (
       <ul className="space-y-2 mt-4">
-        {lines.map((line, i) => {
-          const trimmed = line.trim();
-          if (!trimmed) return null;
-          const isBullet = trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
-          const cleanText = isBullet ? trimmed.substring(1).trim() : trimmed;
-          return (
-            <li key={i} className="flex items-start gap-4 text-zine-secondary text-justify leading-[16px] mb-2 font-zine-body">
-              {isBullet && <div className="mt-1.5 w-1 h-1 shrink-0" style={{ backgroundColor: accentColor }} />}
-              <span className="text-[11px] tracking-tight" dangerouslySetInnerHTML={{ __html: parseContent(cleanText) }} />
-            </li>
-          );
-        })}
+        {bullets.map((bullet, i) => (
+          <li key={i} className="flex items-start gap-4 text-zine-secondary text-justify leading-[16px] mb-2 font-zine-body">
+            {bullet.isBullet && <div className="mt-1.5 w-1 h-1 shrink-0" style={{ backgroundColor: accentColor }} />}
+            <span
+              className="text-[11px] tracking-tight"
+              dangerouslySetInnerHTML={{ __html: parseResumeContent(bullet.cleanText, accentColor) }}
+            />
+          </li>
+        ))}
       </ul>
     );
   };
 
   return (
-    <div className={`w-full h-full flex flex-col gap-16 overflow-y-auto no-scrollbar py-2 ${resolvedClassName}`} style={style}>
+    <div className={`w-full h-full flex flex-col gap-16 overflow-y-auto no-scrollbar py-2 ${resolvedClassName}`} style={finalContainerStyle}>
       {(page.resumeSections || []).map((section) => (
         <section key={section.id} className="space-y-8">
           <div className="flex items-center gap-6">

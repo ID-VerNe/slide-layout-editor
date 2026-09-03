@@ -1,5 +1,10 @@
 packages:
   - "."
+allowBuilds:
+  core-js: set this to true or false
+  electron: set this to true or false
+  esbuild: set this to true or false
+  sharp: set this to true or false
 onlyBuiltDependencies:
   - core-js
   - electron

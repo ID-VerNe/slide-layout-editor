@@ -1,7 +1,8 @@
 import React from 'react';
-import { DesignSystem, PageData } from '../../../../types';
+import { DesignSystem, PageData, ProjectTheme, TypographySettings } from '../../../../types';
 import { useStore } from '../../../../store/useStore';
 import { useModularStyle, resolveDockingStyle } from '../hooks/useModularStyle';
+import { useDataConnector } from '../hooks/useDataConnector';
 import { Text } from './Text';
 
 interface ZineDisplayProps {
@@ -13,11 +14,15 @@ interface ZineDisplayProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
+  typography?: TypographySettings;
   [key: string]: any;
 }
 
 /**
- * ZineDisplay - 已重构：使用 Atomic Text 组件与 Modular Hooks
+ * ZineDisplay - 标题族原子组件
+ * 严格遵从 24 格网格物理隔离与 Token 解析，接入 useDataConnector
  */
 export const ZineDisplay: React.FC<ZineDisplayProps> = ({
   page,
@@ -28,16 +33,23 @@ export const ZineDisplay: React.FC<ZineDisplayProps> = ({
   className = '',
   style: customStyle,
   children,
+  designSystem: propsDs,
+  theme: propsTheme,
+  typography: propsTypography,
   ...otherProps
 }) => {
-  const theme = useStore(s => s.theme);
-  const ds = useStore(s => s.designSystem);
+  const storeDs = useStore(s => s.designSystem);
+  const ds = propsDs || storeDs;
+
+  // 1. 统一提取数据连接与可见性状态
+  const defaultFallback = text || (fieldKey ? (page as any)[fieldKey] : page.title);
+  const { content, overrides, isVisible } = useDataConnector(fieldKey, page, defaultFallback);
 
   const { style, className: resolvedClassName } = useModularStyle({
     page,
     fieldKey,
     props: { 
-      color: ds.tokens.colors[color as string] || color,
+      color: (ds.tokens.colors as any)?.[color as string] || color,
       ...otherProps
     },
     variant: 'display',
@@ -46,15 +58,11 @@ export const ZineDisplay: React.FC<ZineDisplayProps> = ({
     className
   });
 
-  // 1. 可见性检查
-  const isVisible = fieldKey ? page.visibility?.[fieldKey] !== false : true;
-  if (!isVisible) return null;
+  // 2. 可见性与内容检查
+  if (!isVisible || (!content && !children)) return null;
 
-  const content = text || (fieldKey ? (page as any)[fieldKey] : page.title);
-  if (!content && !children) return null;
-
-  // 统一解析 9 点对齐与布局适应
-  const finalStyle = resolveDockingStyle(style, fieldKey ? page.styleOverrides?.[fieldKey] : undefined);
+  // 3. 统一解析 9 点对齐与布局适应
+  const finalStyle = resolveDockingStyle(style, overrides);
 
   return (
     <Text

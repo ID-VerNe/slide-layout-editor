@@ -437,3 +437,8 @@ export const useStore = create<ProjectState>((set, get) => ({
   }
 }));
 
+// 暴露 store 引用以支持端到端自动化测试与控制台调试
+if (typeof window !== 'undefined') {
+  (window as any).__SLIDEGRID_STORE__ = useStore;
+}
+

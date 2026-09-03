@@ -3,8 +3,9 @@ import { LUCIDE_ICON_MAP } from '../../../../constants/icons';
 import { HelpCircle } from 'lucide-react';
 import { Icon as IconAtom } from './Icon';
 import { Image as ImageAtom } from './Image';
-import { useModularStyle, resolveModularFontSize } from '../hooks/useModularStyle';
-import { PageData } from '../../../../types';
+import { useModularStyle } from '../hooks/useModularStyle';
+import { resolveModularFontSize } from '../utils/typographyScale';
+import { PageData, DesignSystem, ProjectTheme } from '../../../../types';
 
 interface ZineIconProps {
   name: string;
@@ -16,11 +17,14 @@ interface ZineIconProps {
   weight?: number | string;
   strokeWidth?: number;
   style?: React.CSSProperties;
+  designSystem?: DesignSystem;
+  theme?: ProjectTheme;
   [key: string]: any;
 }
 
 /**
- * ZineIcon - 已重构：支持多种图标源并利用 Modular Hooks
+ * ZineIcon - 图标原子组件
+ * 严格支持 24 格网格物理隔离与三源（Lucide, Material, URL）自适应规整
  */
 export const ZineIcon: React.FC<ZineIconProps> = ({ 
   name, 
@@ -32,6 +36,8 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
   weight,
   strokeWidth = 2.5,
   style: customStyle,
+  designSystem: propsDs,
+  theme: propsTheme,
   ...otherProps
 }) => {
   const resolvedSize = typeof size === 'number'
@@ -48,6 +54,15 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
 
   if (!name) return null;
 
+  const containerStyle: React.CSSProperties = {
+    minWidth: 0,
+    minHeight: 0,
+    maxWidth: '100%',
+    maxHeight: '100%',
+    boxSizing: 'border-box',
+    ...style,
+  };
+
   // 1. 处理图片/URL
   const isImage = name.startsWith('data:image') || name.includes('http') || name.includes('/') || name.includes('.');
   if (isImage) {
@@ -56,7 +71,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
         url={name}
         className={`flex items-center justify-center overflow-hidden ${resolvedClassName}`}
         imgClassName="object-contain"
-        style={{ width: resolvedSize, height: resolvedSize, ...style }}
+        style={{ width: resolvedSize, height: resolvedSize, ...containerStyle }}
       />
     );
   }
@@ -77,7 +92,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
           display: 'inline-block',
           lineHeight: 1,
           textTransform: 'none',
-          ...style
+          ...containerStyle
         }}
       />
     );
@@ -92,7 +107,7 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
       size={resolvedSize} 
       strokeWidth={strokeWidth} 
       className={resolvedClassName} 
-      style={{ color: style.color as string || 'inherit', ...style }} 
+      style={{ color: style.color as string || 'inherit', ...containerStyle }} 
     />
   );
 };
