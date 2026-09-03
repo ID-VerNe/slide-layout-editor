@@ -1,11 +1,9 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import electron from 'vite-plugin-electron';
 import { visualizer } from 'rollup-plugin-visualizer';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    const isElectron = mode === 'electron' || process.env.ELECTRON === 'true';
+export default defineConfig(({ mode: _mode }) => {
     const base = './';
 
     return {
@@ -17,7 +15,7 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react(),
         visualizer({
-          open: process.env.CI ? false : true,
+          open: process.env.ANALYZE === 'true',
           gzipSize: true,
           brotliSize: true,
         }),
@@ -38,10 +36,6 @@ export default defineConfig(({ mode }) => {
           },
         ]),
       ],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
       build: {
         rollupOptions: {
           output: {

@@ -20,7 +20,7 @@ interface TopNavProps {
   isExporting: boolean;
   showExportMenu: boolean;
   setShowExportMenu: (val: boolean) => void;
-  exportMenuRef: React.RefObject<HTMLDivElement>;
+  exportMenuRef: React.RefObject<HTMLDivElement | null>;
   showEditor: boolean;
   onToggleEditor: () => void;
   canUndo?: boolean;

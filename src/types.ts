@@ -100,9 +100,9 @@ export interface ImageConfig {
 
 export interface TestimonialData {
   id: string;
-  content: string;
+  content?: string;
   quote?: string;
-  author: string;
+  author?: string;
   name?: string;
   role?: string;
   avatar?: string;
@@ -214,6 +214,10 @@ export interface PageData {
 
   image?: string;
   imageLabel?: string;
+  imageSubLabel?: string;
+  pageNumberText?: string;
+  partnersTitle?: string;
+  variant?: string;
   imageConfig?: {
     scale: number;
     x: number;
@@ -230,7 +234,7 @@ export interface PageData {
 
   visibility?: Record<string, boolean>;
   /** 样式覆盖映射，用于运行时动态调整 */
-  styleOverrides?: Record<string, unknown>;
+  styleOverrides?: Record<string, any>;
 
   backgroundColor?: string;
   counterColor?: string;
@@ -247,9 +251,9 @@ export interface PageData {
   features?: FeatureData[];
   metrics?: MetricData[];
   /** 马赛克网格数据，每项为键值结构 */
-  mosaic?: Record<string, unknown>[];
+  mosaic?: Record<string, any>[];
   testimonials?: TestimonialData[];
-  gallery?: Record<string, unknown>[];
+  gallery?: Record<string, any>[];
   partners?: PartnerData[];
   signature?: string;
   

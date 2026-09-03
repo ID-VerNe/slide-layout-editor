@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { PageData, TypographySettings } from '../types';
+import { PageData, TypographySettings, ProjectTheme } from '../types';
 import { useStore } from '../store/useStore';
 import { LayoutRenderer, TemplateSchema } from '../templates/schemas';
 import { createZIndexResolver } from '../templates/schemas/zIndexResolver';
@@ -8,6 +8,7 @@ interface JsonTemplateRendererProps {
   schema: TemplateSchema;
   page: PageData;
   typography?: TypographySettings;
+  theme?: ProjectTheme;
 }
 
 /**
@@ -21,9 +22,11 @@ interface JsonTemplateRendererProps {
 export const JsonTemplateRenderer: React.FC<JsonTemplateRendererProps> = ({
   schema,
   page,
-  typography
+  typography,
+  theme: propTheme
 }) => {
-  const theme = useStore((state) => state.theme);
+  const storeTheme = useStore((state) => state.theme);
+  const theme = propTheme || storeTheme;
   const designSystem = useStore((state) => state.designSystem);
 
   // 创建 zIndex 解析器（schema 变化时重建）

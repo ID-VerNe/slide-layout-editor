@@ -18,7 +18,7 @@ function createContainer(rect: Partial<DOMRect>) {
 
 function setAutoResizeObserver() {
   class ResizeObserverMock {
-    constructor(private cb: Function) {}
+    constructor(private cb: (...args: any[]) => void) {}
     observe() { this.cb(); }
     disconnect() {}
   }

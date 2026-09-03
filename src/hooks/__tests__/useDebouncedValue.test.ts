@@ -21,7 +21,7 @@ describe('useDebouncedValue', () => {
     vi.useFakeTimers();
     const onChange = vi.fn();
     const { result } = renderHook(() =>
-      useDebouncedValue('initial', onChange, 300),
+      useDebouncedValue<string>('initial', onChange, 300),
     );
 
     act(() => {
@@ -44,7 +44,7 @@ describe('useDebouncedValue', () => {
     vi.useFakeTimers();
     const onChange = vi.fn();
     const { result } = renderHook(() =>
-      useDebouncedValue('same', onChange, 300),
+      useDebouncedValue<string>('same', onChange, 300),
     );
 
     act(() => {
@@ -65,7 +65,7 @@ describe('useDebouncedValue', () => {
     const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
 
     const { result, unmount } = renderHook(() =>
-      useDebouncedValue('val', onChange, 300),
+      useDebouncedValue<string>('val', onChange, 300),
     );
 
     act(() => {
@@ -100,7 +100,7 @@ describe('useDebouncedValue', () => {
     const onImmediate = vi.fn();
 
     const { result } = renderHook(() =>
-      useDebouncedValue('start', onChange, 300, onImmediate),
+      useDebouncedValue<string>('start', onChange, 300, onImmediate),
     );
 
     act(() => {

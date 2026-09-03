@@ -43,7 +43,6 @@ export default function App() {
 
   return (
     <UIProvider>
-      {/* @ts-ignore */}
       <ErrorBoundary>
         <HashRouter>
           <Routes>

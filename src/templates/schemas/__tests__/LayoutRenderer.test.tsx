@@ -19,7 +19,7 @@ vi.mock('../../../store/useStore', () => ({
 // Mock componentRegistry
 vi.mock('../componentRegistry', () => ({
   getComponent: vi.fn((type: string) => {
-    const MockComponent = ({ bind, ...props }: any) => (
+    const MockComponent = ({ bind }: any) => (
       <div data-testid={`component-${type}`} data-bind={bind}>
         Mock {type}
       </div>
@@ -309,7 +309,7 @@ describe('LayoutRenderer', () => {
       const originalImpl = vi.mocked(getComponent).getMockImplementation();
       vi.mocked(getComponent).mockImplementation((type: string) => {
         if (type === 'Boom') return throwingComponent as any;
-        const MockComponent = ({ bind, ...props }: any) => (
+        const MockComponent = ({ bind }: any) => (
           <div data-testid={`component-${type}`} data-bind={bind}>Mock {type}</div>
         );
         return MockComponent;

@@ -19,6 +19,10 @@ export class ProjectArchiveManager {
     this.workspacePath = path;
   }
 
+  public getActiveWorkspace(): string | null {
+    return this.workspacePath;
+  }
+
   public setCurrentProject(id: string, name: string) {
     this.currentProjectId = id;
     this.currentProjectName = name || 'Untitled';
@@ -395,5 +399,39 @@ export class ProjectArchiveManager {
       console.warn('Image compression failed, using original buffer:', e);
       return { buffer, format: 'bin' };
     }
+  }
+
+  /** 删除工程文件夹或单文件归档，内置严格的工作区白名单防护 */
+  public async deleteProject(projectPath: string): Promise<{ success: boolean; error?: string }> {
+    const searchDirs: string[] = [];
+    if (this.workspacePath && existsSync(this.workspacePath)) searchDirs.push(path.resolve(this.workspacePath));
+    const localWorkspace = path.resolve(process.cwd(), 'workspace');
+    if (existsSync(localWorkspace)) searchDirs.push(localWorkspace);
+    const defaultWs = path.resolve(app.getPath('userData'), 'DefaultWorkspace');
+    if (existsSync(defaultWs)) searchDirs.push(defaultWs);
+    const projectsWs = path.resolve(app.getPath('userData'), 'Projects');
+    if (existsSync(projectsWs)) searchDirs.push(projectsWs);
+
+    const resolved = path.resolve(projectPath);
+    // 安全边界校验：目标路径必须严格位于合法工作区之内，且不可是工作区根目录自身
+    const isWithinWorkspace = searchDirs.some(ws => resolved.startsWith(ws) && resolved !== ws);
+    if (!isWithinWorkspace) {
+      return { success: false, error: 'Access denied: Target path is not within active workspaces' };
+    }
+
+    if (!existsSync(resolved)) {
+      return { success: false, error: 'Path does not exist' };
+    }
+
+    const stats = await fs.stat(resolved);
+    if (stats.isDirectory()) {
+      await fs.rm(resolved, { recursive: true, force: true });
+      return { success: true };
+    } else if (stats.isFile() && resolved.endsWith('.slgrid')) {
+      await fs.unlink(resolved);
+      return { success: true };
+    }
+
+    return { success: false, error: 'Path is neither a project directory nor an .slgrid file' };
   }
 }

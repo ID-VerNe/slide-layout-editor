@@ -1,8 +1,7 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Type } from 'lucide-react';
-import { DebouncedTextArea } from '../../ui/DebouncedBase';
-import { FieldWrapper } from './FieldWrapper';
+import { GenericTextField } from './GenericTextField';
 
 interface FieldProps {
   page: PageData;
@@ -11,46 +10,22 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-/**
- * ParagraphField - 已重构：基于 FieldWrapper 与 ZineStylePanel
- */
+/** 段落文本输入字段 */
 export const ParagraphField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, customFonts }) => {
-  const handleChange = (val: string) => {
-    onUpdate({ ...page, paragraph: val });
-  };
-
-  const handleImmediateChange = (val: string) => {
-    onUpdate({ ...page, paragraph: val }, true);
-  };
-
-  const style = page.styleOverrides?.paragraph || {};
-  
   return (
-    <FieldWrapper
+    <GenericTextField
       page={page}
       onUpdate={onUpdate}
       fieldKey="paragraph"
       label={label || 'Body Text'}
       icon={Type}
-      showStyleConfig={true}
-      styleMode="text"
+      multiline={true}
+      rows={5}
+      placeholder="Write something..."
       customFonts={customFonts}
-    >
-      <div className="relative group/field">
-        <DebouncedTextArea 
-            rows={5} 
-            value={page.paragraph || ''} 
-            onChange={handleChange} 
-            onImmediateChange={handleImmediateChange}
-            placeholder="Write something..." 
-            className="text-xs leading-relaxed border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
-            style={{ 
-              fontFamily: style.fontFamily || page.bodyFont,
-              textAlign: style.align || style.textAlign,
-              color: '#0F172A'
-            }} 
-        />
-      </div>
-    </FieldWrapper>
+    />
   );
 });
+
+ParagraphField.displayName = 'ParagraphField';
+export default ParagraphField;

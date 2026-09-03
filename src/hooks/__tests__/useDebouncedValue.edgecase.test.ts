@@ -11,7 +11,7 @@ describe('useDebouncedValue Edge Cases (Unmount Flush & Manual Flush)', () => {
     vi.useFakeTimers();
     const onChange = vi.fn();
     const { result, unmount } = renderHook(() =>
-      useDebouncedValue('initial', onChange, 300),
+      useDebouncedValue<string>('initial', onChange, 300),
     );
 
     act(() => {
@@ -33,7 +33,7 @@ describe('useDebouncedValue Edge Cases (Unmount Flush & Manual Flush)', () => {
     vi.useFakeTimers();
     const onChange = vi.fn();
     const { result } = renderHook(() =>
-      useDebouncedValue('initial', onChange, 300),
+      useDebouncedValue<string>('initial', onChange, 300),
     );
 
     act(() => {
@@ -62,7 +62,7 @@ describe('useDebouncedValue Edge Cases (Unmount Flush & Manual Flush)', () => {
     vi.useFakeTimers();
     const onChange = vi.fn();
     const { result, unmount } = renderHook(() =>
-      useDebouncedValue('initial', onChange, 300),
+      useDebouncedValue<string>('initial', onChange, 300),
     );
 
     act(() => {

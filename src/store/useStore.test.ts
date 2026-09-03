@@ -565,7 +565,7 @@ describe('useStore', () => {
 
   describe('undo/redo 缺失字段回退', () => {
     it('undo 恢复缺少新字段的旧快照时使用默认值', () => {
-      const { pushHistory, undo } = useStore.getState();
+      const { undo } = useStore.getState();
       // 手动推入一个缺少 printSettings / minimalCounter 等字段的旧快照
       const incompleteSnapshot = {
         pages: [makePage('old-page')],
@@ -588,7 +588,7 @@ describe('useStore', () => {
     });
 
     it('redo 恢复缺少新字段的快照时使用默认值', () => {
-      const { pushHistory, redo } = useStore.getState();
+      const { redo } = useStore.getState();
       useStore.setState({
         pages: [makePage('current')],
         future: [{

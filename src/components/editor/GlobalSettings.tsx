@@ -108,7 +108,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
 
             {activeTab === 'assets' && (
               <div className="space-y-8">
-                <Section><div className="mb-8 border-l-4 border-slate-950 pl-4"><Label icon={UploadCloud} className="mb-1">Local Asset Library</Label><p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Woff2 / TTF Container</p></div><FontManager fonts={customFonts} onFontsChange={setCustomFonts} /></Section>
+                <Section><div className="mb-8 border-l-4 border-slate-950 pl-4"><Label icon={UploadCloud} className="mb-1">Local Asset Library</Label><p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Woff2 / TTF Container</p></div><FontManager fonts={customFonts} onFontsChange={(update) => typeof update === 'function' ? setCustomFonts(update(customFonts)) : setCustomFonts(update)} /></Section>
               </div>
             )}
 

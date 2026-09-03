@@ -42,13 +42,14 @@ describe('v2-to-v3 Migration Edge Cases (Container Layout Preservation)', () => 
     expect((page as any).layout).toBeUndefined();
 
     // 容器级布局未被误杀
-    expect(page.schemaNode.layout).toBe('grid');
-    expect((page.schemaNode as any).layoutId).toBeUndefined();
+    const schemaNode = (page as any).schemaNode;
+    expect(schemaNode.layout).toBe('grid');
+    expect(schemaNode.layoutId).toBeUndefined();
 
-    expect(page.schemaNode.children[0].layout).toBe('modular');
-    expect((page.schemaNode.children[0] as any).layoutId).toBeUndefined();
+    expect(schemaNode.children[0].layout).toBe('modular');
+    expect(schemaNode.children[0].layoutId).toBeUndefined();
 
-    expect(page.schemaNode.children[1].layout).toBe('flex');
-    expect((page.schemaNode.children[1] as any).layoutId).toBeUndefined();
+    expect(schemaNode.children[1].layout).toBe('flex');
+    expect(schemaNode.children[1].layoutId).toBeUndefined();
   });
 });

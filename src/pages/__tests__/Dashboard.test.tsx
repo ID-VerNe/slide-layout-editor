@@ -100,19 +100,13 @@ describe('Dashboard', () => {
     expect(deleteBtn).toBeTruthy();
     fireEvent.click(deleteBtn!);
 
-    // First confirm: "Delete Project"
-    const confirmBtn1 = await screen.findByRole('button', { name: /confirm/i });
-    fireEvent.click(confirmBtn1);
+    // Single confirm: "Delete Project"
+    const confirmBtn = await screen.findByRole('button', { name: /confirm/i });
+    fireEvent.click(confirmBtn);
 
-    // Second confirm: "Remove Record" (nested inside delete callback)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /remove record/i })).toBeInTheDocument());
-    const confirmBtn2 = screen.getAllByRole('button').find((b) => b.textContent?.match(/confirm/i));
-    expect(confirmBtn2).toBeTruthy();
-    fireEvent.click(confirmBtn2!);
+    await waitFor(() => expect(screen.queryByText('Alpha')).not.toBeInTheDocument());
 
-    await waitFor(() => expect(screen.queryByRole('heading', { name: /remove record/i })).not.toBeInTheDocument());
-
-    const stored = JSON.parse(localStorage.getItem('magazine_recent_projects')!);
+    const stored = JSON.parse(localStorage.getItem('slidegrid_recent_projects') || localStorage.getItem('magazine_recent_projects')!);
     expect(stored).toHaveLength(1);
     expect(stored[0].id).toBe('p2');
   });

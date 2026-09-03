@@ -4,8 +4,7 @@ import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
 import { compressImage } from '../../utils/db';
 import { isImageUrl } from '../../utils/imageUrl';
-import { useProject } from '../../hooks/useProject';
-import { useParams } from 'react-router-dom';
+import { useStore } from '../../store/useStore';
 import { PageData } from '../../types';
 
 export type AssetTab = 'icons' | 'upload' | 'map' | 'history';
@@ -29,8 +28,8 @@ const collectProjectImages = (pages: PageData[]): { url: string; count: number }
       if (img && isImageUrl(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
     });
 
-    (page.gallery || []).forEach(item => {
-      if (item.url && isImageUrl(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
+    (page.gallery || []).forEach((item: any) => {
+      if (item?.url && isImageUrl(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
     });
 
     (page.features || []).forEach(f => {
@@ -75,8 +74,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
   const [recentAssets, setRecentAssets] = useState<string[]>([]);
   const [projectImages, setProjectImages] = useState<{url:string;count:number}[]>([]);
 
-  const { projectId } = useParams();
-  const { imageQuality } = useProject(projectId, null);
+  const imageQuality = useStore((s) => s.imageQuality);
 
   useEffect(() => {
     const saved = localStorage.getItem(RECENT_STORAGE_KEY);

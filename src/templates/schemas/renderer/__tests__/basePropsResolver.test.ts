@@ -51,7 +51,7 @@ describe('basePropsResolver', () => {
     const node: any = {
       zIndex: 'top',
     };
-    const mockZIndexResolver = (val: string) => (val === 'top' ? 40 : 10);
+    const mockZIndexResolver = (val?: any) => (val === 'top' ? 40 : 10);
 
     const { style } = resolveBaseProps(node, mockContext, DEFAULT_DESIGN_SYSTEM, mockZIndexResolver);
     expect(style.zIndex).toBe(40);

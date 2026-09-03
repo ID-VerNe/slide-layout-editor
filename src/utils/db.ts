@@ -12,7 +12,7 @@ export function initDB(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_PROJECTS)) db.createObjectStore(STORE_PROJECTS);
       if (!db.objectStoreNames.contains(STORE_ASSETS)) db.createObjectStore(STORE_ASSETS);
@@ -38,7 +38,7 @@ export async function saveAsset(dataUrl: string): Promise<string> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     hashId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
-  } catch (e) {
+  } catch (_e) {
     // 降级方案：使用时间戳 + 随机数
     console.warn('Crypto API not available, using fallback hash');
     hashId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -51,7 +51,7 @@ export async function saveAsset(dataUrl: string): Promise<string> {
   if (nativeFs.isElectron()) {
     try {
       const result = await nativeFs.uploadAsset(filename, dataUrl);
-      if (result.success) return result.url;
+      if (result.success && result.url) return result.url;
     } catch (e) {
       console.error("Native upload failed", e);
     }

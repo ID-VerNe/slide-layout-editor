@@ -22,7 +22,7 @@ describe('TopNav', () => {
     isExporting: false,
     showExportMenu: false,
     setShowExportMenu: vi.fn(),
-    exportMenuRef: { current: null } as React.RefObject<HTMLDivElement>,
+    exportMenuRef: React.createRef<HTMLDivElement>(),
     showEditor: true,
     onToggleEditor: vi.fn(),
     canUndo: true,

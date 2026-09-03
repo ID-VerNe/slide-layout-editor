@@ -5,7 +5,7 @@ interface AutoFitHeadlineProps {
   maxSize: number;
   lineHeight: number;
   fontFamily: string;
-  className: string;
+  className?: string;
   maxLines: number;
   minSize?: number;
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p';

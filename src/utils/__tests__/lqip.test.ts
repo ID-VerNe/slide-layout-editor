@@ -24,7 +24,7 @@ describe('generateLQIP', () => {
       if (tag === 'canvas') {
         return { width: 0, height: 0, getContext: () => mockCtx, toDataURL } as any;
       }
-      return origCreate.call(document, tag);
+      return (origCreate as any).call(document, tag);
     });
     return { drawImage, toDataURL };
   }
@@ -110,7 +110,7 @@ describe('generateLQIP', () => {
       if (tag === 'canvas') {
         return { width: 0, height: 0, getContext: () => null, toDataURL: vi.fn() } as any;
       }
-      return origCreate.call(document, tag);
+      return (origCreate as any).call(document, tag);
     });
 
     global.Image = class {

@@ -35,7 +35,7 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
     if (current.length >= 8) return;
     onUpdate({
       ...page,
-      testimonials: [...current, { name: 'User Name', quote: 'User feedback text...', avatar: 'person' }]
+      testimonials: [...current, { id: crypto.randomUUID(), name: 'User Name', quote: 'User feedback text...', avatar: 'person' }]
     });
   };
 
@@ -74,7 +74,7 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
     } as any);
   };
 
-  const renderCellPreview = (val: string) => {
+  const renderCellPreview = (val?: string) => {
     if (!val) return <Plus size={14} />;
     const isImg = val.startsWith('data:image') || val.includes('http');
     if (isImg) return <img src={val} className="w-full h-full object-cover rounded-md" />;

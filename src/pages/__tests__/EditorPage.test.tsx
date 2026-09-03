@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import EditorPage from '../EditorPage';
-import React from 'react';
 
 // --- Mocks ---
 
@@ -106,7 +105,7 @@ vi.mock('../../constants/layout', () => ({
 }));
 
 // Store mock (also used by useProject internally via useStore)
-const storeState = {
+const storeState: any = {
   pages: [],
   projectTitle: 'Test Project',
   theme: { colors: { primary: '#000', secondary: '#666', accent: '#264376', background: '#fff', surface: '#f5f5f5' }, typography: { headingFont: 'serif', bodyFont: 'sans-serif', headingFontZH: 'serif', bodyFontZH: 'sans-serif' } },
@@ -153,7 +152,7 @@ vi.mock('../../store/useStore', () => ({
 
 // Editor child components: render as simple wrappers
 vi.mock('../../components/editor/Sidebar', () => ({
-  default: ({ onAddPage, onRemovePage, onPageSelect, onNavigateHome, pages }: any) => (
+  default: ({ onAddPage, onNavigateHome, pages }: any) => (
     <div data-testid="sidebar">
       <button data-testid="sidebar-home" onClick={onNavigateHome}>
         Home

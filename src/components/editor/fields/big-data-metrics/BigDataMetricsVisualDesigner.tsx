@@ -34,7 +34,7 @@ export const BigDataMetricsVisualDesigner: React.FC<BigDataMetricsVisualDesigner
 
   const addMetric = () => {
     if (metrics.length < totalCells) {
-      setMetrics([...metrics, { label: 'NEW METRIC', value: '00', unit: '' }]);
+      setMetrics([...metrics, { id: crypto.randomUUID(), label: 'NEW METRIC', value: '00', unit: '' }]);
     }
   };
 

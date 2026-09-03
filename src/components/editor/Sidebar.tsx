@@ -17,14 +17,14 @@ interface SidebarProps {
   onRemovePage: (id: string) => void;
   onReorderPages: (newPages: PageData[]) => void; 
   onClearAll: () => void;
-  onImport: () => void;
-  onExport: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
   onToggleFontManager: () => void;
   showFontManager: boolean;
   onNavigateHome: () => void;
-  onNativeSave: () => void;
-  onNativeSaveAs: () => void;
-  onNativeOpen: () => void;
+  onNativeSave?: () => void;
+  onNativeSaveAs?: () => void;
+  onNativeOpen?: () => void;
 }
 
 const VIRTUAL_SCROLL_THRESHOLD = 30;
@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
     onNavigateHome
   } = props;
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLUListElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
 
   const { confirm } = useUI();

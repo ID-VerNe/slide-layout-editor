@@ -34,11 +34,11 @@ export const BigDataMetrics: React.FC<BigDataMetricsProps> = ({
 }) => {
   const metrics = metricsProp || textProp || page?.metrics || [];
   
-  const config = page?.bigDataMetricsConfig || {};
+  const config: any = page?.bigDataMetricsConfig || {};
   const rows = rowsProp ?? config.rows ?? 3;
   const cols = colsProp ?? config.cols ?? 2;
   
-  const styles = page?.styleOverrides?.bigDataMetrics || {};
+  const styles: any = page?.styleOverrides?.bigDataMetrics || {};
   const valueStyle = styles.value || {};
   const labelStyle = styles.label || {};
   const unitStyle = styles.unit || {};

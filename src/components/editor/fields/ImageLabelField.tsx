@@ -1,8 +1,7 @@
 import React from 'react';
 import { PageData, CustomFont } from '../../../types';
 import { Type } from 'lucide-react';
-import { DebouncedInput } from '../../ui/DebouncedBase';
-import { FieldWrapper } from './FieldWrapper';
+import { GenericTextField } from './GenericTextField';
 
 interface FieldProps {
   page: PageData;
@@ -11,46 +10,22 @@ interface FieldProps {
   customFonts: CustomFont[];
 }
 
-/**
- * ImageLabelField - 已重构：基于 FieldWrapper 与 ZineStylePanel
- * 适配最新的 Zine 模块化架构
- */
+/** 图像主标注文本字段 */
 export const ImageLabelField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, customFonts }) => {
-  const handleChange = (val: string) => {
-    onUpdate({ ...page, imageLabel: val });
-  };
-
-  const handleImmediateChange = (val: string) => {
-    onUpdate({ ...page, imageLabel: val }, true);
-  };
-
-  const style = page.styleOverrides?.imageLabel || {};
-
   return (
-    <FieldWrapper
+    <GenericTextField
       page={page}
       onUpdate={onUpdate}
       fieldKey="imageLabel"
       label={label || 'Visual Caption / Fig.'}
       icon={Type}
-      showStyleConfig={true}
-      styleMode="text"
+      placeholder="e.g. FIG. 01 — THE MOUNTAIN"
+      className="text-xs font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors"
+      defaultFont="'Inter', sans-serif"
       customFonts={customFonts}
-    >
-      <div className="relative group/field">
-        <DebouncedInput 
-            value={page.imageLabel || ''} 
-            onChange={handleChange} 
-            onImmediateChange={handleImmediateChange}
-            placeholder="e.g. FIG. 01 — THE MOUNTAIN" 
-            className="text-xs font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
-            style={{ 
-              fontFamily: style.fontFamily || page.bodyFont || "'Inter', sans-serif",
-              textAlign: style.align || style.textAlign,
-              color: '#0F172A'
-            }} 
-        />
-      </div>
-    </FieldWrapper>
+    />
   );
 });
+
+ImageLabelField.displayName = 'ImageLabelField';
+export default ImageLabelField;

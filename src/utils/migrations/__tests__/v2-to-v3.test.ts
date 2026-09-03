@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { migrateToV3 } from '../v2-to-v3';
-import { PageData } from '../../../types';
 
 describe('Data Migration V2→V3', () => {
   describe('基础迁移', () => {
@@ -225,11 +224,11 @@ describe('Data Migration V2→V3', () => {
       };
 
       const result = migrateToV3(data);
-      expect(result.theme.colors).toHaveProperty('primary');
-      expect(result.theme.colors).toHaveProperty('secondary');
-      expect(result.theme.colors).toHaveProperty('accent');
-      expect(result.theme.colors).toHaveProperty('background');
-      expect(result.theme.colors).toHaveProperty('surface');
+      expect(result.theme!.colors).toHaveProperty('primary');
+      expect(result.theme!.colors).toHaveProperty('secondary');
+      expect(result.theme!.colors).toHaveProperty('accent');
+      expect(result.theme!.colors).toHaveProperty('background');
+      expect(result.theme!.colors).toHaveProperty('surface');
     });
 
     it('应补充缺失的 typography 字段', () => {
@@ -242,8 +241,8 @@ describe('Data Migration V2→V3', () => {
       };
 
       const result = migrateToV3(data);
-      expect(result.theme.typography).toHaveProperty('headingFont');
-      expect(result.theme.typography).toHaveProperty('bodyFont');
+      expect(result.theme!.typography).toHaveProperty('headingFont');
+      expect(result.theme!.typography).toHaveProperty('bodyFont');
     });
   });
 
@@ -389,7 +388,7 @@ describe('Data Migration V2→V3', () => {
       };
       const result = migrateToV3(data);
       expect(result.designSystem).toBeDefined();
-      expect(result.designSystem.tokens).toBeDefined();
+      expect(result.designSystem!.tokens).toBeDefined();
     });
 
     it('已有 designSystem 时保留原值', () => {

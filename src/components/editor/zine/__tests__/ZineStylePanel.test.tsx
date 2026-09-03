@@ -7,6 +7,8 @@ import { PageData } from '../../../../types';
 describe('ZineStylePanel', () => {
   const basePage: PageData = {
     id: 'p1',
+    type: 'slide',
+    aspectRatio: '16:9',
     layoutId: 'zine-classic',
     title: 'Hello',
     styleOverrides: {

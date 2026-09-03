@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAsset } from '../utils/db';
-import { generateResponsiveImages, generateSrcSet, ImageVariant } from '../utils/imageUtils';
+import { generateResponsiveImages, generateSrcSet } from '../utils/imageUtils';
 
 interface UseResponsiveImageOptions {
   priority?: boolean;
@@ -30,15 +30,16 @@ export function useResponsiveImage(
   const [srcSet, setSrcSet] = useState('');
 
   useEffect(() => {
-    if (!assetSource) {
+    const source = assetSource;
+    if (!source) {
       setUrl(undefined);
       setSrcSet('');
       setVariants({});
       return;
     }
 
-    if (!assetSource.startsWith('asset://') && !assetSource.startsWith('data:')) {
-      setUrl(assetSource);
+    if (!source.startsWith('asset://') && !source.startsWith('data:')) {
+      setUrl(source);
       return;
     }
 
@@ -47,7 +48,7 @@ export function useResponsiveImage(
     async function load() {
       setIsLoading(true);
       try {
-        const data = await getAsset(assetSource);
+        const data = await getAsset(source as string);
         if (data && isMounted) {
           setUrl(data);
 

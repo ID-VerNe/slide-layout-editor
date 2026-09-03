@@ -57,7 +57,7 @@ export const PartnersField: React.FC<FieldProps> = ({ page, onUpdate, pages }) =
     });
   };
 
-  const renderCellPreview = (val: string) => {
+  const renderCellPreview = (val?: string) => {
     if (!val) return <Plus size={14} />;
     
     // 1. 图片处理

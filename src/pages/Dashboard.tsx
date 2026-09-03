@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Plus, FolderOpen, Settings, Layout, FileText, Map as MapIcon, Clock, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
+import { Plus, FolderOpen, Settings, Layout, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
 import { nativeFs } from '../utils/native-fs';
 import { deleteProject } from '../utils/db';
 import { useUI } from '../context/UIContext';
 import { 
   getRecentProjects, 
-  saveRecentProjects, 
+  saveRecentProjects,
+  upsertRecentProject, 
   removeRecentProject 
 } from '../services/recentProjects';
 
@@ -95,7 +96,7 @@ export default function Dashboard() {
       const uniqueMap = new Map();
       workspaceProjects.forEach(p => {
         const existing = uniqueMap.get(p.id);
-        if (!existing || p.lastModified > existing.lastModified) {
+        if (!existing || (p.lastModified || 0) > (existing.lastModified || 0)) {
           uniqueMap.set(p.id, p);
         }
       });
@@ -103,34 +104,30 @@ export default function Dashboard() {
     }
   };
 
-  const handleRemoveRecord = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    confirm('Remove Record', 'Remove this project from recent list?', () => {
-      removeRecentProject(id);
-      setProjects(prev => prev.filter((p: any) => p.id !== id));
-    });
-  };
-
   const handleDeleteProject = (e: React.MouseEvent, project: any) => {
     e.stopPropagation();
-    confirm('Delete Project', `Permanently delete "${project.title}"? This cannot be undone.`, async () => {
-      try {
-        if (nativeFs.isElectron() && project.filePath) {
-          const result = await nativeFs.deleteProject(project.filePath);
-          if (result.success) {
-            handleRemoveRecord(e, project.id);
-            await refreshProjects();
+    confirm('Delete Project', `Permanently delete "${project.title}"? This cannot be undone.`, () => {
+      (async () => {
+        try {
+          if (nativeFs.isElectron() && project.filePath) {
+            const result = await nativeFs.deleteProject(project.filePath);
+            if (result.success) {
+              removeRecentProject(project.id);
+              setProjects(prev => prev.filter((p: any) => p.id !== project.id));
+              await refreshProjects();
+            } else {
+              alert('Delete Failed', `Failed to delete project: ${result.error}`);
+            }
           } else {
-            alert('Delete Failed', `Failed to delete project: ${result.error}`);
+            await deleteProject(project.id);
+            removeRecentProject(project.id);
+            setProjects(prev => prev.filter((p: any) => p.id !== project.id));
           }
-        } else {
-          await deleteProject(project.id);
-          handleRemoveRecord(e, project.id);
+        } catch (error) {
+          console.error('Failed to delete project:', error);
+          alert('Delete Failed', 'Failed to delete project');
         }
-      } catch (error) {
-        console.error('Failed to delete project:', error);
-        alert('Delete Failed', 'Failed to delete project');
-      }
+      })();
     });
   };
 
@@ -154,8 +151,6 @@ export default function Dashboard() {
         const projectData = JSON.parse(result.content);
         if (!projectData.id) projectData.id = crypto.randomUUID();
 
-        const saved = localStorage.getItem(RECENT_KEY);
-        let recent = saved ? JSON.parse(saved) : [];
         const entry = {
           id: projectData.id,
           title: projectData.projectTitle || projectData.title || 'Imported Project',
@@ -166,9 +161,8 @@ export default function Dashboard() {
           thumbnail: projectData.thumbnail || null,
           filePath: result.filePath
         };
-        recent = [entry, ...recent.filter((p: any) => p.id !== projectData.id)].slice(0, 48);
-        localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
-        setProjects(recent);
+        upsertRecentProject(entry);
+        setProjects(getRecentProjects());
 
         await loadProject(projectData);
         if (result.filePath) setCurrentFilePath(result.filePath);

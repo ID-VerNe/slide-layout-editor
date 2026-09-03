@@ -50,7 +50,17 @@ export const LayoutRenderer: React.FC<LayoutRendererProps> = ({
   );
 };
 
-const LayoutRendererInternal: React.FC<LayoutRendererProps & { ds: DesignSystem }> = ({
+interface LayoutRendererInternalProps {
+  node: TemplateNode;
+  page: PageData;
+  theme: ProjectTheme;
+  typography?: TypographySettings;
+  context: EvaluationContext;
+  ds: DesignSystem;
+  resolveZIndex?: ZIndexResolverFn;
+}
+
+const LayoutRendererInternal: React.FC<LayoutRendererInternalProps> = ({
   node,
   page,
   theme,

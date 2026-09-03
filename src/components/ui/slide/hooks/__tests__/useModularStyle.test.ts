@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import React from 'react';
 import { useModularStyle, resolveDockingStyle } from '../useModularStyle';
 import { DEFAULT_DESIGN_SYSTEM, DEFAULT_THEME } from '../../../../../constants/theme';
 
@@ -152,7 +153,7 @@ describe('useModularStyle', () => {
     });
 
     it('CSS Grid 节点应严格保留 alignSelf 与 justifySelf，不删除也不颠倒', () => {
-      const gridItemStyle = {
+      const gridItemStyle: React.CSSProperties = {
         gridColumnStart: 2,
         gridRowStart: 4,
         textAlign: 'right'
@@ -169,7 +170,7 @@ describe('useModularStyle', () => {
     });
 
     it('Flexbox 节点应将 justifySelf 映射到 alignSelf，并通过 margin 控制垂直', () => {
-      const flexItemStyle = {
+      const flexItemStyle: React.CSSProperties = {
         textAlign: 'center'
       };
       const overrides = {

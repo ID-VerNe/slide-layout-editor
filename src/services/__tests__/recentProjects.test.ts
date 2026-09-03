@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   getRecentProjects,
-  saveRecentProjects,
   upsertRecentProject,
   updateRecentProjectThumbnail,
   removeRecentProject,

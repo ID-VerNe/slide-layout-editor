@@ -19,7 +19,7 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
   };
 
   const addItem = () => {
-    updateMetrics([...metrics, { label: 'New Metric', value: '00', unit: '' }]);
+    updateMetrics([...metrics, { id: crypto.randomUUID(), label: 'New Metric', value: '00', unit: '' }]);
   };
 
   const updateItem = (idx: number, updates: Partial<MetricData>) => {

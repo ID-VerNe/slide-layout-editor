@@ -18,9 +18,8 @@ interface EditorProps {
  * Editor 核心组件 (Schema 驱动虚拟化版)
  */
 const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts, pages }) => {
-  if (!page || !page.layoutId) return null;
-
-  const template = useMemo(() => getTemplateById(page.layoutId), [page.layoutId]);
+  const layoutId = page?.layoutId;
+  const template = useMemo(() => layoutId ? getTemplateById(layoutId) : undefined, [layoutId]);
   const fields = template?.fields || [];
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +36,8 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
     estimateSize: (index) => index === 0 ? 100 : 120,
     overscan: 5,
   });
+
+  if (!page || !page.layoutId) return null;
 
   return (
     <div 

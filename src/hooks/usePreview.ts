@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { LAYOUT_CONFIG } from '../constants/layout';
+import { LAYOUT_CONFIG, AspectRatioType } from '../constants/layout';
 import { PrintSettings } from '../types';
 
 interface UsePreviewOptions {
@@ -17,7 +17,6 @@ export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = 
   
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const lastLayoutRef = useRef<string>('');
 
   const calculateFitZoom = useCallback(() => {
     // 关键加固：如果项目没加载完，或者 DOM 没准备好，不进行任何计算，防止死循环
@@ -31,7 +30,7 @@ export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = 
     const availableHeight = rect.height - padding;
 
     const currentPage = pages[currentPageIndex];
-    const designDims = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
+    const designDims = LAYOUT_CONFIG[(currentPage.aspectRatio || '16:9') as AspectRatioType];
     
     let targetWidth, targetHeight;
 

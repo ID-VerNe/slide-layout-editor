@@ -6,11 +6,11 @@ import { ZineStylePanel } from '../zine/ZineStylePanel';
 interface FieldWrapperProps {
   page: PageData;
   onUpdate: (page: PageData, silent?: boolean) => void;
-  fieldKey?: keyof PageData; // 修正类型
+  fieldKey?: string; // 允许任意合法字段或模块键名
   manualVisibility?: boolean;
   onToggle?: (isVisible: boolean) => void;
   label: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon | React.ComponentType<any>;
   children: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;

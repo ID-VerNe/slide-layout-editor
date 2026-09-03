@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { CustomFont, PrintSettings } from '../types';
 import { saveProject } from '../utils/db';
-import { useUI } from '../context/UIContext';
 import { useStore } from '../store/useStore';
-import { nativeFs } from '../utils/native-fs';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { updateRecentProjectThumbnail, upsertRecentProject } from '../services/recentProjects';
 
-export function useProject(projectId: string | undefined, templateId: string | null) {
-  const { alert: uiAlert, confirm } = useUI();
+export function useProject(projectId: string | undefined, _templateId: string | null) {
   
   const pages = useStore(s => s.pages);
   const projectTitle = useStore(s => s.projectTitle);
@@ -61,7 +57,6 @@ export function useProject(projectId: string | undefined, templateId: string | n
 
   const previewRefLocal = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef({ projectId, isLoaded, pages });
-  const lastHashRef = useRef<string>('');
   
   useEffect(() => {
     stateRef.current = { projectId, isLoaded, pages };

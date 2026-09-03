@@ -78,7 +78,7 @@ export const Text: React.FC<TextProps> = ({
         minSize={minSize}
         lineHeight={lineHeight}
         maxLines={maxLines}
-        fontFamily={computedStyle.fontFamily}
+        fontFamily={computedStyle.fontFamily as string || 'sans-serif'}
         className={className}
         style={computedStyle}
       />

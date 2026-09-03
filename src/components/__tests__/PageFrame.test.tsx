@@ -87,7 +87,7 @@ describe('PageFrame', () => {
     });
 
     it('pattern 为 grid 时渲染网格背景', () => {
-      const pageWithPattern = { ...mockPage, backgroundPattern: 'grid' };
+      const pageWithPattern: any = { ...mockPage, backgroundPattern: 'grid' };
       const { container } = render(
         <PageFrame page={pageWithPattern} pageIndex={0} totalPages={10}>
           <div>Content</div>
@@ -102,7 +102,7 @@ describe('PageFrame', () => {
       const patterns = ['grid', 'dots', 'diagonal', 'cross'];
 
       patterns.forEach((patternType) => {
-        const pageWithPattern = { ...mockPage, backgroundPattern: patternType };
+        const pageWithPattern: any = { ...mockPage, backgroundPattern: patternType };
         const { container } = render(
           <PageFrame page={pageWithPattern} pageIndex={0} totalPages={10}>
             <div>Content</div>
@@ -182,7 +182,7 @@ describe('PageFrame', () => {
         return selector(state);
       });
 
-      const pageWithDots = { ...mockPage, counterStyle: 'dots' };
+      const pageWithDots: any = { ...mockPage, counterStyle: 'dots' };
       const { container } = render(
         <PageFrame page={pageWithDots} pageIndex={2} totalPages={10}>
           <div>Content</div>
@@ -325,7 +325,7 @@ describe('PageFrame', () => {
     });
 
     it('folioAlignment 应覆盖 layoutVariant', () => {
-      const pageWithAlignment = {
+      const pageWithAlignment: any = {
         ...mockPage,
         layoutVariant: 'left',
         folioAlignment: 'right',

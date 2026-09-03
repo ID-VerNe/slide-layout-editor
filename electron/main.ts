@@ -44,7 +44,7 @@ function createWindow() {
   });
 
   if (VITE_DEV_SERVER_URL) win.loadURL(VITE_DEV_SERVER_URL);
-  else win.loadFile(path.join(process.env.DIST, 'index.html'));
+  else win.loadFile(path.join(process.env.DIST || '', 'index.html'));
   win.once('ready-to-show', () => win.show());
 }
 
@@ -200,7 +200,10 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('save-file-buffer', async (event, { filePath, base64Data }) => {
     try {
-      await fs.writeFile(filePath, Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64'));
+      if (typeof filePath !== 'string' || !base64Data || /[\x00-\x1f]/.test(filePath)) {
+        return { success: false, error: 'Invalid file path or data' };
+      }
+      await fs.writeFile(path.resolve(filePath), Buffer.from(base64Data.replace(/^data:.*;base64,/, ""), 'base64'));
       return { success: true };
     } catch (error: any) { return { success: false, error: error.message }; }
   });
@@ -214,12 +217,10 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('delete-project', async (event, projectPath) => {
     try {
-      const stats = await fs.stat(projectPath);
-      if (stats.isDirectory()) {
-        await fs.rm(projectPath, { recursive: true, force: true });
-        return { success: true };
+      if (typeof projectPath !== 'string' || /[\x00-\x1f]/.test(projectPath)) {
+        return { success: false, error: 'Invalid project path' };
       }
-      return { success: false, error: 'Path is not a directory' };
+      return await archiveManager.deleteProject(projectPath);
     } catch (error: any) {
       return { success: false, error: error.message };
     }

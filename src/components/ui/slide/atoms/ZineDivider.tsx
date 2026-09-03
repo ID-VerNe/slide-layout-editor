@@ -40,7 +40,6 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
 
   // 1. 统一提取数据连接与可见性状态
   const { isVisible, overrides } = useDataConnector(fieldKey, page);
-  if (!isVisible) return null;
   
   const { style, className: resolvedClassName } = useModularStyle({
     page,
@@ -49,6 +48,8 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
     customStyle,
     className
   });
+
+  if (!isVisible) return null;
 
   // 2. 智能厚度计算：优先读取 styleOverrides.thickness
   const overrideThickness = overrides?.thickness;

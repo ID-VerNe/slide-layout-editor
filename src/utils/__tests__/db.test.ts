@@ -279,7 +279,7 @@ describe('db.ts', () => {
     beforeEach(() => {
       document.createElement = vi.fn((tag: string) => {
         if (tag === 'canvas') return mockCanvas() as any;
-        return originalCreateElement.call(document, tag);
+        return (originalCreateElement as any).call(document, tag);
       }) as any;
     });
 

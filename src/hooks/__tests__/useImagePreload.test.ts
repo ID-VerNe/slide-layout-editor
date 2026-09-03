@@ -84,7 +84,7 @@ describe('useImagePreload', () => {
   });
 
   it('单个图片失败不应阻塞其他预加载', async () => {
-    vi.spyOn(imagePreloader, 'preload').mockImplementation((url: string) => {
+    vi.spyOn(imagePreloader, 'preload').mockImplementation((url?: string) => {
       if (url === 'https://a/bad.jpg') return Promise.reject(new Error('fail'));
       return Promise.resolve(undefined);
     });

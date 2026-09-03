@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { useStore } from '../../../../store/useStore';
-import { DesignSystem, ProjectTheme, PageData } from '../../../../types';
+import { PageData } from '../../../../types';
 
 interface UseModularStyleProps {
   fieldKey?: string;
   overrides?: Record<string, any>;
   props?: Record<string, any>;
-  variant?: 'display' | 'body' | 'caption';
+  variant?: 'display' | 'body' | 'caption' | 'h1' | 'h2';
   orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增方向支持
   customStyle?: React.CSSProperties;
   className?: string;
@@ -46,8 +46,9 @@ export const useModularStyle = ({
     let finalStyle: React.CSSProperties = { ...customStyle };
 
     // 1. 获取 Variant 基础样式 (Design System Tokens)
-    if (variant && ds?.tokens?.typography?.[variant]) {
-      const token = ds.tokens.typography[variant];
+    const variantKey = (variant === 'h1' || variant === 'h2') ? 'display' : variant;
+    if (variantKey && (ds?.tokens?.typography as any)?.[variantKey]) {
+      const token = (ds.tokens.typography as any)[variantKey];
       finalStyle.fontSize = token.fontSize;
       
       // Zine Mode 基线吸附逻辑
@@ -231,11 +232,6 @@ export const useModularStyle = ({
       'white', 'black', 'slate', 'gray', 'zinc', 'neutral', 'stone', 'red', 'orange', 
       'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 
       'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose', 'zine-accent'
-    ];
-
-    // 字体/排版类关键字 (用于从 className 中剔除，防止覆盖 inline style)
-    const fontKeywords = [
-      'font-', 'italic', 'tracking-', 'leading-', 'text-[', 'uppercase', 'lowercase', 'capitalize'
     ];
 
     return className
