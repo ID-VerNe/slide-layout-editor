@@ -18,6 +18,8 @@ import { TEMPLATES } from '../templates/registry';
 import { nativeFs } from '../utils/native-fs';
 import { useStore } from '../store/useStore';
 import { TemplatePreview } from '../components/ui/TemplatePreview';
+import { capturePageThumbnail } from '../utils/thumbnailCapture';
+import { upsertRecentProject } from '../services/recentProjects';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -150,32 +152,22 @@ export default function EditorPage() {
   }, [currentPage]);
 
   const generateThumb = useCallback(async () => {
-    if (!previewRef.current) return null;
-    try {
-      const el = previewRef.current.querySelector('.magazine-page');
-      if (el) {
-        if (nativeFs.isElectron()) {
-          const rect = el.getBoundingClientRect();
-          return await nativeFs.captureThumbnail(projectId!, { x: rect.x, y: rect.y, width: rect.width, height: rect.height });
-        }
-        return await toPng(el as HTMLElement, { pixelRatio: 0.2, quality: 0.5 });
-      }
-    } catch (e) {
-      console.warn('[Export] Failed to capture thumbnail:', e);
-    }
-    return null;
+    if (!previewRef.current || !projectId) return null;
+    return capturePageThumbnail(previewRef.current, projectId, { pixelRatio: 0.2, quality: 0.5 });
   }, [projectId]);
 
   const updateIndex = useCallback((thumb: any, path: string | null) => {
-    const recentKey = 'slidegrid_recent_projects';
-    let stored: string | null = null;
-    try { stored = localStorage.getItem(recentKey); } catch { stored = null; }
-    let recent: any[];
-    try { recent = JSON.parse(stored || '[]'); } catch { recent = []; }
-    recent = recent.filter((p: any) => p && p.id);
-    const entry = { id: projectId, title: projectTitle || fallbackTitle, date: new Date().toLocaleDateString(), lastModified: Date.now(), type: pages[0]?.layoutId, aspectRatio: pages[0]?.aspectRatio, thumbnail: thumb, filePath: path };
-    const updatedRecent = [entry, ...recent.filter((p: any) => p.id !== projectId)].slice(0, 48);
-    try { localStorage.setItem(recentKey, JSON.stringify(updatedRecent)); } catch { /* quota exceeded or storage unavailable */ }
+    if (!projectId) return;
+    upsertRecentProject({
+      id: projectId,
+      title: projectTitle || fallbackTitle,
+      date: new Date().toLocaleDateString(),
+      lastModified: Date.now(),
+      type: pages[0]?.layoutId,
+      aspectRatio: pages[0]?.aspectRatio,
+      thumbnail: thumb,
+      filePath: path
+    });
   }, [projectId, projectTitle, fallbackTitle, pages]);
 
   const handleSmartSave = useCallback(async () => {

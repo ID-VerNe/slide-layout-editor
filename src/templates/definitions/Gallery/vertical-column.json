@@ -1,0 +1,297 @@
+{
+  "id": "vertical-column",
+  "name": "Vertical Column",
+  "category": "Gallery",
+  "desc": "Left-bleed image with a structured white sidebar on the right.",
+  "tags": [
+    "Gallery",
+    "Minimalist",
+    "Sidebar"
+  ],
+  "supportedRatios": [
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "variant",
+      "label": "Image Side",
+      "type": "switcher",
+      "props": {
+        "mode": "left-right",
+        "options": [
+          {
+            "value": "left",
+            "label": "Image Left",
+            "icon": "AlignLeft"
+          },
+          {
+            "value": "right",
+            "label": "Image Right",
+            "icon": "AlignRight"
+          }
+        ]
+      }
+    },
+    {
+      "key": "title",
+      "label": "Stacked Headline (Right)"
+    },
+    {
+      "key": "subtitle",
+      "label": "Sidebar Teaser (Top-Left of Title)"
+    },
+    {
+      "key": "paragraph",
+      "label": "Detailed Paragraph (Bottom)"
+    },
+    {
+      "key": "image",
+      "label": "Left Bleed Artwork"
+    },
+    {
+      "key": "imageLabel",
+      "label": "Catalog Info"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Conditional",
+        "condition": "{page.layoutVariant === \"right\"}",
+        "then": {
+          "type": "Container",
+          "layout": "modular",
+          "layoutProps": {
+            "columns": 24,
+            "rows": 24
+          },
+          "className": "absolute inset-0",
+          "children": [
+            {
+              "type": "Container",
+              "layout": "absolute",
+              "modular": {
+                "colStart": 9,
+                "colSpan": 16,
+                "rowStart": 1,
+                "rowSpan": 24
+              },
+              "className": "shadow-2xl z-10",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineMedia",
+                  "props": {
+                    "className": "w-full h-full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "row",
+                "align": "center",
+                "justify": "center",
+                "gap": "spacing.md"
+              },
+              "modular": {
+                "colStart": 1,
+                "colSpan": 8,
+                "rowStart": 1,
+                "rowSpan": 24
+              },
+              "className": "bg-zine-surface z-20",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineBody",
+                  "bind": "page.paragraph",
+                  "style": {
+                    "writingMode": "vertical-rl",
+                    "maxHeight": "60%"
+                  },
+                  "props": {
+                    "size": 1.4,
+                    "italic": true,
+                    "color": "secondary",
+                    "serif": true,
+                    "className": "opacity-40"
+                  }
+                },
+                {
+                  "type": "Container",
+                  "className": "w-px h-32 bg-zine-accent/20",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.subtitle",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "tracking": 0.4,
+                    "color": "secondary",
+                    "sans": true,
+                    "className": "opacity-60"
+                  }
+                },
+                {
+                  "type": "Container",
+                  "className": "w-px h-32 bg-zine-accent/30",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineDisplay",
+                  "bind": "page.title",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "size": 4.4,
+                    "bold": true,
+                    "tracking": -0.05,
+                    "serif": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "else": {
+          "type": "Container",
+          "layout": "modular",
+          "layoutProps": {
+            "columns": 24,
+            "rows": 24
+          },
+          "className": "absolute inset-0",
+          "children": [
+            {
+              "type": "Container",
+              "layout": "absolute",
+              "modular": {
+                "colStart": 1,
+                "colSpan": 16,
+                "rowStart": 1,
+                "rowSpan": 24
+              },
+              "className": "shadow-2xl z-10",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineMedia",
+                  "props": {
+                    "className": "w-full h-full"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "row",
+                "align": "center",
+                "justify": "center",
+                "gap": "spacing.md"
+              },
+              "modular": {
+                "colStart": 17,
+                "colSpan": 8,
+                "rowStart": 1,
+                "rowSpan": 24
+              },
+              "className": "bg-zine-surface z-20",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineBody",
+                  "bind": "page.paragraph",
+                  "style": {
+                    "writingMode": "vertical-rl",
+                    "maxHeight": "60%"
+                  },
+                  "props": {
+                    "size": 1.4,
+                    "italic": true,
+                    "color": "secondary",
+                    "serif": true,
+                    "className": "opacity-40"
+                  }
+                },
+                {
+                  "type": "Container",
+                  "className": "w-px h-32 bg-zine-accent/20",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.subtitle",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "tracking": 0.4,
+                    "color": "secondary",
+                    "sans": true,
+                    "className": "opacity-60"
+                  }
+                },
+                {
+                  "type": "Container",
+                  "className": "w-px h-32 bg-zine-accent/30",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineDisplay",
+                  "bind": "page.title",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "size": 4.4,
+                    "bold": true,
+                    "tracking": -0.05,
+                    "serif": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.imageLabel",
+        "modular": {
+          "colStart": 1,
+          "colSpan": 24,
+          "rowStart": 21,
+          "rowSpan": 1
+        },
+        "props": {
+          "align": "{page.layoutVariant === \"right\" ? \"right\" : \"left\"}",
+          "color": "surface",
+          "sans": true,
+          "className": "{page.layoutVariant === \"right\" ? \"pr-12\" : \"pl-12\"} opacity-60 mix-blend-difference"
+        }
+      }
+    ]
+  }
+}

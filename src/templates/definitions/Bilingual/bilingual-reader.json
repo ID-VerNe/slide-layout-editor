@@ -1,0 +1,276 @@
+{
+  "id": "bilingual-reader",
+  "name": "Bilingual Reader",
+  "category": "Bilingual",
+  "desc": "Editorial bilingual reading page with cinematic crop, drop cap, and curated vocabulary footnote.",
+  "tags": [
+    "Bilingual",
+    "Reader",
+    "Xiaohongshu",
+    "Editorial"
+  ],
+  "supportedRatios": [
+    "3:4",
+    "2:3",
+    "16:9"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Chapter Header"
+    },
+    {
+      "key": "subtitle",
+      "label": "Article Topic"
+    },
+    {
+      "key": "image",
+      "label": "Cinematic Banner Image"
+    },
+    {
+      "key": "paragraph",
+      "label": "English Body (Drop Cap)"
+    },
+    {
+      "key": "paragraphZH",
+      "label": "Chinese Translation"
+    },
+    {
+      "key": "vocabItems",
+      "label": "Curated Vocabulary"
+    },
+    {
+      "key": "sideHeader",
+      "label": "Side Stamp"
+    }
+  ],
+  "defaultData": {
+    "title": "THE ART OF LIVING",
+    "subtitle": "ESSAY // PART 01",
+    "sideHeader": "THE NEW YORKER // FEB 2026",
+    "image": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=1080&auto=format&fit=crop",
+    "paragraph": "Architecture begins where engineering ends. In the quiet morning light, we discover that solitude is not the absence of company, but the presence of oneself. It is an intentional sanctuary where thoughts find their authentic resonance.",
+    "paragraphZH": "建筑在工程学止步之处诞生。在静谧晨光中，我们终将发现，独处并非陪伴的缺席，而是自我的真正驻足。它是一座静候沉思的心灵圣所。",
+    "vocabItems": [
+      {
+        "id": "v1",
+        "word": "SANCTUARY",
+        "pos": "n.",
+        "phonetic": "ˈsæŋk.tʃu.er.i",
+        "meaning": "圣所，庇护所；避难处"
+      },
+      {
+        "id": "v2",
+        "word": "RESONANCE",
+        "pos": "n.",
+        "phonetic": "ˈrez.ən.əns",
+        "meaning": "共鸣；回响；深沉的声音"
+      },
+      {
+        "id": "v3",
+        "word": "AUTHENTIC",
+        "pos": "adj.",
+        "phonetic": "ɔːˈθen.tɪk",
+        "meaning": "真实的，真正的；非仿造的"
+      },
+      {
+        "id": "v4",
+        "word": "SOLITUDE",
+        "pos": "n.",
+        "phonetic": "ˈsɒl.ɪ.tʃuːd",
+        "meaning": "独处，独居；幽静"
+      }
+    ]
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "row",
+          "align": "center",
+          "justify": "between"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 2,
+          "rowSpan": 1
+        },
+        "className": "border-b border-zine-accent/10 pb-1.5",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.title",
+            "props": {
+              "size": 1.25,
+              "bold": true,
+              "tracking": 0.3,
+              "sans": true,
+              "className": "uppercase opacity-60",
+              "color": "primary"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.subtitle",
+            "props": {
+              "size": 1.25,
+              "tracking": 0.2,
+              "sans": true,
+              "className": "uppercase opacity-40",
+              "color": "secondary"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.sideHeader",
+        "modular": {
+          "colStart": 23,
+          "colSpan": 1,
+          "rowStart": 3,
+          "rowSpan": 14,
+          "align": "center",
+          "justify": "center"
+        },
+        "props": {
+          "orientation": "vertical-rotate",
+          "size": 1.25,
+          "bold": true,
+          "tracking": 0.35,
+          "sans": true,
+          "className": "uppercase opacity-35",
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineMedia",
+        "bind": "page.image",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 3,
+          "rowSpan": 5
+        },
+        "props": {
+          "className": "overflow-hidden rounded-none",
+          "imgClassName": "object-cover w-full h-full filter saturate-[0.9]"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineBody",
+        "bind": "page.paragraph",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 9,
+          "rowSpan": 6
+        },
+        "props": {
+          "serif": true,
+          "dropCap": true,
+          "size": 2.25,
+          "leading": 1.7,
+          "align": "left",
+          "className": "text-zine-primary font-serif tracking-normal selection:bg-zine-accent/20",
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineBody",
+        "bind": "page.paragraphZH",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 15,
+          "rowSpan": 4
+        },
+        "props": {
+          "zh": true,
+          "size": 1.875,
+          "leading": 1.7,
+          "align": "left",
+          "className": "text-zine-secondary font-serif opacity-80",
+          "color": "secondary"
+        }
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "row",
+          "align": "center",
+          "justify": "between"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 19,
+          "rowSpan": 1
+        },
+        "className": "border-t border-zine-accent/15 pt-2 mb-1",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "props": {
+              "text": "VOCABULARY ARCHIVE",
+              "size": 1.25,
+              "bold": true,
+              "tracking": 0.4,
+              "sans": true,
+              "className": "uppercase opacity-40",
+              "color": "primary"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "props": {
+              "text": "CURATED // KEY TERMS",
+              "size": 1.125,
+              "tracking": 0.25,
+              "sans": true,
+              "className": "uppercase opacity-30",
+              "color": "secondary"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineVocabList",
+        "bind": "page.vocabItems",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 20,
+          "rowSpan": 4,
+          "align": "start"
+        },
+        "props": {
+          "columns": 2,
+          "showExample": false,
+          "size": 2.25
+        }
+      }
+    ]
+  }
+}

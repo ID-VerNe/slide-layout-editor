@@ -1,0 +1,149 @@
+{
+  "id": "typography-hero",
+  "name": "Typography Hero",
+  "category": "General",
+  "desc": "Oversized typography focused layout.",
+  "tags": [
+    "Impact",
+    "Typography",
+    "Minimalist"
+  ],
+  "supportedRatios": [
+    "16:9",
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "topDivider",
+      "label": "Top Divider",
+      "type": "separator"
+    },
+    {
+      "key": "title",
+      "label": "Headline"
+    },
+    {
+      "key": "paragraph",
+      "label": "Body Copy"
+    },
+    {
+      "key": "bottomDivider",
+      "label": "Bottom Divider",
+      "type": "separator"
+    },
+    {
+      "key": "subtitle",
+      "label": "Sub-Headline"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Component",
+        "componentType": "ZineDivider",
+        "fieldKey": "topDivider",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 20,
+          "rowStart": 8,
+          "rowSpan": 1,
+          "align": "center"
+        },
+        "props": {
+          "color": "secondary",
+          "thickness": "1px",
+          "style": {
+            "opacity": 0.3
+          }
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineDisplay",
+        "bind": "page.title",
+        "modular": {
+          "colStart": 4,
+          "colSpan": 18,
+          "rowStart": 9,
+          "rowSpan": 1,
+          "align": "center"
+        },
+        "props": {
+          "size": 6.5,
+          "align": "center",
+          "tracking": 0.5,
+          "color": "accent",
+          "serif": true
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineBody",
+        "bind": "page.paragraph",
+        "modular": {
+          "colStart": 5,
+          "colSpan": 16,
+          "rowStart": 11,
+          "rowSpan": 2,
+          "align": "start"
+        },
+        "props": {
+          "size": 2.25,
+          "align": "center",
+          "italic": true,
+          "tracking": 0.1,
+          "leading": 1.8,
+          "color": "secondary",
+          "serif": true
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineDivider",
+        "fieldKey": "bottomDivider",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 20,
+          "rowStart": 13,
+          "rowSpan": 1,
+          "align": "center"
+        },
+        "props": {
+          "color": "secondary",
+          "thickness": "1px",
+          "style": {
+            "opacity": 0.3
+          }
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.subtitle",
+        "modular": {
+          "colStart": 4,
+          "colSpan": 18,
+          "rowStart": 16,
+          "rowSpan": 1,
+          "align": "start"
+        },
+        "props": {
+          "size": 1.25,
+          "align": "center",
+          "tracking": 0.4,
+          "opacity": 0.4,
+          "color": "secondary",
+          "sans": true
+        }
+      }
+    ]
+  }
+}

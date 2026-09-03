@@ -26,6 +26,7 @@ const ALL_TEMPLATE_IDS = [
   'kinfolk-essay',
   'typography-hero',
   // --- Product / Marketing / General Series ---
+  'apple-bento-grid',
   'modern-feature',
   'component-mosaic',
   'platform-hero',
@@ -43,12 +44,12 @@ const ALL_TEMPLATE_IDS = [
   'bilingual-glossary'
 ];
 
-test.describe('全量模板 (34 个) 渲染完整性与无崩溃地毯式巡检', () => {
+test.describe('全量模板 (36 个) 渲染完整性与无崩溃地毯式巡检', () => {
   test.beforeEach(async ({ page }) => {
     await createNewProjectAndEnterEditor(page);
   });
 
-  test('逐一挂载并渲染全部 34 个模板，验证画布不塌陷、未触发 Error Boundary 且控制台零报错', async ({ page, consoleErrors }) => {
+  test('逐一挂载并渲染全部 36 个模板，验证画布不塌陷、未触发 Error Boundary 且控制台零报错', async ({ page, consoleErrors }) => {
     // 依次巡检全部模板
     for (const templateId of ALL_TEMPLATE_IDS) {
       // 1. 通过页面上下文安全切换当前页面的 layoutId

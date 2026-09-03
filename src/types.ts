@@ -1,4 +1,4 @@
-import { TemplateId } from './templates/registry';
+export type TemplateId = string;
 
 export type AspectRatioType = '16:9' | '2:3' | '3:4' | 'A4' | '1:1';
 export type CounterStyle = 'number' | 'alpha' | 'roman' | 'dots';

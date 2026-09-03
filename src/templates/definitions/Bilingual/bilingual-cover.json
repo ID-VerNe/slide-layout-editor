@@ -1,0 +1,231 @@
+{
+  "id": "bilingual-cover",
+  "name": "Bilingual Cover",
+  "category": "Bilingual",
+  "desc": "Gallery-style bilingual editorial cover with high negative space and grand serif masthead.",
+  "tags": [
+    "Bilingual",
+    "Cover",
+    "Xiaohongshu",
+    "Cereal"
+  ],
+  "supportedRatios": [
+    "3:4",
+    "2:3",
+    "16:9"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Magazine Masthead"
+    },
+    {
+      "key": "subtitle",
+      "label": "Featured Article Title"
+    },
+    {
+      "key": "paragraphZH",
+      "label": "Chinese Sub-Tagline"
+    },
+    {
+      "key": "image",
+      "label": "Cover Image"
+    },
+    {
+      "key": "imageLabel",
+      "label": "Photo Caption"
+    },
+    {
+      "key": "imageSubLabel",
+      "label": "Issue Volume"
+    },
+    {
+      "key": "actionText",
+      "label": "Edition Date/Year"
+    },
+    {
+      "key": "sideHeader",
+      "label": "Side Stamp"
+    }
+  ],
+  "defaultData": {
+    "title": "B I L I N G U A L  E S S A Y",
+    "subtitle": "The Quiet Architecture of Solitude",
+    "paragraphZH": "独处的沉静建筑学：在喧嚣时代重建自我的精神画廊。",
+    "image": "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1080&auto=format&fit=crop",
+    "imageLabel": "FIG. 01 — ARCHITECTURAL REFLECTION IN SILENCE",
+    "imageSubLabel": "VOL. 01 // ISSUE 04",
+    "actionText": "SPRING 2026",
+    "sideHeader": "SELECTED ESSAYS // THE TIMES"
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Component",
+        "componentType": "ZineDisplay",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 2,
+          "rowSpan": 2,
+          "align": "end"
+        },
+        "bind": "page.title",
+        "props": {
+          "serif": true,
+          "bold": true,
+          "tracking": 0.25,
+          "size": 4.5,
+          "className": "uppercase tracking-[0.25em]",
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "row",
+          "align": "center",
+          "justify": "between"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 4,
+          "rowSpan": 1
+        },
+        "className": "border-b border-zine-accent/20 pb-2",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.imageSubLabel",
+            "props": {
+              "size": 1.25,
+              "bold": true,
+              "tracking": 0.25,
+              "sans": true,
+              "className": "uppercase opacity-60",
+              "color": "secondary"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.actionText",
+            "props": {
+              "size": 1.25,
+              "bold": true,
+              "tracking": 0.2,
+              "sans": true,
+              "className": "uppercase opacity-60",
+              "color": "secondary"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.sideHeader",
+        "modular": {
+          "colStart": 23,
+          "colSpan": 1,
+          "rowStart": 6,
+          "rowSpan": 12,
+          "align": "center",
+          "justify": "center"
+        },
+        "props": {
+          "orientation": "vertical-rotate",
+          "size": 1.25,
+          "bold": true,
+          "tracking": 0.35,
+          "sans": true,
+          "className": "uppercase opacity-40",
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineMedia",
+        "bind": "page.image",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 6,
+          "rowSpan": 12
+        },
+        "props": {
+          "className": "shadow-sm",
+          "imgClassName": "object-cover w-full h-full"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.imageLabel",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 18,
+          "rowSpan": 1,
+          "align": "start"
+        },
+        "props": {
+          "size": 1.25,
+          "sans": true,
+          "tracking": 0.15,
+          "className": "opacity-40 italic",
+          "color": "secondary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineDisplay",
+        "bind": "page.subtitle",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 19,
+          "rowSpan": 3,
+          "align": "center"
+        },
+        "props": {
+          "serif": true,
+          "italic": true,
+          "size": 2.75,
+          "leading": 1.2,
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineBody",
+        "bind": "page.paragraphZH",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 22,
+          "rowSpan": 2,
+          "align": "start"
+        },
+        "props": {
+          "zh": true,
+          "size": 1.875,
+          "leading": 1.6,
+          "className": "opacity-70",
+          "color": "secondary"
+        }
+      }
+    ]
+  }
+}

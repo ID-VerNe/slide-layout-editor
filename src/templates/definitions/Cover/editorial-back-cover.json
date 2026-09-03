@@ -1,0 +1,102 @@
+{
+  "id": "editorial-back-cover",
+  "name": "Editorial Back",
+  "category": "Cover",
+  "desc": "Minimalist magazine back cover.",
+  "tags": [
+    "Cover",
+    "Editorial",
+    "Minimalist"
+  ],
+  "supportedRatios": [
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Back Title (e.g. THANKS)"
+    },
+    {
+      "key": "subtitle",
+      "label": "Copyright / Publisher Line"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center"
+        },
+        "modular": {
+          "colStart": 7,
+          "colSpan": 12,
+          "rowStart": 11,
+          "rowSpan": 3
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineDisplay",
+            "bind": "page.title",
+            "props": {
+              "className": "text-center",
+              "size": 4,
+              "italic": true,
+              "tracking": 0.4,
+              "serif": true,
+              "color": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center",
+          "gap": "spacing.md"
+        },
+        "modular": {
+          "colStart": 5,
+          "colSpan": 16,
+          "rowStart": 20,
+          "rowSpan": 2
+        },
+        "children": [
+          {
+            "type": "Container",
+            "className": "w-6 h-px bg-zine-accent/30",
+            "children": []
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.subtitle",
+            "props": {
+              "className": "uppercase text-center",
+              "size": 1.25,
+              "tracking": 0.5,
+              "leading": 2,
+              "sans": true,
+              "color": "secondary"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

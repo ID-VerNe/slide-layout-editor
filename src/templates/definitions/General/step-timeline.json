@@ -1,0 +1,194 @@
+{
+  "id": "step-timeline",
+  "name": "Step Timeline",
+  "category": "General",
+  "desc": "Sequential timeline process flow.",
+  "tags": [
+    "Timeline",
+    "Process",
+    "Sequential"
+  ],
+  "supportedRatios": [
+    "16:9",
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "title"
+    },
+    {
+      "key": "subtitle"
+    },
+    {
+      "key": "features"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg px-24",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center",
+          "gap": "spacing.md"
+        },
+        "modular": {
+          "colStart": 4,
+          "colSpan": 16,
+          "rowStart": 3,
+          "rowSpan": 3
+        },
+        "children": [
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineDisplay",
+                "bind": "page.title",
+                "props": {
+                  "size": 5,
+                  "bold": true,
+                  "align": "center",
+                  "serif": true
+                }
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.subtitle",
+                "props": {
+                  "align": "center",
+                  "color": "secondary",
+                  "sans": true,
+                  "className": "opacity-60 max-w-2xl"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "modular",
+        "layoutProps": {
+          "columns": 24,
+          "rows": 16
+        },
+        "modular": {
+          "colStart": 1,
+          "colSpan": 24,
+          "rowStart": 7,
+          "rowSpan": 14
+        },
+        "children": [
+          {
+            "type": "Container",
+            "layout": "absolute",
+            "style": {
+              "left": "32px",
+              "top": "40px",
+              "bottom": "40px",
+              "width": "1px"
+            },
+            "className": "bg-zine-accent opacity-20",
+            "children": []
+          },
+          {
+            "type": "Repeater",
+            "bind": "page.features",
+            "template": {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "row",
+                "align": "center",
+                "gap": "spacing.xl"
+              },
+              "className": "mb-8 relative z-10",
+              "children": [
+                {
+                  "type": "Container",
+                  "className": "w-16 h-16 rounded-full bg-zine-surface border border-zine-accent/20 flex items-center justify-center shrink-0 shadow-sm",
+                  "children": [
+                    {
+                      "type": "Component",
+                      "componentType": "ZineCaption",
+                      "props": {
+                        "text": "{index + 1}",
+                        "bold": true,
+                        "color": "accent",
+                        "sans": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Container",
+                  "layout": "flex",
+                  "layoutProps": {
+                    "direction": "column"
+                  },
+                  "className": "flex-1",
+                  "children": [
+                    {
+                      "type": "Component",
+                      "componentType": "ZineCaption",
+                      "props": {
+                        "text": "{item.title}",
+                        "size": 2.4,
+                        "bold": true,
+                        "sans": true
+                      }
+                    },
+                    {
+                      "type": "Component",
+                      "componentType": "ZineBody",
+                      "props": {
+                        "text": "{item.desc}",
+                        "size": 1.75,
+                        "leading": 1.625,
+                        "color": "secondary",
+                        "serif": true,
+                        "className": "opacity-60"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "Container",
+                  "className": "w-[400px] h-32 rounded-[2rem] bg-zine-surface shadow-lg border border-zine-accent/15 overflow-hidden shrink-0",
+                  "children": [
+                    {
+                      "type": "Component",
+                      "componentType": "ZineMedia",
+                      "props": {
+                        "src": "{item.icon}",
+                        "className": "w-full h-full object-cover"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

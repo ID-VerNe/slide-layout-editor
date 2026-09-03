@@ -5,8 +5,11 @@ import { Plus, FolderOpen, Settings, Layout, FileText, Map as MapIcon, Clock, Ch
 import { nativeFs } from '../utils/native-fs';
 import { deleteProject } from '../utils/db';
 import { useUI } from '../context/UIContext';
-
-const RECENT_KEY = 'magazine_recent_projects';
+import { 
+  getRecentProjects, 
+  saveRecentProjects, 
+  removeRecentProject 
+} from '../services/recentProjects';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -57,26 +60,19 @@ export default function Dashboard() {
     }
 
     // 2. 合并 LocalStorage 历史记录 (保证 Web 与迁移记录不丢失)
-    const saved = localStorage.getItem(RECENT_KEY);
-    if (saved) {
-      try { 
-        const recent = JSON.parse(saved);
-        recent.forEach((p: any) => {
-          if (!uniqueMap.has(p.id)) {
-            uniqueMap.set(p.id, p);
-          }
-        });
-      } catch (e) {
-        console.error("Failed to parse recent localStorage:", e);
+    const recentProjects = getRecentProjects();
+    recentProjects.forEach((p) => {
+      if (!uniqueMap.has(p.id)) {
+        uniqueMap.set(p.id, p);
       }
-    }
+    });
 
     const mergedList = Array.from(uniqueMap.values()).sort((a: any, b: any) => (b.lastModified || 0) - (a.lastModified || 0));
     setProjects(mergedList);
 
     // 同步写回 LocalStorage 做持久化缓存备份
     if (mergedList.length > 0) {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(mergedList.slice(0, 48)));
+      saveRecentProjects(mergedList);
     }
   };
 
@@ -110,13 +106,8 @@ export default function Dashboard() {
   const handleRemoveRecord = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     confirm('Remove Record', 'Remove this project from recent list?', () => {
-      const saved = localStorage.getItem(RECENT_KEY);
-      if (saved) {
-        const recent = JSON.parse(saved);
-        const filtered = recent.filter((p: any) => p.id !== id);
-        localStorage.setItem(RECENT_KEY, JSON.stringify(filtered));
-        setProjects(filtered);
-      }
+      removeRecentProject(id);
+      setProjects(prev => prev.filter((p: any) => p.id !== id));
     });
   };
 

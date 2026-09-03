@@ -1,0 +1,285 @@
+{
+  "id": "kinfolk-feature",
+  "name": "Editorial Feature",
+  "category": "Gallery",
+  "desc": "Vertical typography with imagery.",
+  "tags": [
+    "Kinfolk",
+    "Portrait"
+  ],
+  "supportedRatios": [
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "variant",
+      "label": "Image Side",
+      "type": "switcher",
+      "props": {
+        "mode": "left-right",
+        "options": [
+          {
+            "value": "left",
+            "label": "Image Left",
+            "icon": "AlignLeft"
+          },
+          {
+            "value": "right",
+            "label": "Image Right",
+            "icon": "AlignRight"
+          }
+        ]
+      }
+    },
+    {
+      "key": "title"
+    },
+    {
+      "key": "subtitle"
+    },
+    {
+      "key": "image"
+    },
+    {
+      "key": "imageLabel"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Conditional",
+        "condition": "{page.layoutVariant === \"right\"}",
+        "then": {
+          "type": "Container",
+          "layout": "modular",
+          "layoutProps": {
+            "columns": 24,
+            "rows": 24
+          },
+          "className": "absolute inset-0",
+          "children": [
+            {
+              "type": "Container",
+              "layout": "absolute",
+              "modular": {
+                "colStart": 7,
+                "colSpan": 17,
+                "rowStart": 3,
+                "rowSpan": 16
+              },
+              "className": "bg-zine-surface shadow-xl p-2 border-[0.5px] border-zine-accent/10",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineMedia",
+                  "props": {
+                    "className": "w-full h-full"
+                  }
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.imageLabel",
+                  "style": {
+                    "position": "absolute",
+                    "bottom": "16px",
+                    "right": "16px",
+                    "mixBlendMode": "difference"
+                  },
+                  "props": {
+                    "className": "opacity-60",
+                    "color": "surface",
+                    "size": 1,
+                    "sans": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "justify": "center",
+                "align": "start"
+              },
+              "modular": {
+                "colStart": 1,
+                "colSpan": 6,
+                "rowStart": 3,
+                "rowSpan": 16
+              },
+              "className": "pt-8",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineDisplay",
+                  "bind": "page.title",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "className": "!normal-case",
+                    "tracking": 0.15,
+                    "serif": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "column",
+                "align": "end"
+              },
+              "modular": {
+                "colStart": 7,
+                "colSpan": 16,
+                "rowStart": 20,
+                "rowSpan": 2
+              },
+              "className": "pr-8 pt-4",
+              "children": [
+                {
+                  "type": "Container",
+                  "className": "w-10 h-px bg-zine-accent mb-6",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.subtitle",
+                  "props": {
+                    "className": "text-right",
+                    "tracking": 0.2,
+                    "sans": true,
+                    "color": "secondary"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "else": {
+          "type": "Container",
+          "layout": "modular",
+          "layoutProps": {
+            "columns": 24,
+            "rows": 24
+          },
+          "className": "absolute inset-0",
+          "children": [
+            {
+              "type": "Container",
+              "layout": "absolute",
+              "modular": {
+                "colStart": 2,
+                "colSpan": 17,
+                "rowStart": 3,
+                "rowSpan": 16
+              },
+              "className": "bg-zine-surface shadow-xl p-2 border-[0.5px] border-zine-accent/10",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineMedia",
+                  "props": {
+                    "className": "w-full h-full"
+                  }
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.imageLabel",
+                  "style": {
+                    "position": "absolute",
+                    "bottom": "16px",
+                    "left": "16px",
+                    "mixBlendMode": "difference"
+                  },
+                  "props": {
+                    "className": "opacity-60",
+                    "color": "surface",
+                    "size": 1,
+                    "sans": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "justify": "center",
+                "align": "start"
+              },
+              "modular": {
+                "colStart": 19,
+                "colSpan": 6,
+                "rowStart": 3,
+                "rowSpan": 16
+              },
+              "className": "pt-8",
+              "children": [
+                {
+                  "type": "Component",
+                  "componentType": "ZineDisplay",
+                  "bind": "page.title",
+                  "style": {
+                    "writingMode": "vertical-rl"
+                  },
+                  "props": {
+                    "className": "!normal-case",
+                    "tracking": 0.15,
+                    "serif": true
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "column",
+                "align": "start"
+              },
+              "modular": {
+                "colStart": 2,
+                "colSpan": 16,
+                "rowStart": 20,
+                "rowSpan": 2
+              },
+              "className": "pl-8 pt-4",
+              "children": [
+                {
+                  "type": "Container",
+                  "className": "w-10 h-px bg-zine-accent mb-6",
+                  "children": []
+                },
+                {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "bind": "page.subtitle",
+                  "props": {
+                    "className": "text-left",
+                    "tracking": 0.2,
+                    "sans": true,
+                    "color": "secondary"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

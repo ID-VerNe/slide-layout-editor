@@ -1,0 +1,256 @@
+{
+  "id": "community-hub",
+  "name": "Community Hub",
+  "category": "Marketing",
+  "desc": "Call to action with testimonials and partner grid.",
+  "tags": [
+    "Community",
+    "Social",
+    "Marketing"
+  ],
+  "supportedRatios": [
+    "16:9",
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Main Title"
+    },
+    {
+      "key": "subtitle",
+      "label": "Subtitle"
+    },
+    {
+      "key": "imageLabel",
+      "label": "Call-to-Action"
+    },
+    {
+      "key": "partnersTitle",
+      "label": "Partners Section Title",
+      "defaultValue": "POWERED BY",
+      "placeholder": "e.g., Trusted by, Used by"
+    },
+    {
+      "key": "partners"
+    },
+    {
+      "key": "testimonials"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "start",
+          "justify": "center",
+          "gap": "spacing.xl"
+        },
+        "modular": {
+          "colStart": 1,
+          "colSpan": 11,
+          "rowStart": 1,
+          "rowSpan": 24
+        },
+        "className": "bg-zine-surface shadow-2xl px-16 relative z-10",
+        "children": [
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.logo",
+                "props": {
+                  "className": "opacity-20",
+                  "sans": true
+                }
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "layout": "flex",
+            "layoutProps": {
+              "direction": "column",
+              "gap": "spacing.lg"
+            },
+            "children": [
+              {
+                "type": "Container",
+                "children": [
+                  {
+                    "type": "Component",
+                    "componentType": "ZineDisplay",
+                    "bind": "page.title",
+                    "props": {
+                      "size": 7,
+                      "bold": true,
+                      "tracking": -0.05,
+                      "serif": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Container",
+                "children": [
+                  {
+                    "type": "Component",
+                    "componentType": "ZineCaption",
+                    "bind": "page.subtitle",
+                    "props": {
+                      "size": 2.25,
+                      "color": "secondary",
+                      "sans": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Container",
+                "children": [
+                  {
+                    "type": "Component",
+                    "componentType": "ZineCaption",
+                    "bind": "page.imageLabel",
+                    "props": {
+                      "className": "mt-4 px-8 py-3 bg-zine-accent/10 rounded-full",
+                      "color": "accent",
+                      "sans": true
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "layout": "flex",
+            "layoutProps": {
+              "direction": "column",
+              "gap": "spacing.md"
+            },
+            "className": "pt-12 border-t border-zine-accent/10 w-full",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.partnersTitle",
+                "props": {
+                  "size": 1.25,
+                  "tracking": 0.1,
+                  "className": "opacity-40 uppercase",
+                  "sans": true
+                }
+              },
+              {
+                "type": "Repeater",
+                "bind": "page.partners",
+                "template": {
+                  "type": "Component",
+                  "componentType": "ZineCaption",
+                  "props": {
+                    "text": "{item.name}",
+                    "size": 1.5,
+                    "bold": true,
+                    "sans": true
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center",
+          "gap": "spacing.lg"
+        },
+        "modular": {
+          "colStart": 12,
+          "colSpan": 13,
+          "rowStart": 1,
+          "rowSpan": 24
+        },
+        "className": "bg-zine-bg px-12 relative",
+        "children": [
+          {
+            "type": "Container",
+            "className": "absolute inset-0 opacity-[0.02] pointer-events-none",
+            "style": {
+              "backgroundImage": "radial-gradient(currentColor 1px, transparent 1px)",
+              "backgroundSize": "40px 40px"
+            },
+            "children": []
+          },
+          {
+            "type": "Repeater",
+            "bind": "page.testimonials",
+            "template": {
+              "type": "Container",
+              "layout": "flex",
+              "layoutProps": {
+                "direction": "row",
+                "align": "start",
+                "gap": "spacing.md"
+              },
+              "className": "p-8 bg-zine-surface rounded-[2rem] shadow-sm border border-zine-accent/10 max-w-full",
+              "children": [
+                {
+                  "type": "Container",
+                  "className": "w-12 h-12 rounded-full bg-zine-accent/10 shrink-0",
+                  "children": []
+                },
+                {
+                  "type": "Container",
+                  "layout": "flex",
+                  "layoutProps": {
+                    "direction": "column",
+                    "gap": "spacing.xs"
+                  },
+                  "children": [
+                    {
+                      "type": "Component",
+                      "componentType": "ZineCaption",
+                      "props": {
+                        "text": "{item.name}",
+                        "bold": true,
+                        "sans": true
+                      }
+                    },
+                    {
+                      "type": "Component",
+                      "componentType": "ZineBody",
+                      "props": {
+                        "text": "\"{item.quote}\"",
+                        "size": 2,
+                        "serif": true,
+                        "className": "opacity-60"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

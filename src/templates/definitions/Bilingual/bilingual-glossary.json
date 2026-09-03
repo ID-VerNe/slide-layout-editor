@@ -1,0 +1,254 @@
+{
+  "id": "bilingual-glossary",
+  "name": "Bilingual Glossary",
+  "category": "Bilingual",
+  "desc": "Curated gallery vocabulary cards with phonetic, part-of-speech, and contextual bilingual examples.",
+  "tags": [
+    "Bilingual",
+    "Vocabulary",
+    "Xiaohongshu",
+    "Lexicon"
+  ],
+  "supportedRatios": [
+    "3:4",
+    "2:3",
+    "16:9"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Glossary Title"
+    },
+    {
+      "key": "subtitle",
+      "label": "Volume / Section Header"
+    },
+    {
+      "key": "actionText",
+      "label": "Term Count / Index"
+    },
+    {
+      "key": "vocabItems",
+      "label": "Curated Vocabulary List"
+    },
+    {
+      "key": "paragraphZH",
+      "label": "Reading Tips / Colophon"
+    },
+    {
+      "key": "imageLabel",
+      "label": "Archive Tag"
+    },
+    {
+      "key": "sideHeader",
+      "label": "Side Stamp"
+    }
+  ],
+  "defaultData": {
+    "title": "CURATED VOCABULARY",
+    "subtitle": "THE ESSAY ARCHIVE // ISSUE 01",
+    "actionText": "4 KEY TERMS",
+    "sideHeader": "LEXICON ARCHIVE // VOL. 01",
+    "paragraphZH": "※ 重点词汇精选自本期外刊精读，建议结合原句语境进行沉浸式复述。",
+    "imageLabel": "ARCHIVE NO. 2026-04",
+    "vocabItems": [
+      {
+        "id": "v1",
+        "word": "DESPERATE",
+        "pos": "adj.",
+        "phonetic": "ˈdes.pər.ət",
+        "meaning": "拼命的，绝望的；极其渴望的",
+        "example": "He was desperate for any sign of approval.",
+        "exampleZH": "他极度渴望得到一丝认可的迹象。"
+      },
+      {
+        "id": "v2",
+        "word": "EPHEMERAL",
+        "pos": "adj.",
+        "phonetic": "ɪˈfem.ər.əl",
+        "meaning": "短暂的；瞬息即逝的",
+        "example": "Fame in the modern world is often ephemeral.",
+        "exampleZH": "在现代社会，名声往往转瞬即逝。"
+      },
+      {
+        "id": "v3",
+        "word": "METICULOUS",
+        "pos": "adj.",
+        "phonetic": "məˈtɪk.jə.ləs",
+        "meaning": "一丝不苟的，缜密的",
+        "example": "Her attention to typographical detail was meticulous.",
+        "exampleZH": "她对排印细节的把控严谨而缜密。"
+      },
+      {
+        "id": "v4",
+        "word": "SERENDIPITY",
+        "pos": "n.",
+        "phonetic": "ˌser.ənˈdɪp.ə.ti",
+        "meaning": "机缘凑巧；偶然发现珍奇事物的本领",
+        "example": "Finding this book was a pure moment of serendipity.",
+        "exampleZH": "偶遇这本书是一次绝妙的机缘。"
+      }
+    ]
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "start",
+          "justify": "center"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 2,
+          "rowSpan": 3
+        },
+        "className": "border-b-2 border-zine-primary pb-3",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.subtitle",
+            "props": {
+              "size": 1.25,
+              "bold": true,
+              "tracking": 0.3,
+              "sans": true,
+              "className": "uppercase opacity-60 mb-1",
+              "color": "secondary"
+            }
+          },
+          {
+            "type": "Container",
+            "layout": "flex",
+            "layoutProps": {
+              "direction": "row",
+              "align": "baseline",
+              "justify": "between"
+            },
+            "className": "w-full",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineDisplay",
+                "bind": "page.title",
+                "props": {
+                  "serif": true,
+                  "size": 3.5,
+                  "tracking": 0.04,
+                  "className": "uppercase tracking-wider font-serif",
+                  "color": "primary"
+                }
+              },
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.actionText",
+                "props": {
+                  "size": 1.25,
+                  "tracking": 0.2,
+                  "sans": true,
+                  "className": "uppercase opacity-60 font-mono",
+                  "color": "secondary"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineCaption",
+        "bind": "page.sideHeader",
+        "modular": {
+          "colStart": 23,
+          "colSpan": 1,
+          "rowStart": 4,
+          "rowSpan": 16,
+          "align": "center",
+          "justify": "center"
+        },
+        "props": {
+          "orientation": "vertical-rotate",
+          "size": 1.25,
+          "bold": true,
+          "tracking": 0.35,
+          "sans": true,
+          "className": "uppercase opacity-40",
+          "color": "primary"
+        }
+      },
+      {
+        "type": "Component",
+        "componentType": "ZineVocabList",
+        "bind": "page.vocabItems",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 6,
+          "rowSpan": 14,
+          "align": "start"
+        },
+        "props": {
+          "columns": 2,
+          "showExample": true,
+          "size": 2.25
+        }
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "row",
+          "align": "start",
+          "justify": "between",
+          "gap": "spacing.md"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 19,
+          "rowStart": 21,
+          "rowSpan": 2
+        },
+        "className": "border-t border-zine-accent/15 pt-3",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.paragraphZH",
+            "props": {
+              "zh": true,
+              "size": 1.75,
+              "leading": 1.6,
+              "className": "opacity-70 italic",
+              "color": "secondary"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.imageLabel",
+            "props": {
+              "size": 1.25,
+              "sans": true,
+              "tracking": 0.2,
+              "className": "uppercase opacity-50 shrink-0",
+              "color": "primary"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

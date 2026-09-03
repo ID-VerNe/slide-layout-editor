@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { CustomFont, PrintSettings } from '../types';
 import { saveProject } from '../utils/db';
-import { toPng } from 'html-to-image';
 import { useUI } from '../context/UIContext';
 import { useStore } from '../store/useStore';
 import { nativeFs } from '../utils/native-fs';
+import { capturePageThumbnail } from '../utils/thumbnailCapture';
+import { updateRecentProjectThumbnail, upsertRecentProject } from '../services/recentProjects';
 
 export function useProject(projectId: string | undefined, templateId: string | null) {
   const { alert: uiAlert, confirm } = useUI();
@@ -76,39 +77,15 @@ export function useProject(projectId: string | undefined, templateId: string | n
       if (document.hidden || !previewRefLocal.current) return;
 
       try {
-        let base64 = null;
-        if (nativeFs.isElectron()) {
-          // Electron: 极速截图，宽 240px
-          const pageEl = previewRefLocal.current.querySelector('.magazine-page');
-          if (pageEl) {
-            const rect = pageEl.getBoundingClientRect();
-            base64 = await nativeFs.captureThumbnail(curId, {
-              x: rect.x, y: rect.y, width: rect.width, height: rect.height
-            });
-          }
-        } else {
-          // Web: 极致低精度截图
-          const pageEl = previewRefLocal.current.querySelector('.magazine-page') as HTMLElement;
-          if (pageEl) {
-            // pixelRatio 0.1，并设置 style 缩放，极大减少 canvas 内存占用
-            base64 = await toPng(pageEl, { 
-              pixelRatio: 0.1, 
-              quality: 0.1, 
-              skipFonts: true,
-              cacheBust: true
-            });
-          }
-        }
+        const base64 = await capturePageThumbnail(previewRefLocal.current, curId, {
+          pixelRatio: 0.1,
+          quality: 0.1,
+          skipFonts: true,
+          cacheBust: true,
+        });
 
         if (base64) {
-          const indexSaved = localStorage.getItem('magazine_recent_projects');
-          let index = indexSaved ? JSON.parse(indexSaved) : [];
-          const existingIdx = index.findIndex((p: any) => p.id === curId);
-          
-          if (existingIdx > -1) {
-            index[existingIdx].thumbnail = base64;
-            localStorage.setItem('magazine_recent_projects', JSON.stringify(index));
-          }
+          updateRecentProjectThumbnail(curId, base64);
         }
       } catch (e) {
         console.warn('[Thumbnail] Failed to generate or save thumbnail:', e);
@@ -133,22 +110,12 @@ export function useProject(projectId: string | undefined, templateId: string | n
     }
 
     let thumbnail: string | null = null;
-    if (forceThumbnail) {
-      try {
-        const el = previewRefLocal.current?.querySelector('.magazine-page');
-        if (el) {
-          if (nativeFs.isElectron()) {
-            const rect = el.getBoundingClientRect();
-            thumbnail = await nativeFs.captureThumbnail(projectId, {
-              x: rect.x, y: rect.y, width: rect.width, height: rect.height
-            });
-          } else {
-            thumbnail = await toPng(el as HTMLElement, { pixelRatio: 0.2, quality: 0.5, skipFonts: true });
-          }
-        }
-      } catch (e) {
-        console.warn('[Save] Failed to generate thumbnail:', e);
-      }
+    if (forceThumbnail && previewRefLocal.current) {
+      thumbnail = await capturePageThumbnail(previewRefLocal.current, projectId, {
+        pixelRatio: 0.2,
+        quality: 0.5,
+        skipFonts: true,
+      });
     }
 
     // 保存主数据
@@ -168,21 +135,15 @@ export function useProject(projectId: string | undefined, templateId: string | n
     });
 
     // 更新索引元数据
-    const indexSaved = localStorage.getItem('magazine_recent_projects');
-    let index = indexSaved ? JSON.parse(indexSaved) : [];
-    const existingIdx = index.findIndex((p: any) => p.id === projectId);
-
-    const summary: any = {
-      id: projectId, title: projectTitle || (pages[0]?.title),
-      date: new Date().toLocaleDateString(), type: pages[0]?.layoutId,
+    const summary = {
+      id: projectId,
+      title: projectTitle || (pages[0]?.title) || 'Untitled',
+      date: new Date().toLocaleDateString(),
+      type: pages[0]?.layoutId,
       aspectRatio: pages[0]?.aspectRatio,
-      thumbnail: thumbnail || (existingIdx > -1 ? index[existingIdx].thumbnail : null)
+      thumbnail: thumbnail || null,
     };
-
-    if (existingIdx > -1) index[existingIdx] = { ...index[existingIdx], ...summary };
-    else index.unshift(summary);
-
-    localStorage.setItem('magazine_recent_projects', JSON.stringify(index.slice(0, 24)));
+    upsertRecentProject(summary);
   }, [pages, projectId, isLoaded, activeProjectId, projectTitle, theme, designSystem, customFonts, imageQuality, printSettings, minimalCounter, counterStyle, currentFilePath]);
 
   return {

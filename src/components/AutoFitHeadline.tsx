@@ -13,15 +13,12 @@ interface AutoFitHeadlineProps {
   children?: React.ReactNode; 
 }
 
-// 缓存系统 (容量限制保护)
-const MAX_CACHE_ENTRIES = 500;
-const fontCache = new Map<string, number>();
+import { LRUCache } from '../utils/lruCache';
+
+// 缓存系统 (复用通用 LRUCache)
+const fontCache = new LRUCache<string, number>(500);
 
 const setCache = (key: string, val: number) => {
-  if (fontCache.size >= MAX_CACHE_ENTRIES) {
-    const firstKey = fontCache.keys().next().value;
-    if (firstKey) fontCache.delete(firstKey);
-  }
   fontCache.set(key, val);
 };
 

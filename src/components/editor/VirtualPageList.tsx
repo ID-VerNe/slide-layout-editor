@@ -1,12 +1,13 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Settings, Eraser, Trash2 } from 'lucide-react';
 import { PageData } from '../../types';
 import { BrandLogo } from '../ui/BrandLogo';
-import { LAYOUT_CONFIG } from '../../constants/layout';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useUI } from '../../context/UIContext';
 import ActionButton from '../ui/ActionButton';
+import { useDragReorder } from './virtual-page-list/useDragReorder';
+import { VirtualPageListItem } from './virtual-page-list/VirtualPageListItem';
 
 interface VirtualPageListProps {
   pages: PageData[];
@@ -26,8 +27,8 @@ interface VirtualPageListProps {
   onNativeOpen: () => void;
 }
 
-const ITEM_HEIGHT = 72; // 每个页面的高度 (w-24 minus px-3 on both sides)
-const ITEM_GAP = 16; // 页面之间的间距 (gap-4)
+const ITEM_HEIGHT = 72; // 每个页面的高度
+const ITEM_GAP = 16; // 页面之间的间距
 
 const VirtualPageList: React.FC<VirtualPageListProps> = ({
   pages,
@@ -39,14 +40,17 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
   onClearAll,
   onToggleFontManager,
   showFontManager,
-  onNavigateHome
+  onNavigateHome,
 }) => {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const lastReorderRef = useRef(0);
-  const lastDragOverIndexRef = useRef<number>(-1);
-  const draggedPageIdRef = useRef<string | null>(null);
   const { confirm } = useUI();
+
+  const {
+    draggedIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useDragReorder({ pages, onReorderPages });
 
   const rowVirtualizer = useVirtualizer({
     count: pages.length + 1, // +1 for the "Add New Slide" button
@@ -57,7 +61,7 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
 
   const virtualItems = rowVirtualizer.getVirtualItems();
 
-  // 滚动到当前页面
+  // 滚动到当前选中的页面
   useEffect(() => {
     if (currentPageIndex >= 0 && parentRef.current) {
       rowVirtualizer.scrollToIndex(currentPageIndex, {
@@ -67,141 +71,30 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
     }
   }, [currentPageIndex, rowVirtualizer]);
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-    draggedPageIdRef.current = pages[index]?.id || null;
-    lastDragOverIndexRef.current = index;
-  };
-
-  const commitReorder = (targetIndex: number) => {
-    const currentDraggedIndex = pages.findIndex(p => p.id === draggedPageIdRef.current);
-    if (
-      draggedPageIdRef.current == null ||
-      currentDraggedIndex === -1 ||
-      currentDraggedIndex === targetIndex ||
-      targetIndex >= pages.length
-    ) return;
-
-    const newPages = [...pages];
-    const [draggedPage] = newPages.splice(currentDraggedIndex, 1);
-    newPages.splice(targetIndex, 0, draggedPage);
-
-    onReorderPages(newPages);
-    lastReorderRef.current = Date.now();
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index || index >= pages.length) return;
-
-    lastDragOverIndexRef.current = index;
-    setDraggedIndex(index);
-
-    // 限制 reorder 调用频率，避免 drag-over 每秒生成大量 undo 记录
-    const now = Date.now();
-    if (now - lastReorderRef.current < 100) return;
-
-    commitReorder(index);
-  };
-
-  const handleDragEnd = () => {
-    const finalTarget = lastDragOverIndexRef.current;
-    if (finalTarget >= 0) {
-      commitReorder(finalTarget);
-    }
-    setDraggedIndex(null);
-    draggedPageIdRef.current = null;
-    lastDragOverIndexRef.current = -1;
+  const handleClearAll = () => {
+    confirm('Clear Project', 'Are you sure you want to clear all pages and reset the project? This action cannot be undone.', onClearAll);
   };
 
   const handleRemoveCurrentPage = () => {
-    const currentPageId = pages[currentPageIndex]?.id;
-    if (!currentPageId) return;
-    confirm('Delete Slide', 'Are you sure you want to delete the current slide? This cannot be undone.', () => {
-      onRemovePage(currentPageId);
-    });
-  };
-
-  const handleClearAll = () => {
-    confirm('Reset Project', 'This will reset the project to its initial state. All unsaved changes will be lost. Continue?', () => {
-      onClearAll();
-    });
-  };
-
-  const renderPageItem = (index: number, style: React.CSSProperties) => {
-    if (index === pages.length) {
-      // Render "Add New Slide" button
-      return (
-        <div style={style} className="px-3 w-full flex items-center justify-center">
-          <button 
-            onClick={(e) => { e.preventDefault(); onAddPage(); }}
-            className="w-12 h-12 shrink-0 rounded-2xl border-2 border-dashed border-slate-200 text-slate-300 hover:border-[#264376] hover:text-[#264376] hover:bg-[#264376]/10 flex items-center justify-center transition-all active:scale-90"
-            title="Add New Slide"
-          >
-            <Plus size={24} strokeWidth={3} />
-          </button>
-        </div>
-      );
+    if (pages.length <= 1) {
+      return;
     }
-
-    const page = pages[index];
-    const isActive = index === currentPageIndex;
-    const dims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
-    const isPortrait = dims.height > dims.width;
-
-    return (
-      <div
-        style={style}
-        draggable
-        onDragStart={() => handleDragStart(index)}
-        onDragOver={(e) => handleDragOver(e, index)}
-        onDragEnd={handleDragEnd}
-        className={`relative px-3 w-full group cursor-grab active:cursor-grabbing transition-all
-          ${draggedIndex === index ? 'opacity-50' : 'opacity-100'}`}
-      >
-        {isActive && (
-          <motion.div 
-            layoutId="active-bar"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#264376] rounded-r-full z-10"
-          />
-        )}
-        
-        <button
-          onClick={() => onPageSelect(index)}
-          className={`w-full aspect-square transition-all flex flex-col items-center justify-center relative overflow-hidden border-2 rounded-2xl
-            ${isActive 
-              ? 'border-[#264376] bg-white shadow-xl shadow-[#264376]/10' 
-              : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-300 hover:bg-slate-100'}`}
-        >
-          <div className="flex flex-col items-center gap-1 opacity-60 pointer-events-none scale-110">
-            <div 
-              className={`border-[1.5px] rounded-sm transition-all duration-500 flex items-center justify-center
-                ${isActive ? 'border-[#264376] bg-[#264376]/5' : 'border-slate-300 bg-white'}
-                ${isPortrait ? 'w-6 h-9' : 'w-10 h-6'}`}
-            >
-              <span className={`text-[8px] font-black ${isActive ? 'text-[#264376]' : 'text-slate-300'}`}>
-                {index + 1}
-              </span>
-            </div>
-          </div>
-          <div className="absolute inset-0 bg-[#264376]/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            <span className="text-[8px] font-black text-white uppercase tracking-tighter">
-              {page.layoutId.split('-')[0]}
-            </span>
-          </div>
-        </button>
-      </div>
-    );
+    const cur = pages[currentPageIndex];
+    if (!cur) return;
+    confirm('Delete Page', 'Are you sure you want to delete this page?', () => {
+      onRemovePage(cur.id);
+    });
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ x: -80 }}
       animate={{ x: 0 }}
       className="w-24 h-full bg-white border-r border-neutral-200 flex flex-col items-center z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
     >
       <div className="w-full h-16 flex items-center justify-center shrink-0 border-b border-slate-50">
-        <button 
+        <button
+          type="button"
           onClick={onNavigateHome}
           className="w-12 h-12 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
           title="Back to Dashboard"
@@ -209,11 +102,8 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
           <BrandLogo className="w-full h-full" />
         </button>
       </div>
-      
-      <div
-        ref={parentRef}
-        className="flex-1 w-full overflow-y-auto no-scrollbar pt-6 pb-6"
-      >
+
+      <div ref={parentRef} className="flex-1 w-full overflow-y-auto no-scrollbar pt-6 pb-6">
         <div
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
@@ -221,28 +111,67 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
             position: 'relative',
           }}
         >
-          {virtualItems.map((virtualItem) => (
-            <div
-              key={virtualItem.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-            >
-              {renderPageItem(virtualItem.index, {
-                height: `${ITEM_HEIGHT}px`,
-              })}
-            </div>
-          ))}
+          {virtualItems.map((virtualItem) => {
+            const index = virtualItem.index;
+            const isAddButton = index === pages.length;
+
+            if (isAddButton) {
+              return (
+                <div
+                  key={virtualItem.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                >
+                  <div style={{ height: `${ITEM_HEIGHT}px` }} className="px-3 w-full">
+                    <button
+                      type="button"
+                      onClick={onAddPage}
+                      className="w-full aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-300 hover:text-zine-accent hover:border-zine-accent hover:bg-slate-50 transition-all group"
+                      title="Add New Slide"
+                    >
+                      <Plus size={24} strokeWidth={3} />
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            const page = pages[index];
+            return (
+              <div
+                key={virtualItem.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
+              >
+                <VirtualPageListItem
+                  page={page}
+                  index={index}
+                  isActive={index === currentPageIndex}
+                  isDragged={draggedIndex === index}
+                  style={{ height: `${ITEM_HEIGHT}px` }}
+                  onPageSelect={onPageSelect}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
       <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-4 border-t border-slate-50 w-full px-3">
         <ActionButton onClick={onToggleFontManager} icon={Settings} title="Settings" active={showFontManager} size="sm" />
-
         <div className="h-px w-8 bg-slate-100 my-1" />
         <ActionButton onClick={handleRemoveCurrentPage} icon={Trash2} title="Delete Slide" danger size="sm" />
         <ActionButton onClick={handleClearAll} icon={Eraser} title="Reset Project" danger size="sm" />
@@ -250,4 +179,5 @@ const VirtualPageList: React.FC<VirtualPageListProps> = ({
     </motion.div>
   );
 };
+
 export default VirtualPageList;

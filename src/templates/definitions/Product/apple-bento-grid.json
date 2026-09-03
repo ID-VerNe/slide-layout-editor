@@ -1,0 +1,193 @@
+{
+  "id": "apple-bento-grid",
+  "name": "Bento Showcase",
+  "category": "Product",
+  "desc": "Apple-style modular grid.",
+  "tags": [
+    "Bento",
+    "Grid"
+  ],
+  "supportedRatios": [
+    "16:9"
+  ],
+  "fields": [
+    {
+      "key": "title"
+    },
+    {
+      "key": "subtitle"
+    },
+    {
+      "key": "logo"
+    },
+    {
+      "key": "bentoItems"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.sm"
+    },
+    "className": "w-full h-full relative p-8 bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "modular",
+        "modular": {
+          "colStart": 1,
+          "colSpan": 16,
+          "rowStart": 1,
+          "rowSpan": 16
+        },
+        "className": "bg-zine-surface rounded-3xl p-12 relative overflow-hidden group",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineDisplay",
+            "modular": {
+              "colStart": 2,
+              "colSpan": 20,
+              "rowStart": 2,
+              "rowSpan": 6
+            },
+            "bind": "page.title",
+            "props": {
+              "size": 6,
+              "color": "primary"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineMedia",
+            "modular": {
+              "colStart": 1,
+              "colSpan": 24,
+              "rowStart": 8,
+              "rowSpan": 17
+            },
+            "props": {
+              "className": "mt-8 !rounded-2xl"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "justify": "center",
+          "align": "center"
+        },
+        "modular": {
+          "colStart": 17,
+          "colSpan": 8,
+          "rowStart": 1,
+          "rowSpan": 8
+        },
+        "className": "bg-zine-primary rounded-3xl p-8 text-center",
+        "children": [
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.metricLabel",
+                "props": {
+                  "color": "accent",
+                  "className": "mb-4 opacity-50"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineDisplay",
+                "bind": "page.metricValue",
+                "props": {
+                  "size": 7.5,
+                  "color": "surface"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "absolute",
+        "modular": {
+          "colStart": 17,
+          "colSpan": 8,
+          "rowStart": 9,
+          "rowSpan": 8
+        },
+        "className": "bg-zine-accent rounded-3xl overflow-hidden",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineMedia",
+            "props": {
+              "className": "w-full h-full grayscale hover:grayscale-0 transition-all duration-700"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "align": "center",
+          "justify": "between"
+        },
+        "modular": {
+          "colStart": 1,
+          "colSpan": 24,
+          "rowStart": 17,
+          "rowSpan": 8
+        },
+        "className": "bg-zine-surface/50 border border-zine-surface rounded-3xl px-12",
+        "children": [
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineBody",
+                "bind": "page.paragraph",
+                "props": {
+                  "className": "max-w-md",
+                  "color": "secondary"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.subtitle",
+                "props": {
+                  "tracking": 0.5,
+                  "bold": true,
+                  "sans": true,
+                  "color": "primary"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

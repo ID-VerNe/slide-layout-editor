@@ -1,0 +1,238 @@
+{
+  "id": "editorial-classic",
+  "name": "Editorial Classic",
+  "category": "Cover",
+  "desc": "Kinfolk style magazine cover with large central image.",
+  "tags": [
+    "Cover",
+    "Editorial",
+    "Classic"
+  ],
+  "supportedRatios": [
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Magazine Masthead"
+    },
+    {
+      "key": "subtitle",
+      "label": "Issue Theme/Tagline"
+    },
+    {
+      "key": "image",
+      "label": "Cover Image"
+    },
+    {
+      "key": "imageLabel",
+      "label": "Issue Month"
+    },
+    {
+      "key": "imageSubLabel",
+      "label": "Issue Volume"
+    },
+    {
+      "key": "actionText",
+      "label": "Year/Edition"
+    }
+  ],
+  "defaultData": {
+    "title": "MAGAZINE TITLE",
+    "subtitle": "Issue Theme",
+    "imageLabel": "JANUARY",
+    "actionText": "2026"
+  },
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "absolute",
+        "modular": {
+          "colStart": 1,
+          "colSpan": 24,
+          "rowStart": 1,
+          "rowSpan": 15
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineMedia",
+            "props": {
+              "className": "w-full h-full object-cover"
+            }
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.imageSubLabel",
+            "style": {
+              "position": "absolute",
+              "top": "40px",
+              "right": "40px",
+              "mixBlendMode": "difference"
+            },
+            "props": {
+              "size": 1.25,
+              "tracking": 0.6,
+              "italic": true,
+              "className": "opacity-40",
+              "color": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center"
+        },
+        "modular": {
+          "colStart": 4,
+          "colSpan": 18,
+          "rowStart": 17,
+          "rowSpan": 3
+        },
+        "children": [
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineDisplay",
+                "bind": "page.title",
+                "props": {
+                  "align": "center",
+                  "italic": true,
+                  "tracking": 0.2,
+                  "size": 6,
+                  "color": "accent"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineCaption",
+                "bind": "page.subtitle",
+                "props": {
+                  "align": "center",
+                  "tracking": 0.8,
+                  "bold": true,
+                  "className": "uppercase opacity-30 mt-4",
+                  "color": "accent"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "modular",
+        "layoutProps": {
+          "columns": 24,
+          "rows": 2
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 20,
+          "rowStart": 21,
+          "rowSpan": 2
+        },
+        "className": "border-t border-zine-accent/15 pt-4",
+        "children": [
+          {
+            "type": "Container",
+            "layout": "flex",
+            "layoutProps": {
+              "direction": "column",
+              "align": "start",
+              "justify": "end"
+            },
+            "modular": {
+              "colStart": 1,
+              "colSpan": 10,
+              "rowStart": 1,
+              "rowSpan": 2
+            },
+            "children": [
+              {
+                "type": "Container",
+                "children": [
+                  {
+                    "type": "Component",
+                    "componentType": "ZineCaption",
+                    "bind": "page.imageSubLabel",
+                    "props": {
+                      "size": 1.25,
+                      "tracking": 0.1,
+                      "className": "opacity-40 uppercase"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Container",
+                "children": [
+                  {
+                    "type": "Component",
+                    "componentType": "ZineDisplay",
+                    "bind": "page.imageLabel",
+                    "props": {
+                      "size": 3,
+                      "tracking": 0.1,
+                      "className": "uppercase",
+                      "color": "accent"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "layout": "flex",
+            "layoutProps": {
+              "align": "end",
+              "justify": "end"
+            },
+            "modular": {
+              "colStart": 18,
+              "colSpan": 7,
+              "rowStart": 1,
+              "rowSpan": 2
+            },
+            "children": [
+              {
+                "type": "Component",
+                "componentType": "ZineDisplay",
+                "bind": "page.actionText",
+                "props": {
+                  "size": 8,
+                  "italic": true,
+                  "tracking": -0.05,
+                  "className": "opacity-10 leading-none"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "id": "back-cover-movie",
+  "name": "Back Cover Movie",
+  "category": "Gallery",
+  "desc": "Movie credits style back cover.",
+  "tags": [
+    "Cinematic"
+  ],
+  "supportedRatios": [
+    "16:9",
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "image"
+    },
+    {
+      "key": "logoSize"
+    },
+    {
+      "key": "title"
+    },
+    {
+      "key": "subtitle"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "absolute",
+        "modular": {
+          "colStart": 3,
+          "colSpan": 20,
+          "rowStart": 3,
+          "rowSpan": 14
+        },
+        "className": "mask-movie-feather",
+        "style": {
+          "WebkitMaskImage": "radial-gradient(ellipse, black 50%, transparent 100%)",
+          "maskImage": "radial-gradient(ellipse, black 50%, transparent 100%)"
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineMedia",
+            "props": {
+              "className": "w-full h-full object-cover grayscale brightness-90 contrast-110"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center"
+        },
+        "modular": {
+          "colStart": 3,
+          "colSpan": 20,
+          "rowStart": 18,
+          "rowSpan": 3
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineDisplay",
+            "bind": "page.title",
+            "props": {
+              "className": "uppercase opacity-90",
+              "tracking": 0.5,
+              "size": 4,
+              "serif": true,
+              "color": "primary"
+            }
+          },
+          {
+            "type": "Container",
+            "className": "w-12 h-px bg-zine-accent/20 my-6",
+            "children": []
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.subtitle",
+            "props": {
+              "className": "uppercase opacity-60",
+              "tracking": 0.8,
+              "sans": true,
+              "color": "secondary"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

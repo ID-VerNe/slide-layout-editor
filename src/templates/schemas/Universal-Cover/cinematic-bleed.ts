@@ -38,7 +38,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'start' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 4, rowSpan: 3 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 4, rowSpan: 3 },
               className: 'pt-8',
               children: [
                 {
@@ -54,7 +54,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 19, rowSpan: 1 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 19, rowSpan: 1 },
               children: [
                 {
                   type: 'Component',
@@ -77,7 +77,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'center' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 18, rowSpan: 1 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 18, rowSpan: 1 },
               children: [
                 {
                   type: 'Component',
@@ -92,7 +92,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
               type: 'Container',
               layout: 'flex',
               layoutProps: { direction: 'column', align: 'center', justify: 'end' },
-              modular: { colStart: 0, colSpan: 24, rowStart: 19, rowSpan: 2 },
+              modular: { colStart: 1, colSpan: 24, rowStart: 19, rowSpan: 2 },
               className: 'pb-8',
               children: [
                 {
@@ -112,7 +112,7 @@ export const CinematicFullBleedSchema: TemplateSchema = {
         type: 'Container',
         layout: 'flex',
         layoutProps: { direction: 'row', align: 'center', justify: 'center' },
-        modular: { colStart: 0, colSpan: 24, rowStart: 21, rowSpan: 1 },
+        modular: { colStart: 1, colSpan: 24, rowStart: 21, rowSpan: 1 },
         style: { position: 'relative', zIndex: 10 },
         children: [
           {

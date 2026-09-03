@@ -1,0 +1,144 @@
+{
+  "id": "floating-gallery",
+  "name": "Floating Gallery",
+  "category": "Gallery",
+  "desc": "Centered floating imagery with wide passepartout margins.",
+  "tags": [
+    "Gallery",
+    "Classic",
+    "Floating"
+  ],
+  "supportedRatios": [
+    "2:3"
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "Headline (Slanted)"
+    },
+    {
+      "key": "subtitle",
+      "label": "Poetic Verse (Under Line)"
+    },
+    {
+      "key": "paragraph",
+      "label": "Detailed Paragraph (Bottom)"
+    },
+    {
+      "key": "image",
+      "label": "Main Artwork"
+    },
+    {
+      "key": "footer",
+      "label": "Catalog Info",
+      "type": "footer"
+    }
+  ],
+  "root": {
+    "type": "Container",
+    "layout": "modular",
+    "layoutProps": {
+      "columns": 24,
+      "rows": 24,
+      "gap": "spacing.none"
+    },
+    "className": "w-full h-full relative p-0 overflow-hidden bg-zine-bg",
+    "children": [
+      {
+        "type": "Container",
+        "layout": "absolute",
+        "modular": {
+          "colStart": 5,
+          "colSpan": 16,
+          "rowStart": 3,
+          "rowSpan": 10
+        },
+        "className": "bg-zine-surface shadow-2xl p-0 overflow-hidden border-[1px] border-zine-accent/10",
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineMedia",
+            "props": {
+              "className": "w-full h-full"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "start"
+        },
+        "modular": {
+          "colStart": 5,
+          "colSpan": 16,
+          "rowStart": 19,
+          "rowSpan": 4
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineDisplay",
+            "bind": "page.title",
+            "props": {
+              "tracking": 0.4,
+              "italic": true,
+              "align": "center",
+              "className": "uppercase",
+              "serif": true
+            }
+          },
+          {
+            "type": "Container",
+            "className": "w-8 h-px bg-zine-accent my-6 opacity-30",
+            "children": []
+          },
+          {
+            "type": "Component",
+            "componentType": "ZineCaption",
+            "bind": "page.subtitle",
+            "props": {
+              "align": "center",
+              "tracking": 0.1,
+              "color": "secondary",
+              "sans": true,
+              "className": "opacity-60"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Container",
+        "layout": "flex",
+        "layoutProps": {
+          "direction": "column",
+          "align": "center",
+          "justify": "center"
+        },
+        "modular": {
+          "colStart": 6,
+          "colSpan": 13,
+          "rowStart": 19,
+          "rowSpan": 2
+        },
+        "children": [
+          {
+            "type": "Component",
+            "componentType": "ZineBody",
+            "bind": "page.paragraph",
+            "props": {
+              "align": "center",
+              "size": 1.6,
+              "color": "secondary",
+              "className": "opacity-40",
+              "serif": true
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
