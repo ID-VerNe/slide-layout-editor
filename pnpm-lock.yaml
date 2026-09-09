@@ -50,6 +50,9 @@ importers:
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
+      tex-linebreak:
+        specifier: ^0.9.0
+        version: 0.9.0
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -2279,6 +2282,9 @@ packages:
     resolution: {integrity: sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==}
     engines: {node: '>=14.0.0'}
     hasBin: true
+
+  tex-linebreak@0.9.0:
+    resolution: {integrity: sha512-yimhmfKUf9q80vptG33sMa/KqE/EyZatMOWD43yN5a7vm65zacaAAekmwZcul1fRF+nPGdCTPj4Ppw5ZuB4yxA==}
 
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
@@ -4646,6 +4652,8 @@ snapshots:
     transitivePeerDependencies:
       - tsx
       - yaml
+
+  tex-linebreak@0.9.0: {}
 
   text-segmentation@1.0.3:
     dependencies:

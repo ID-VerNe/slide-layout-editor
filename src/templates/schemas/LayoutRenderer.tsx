@@ -8,6 +8,7 @@ import { resolveBaseProps } from './renderer/basePropsResolver';
 import { renderContainer } from './renderer/containerRenderer';
 import { renderComponent } from './renderer/componentRenderer';
 import { renderRepeater } from './renderer/repeaterRenderer';
+import { KnuthPlassText } from '../../components/ui/KnuthPlassText';
 
 export interface LayoutRendererProps {
   node: TemplateNode;
@@ -145,7 +146,28 @@ const LayoutRendererInternal: React.FC<LayoutRendererInternalProps> = ({
     case 'Text': {
       const content = evaluator.interpolate(node.content, context);
       const { className, style } = resolveBaseProps(node, context, ds, resolveZIndex);
-      return <div className={className} style={style}>{content}</div>;
+      
+      const fontFamily = (style?.fontFamily as string) || typography?.defaultLatin || 'sans-serif';
+      const rawFontSize = style?.fontSize;
+      const parsedSize = typeof rawFontSize === 'number' ? rawFontSize : parseInt(String(rawFontSize || 24), 10);
+      
+      const maxSize = parsedSize || 24;
+      const minSize = 10;
+      const align = style?.textAlign || 'justify';
+      const maxLines = 100;
+      
+      return (
+        <KnuthPlassText
+          text={content}
+          className={className}
+          style={style}
+          fontFamily={fontFamily}
+          maxSize={maxSize as number}
+          minSize={minSize as number}
+          align={align as any}
+          maxLines={maxLines as number}
+        />
+      );
     }
 
     case 'Conditional': {
