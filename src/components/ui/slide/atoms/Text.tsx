@@ -34,7 +34,7 @@ export const Text: React.FC<TextProps> = ({
   as: Component = 'div',
   sanitize = true
 }) => {
-  const textContent = content || (typeof children === 'string' ? children : '');
+  const textContent = typeof content === 'string' ? content : (content !== undefined && content !== null ? String(content) : (typeof children === 'string' ? children : ''));
 
   // 仅当文本中明确包含 HTML 标签时才使用 DOMPurify 与 dangerouslySetInnerHTML
   // 纯文本直接作为 React 节点渲染，防止数学比较符（如 `< $10M`）被误杀

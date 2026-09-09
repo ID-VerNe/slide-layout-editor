@@ -44,14 +44,18 @@ export function useDebouncedValue<T>(
     }
   }, []);
 
-  // Sync internal state when the external initialValue changes.
+  // Sync internal state when the external initialValue changes from outside.
+  // 若 external initialValue 正好等于当前组件内部正在编辑的值（由 onImmediateChange 触发回流），
+  // 则切勿重置 isPendingRef 或取消防抖定时器，否则会导致防抖 onChange 永远无法触发。
   useEffect(() => {
-    setValue(initialValue);
-    initialValueRef.current = initialValue;
-    isPendingRef.current = false;
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
+    if (initialValue !== currentValueRef.current) {
+      setValue(initialValue);
+      initialValueRef.current = initialValue;
+      isPendingRef.current = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     }
   }, [initialValue]);
 

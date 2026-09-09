@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { Plus, FolderOpen, Settings, Layout, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
 import { nativeFs } from '../utils/native-fs';
-import { deleteProject } from '../utils/db';
+import { deleteProject, openProjectFromFilePicker } from '../utils/db';
 import { useUI } from '../context/UIContext';
 import { 
   getRecentProjects, 
@@ -33,6 +33,11 @@ export default function Dashboard() {
           // 优先使用探测到的实际工作区路径（如 ./workspace）
           savedWorkspace = defaultWs;
           if (savedWorkspace) localStorage.setItem('slidegrid_workspace', savedWorkspace);
+        }
+      } else {
+        // 浏览器 Web 模式：如未设置工作区，则默认赋予虚拟工作区标识
+        if (!savedWorkspace) {
+          savedWorkspace = 'Browser Storage';
         }
       }
       
@@ -134,7 +139,7 @@ export default function Dashboard() {
   };
 
   const handleNewProject = () => {
-    if (!workspace) {
+    if (!workspace && nativeFs.isElectron()) {
       alert('Workspace Not Configured', 'Workspace is not initialized. Please restart the application.');
       return;
     }
@@ -143,34 +148,62 @@ export default function Dashboard() {
   };
 
   const handleOpenProject = async () => {
-    if (!workspace) {
-      alert('Workspace Not Configured', 'Workspace is not initialized. Please restart the application.');
-      return;
-    }
-    const result = await nativeFs.openProject();
-    if (result.success && result.content) {
+    if (nativeFs.isElectron()) {
+      if (!workspace) {
+        alert('Workspace Not Configured', 'Workspace is not initialized. Please restart the application.');
+        return;
+      }
+      const result = await nativeFs.openProject();
+      if (result.success && result.content) {
+        try {
+          const projectData = JSON.parse(result.content);
+          if (!projectData.id) projectData.id = crypto.randomUUID();
+
+          const entry = {
+            id: projectData.id,
+            title: projectData.projectTitle || projectData.title || 'Imported Project',
+            date: new Date().toLocaleDateString(),
+            lastModified: Date.now(),
+            type: projectData.pages?.[0]?.layoutId || 'standard',
+            aspectRatio: projectData.pages?.[0]?.aspectRatio || '16:9',
+            thumbnail: projectData.thumbnail || null,
+            filePath: result.filePath
+          };
+          upsertRecentProject(entry);
+          setProjects(getRecentProjects());
+
+          await loadProject(projectData);
+          if (result.filePath) setCurrentFilePath(result.filePath);
+          navigate(`/editor/${projectData.id}`);
+        } catch (e) {
+          alert('Open Failed', 'Failed to parse project file.');
+        }
+      }
+    } else {
+      // 纯浏览器 Web 模式：打开文件拾取器读取 .json 或 .slgrid
       try {
-        const projectData = JSON.parse(result.content);
-        if (!projectData.id) projectData.id = crypto.randomUUID();
+        const picked = await openProjectFromFilePicker();
+        if (picked && picked.project) {
+          const projectData = picked.project;
+          if (!projectData.id) projectData.id = crypto.randomUUID();
 
-        const entry = {
-          id: projectData.id,
-          title: projectData.projectTitle || projectData.title || 'Imported Project',
-          date: new Date().toLocaleDateString(),
-          lastModified: Date.now(),
-          type: projectData.pages?.[0]?.layoutId || 'standard',
-          aspectRatio: projectData.pages?.[0]?.aspectRatio || '16:9',
-          thumbnail: projectData.thumbnail || null,
-          filePath: result.filePath
-        };
-        upsertRecentProject(entry);
-        setProjects(getRecentProjects());
+          const entry = {
+            id: projectData.id,
+            title: projectData.projectTitle || projectData.title || picked.filename.replace(/\.[^/.]+$/, ''),
+            date: new Date().toLocaleDateString(),
+            lastModified: Date.now(),
+            type: projectData.pages?.[0]?.layoutId || 'standard',
+            aspectRatio: projectData.pages?.[0]?.aspectRatio || '16:9',
+            thumbnail: projectData.thumbnail || null,
+          };
+          upsertRecentProject(entry);
+          setProjects(getRecentProjects());
 
-        await loadProject(projectData);
-        if (result.filePath) setCurrentFilePath(result.filePath);
-        navigate(`/editor/${projectData.id}`);
-      } catch (e) {
-        alert('Open Failed', 'Failed to parse project file.');
+          await loadProject(projectData);
+          navigate(`/editor/${projectData.id}`);
+        }
+      } catch (err: any) {
+        alert('Open Failed', err?.message || 'Failed to open project file.');
       }
     }
   };
@@ -220,10 +253,12 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button onClick={handleSetWorkspace} className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${workspace ? 'bg-white border-slate-100 text-slate-400 hover:border-slate-900 hover:text-slate-900' : 'bg-amber-50 border-amber-200 text-amber-600 ring-4 ring-amber-500/10'}`}>
-            <HardDrive size={14} className={workspace ? 'text-slate-300' : 'text-amber-500'} />
-            {workspace ? `Workspace: ${workspace.split(/[\\/]/).pop()}` : 'Setup Workspace'}
-          </button>
+          {nativeFs.isElectron() && (
+            <button onClick={handleSetWorkspace} className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${workspace ? 'bg-white border-slate-100 text-slate-400 hover:border-slate-900 hover:text-slate-900' : 'bg-amber-50 border-amber-200 text-amber-600 ring-4 ring-amber-500/10'}`}>
+              <HardDrive size={14} className={workspace ? 'text-slate-300' : 'text-amber-500'} />
+              {workspace ? `Workspace: ${workspace.split(/[\\/]/).pop()}` : 'Setup Workspace'}
+            </button>
+          )}
           <div className="h-6 w-px bg-slate-100 mx-2" />
           <div className="flex items-center gap-1">
             <button className="p-3 text-slate-300 hover:text-slate-900 transition-colors"><HelpCircle size={20} /></button>
@@ -233,7 +268,7 @@ export default function Dashboard() {
       </nav>
 
       <main className="flex-1 max-w-[1600px] mx-auto w-full p-12 space-y-10">
-        {!workspace && (
+        {nativeFs.isElectron() && !workspace && (
           <div className="bg-amber-50 border border-amber-100 p-6 rounded-[2rem] flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-4">
             <div className="flex items-center gap-5">
               <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/20"><AlertCircle size={24} /></div>

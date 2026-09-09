@@ -19,21 +19,23 @@ export default defineConfig(({ mode: _mode }) => {
           gzipSize: true,
           brotliSize: true,
         }),
-        electron([
-          {
-            // Main-Process entry file of the Electron App.
-            entry: 'electron/main.ts',
-            vite: {
-              build: {
-                rollupOptions: {
-                  external: ['adm-zip', 'sharp', 'electron', 'path', 'fs', 'crypto'],
+        ...(process.env.TARGET === 'web' ? [] : [
+          electron([
+            {
+              // Main-Process entry file of the Electron App.
+              entry: 'electron/main.ts',
+              vite: {
+                build: {
+                  rollupOptions: {
+                    external: ['adm-zip', 'sharp', 'electron', 'path', 'fs', 'crypto'],
+                  },
                 },
               },
             },
-          },
-          {
-            entry: 'electron/preload.ts',
-          },
+            {
+              entry: 'electron/preload.ts',
+            },
+          ]),
         ]),
       ],
       build: {

@@ -21,6 +21,7 @@ import { TemplatePreview } from '../components/ui/TemplatePreview';
 import { OffscreenExportRenderer } from '../components/editor/OffscreenExportRenderer';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { upsertRecentProject } from '../services/recentProjects';
+import { exportProjectAsJson, exportPagesToZip, openProjectFromFilePicker } from '../utils/db';
 import { PageData } from '../types';
 
 export default function EditorPage() {
@@ -204,6 +205,8 @@ export default function EditorPage() {
       if (nativeFs.isElectron()) {
         const result = await nativeFs.saveProject(content, currentFilePath || undefined, projectTitle || fallbackTitle);
         if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
+      } else {
+        markAsSaved();
       }
       updateIndex(thumb, currentFilePath);
       saveToDB(previewRef, true);
@@ -220,20 +223,37 @@ export default function EditorPage() {
       if (nativeFs.isElectron()) {
         const result = await nativeFs.saveProject(content, undefined, `${projectTitle || fallbackTitle}_Copy`);
         if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); updateIndex(thumb, result.filePath); }
+      } else {
+        // Web 模式：下载完整的工程备份 JSON
+        exportProjectAsJson(content, `${projectTitle || fallbackTitle}_Backup`);
+        markAsSaved();
+        updateIndex(thumb, currentFilePath);
       }
     } catch (e) {
       console.error('[Save] Save As failed:', e);
     }
-  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex]);
+  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex, currentFilePath]);
 
   const handleNativeOpen = async () => {
-    const result = await nativeFs.openProject();
-    if (result.success && result.content) {
+    if (nativeFs.isElectron()) {
+      const result = await nativeFs.openProject();
+      if (result.success && result.content) {
+        try {
+          const project = JSON.parse(result.content);
+          await loadProject(project, null, result.filePath);
+          if (result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
+        } catch (e) { alert('Invalid file'); }
+      }
+    } else {
       try {
-        const project = JSON.parse(result.content);
-        await loadProject(project, null, result.filePath);
-        if (result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
-      } catch (e) { alert('Invalid file'); }
+        const picked = await openProjectFromFilePicker();
+        if (picked && picked.project) {
+          await loadProject(picked.project, null, null);
+          markAsSaved();
+        }
+      } catch (e) {
+        alert('Invalid file format');
+      }
     }
   };
 
@@ -333,18 +353,36 @@ export default function EditorPage() {
         }
         if (!exportCancelledRef.current) doc.save(`${projectTitle || fallbackTitle}.pdf`);
       } else {
-        for (let i = 0; i < exportIndices.length; i++) {
-          const idx = exportIndices[i];
+        if (exportIndices.length > 1) {
+          // 多页导出：在浏览器中收集所有图片 Data URL 并打包为 ZIP 一键下载
+          const renderedSlides: { dataUrl: string; filename: string }[] = [];
+          for (let i = 0; i < exportIndices.length; i++) {
+            const idx = exportIndices[i];
+            if (exportCancelledRef.current) return;
+            const el = await waitForOffscreenRender(pages[idx], idx);
+            if (exportCancelledRef.current) return;
+            const dataUrl = await toPng(el, opt);
+            if (exportCancelledRef.current) return;
+            const fileName = `${projectTitle || fallbackTitle}_Page_${String(idx + 1).padStart(2, '0')}.png`;
+            renderedSlides.push({ dataUrl, filename: fileName });
+            setExportProgress(Math.round(((i + 1) / (exportIndices.length + 1)) * 100));
+          }
           if (exportCancelledRef.current) return;
+          await exportPagesToZip(renderedSlides, `${projectTitle || fallbackTitle}_Slides`, (p) => setExportProgress(p));
+        } else {
+          // 单页导出：直接触发单张 PNG 下载
+          const idx = exportIndices[0];
           const el = await waitForOffscreenRender(pages[idx], idx);
           if (exportCancelledRef.current) return;
           const dataUrl = await toPng(el, opt);
           if (exportCancelledRef.current) return;
-          const link = document.createElement('a'); link.download = `${projectTitle || fallbackTitle}_${idx + 1}.png`; link.href = dataUrl; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-          setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
-          if (exportIndices.length > 1) {
-            await new Promise(r => setTimeout(r, 100));
-          }
+          const link = document.createElement('a');
+          link.download = `${projectTitle || fallbackTitle}_${idx + 1}.png`;
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setExportProgress(100);
         }
       }
     } catch (exportErr) {

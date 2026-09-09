@@ -8,6 +8,7 @@ import { GLOBAL_FIELDS } from '../constants/fields';
 import { TEMPLATES, getTemplateById } from '../templates/registry';
 import { logger } from '../utils/logger';
 import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
+import { deepEqual } from '../utils/comparison';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
@@ -51,6 +52,8 @@ const getDefaultPage = (ratio: AspectRatioType, layoutId: string, templateConfig
   return base;
 };
 
+const deepClone = <T>(obj: T): T => structuredClone(obj);
+
 export interface HistorySnapshot {
   pages: PageData[];
   projectTitle: string;
@@ -78,6 +81,50 @@ const buildSnapshot = (state: ProjectState): HistorySnapshot => ({
   currentPageIndex: state.currentPageIndex,
   currentFilePath: state.currentFilePath,
 });
+
+/**
+ * 比对两份历史快照的实质内容是否完全一致，避免无意义的重复压栈
+ */
+export const isEqualSnapshot = (a?: HistorySnapshot | null, b?: HistorySnapshot | null): boolean => {
+  if (!a || !b) return a === b;
+  if (a === b) return true;
+
+  if (
+    a.projectTitle !== b.projectTitle ||
+    a.minimalCounter !== b.minimalCounter ||
+    a.counterStyle !== b.counterStyle ||
+    a.imageQuality !== b.imageQuality ||
+    a.currentFilePath !== b.currentFilePath
+  ) {
+    return false;
+  }
+
+  if (a.pages.length !== b.pages.length) return false;
+
+  if (!deepEqual(a.theme, b.theme)) return false;
+  if (!deepEqual(a.designSystem, b.designSystem)) return false;
+  if (!deepEqual(a.printSettings, b.printSettings)) return false;
+  if (!deepEqual(a.customFonts, b.customFonts)) return false;
+  if (!deepEqual(a.pages, b.pages)) return false;
+
+  return true;
+};
+
+/** 防抖输入期间尚未提交的历史基准快照 */
+let uncommittedBaseline: HistorySnapshot | null = null;
+
+/**
+ * 提交尚未落盘的历史基准快照
+ */
+const commitUncommittedBaseline = (currentState: ProjectState) => {
+  if (!uncommittedBaseline) return;
+  const baseline = uncommittedBaseline;
+  uncommittedBaseline = null;
+  const currentSnapshot = buildSnapshot(currentState);
+  if (!isEqualSnapshot(baseline, currentSnapshot)) {
+    currentState.pushHistory(baseline);
+  }
+};
 
 interface ProjectState {
   pages: PageData[];
@@ -118,10 +165,8 @@ interface ProjectState {
   reorderPages: (newPages: PageData[]) => void;
   undo: () => void;
   redo: () => void;
-  pushHistory: () => void;
+  pushHistory: (customSnapshot?: HistorySnapshot) => void;
 }
-
-const deepClone = <T>(obj: T): T => structuredClone(obj);
 
 /** loadProject 请求 ID，用于取消过时的异步加载 */
 let loadRequestId = 0;
@@ -146,6 +191,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   future: [],
 
   createProject: (title, templateId) => {
+    uncommittedBaseline = null;
     const id = crypto.randomUUID();
     const templateConfig = getTemplateById(templateId || 'modern-feature');
     set({
@@ -166,6 +212,7 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   // @lat: [[store#Project Loading]]
   loadProject: async (idOrData, templateId, filePath) => {
+    uncommittedBaseline = null;
     const reqId = ++loadRequestId;
 
     try {
@@ -259,8 +306,15 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   // @lat: [[store#Undo-Redo]]
-  pushHistory: () => {
-    const snapshot = buildSnapshot(get());
+  pushHistory: (customSnapshot) => {
+    const snapshot = customSnapshot || buildSnapshot(get());
+    const { past } = get();
+
+    // 避免无意义重复压栈：若栈顶已是相同快照则直接返回
+    if (past.length > 0 && isEqualSnapshot(past[past.length - 1], snapshot)) {
+      return;
+    }
+
     const MAX_SNAPSHOT_SIZE = 5 * 1024 * 1024; // 5MB
     try {
       const actualSize = JSON.stringify(snapshot).length;
@@ -281,11 +335,18 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   setCurrentPageIndex: (index) => set({ currentPageIndex: index }),
-  setProjectTitle: (projectTitle) => set({ projectTitle, hasUnsavedChanges: true }),
+  setProjectTitle: (projectTitle) => {
+    if (projectTitle === get().projectTitle) return;
+    commitUncommittedBaseline(get());
+    get().pushHistory();
+    set({ projectTitle, hasUnsavedChanges: true });
+  },
   setPrintSettings: (printSettings) => set({ printSettings, hasUnsavedChanges: true }),
   setImageQuality: (imageQuality) => set({ imageQuality, hasUnsavedChanges: true }),
   setMinimalCounter: (minimalCounter) => set({ minimalCounter, hasUnsavedChanges: true }),
   setCounterStyle: (counterStyle) => {
+    if (get().counterStyle === counterStyle) return;
+    commitUncommittedBaseline(get());
     get().pushHistory();
     const { pages } = get();
     const updatedPages = pages.map(p => ({ ...p, counterStyle }));
@@ -301,11 +362,37 @@ export const useStore = create<ProjectState>((set, get) => ({
   // @lat: [[store#GLOBAL_FIELDS Sync]]
   updatePage: (updatedPage, silent) => {
     logger.action('Store', 'UpdatePage', { pageId: updatedPage.id, layoutId: updatedPage.layoutId });
-    if (!silent) get().pushHistory();
     const { pages } = get();
     const original = pages.find(p => p.id === updatedPage.id);
 
-    // 优化：预先计算需要同步的全局字段变更，避免在每页迭代中重复遍历 GLOBAL_FIELDS
+    if (silent) {
+      // 连续静默输入时锁定起始基准快照
+      if (!uncommittedBaseline) {
+        uncommittedBaseline = buildSnapshot(get());
+      }
+    } else {
+      if (uncommittedBaseline) {
+        const baseline = uncommittedBaseline;
+        uncommittedBaseline = null;
+        const tempPages = pages.map(p => (p.id === updatedPage.id ? updatedPage : p));
+        const projectedSnapshot: HistorySnapshot = {
+          ...buildSnapshot(get()),
+          pages: tempPages,
+        };
+        // 仅在输入结果与编辑前基准不同时压栈
+        if (!isEqualSnapshot(baseline, projectedSnapshot)) {
+          get().pushHistory(baseline);
+        }
+      } else {
+        // 无变化直接跳过更新
+        if (original && deepEqual(original, updatedPage)) {
+          return;
+        }
+        get().pushHistory();
+      }
+    }
+
+    // 预先计算需要同步的全局字段变更，避免在每页迭代中重复遍历 GLOBAL_FIELDS
     const globalUpdates: Partial<PageData> = {};
     if (original) {
       GLOBAL_FIELDS.forEach(f => {
@@ -318,7 +405,7 @@ export const useStore = create<ProjectState>((set, get) => ({
 
     let nextPages: PageData[] = pages.map(p => (p.id === updatedPage.id ? updatedPage : p));
 
-    // 优化：仅在有全局同步字段变更时执行二次映射，并使用预计算对象避免重复 GLOBAL_FIELDS 遍历
+    // 仅在有全局同步字段变更时执行二次映射，并使用预计算对象避免重复 GLOBAL_FIELDS 遍历
     const globalKeys = Object.keys(globalUpdates) as Array<keyof PageData>;
     if (globalKeys.length > 0) {
       nextPages = nextPages.map(p => (p.id === updatedPage.id ? p : { ...p, ...globalUpdates }));
@@ -329,8 +416,39 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   updatePages: (updates, silent) => {
     logger.action('Store', 'UpdatePages', { count: updates.length });
-    if (!silent) get().pushHistory();
     const { pages } = get();
+
+    if (silent) {
+      if (!uncommittedBaseline) {
+        uncommittedBaseline = buildSnapshot(get());
+      }
+    } else {
+      if (uncommittedBaseline) {
+        const baseline = uncommittedBaseline;
+        uncommittedBaseline = null;
+        const tempPages = pages.map(page => {
+          const update = updates.find(u => 'id' in u && u.id === page.id);
+          return update ? { ...page, ...update } : page;
+        });
+        const projectedSnapshot: HistorySnapshot = {
+          ...buildSnapshot(get()),
+          pages: tempPages,
+        };
+        if (!isEqualSnapshot(baseline, projectedSnapshot)) {
+          get().pushHistory(baseline);
+        }
+      } else {
+        const nextPages = pages.map(page => {
+          const update = updates.find(u => 'id' in u && u.id === page.id);
+          return update ? { ...page, ...update } : page;
+        });
+        if (deepEqual(pages, nextPages)) {
+          return;
+        }
+        get().pushHistory();
+      }
+    }
+
     const nextPages = pages.map(page => {
       const update = updates.find(u => 'id' in u && u.id === page.id);
       return update ? { ...page, ...update } : page;
@@ -340,6 +458,7 @@ export const useStore = create<ProjectState>((set, get) => ({
 
   addPage: (ratio, layoutId) => {
     logger.action('Store', 'AddPage', { ratio, layoutId });
+    commitUncommittedBaseline(get());
     get().pushHistory();
     const { pages, theme, counterStyle } = get();
     const defaultPage = getDefaultPage(ratio, layoutId);
@@ -362,6 +481,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       console.warn('Cannot remove the last page');
       return;
     }
+    commitUncommittedBaseline(get());
     get().pushHistory();
     const newPages = pages.filter(p => p.id !== id);
     let nextIdx = currentPageIndex;
@@ -372,26 +492,72 @@ export const useStore = create<ProjectState>((set, get) => ({
   setPages: (pages) => set({ pages }),
   reorderPages: (newPages) => { 
     logger.action('Store', 'ReorderPages', { count: newPages.length });
+    const { pages } = get();
+    if (deepEqual(pages, newPages)) return;
+    commitUncommittedBaseline(get());
     get().pushHistory(); 
     set({ pages: newPages, hasUnsavedChanges: true }); 
   },
 
   setTheme: (update, applyToAll = false) => {
+    commitUncommittedBaseline(get());
+    const currentState = get();
+    const newTheme = {
+      ...currentState.theme,
+      ...update,
+      colors: { ...currentState.theme.colors, ...(update.colors || {}) },
+      typography: { ...currentState.theme.typography, ...(update.typography || {}) }
+    };
+    if (!applyToAll && deepEqual(currentState.theme, newTheme)) {
+      return;
+    }
     get().pushHistory();
     set((state) => {
-      const newTheme = { ...state.theme, ...update, colors: { ...state.theme.colors, ...(update.colors || {}) }, typography: { ...state.theme.typography, ...(update.typography || {}) } };
       if (!applyToAll) return { theme: newTheme, hasUnsavedChanges: true };
-      const updatedPages = state.pages.map(p => ({ ...p, backgroundColor: newTheme.colors.background, accentColor: newTheme.colors.accent, titleFont: newTheme.typography.headingFont, bodyFont: newTheme.typography.bodyFont }));
+      const updatedPages = state.pages.map(p => ({
+        ...p,
+        backgroundColor: newTheme.colors.background,
+        accentColor: newTheme.colors.accent,
+        titleFont: newTheme.typography.headingFont,
+        bodyFont: newTheme.typography.bodyFont
+      }));
       return { theme: newTheme, pages: updatedPages, hasUnsavedChanges: true };
     });
   },
 
   setDesignSystem: (designSystem) => {
+    if (deepEqual(get().designSystem, designSystem)) return;
+    commitUncommittedBaseline(get());
     get().pushHistory();
     set({ designSystem, hasUnsavedChanges: true });
   },
 
   undo: () => {
+    if (uncommittedBaseline) {
+      const baseline = uncommittedBaseline;
+      uncommittedBaseline = null;
+      const currentSnapshot = buildSnapshot(get());
+      if (!isEqualSnapshot(baseline, currentSnapshot)) {
+        const restoredIndex = baseline.currentPageIndex !== undefined ? Math.min(baseline.currentPageIndex, baseline.pages.length - 1) : 0;
+        set({
+          pages: deepClone(baseline.pages),
+          projectTitle: baseline.projectTitle,
+          theme: deepClone(baseline.theme),
+          designSystem: deepClone(baseline.designSystem),
+          printSettings: baseline.printSettings ? deepClone(baseline.printSettings) : DEFAULT_PRINT_SETTINGS,
+          minimalCounter: baseline.minimalCounter ?? false,
+          counterStyle: baseline.counterStyle || 'number',
+          imageQuality: baseline.imageQuality ?? 0.95,
+          customFonts: deepClone(baseline.customFonts || []),
+          currentFilePath: baseline.currentFilePath !== undefined ? baseline.currentFilePath : get().currentFilePath,
+          future: [currentSnapshot, ...get().future],
+          currentPageIndex: restoredIndex,
+          hasUnsavedChanges: true
+        });
+        return;
+      }
+    }
+
     const { past, future } = get();
     if (past.length === 0) return;
     const prev = past[past.length - 1];
@@ -416,6 +582,7 @@ export const useStore = create<ProjectState>((set, get) => ({
   },
 
   redo: () => {
+    uncommittedBaseline = null;
     const { past, future } = get();
     if (future.length === 0) return;
     const next = future[0];

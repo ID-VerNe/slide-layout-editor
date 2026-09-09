@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { shallowEqual } from '../comparison';
+import { shallowEqual, deepEqual } from '../comparison';
 
 describe('shallowEqual', () => {
   it('应该能正确比较基本对象', () => {
@@ -55,5 +55,36 @@ describe('shallowEqual', () => {
     expect(shallowEqual(1, 1)).toBe(true);
     expect(shallowEqual(1, 2)).toBe(false);
     expect(shallowEqual('a', 'a')).toBe(true);
+  });
+});
+
+describe('deepEqual', () => {
+  it('应该支持深层嵌套对象的递归比对', () => {
+    const a = { x: 1, nested: { y: 2, arr: [1, { z: 3 }] } };
+    const b = { x: 1, nested: { y: 2, arr: [1, { z: 3 }] } };
+    const c = { x: 1, nested: { y: 2, arr: [1, { z: 4 }] } };
+
+    expect(deepEqual(a, b)).toBe(true);
+    expect(deepEqual(a, c)).toBe(false);
+  });
+
+  it('应该能正确比对数组类型与长度差异', () => {
+    expect(deepEqual([1, 2, 3], [1, 2, 3])).toBe(true);
+    expect(deepEqual([1, 2], [1, 2, 3])).toBe(false);
+    expect(deepEqual([1, 2], { 0: 1, 1: 2 })).toBe(false);
+  });
+
+  it('应该能正确比对属性键缺失或不一致', () => {
+    expect(deepEqual({ a: 1 }, { a: 1, b: undefined })).toBe(false);
+    expect(deepEqual({ a: 1, b: 2 }, { a: 1, c: 2 })).toBe(false);
+  });
+
+  it('应该支持原始类型、null 与 undefined', () => {
+    expect(deepEqual(null, null)).toBe(true);
+    expect(deepEqual(undefined, undefined)).toBe(true);
+    expect(deepEqual(null, undefined)).toBe(false);
+    expect(deepEqual(100, 100)).toBe(true);
+    expect(deepEqual('hello', 'hello')).toBe(true);
+    expect(deepEqual(true, false)).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
-import { useStore } from '../store/useStore';
+import { useStore, isEqualSnapshot } from '../store/useStore';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
 import * as dbModule from '../utils/db';
 import { nativeFs } from '../utils/native-fs';
@@ -605,6 +605,121 @@ describe('useStore', () => {
       expect(state.pages).toHaveLength(1);
       expect(state.printSettings).toBeDefined();
       expect(state.minimalCounter).toBe(false);
+    });
+  });
+
+  describe('历史记录防重复与撤销重做恢复', () => {
+    it('连续调用 pushHistory 相同快照不会重复压栈', () => {
+      const { pushHistory } = useStore.getState();
+      useStore.setState({ pages: [makePage('p1')] });
+
+      for (let i = 0; i < 60; i++) {
+        pushHistory();
+      }
+
+      const { past } = useStore.getState();
+      expect(past).toHaveLength(1);
+    });
+
+    it('调用无实际状态变更的操作不会污染历史栈', () => {
+      useStore.setState({ pages: [makePage('p1', { title: 'Stable' })] });
+
+      const page = useStore.getState().pages[0];
+      // 重复传入完全相同的对象更新
+      for (let i = 0; i < 20; i++) {
+        useStore.getState().updatePage(page);
+      }
+      expect(useStore.getState().past).toHaveLength(0);
+
+      // 重复传入完全相同的主题
+      for (let i = 0; i < 20; i++) {
+        useStore.getState().setTheme({});
+      }
+      expect(useStore.getState().past).toHaveLength(0);
+    });
+
+    it('连续静默打字并在防抖结束后提交，undo 能精准恢复打字前初始状态', () => {
+      useStore.setState({ pages: [makePage('p1', { title: 'Initial' })] });
+      const initialPage = useStore.getState().pages[0];
+
+      // 模拟用户连续按键输入：多次 silent: true 更新
+      useStore.getState().updatePage({ ...initialPage, title: 'Initial H' }, true);
+      useStore.getState().updatePage({ ...initialPage, title: 'Initial He' }, true);
+      useStore.getState().updatePage({ ...initialPage, title: 'Initial Hello' }, true);
+
+      // 验证静默期间 store 数据已实时响应，但历史栈未被污染
+      expect(useStore.getState().pages[0].title).toBe('Initial Hello');
+      expect(useStore.getState().past).toHaveLength(0);
+
+      // 防抖结束触发正式提交：silent: false
+      useStore.getState().updatePage({ ...initialPage, title: 'Initial Hello' }, false);
+
+      // 验证此时历史栈中存入的是编辑前基准快照
+      const { past } = useStore.getState();
+      expect(past).toHaveLength(1);
+      expect(past[0].pages[0].title).toBe('Initial');
+
+      // 执行 undo，应一次性精准还原回打字前的 Initial
+      useStore.getState().undo();
+      expect(useStore.getState().pages[0].title).toBe('Initial');
+
+      // 执行 redo，应恢复为输入完成后的 Initial Hello
+      useStore.getState().redo();
+      expect(useStore.getState().pages[0].title).toBe('Initial Hello');
+    });
+
+    it('打字中途尚未触发防抖 commit 时直接按 undo，能够立即撤销打字内容', () => {
+      useStore.setState({ pages: [makePage('p1', { title: 'Original' })] });
+      const page = useStore.getState().pages[0];
+
+      // 用户正在打字（silent: true）
+      useStore.getState().updatePage({ ...page, title: 'Original Incomplete' }, true);
+      expect(useStore.getState().pages[0].title).toBe('Original Incomplete');
+
+      // 防抖定时器尚未触发，用户直接按下 undo
+      useStore.getState().undo();
+
+      // 应当丢弃正在输入的内容，还原回 Original
+      expect(useStore.getState().pages[0].title).toBe('Original');
+
+      // 并且支持 redo 找回打字内容
+      useStore.getState().redo();
+      expect(useStore.getState().pages[0].title).toBe('Original Incomplete');
+    });
+
+    it('打字输入后又删回原样，防抖提交时不产生无意义的历史记录', () => {
+      useStore.setState({ pages: [makePage('p1', { title: 'Same' })] });
+      const page = useStore.getState().pages[0];
+
+      useStore.getState().updatePage({ ...page, title: 'Same Text' }, true);
+      useStore.getState().updatePage({ ...page, title: 'Same' }, true);
+      useStore.getState().updatePage({ ...page, title: 'Same' }, false);
+
+      expect(useStore.getState().past).toHaveLength(0);
+    });
+
+    it('打字过程中插入其它操作（如添加页面），历史基准正确落盘后衔接新操作', () => {
+      useStore.setState({ pages: [makePage('p1', { title: 'Slide 1' })] });
+      const page = useStore.getState().pages[0];
+
+      // 打字中
+      useStore.getState().updatePage({ ...page, title: 'Slide 1 Edited' }, true);
+
+      // 用户打字未结束直接点击添加新页面
+      useStore.getState().addPage('16:9', 'modern-feature');
+
+      expect(useStore.getState().pages).toHaveLength(2);
+      expect(useStore.getState().pages[0].title).toBe('Slide 1 Edited');
+
+      // 第一次 undo：撤销添加页面，回到 Slide 1 Edited
+      useStore.getState().undo();
+      expect(useStore.getState().pages).toHaveLength(1);
+      expect(useStore.getState().pages[0].title).toBe('Slide 1 Edited');
+
+      // 第二次 undo：撤销打字，回到 Slide 1
+      useStore.getState().undo();
+      expect(useStore.getState().pages).toHaveLength(1);
+      expect(useStore.getState().pages[0].title).toBe('Slide 1');
     });
   });
 });

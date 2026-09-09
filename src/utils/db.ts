@@ -1,5 +1,6 @@
 import { ProjectData } from '../types';
 import { nativeFs } from './native-fs';
+import JSZip from 'jszip';
 
 const DB_NAME = 'slidegrid_studio_db';
 const STORE_PROJECTS = 'projects';
@@ -207,4 +208,113 @@ export async function getProjectThumbnail(projectId: string): Promise<string | n
 // 供 E2E 自动化测试精准验证底层持久化与跨生命周期恢复
 if (typeof window !== 'undefined') {
   (window as any).__SLIDEGRID_DB__ = { initDB, saveProject, getProject, deleteProject, saveProjectThumbnail, getProjectThumbnail };
+}
+
+/**
+ * 触发浏览器文件下载
+ */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * 导出工程为 JSON 文件下载（Web 备份）
+ */
+export function exportProjectAsJson(projectData: any, defaultName?: string): void {
+  const safeName = (defaultName || projectData.title || projectData.projectTitle || 'SlideGrid_Project')
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+  const fileName = `${safeName}.json`;
+  const jsonStr = JSON.stringify(projectData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+  downloadBlob(blob, fileName);
+}
+
+/**
+ * 通过文件选择器读取本地工程 JSON 或 .slgrid 文件
+ */
+export function openProjectFromFilePicker(): Promise<{ project: any; filename: string } | null> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.slgrid';
+    input.style.display = 'none';
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) {
+        resolve(null);
+        return;
+      }
+
+      try {
+        if (file.name.endsWith('.slgrid')) {
+          const zip = new JSZip();
+          const zipContent = await zip.loadAsync(file);
+          const projectJsonFile = zipContent.file('project.json');
+          if (!projectJsonFile) {
+            throw new Error('Invalid .slgrid file: missing project.json');
+          }
+          const text = await projectJsonFile.async('text');
+          const data = JSON.parse(text);
+          resolve({ project: data, filename: file.name });
+        } else {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          resolve({ project: data, filename: file.name });
+        }
+      } catch (err) {
+        reject(err);
+      } finally {
+        input.remove();
+      }
+    };
+
+    input.oncancel = () => {
+      resolve(null);
+      input.remove();
+    };
+
+    document.body.appendChild(input);
+    input.click();
+  });
+}
+
+/**
+ * 将多张页面的 Data URL 打包为 ZIP 并在浏览器端自动下载
+ */
+export async function exportPagesToZip(
+  pages: { dataUrl: string; filename: string }[],
+  zipFilename: string,
+  onProgress?: (percent: number) => void
+): Promise<void> {
+  const zip = new JSZip();
+  const folder = zip.folder('slides') || zip;
+
+  for (let i = 0; i < pages.length; i++) {
+    const { dataUrl, filename } = pages[i];
+    const base64Data = dataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, '');
+    folder.file(filename, base64Data, { base64: true });
+    if (onProgress) {
+      onProgress(Math.round(((i + 1) / (pages.length + 1)) * 100));
+    }
+  }
+
+  const zipBlob = await zip.generateAsync(
+    { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } },
+    (metadata) => {
+      if (onProgress) {
+        onProgress(Math.min(99, Math.round(metadata.percent)));
+      }
+    }
+  );
+
+  downloadBlob(zipBlob, zipFilename.endsWith('.zip') ? zipFilename : `${zipFilename}.zip`);
+  if (onProgress) onProgress(100);
 }

@@ -4,6 +4,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from '../Dashboard';
 import React from 'react';
 import { UIProvider } from '../../context/UIContext';
+import { nativeFs } from '../../utils/native-fs';
 
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
@@ -36,6 +37,7 @@ vi.mock('../../utils/native-fs', () => ({
     isElectron: vi.fn(() => false),
     setActiveWorkspace: vi.fn(),
     listProjects: vi.fn(async () => []),
+    getAppPaths: vi.fn(async () => ({ defaultWorkspace: '/workspace' })),
     selectDirectory: vi.fn(async () => ({ success: true, path: '/workspace' })),
     deleteProject: vi.fn(async () => ({ success: true })),
   },
@@ -68,9 +70,11 @@ describe('Dashboard', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    vi.mocked(nativeFs.isElectron).mockReturnValue(false);
   });
 
   it('无 Workspace 时新建项目提示', () => {
+    vi.mocked(nativeFs.isElectron).mockReturnValue(true);
     renderDashboard();
     fireEvent.click(screen.getByText('New Slide'));
     expect(screen.getByRole('heading', { name: /workspace not configured/i, level: 4 })).toBeInTheDocument();
