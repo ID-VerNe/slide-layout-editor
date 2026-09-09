@@ -72,8 +72,10 @@ export function getDefaultFontFamilyForField(page: PageData, key: string, theme:
         if (!node) return undefined;
         if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
           if (node.props?.fontFamily) return node.props.fontFamily;
-          if (node.props?.serif) return theme.typography.headingFont;
-          if (node.props?.sans) return theme.typography.bodyFont;
+          
+          const isZH = node.props?.zh || node.props?.lang === 'zh';
+          if (node.props?.serif) return isZH ? theme.typography.headingFontZH : theme.typography.headingFont;
+          if (node.props?.sans) return isZH ? theme.typography.bodyFontZH : theme.typography.bodyFont;
           if (node.props?.caption) return theme.typography.captionFont;
         }
         if (node.children && Array.isArray(node.children)) {
@@ -102,4 +104,57 @@ export function getDefaultFontFamilyForField(page: PageData, key: string, theme:
     return theme.typography.bodyFontZH;
   }
   return page.bodyFont || theme.typography.bodyFont;
+}
+
+/** 获取字段的默认颜色配置 */
+export function getDefaultColorForField(page: PageData, key: string, ds: any): string {
+  try {
+    const tpl = getTemplateById(page.layoutId);
+    if (tpl?.schema) {
+      const findColorInNode = (node: any): string | undefined => {
+        if (!node) return undefined;
+        if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
+          const colorProp = node.props?.color;
+          if (colorProp) {
+            return ds.tokens.colors[colorProp] || colorProp;
+          }
+        }
+        if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+            const res = findColorInNode(child);
+            if (res) return res;
+          }
+        }
+        return undefined;
+      };
+      const defaultColor = findColorInNode(tpl.schema);
+      if (defaultColor) return defaultColor;
+    }
+  } catch {}
+  return ds.tokens.colors.primary;
+}
+
+/** 获取 Divider 的默认粗细 */
+export function getDefaultThicknessForField(page: PageData, key: string): number {
+  try {
+    const tpl = getTemplateById(page.layoutId);
+    if (tpl?.schema) {
+      const findThicknessInNode = (node: any): number | undefined => {
+        if (!node) return undefined;
+        if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
+          if (typeof node.props?.thickness === 'number') return node.props.thickness;
+        }
+        if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+            const res = findThicknessInNode(child);
+            if (res !== undefined) return res;
+          }
+        }
+        return undefined;
+      };
+      const defaultThickness = findThicknessInNode(tpl.schema);
+      if (defaultThickness !== undefined) return defaultThickness;
+    }
+  } catch {}
+  return 1;
 }

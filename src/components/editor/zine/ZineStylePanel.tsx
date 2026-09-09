@@ -5,7 +5,9 @@ import { RotateCcw } from 'lucide-react';
 import { 
   getDefaultSizeForField, 
   getDefaultAlignForField, 
-  getDefaultFontFamilyForField 
+  getDefaultFontFamilyForField,
+  getDefaultColorForField,
+  getDefaultThicknessForField
 } from './zineStyleUtils';
 import { TextStyleSection } from './sections/TextStyleSection';
 import { ImageStyleSection } from './sections/ImageStyleSection';
@@ -98,9 +100,9 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
   const isText = mode === 'text' || (!isDivider && !isImage);
 
   const currentSize = overrides.size !== undefined ? overrides.size : getDefaultSizeForField(page, fieldKey);
-  const currentThickness = overrides.thickness || 1;
+  const currentThickness = overrides.thickness !== undefined ? overrides.thickness : getDefaultThicknessForField(page, fieldKey);
   const currentLength = overrides.width || '100%';
-  const currentColor = overrides.color || ds.tokens.colors.primary;
+  const currentColor = overrides.color || getDefaultColorForField(page, fieldKey, ds);
   const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
   const currentFontFamily = overrides.fontFamily || getDefaultFontFamilyForField(page, fieldKey, theme);
   const currentAlign = overrides.alignSelf;
