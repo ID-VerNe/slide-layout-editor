@@ -11,6 +11,10 @@ export function getDefaultSizeForField(page: PageData, key: string): number {
         if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
           if (typeof node.props?.size === 'number') return node.props.size;
         }
+        if (node.root) {
+          const res = findSizeInNode(node.root);
+          if (res !== undefined) return res;
+        }
         if (node.children && Array.isArray(node.children)) {
           for (const child of node.children) {
             const res = findSizeInNode(child);
@@ -19,7 +23,7 @@ export function getDefaultSizeForField(page: PageData, key: string): number {
         }
         return undefined;
       };
-      const defaultSize = findSizeInNode(tpl.schema);
+      const defaultSize = findSizeInNode(tpl.schema.root || tpl.schema);
       if (defaultSize !== undefined) return defaultSize;
     }
   } catch {
@@ -46,6 +50,10 @@ export function getDefaultAlignForField(page: PageData, key: string): string {
         if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
           return node.props?.align || node.props?.textAlign;
         }
+        if (node.root) {
+          const res = findAlignInNode(node.root);
+          if (res) return res;
+        }
         if (node.children && Array.isArray(node.children)) {
           for (const child of node.children) {
             const res = findAlignInNode(child);
@@ -54,7 +62,7 @@ export function getDefaultAlignForField(page: PageData, key: string): string {
         }
         return undefined;
       };
-      const defaultAlign = findAlignInNode(tpl.schema);
+      const defaultAlign = findAlignInNode(tpl.schema.root || tpl.schema);
       if (defaultAlign) return defaultAlign;
     }
   } catch {
@@ -78,6 +86,10 @@ export function getDefaultFontFamilyForField(page: PageData, key: string, theme:
           if (node.props?.sans) return isZH ? theme.typography.bodyFontZH : theme.typography.bodyFont;
           if (node.props?.caption) return theme.typography.captionFont;
         }
+        if (node.root) {
+          const res = findFontInNode(node.root);
+          if (res) return res;
+        }
         if (node.children && Array.isArray(node.children)) {
           for (const child of node.children) {
             const res = findFontInNode(child);
@@ -86,7 +98,7 @@ export function getDefaultFontFamilyForField(page: PageData, key: string, theme:
         }
         return undefined;
       };
-      const defaultFont = findFontInNode(tpl.schema);
+      const defaultFont = findFontInNode(tpl.schema.root || tpl.schema);
       if (defaultFont) return defaultFont;
     }
   } catch {
@@ -119,6 +131,10 @@ export function getDefaultColorForField(page: PageData, key: string, ds: any): s
             return ds.tokens.colors[colorProp] || colorProp;
           }
         }
+        if (node.root) {
+          const res = findColorInNode(node.root);
+          if (res) return res;
+        }
         if (node.children && Array.isArray(node.children)) {
           for (const child of node.children) {
             const res = findColorInNode(child);
@@ -127,7 +143,7 @@ export function getDefaultColorForField(page: PageData, key: string, ds: any): s
         }
         return undefined;
       };
-      const defaultColor = findColorInNode(tpl.schema);
+      const defaultColor = findColorInNode(tpl.schema.root || tpl.schema);
       if (defaultColor) return defaultColor;
     }
   } catch {}
@@ -144,6 +160,10 @@ export function getDefaultThicknessForField(page: PageData, key: string): number
         if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
           if (typeof node.props?.thickness === 'number') return node.props.thickness;
         }
+        if (node.root) {
+          const res = findThicknessInNode(node.root);
+          if (res !== undefined) return res;
+        }
         if (node.children && Array.isArray(node.children)) {
           for (const child of node.children) {
             const res = findThicknessInNode(child);
@@ -152,7 +172,7 @@ export function getDefaultThicknessForField(page: PageData, key: string): number
         }
         return undefined;
       };
-      const defaultThickness = findThicknessInNode(tpl.schema);
+      const defaultThickness = findThicknessInNode(tpl.schema.root || tpl.schema);
       if (defaultThickness !== undefined) return defaultThickness;
     }
   } catch {}
