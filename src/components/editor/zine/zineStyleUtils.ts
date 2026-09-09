@@ -1,8 +1,31 @@
 import { PageData } from '../../../types';
 import { getTemplateById } from '../../../templates/registry';
 
-/** 语义化属性解析（提供贴合排版层级的合理初始阶梯） */
-export function getDefaultSizeForField(key: string): number {
+/** 语义化属性解析（优先从 Schema 中读取 size，其次提供合理初始阶梯） */
+export function getDefaultSizeForField(page: PageData, key: string): number {
+  try {
+    const tpl = getTemplateById(page.layoutId);
+    if (tpl?.schema) {
+      const findSizeInNode = (node: any): number | undefined => {
+        if (!node) return undefined;
+        if (node.type === 'Component' && (node.fieldKey === key || node.bind === `page.${key}`)) {
+          if (typeof node.props?.size === 'number') return node.props.size;
+        }
+        if (node.children && Array.isArray(node.children)) {
+          for (const child of node.children) {
+            const res = findSizeInNode(child);
+            if (res !== undefined) return res;
+          }
+        }
+        return undefined;
+      };
+      const defaultSize = findSizeInNode(tpl.schema);
+      if (defaultSize !== undefined) return defaultSize;
+    }
+  } catch {
+    // 降级到语义推导
+  }
+
   const lk = key.toLowerCase();
   if (lk === 'title' || lk === 'heading') return 4; // 32px (H2)
   if (lk.includes('display') || lk.includes('hero')) return 6; // 48px (H1)

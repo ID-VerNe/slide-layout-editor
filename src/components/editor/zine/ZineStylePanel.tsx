@@ -97,7 +97,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
       !fieldKey.toLowerCase().includes('text'));
   const isText = mode === 'text' || (!isDivider && !isImage);
 
-  const currentSize = overrides.size !== undefined ? overrides.size : getDefaultSizeForField(fieldKey);
+  const currentSize = overrides.size !== undefined ? overrides.size : getDefaultSizeForField(page, fieldKey);
   const currentThickness = overrides.thickness || 1;
   const currentLength = overrides.width || '100%';
   const currentColor = overrides.color || ds.tokens.colors.primary;
