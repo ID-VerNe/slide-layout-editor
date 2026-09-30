@@ -45,16 +45,6 @@ export function useProject(projectId: string | undefined, _templateId: string | 
   const undo = useStore(s => s.undo);
   const redo = useStore(s => s.redo);
 
-  const handleExportProject = useCallback(() => {
-    // 触发导出模态框
-    window.dispatchEvent(new CustomEvent('show-export-modal'));
-  }, []);
-
-  const handleImportProject = useCallback(() => {
-    // 触发文件选择器
-    window.dispatchEvent(new CustomEvent('trigger-import'));
-  }, []);
-
   const previewRefLocal = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef({ projectId, isLoaded, pages });
   
@@ -145,8 +135,8 @@ export function useProject(projectId: string | undefined, _templateId: string | 
     pages, projectTitle, setProjectTitle, theme, setTheme,
     currentPageIndex, setCurrentPageIndex,
     currentPage: pages[currentPageIndex], isLoaded, 
-    updatePage, addPage, removePage, reorderPages, 
-    handleExportProject, handleImportProject, loadProject,
+    updatePage, addPage, removePage, reorderPages,
+    loadProject,
     saveToDB, undo, redo, canUndo: past.length > 0, canRedo: future.length > 0,
     printSettings, setPrintSettings, imageQuality, setImageQuality, 
     minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,

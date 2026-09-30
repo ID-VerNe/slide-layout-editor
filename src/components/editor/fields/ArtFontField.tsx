@@ -5,6 +5,7 @@ import { Input } from '../../ui/Base';
 import { FieldWrapper } from './FieldWrapper';
 import { PresetSelect } from '../../ui/PresetSelect';
 import { FONT_SIZE_PRESETS, LETTER_SPACING_PRESETS } from '../../../constants/editorPresets';
+import { getPageField } from '../../../utils/pageField';
 
 interface FieldProps {
   page: PageData;
@@ -14,7 +15,7 @@ interface FieldProps {
 }
 
 export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, fieldKey = 'artFont' }) => {
-  const value = (page as any)[fieldKey] || '';
+  const value = getPageField<string>(page, fieldKey, '');
   const style = page.styleOverrides?.[fieldKey] || {};
 
   const updateStyle = (updates: any) => {
@@ -31,11 +32,11 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
   };
 
   return (
-    <FieldWrapper 
-      page={page} 
-      onUpdate={onUpdate} 
-      fieldKey={fieldKey as any} 
-      label={label || "Art Typography"} 
+    <FieldWrapper
+      page={page}
+      onUpdate={onUpdate}
+      fieldKey={fieldKey}
+      label={label || "Art Typography"}
       icon={Type}
     >
       <div className="space-y-4">

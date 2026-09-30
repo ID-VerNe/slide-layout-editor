@@ -3,6 +3,7 @@ import { PageData, CustomFont } from '../../../types';
 import { LucideIcon, Type } from 'lucide-react';
 import { DebouncedInput, DebouncedTextArea } from '../../ui/DebouncedBase';
 import { FieldWrapper } from './FieldWrapper';
+import { getPageField } from '../../../utils/pageField';
 
 export interface GenericTextFieldProps {
   page: PageData;
@@ -46,7 +47,7 @@ export const GenericTextField: React.FC<GenericTextFieldProps> = React.memo(({
   };
 
   const style = page.styleOverrides?.[fieldKey] || {};
-  const value = ((page as any)[fieldKey] as string) || '';
+  const value = getPageField<string>(page, fieldKey, '');
 
   return (
     <FieldWrapper

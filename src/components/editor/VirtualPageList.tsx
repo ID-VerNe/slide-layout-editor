@@ -15,7 +15,7 @@ interface VirtualPageListProps {
   onPageSelect: (index: number) => void;
   onAddPage: () => void;
   onRemovePage: (id: string) => void;
-  onReorderPages: (newPages: PageData[]) => void;
+  onReorderPages: (newPages: PageData[], isCommit?: boolean) => void;
   onClearAll: () => void;
   onImport?: () => void;
   onExport?: () => void;

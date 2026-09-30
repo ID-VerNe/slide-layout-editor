@@ -24,6 +24,7 @@ import { upsertRecentProject } from '../services/recentProjects';
 import { exportProjectAsJson, openProjectFromFilePicker } from '../utils/dom/fileDownload';
 import { exportPagesToZip } from '../utils/archive/zipArchive';
 import { getPrintGeometry } from '../utils/printGeometry';
+import { applyTemplateDefaults } from '../utils/templateDefaults';
 import { PageData } from '../types';
 
 export default function EditorPage() {
@@ -34,13 +35,13 @@ export default function EditorPage() {
   const templateId = searchParams.get('template');
 
   const {
-    pages, projectTitle, setProjectTitle, theme, setTheme,
+    pages, projectTitle, setProjectTitle, theme,
     currentPageIndex, setCurrentPageIndex, currentPage,
-    isLoaded, updatePage, addPage, removePage, reorderPages, 
-    handleExportProject, loadProject,
+    isLoaded, updatePage, addPage, removePage, reorderPages,
+    loadProject,
     saveToDB, undo, redo, canUndo, canRedo,
-    printSettings, setPrintSettings, imageQuality, setImageQuality,
-    minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,
+    printSettings, imageQuality,
+    minimalCounter, counterStyle, customFonts,
     currentFilePath, setCurrentFilePath, hasUnsavedChanges, markAsSaved
   } = useProject(projectId, templateId);
 
@@ -73,26 +74,28 @@ export default function EditorPage() {
   const exportCancelledRef = useRef(false);
 
   const [offscreenTarget, setOffscreenTarget] = useState<{ page: PageData; index: number } | null>(null);
-  const offscreenResolveRef = useRef<((el: HTMLElement) => void) | null>(null);
+  // 把 resolve 与其 15s 超时定时器绑定,resolve/reject/unmount 三路径都能 clearTimeout,避免导出 N 页累积 N 个挂空定时器
+  const offscreenResolveRef = useRef<{ fn: (el: HTMLElement) => void; timer: ReturnType<typeof setTimeout> } | null>(null);
 
   const waitForOffscreenRender = useCallback((targetPage: PageData, targetIndex: number) => {
     return new Promise<HTMLElement>((resolve, reject) => {
-      offscreenResolveRef.current = resolve;
-      setOffscreenTarget({ page: targetPage, index: targetIndex });
       const timer = setTimeout(() => {
-        if (offscreenResolveRef.current === resolve) {
+        if (offscreenResolveRef.current?.fn === resolve) {
           offscreenResolveRef.current = null;
           reject(new Error(`Offscreen render timeout for page ${targetIndex + 1}`));
         }
       }, 15000);
+      offscreenResolveRef.current = { fn: resolve, timer };
+      setOffscreenTarget({ page: targetPage, index: targetIndex });
     });
   }, []);
 
   const handleOffscreenReady = useCallback((element: HTMLElement) => {
-    if (offscreenResolveRef.current) {
-      const fn = offscreenResolveRef.current;
+    const pending = offscreenResolveRef.current;
+    if (pending) {
+      clearTimeout(pending.timer);
       offscreenResolveRef.current = null;
-      fn(element);
+      pending.fn(element);
     }
   }, []);
 
@@ -108,7 +111,7 @@ export default function EditorPage() {
     }
   }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges, isLoaded, projectId]);
 
-  // 自动保存：仅在存在未保存变更时启动 3s 防抖定时器
+  // 自动保存:仅在存在未保存变更时启动 3s 防抖定时器
   useEffect(() => {
     if (!isLoaded || !projectId || !hasUnsavedChanges) return;
 
@@ -121,24 +124,6 @@ export default function EditorPage() {
     return () => clearTimeout(autoSaveTimer);
   }, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
 
-  // 迁移遗留的 localStorage 键名
-  useEffect(() => {
-    const oldKey = 'magazine_recent_projects';
-    const newKey = 'slidegrid_recent_projects';
-    try {
-      const oldData = localStorage.getItem(oldKey);
-      if (oldData !== null) {
-        const newData = localStorage.getItem(newKey);
-        if (newData === null) {
-          localStorage.setItem(newKey, oldData);
-        }
-        localStorage.removeItem(oldKey);
-      }
-    } catch {
-      // storage unavailable or quota exceeded -- skip migration silently
-    }
-  }, []);
-
   useEffect(() => {
     if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
       setModalMode('create');
@@ -150,34 +135,15 @@ export default function EditorPage() {
     }
   }, [isNewProject, isLoaded, pages]);
 
-  useEffect(() => {
-    const handleOpenBrowser = (e: any) => {
-      setModalMode(e.detail?.mode || 'change');
-      if (currentPage) {
-        const currentConfig = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
-        setSelectedOrientation(currentConfig.orientation);
-        setSelectedRatio(currentPage.aspectRatio || '16:9');
-      }
-      setShowLayoutModal(true);
-    };
-    
-    const handleShowExportModal = () => {
-      setShowExportModal(true);
-    };
-    
-    const handleTriggerImport = () => {
-      fileInputRef.current?.click();
-    };
-    
-    window.addEventListener('open-layout-browser', handleOpenBrowser);
-    window.addEventListener('show-export-modal', handleShowExportModal);
-    window.addEventListener('trigger-import', handleTriggerImport);
-    
-    return () => {
-      window.removeEventListener('open-layout-browser', handleOpenBrowser);
-      window.removeEventListener('show-export-modal', handleShowExportModal);
-      window.removeEventListener('trigger-import', handleTriggerImport);
-    };
+  // 由 Editor "Change Layout" 按钮通过 callback prop 触发,替代原 window CustomEvent 通道
+  const handleOpenLayoutBrowser = useCallback((mode: 'create' | 'change') => {
+    setModalMode(mode);
+    if (currentPage) {
+      const currentConfig = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
+      setSelectedOrientation(currentConfig.orientation);
+      setSelectedRatio(currentPage.aspectRatio || '16:9');
+    }
+    setShowLayoutModal(true);
   }, [currentPage]);
 
   const generateThumb = useCallback(async () => {
@@ -261,28 +227,8 @@ export default function EditorPage() {
 
   const handleFinalAction = (layoutId: string) => {
     const templateConfig = getTemplateById(layoutId);
-    const mergeDefaults = (target: PageData): PageData => {
-      const merged: PageData = {
-        ...target,
-        layoutId: layoutId as any,
-        aspectRatio: selectedRatio
-      };
-      if (templateConfig?.defaultData) {
-        for (const [k, v] of Object.entries(templateConfig.defaultData)) {
-          if ((merged as any)[k] === undefined || (merged as any)[k] === null) {
-            (merged as any)[k] = v;
-          }
-        }
-      }
-      if (templateConfig?.fields) {
-        templateConfig.fields.forEach((field: any) => {
-          if (field.defaultValue !== undefined && (merged as any)[field.key] === undefined) {
-            (merged as any)[field.key] = field.defaultValue;
-          }
-        });
-      }
-      return merged;
-    };
+    const mergeDefaults = (target: PageData): PageData =>
+      applyTemplateDefaults({ ...target, layoutId, aspectRatio: selectedRatio }, templateConfig);
 
     if (modalMode === 'create' && pages[0]?.title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
       updatePage(mergeDefaults({ ...pages[0], title: 'New Slide' }));
@@ -380,7 +326,11 @@ export default function EditorPage() {
       console.error('[Export] Export failed:', exportErr);
     } finally {
       setOffscreenTarget(null);
-      offscreenResolveRef.current = null;
+      // 卸载前清掉可能残留的超时定时器,避免 reject 句柄指向已死的 resolve
+      if (offscreenResolveRef.current) {
+        clearTimeout(offscreenResolveRef.current.timer);
+        offscreenResolveRef.current = null;
+      }
       if (!exportCancelledRef.current) {
         setIsExporting(false); setExportProgress(0);
       }
@@ -455,27 +405,10 @@ export default function EditorPage() {
           <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={handleExportPng} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={handleToggleEditor} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
           <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} disableAnimation={isExporting} />
         </motion.div>
-        <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} /></motion.div>
+        <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} onOpenLayoutBrowser={handleOpenLayoutBrowser} /></motion.div>
       </div>
       <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl">
-        <GlobalSettings 
-          page={currentPage || pages[0]} 
-          onUpdate={updatePage} 
-          customFonts={customFonts} 
-          setCustomFonts={setCustomFonts} 
-          theme={theme} 
-          setTheme={setTheme} 
-          imageQuality={imageQuality} 
-          setImageQuality={setImageQuality} 
-          minimalCounter={minimalCounter || false} 
-          setMinimalCounter={setMinimalCounter} 
-          counterStyle={counterStyle} 
-          setCounterStyle={setCounterStyle} 
-          counterColor={currentPage?.counterColor || ''}
-          setCounterColor={(value) => currentPage && updatePage({ ...currentPage, counterColor: value })} 
-          printSettings={printSettings} 
-          setPrintSettings={setPrintSettings} 
-        />
+        <GlobalSettings />
       </Modal>
       
       <Modal isOpen={showLayoutModal} onClose={() => setShowLayoutModal(false)} title={modalMode === 'create' ? "Add New Slide" : "Change Layout"} type="custom" maxWidth="max-w-6xl">

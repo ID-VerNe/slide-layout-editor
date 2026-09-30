@@ -8,19 +8,21 @@ interface ZineLogoProps {
   page: PageData;
   className?: string;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
 }
 
 /**
  * ZineLogo 原子组件
  * 严格限制在 24 格网格内自适应贴合，绝不溢出撑破
  */
-export const ZineLogo: React.FC<ZineLogoProps> = ({ page, className = "", style: customStyle }) => {
+export const ZineLogo: React.FC<ZineLogoProps> = ({ page, className = "", style: customStyle, designSystem: ds, theme }) => {
   const { isVisible } = useDataConnector('logo', page);
   const { url, isLoading } = useAssetUrl(page.logo);
 
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey: 'logo',
     customStyle,

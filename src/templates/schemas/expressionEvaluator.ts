@@ -1,9 +1,12 @@
 import { PageData, ProjectTheme } from '../../types';
 
+// 表达式求值器的合法返回值联合类型,收敛 any
+export type EvaluationResult = number | string | boolean | null | undefined | object;
+
 export interface EvaluationContext {
   page: PageData;
   theme: ProjectTheme;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const MAX_EXPRESSION_DEPTH = 50;

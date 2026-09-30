@@ -1,6 +1,5 @@
 import React from 'react';
 import { PageData, DesignSystem, ProjectTheme } from '../../../../types';
-import { useStore } from '../../../../store/useStore';
 import { useModularStyle } from '../hooks/useModularStyle';
 import { parseResumeContent, parseResumeDescription } from '../utils/resumeParser';
 
@@ -8,27 +7,26 @@ interface ZineResumeProps {
   page: PageData;
   className?: string;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
-  [key: string]: any;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
+  [key: string]: unknown;
 }
 
 /**
  * ZineResume - 简历原子组件
  * 纯视图组件，渲染逻辑与 Markdown 语法解析彻底解耦 (SRP)
  */
-export const ZineResume: React.FC<ZineResumeProps> = ({ 
-  page, 
-  className = "", 
+export const ZineResume: React.FC<ZineResumeProps> = ({
+  page,
+  className = "",
   style: customStyle,
-  designSystem: propsDs,
-  theme: propsTheme,
-  ...otherProps 
+  designSystem: ds,
+  theme,
+  ...otherProps
 }) => {
-  const storeTheme = useStore((state) => state.theme);
-  const theme = propsTheme || storeTheme;
-  
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey: 'resume',
     props: otherProps,
@@ -36,7 +34,7 @@ export const ZineResume: React.FC<ZineResumeProps> = ({
     className: `zine-resume ${className}`
   });
 
-  const accentColor = style.color || theme.colors.accent || '#264376';
+  const accentColor = style.color || theme?.colors?.accent || '#264376';
 
   const finalContainerStyle: React.CSSProperties = {
     minWidth: 0,

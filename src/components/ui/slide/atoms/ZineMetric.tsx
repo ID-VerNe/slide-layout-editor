@@ -2,48 +2,46 @@ import React from 'react';
 import { MetricData, PageData, TypographySettings, DesignSystem, ProjectTheme } from '../../../../types';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import { useStore } from '../../../../store/useStore';
 import { useModularStyle } from '../hooks/useModularStyle';
 import { Text } from './Text';
 
 interface ZineMetricProps {
   data: MetricData;
-  page?: PageData; 
-  typography?: TypographySettings; 
+  page?: PageData;
+  typography?: TypographySettings;
   className?: string;
   valueClassName?: string;
   labelClassName?: string;
   unitClassName?: string;
   subLabelClassName?: string;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
-  [key: string]: any;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
+  [key: string]: unknown;
 }
 
 /**
  * ZineMetric - 指标数据原子组件
  * 严格遵循 24 格网格物理隔离与 Token 传参优先
  */
-export const ZineMetric: React.FC<ZineMetricProps> = ({ 
-  data, 
+export const ZineMetric: React.FC<ZineMetricProps> = ({
+  data,
   page,
-  typography,
+  typography: _typography,
   className = "",
   valueClassName = "",
   labelClassName = "",
   unitClassName = "",
   subLabelClassName = "",
   style: customStyle,
-  designSystem: propsDs,
-  theme: propsTheme,
+  designSystem: ds,
+  theme,
   ...otherProps
 }) => {
-  const storeTheme = useStore((state) => state.theme);
-  const theme = propsTheme || storeTheme;
-  
   // 1. 样式解析
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     fieldKey: 'metrics',
     page,
     props: otherProps,

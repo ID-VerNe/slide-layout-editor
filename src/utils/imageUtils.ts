@@ -36,11 +36,11 @@ export async function generateResponsiveImages(
       base64Data = assetUrlOrData.split(',')[1];
     } else if (assetUrlOrData.startsWith('asset://')) {
       // 如果是 asset://，主进程可以直接读取文件
-      return nativeFs.processResponsiveImages(assetUrlOrData, formats);
+      return (await nativeFs.processResponsiveImages(assetUrlOrData, formats)) as ImageVariant[];
     }
   }
 
-  return nativeFs.processResponsiveImages(base64Data || assetUrlOrData, formats);
+  return (await nativeFs.processResponsiveImages(base64Data || assetUrlOrData, formats)) as ImageVariant[];
 }
 
 export function generateSrcSet(variants: ImageVariant[]): string {

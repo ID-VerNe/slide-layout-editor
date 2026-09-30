@@ -142,7 +142,7 @@ export interface FieldSchema {
   placeholder?: string;    // 编辑器占位符提示
 }
 
-export interface PageData {
+export interface PageData extends Record<string, unknown> {
   id: string;
   type: 'slide' | 'freeform';
   layoutId: TemplateId;

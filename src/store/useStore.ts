@@ -10,47 +10,13 @@ import { logger } from '../utils/logger';
 import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
 import { deepEqual } from '../utils/comparison';
 import { validateProject } from '../utils/validation/projectSchema';
+import { createDefaultPage } from '../utils/templateDefaults';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
   if (!templateId) return '16:9';
-  const template = (TEMPLATES as any[]).find((t: any) => t.id === templateId);
+  const template = TEMPLATES.find(t => t.id === templateId);
   return template?.supportedRatios?.[0] || '16:9';
-};
-
-const getDefaultPage = (ratio: AspectRatioType, layoutId: string, templateConfig?: any): PageData => {
-  const base: PageData = {
-    id: `slide-${crypto.randomUUID()}`,
-    type: layoutId === 'freeform' ? 'freeform' : 'slide',
-    layoutId: layoutId as any,
-    aspectRatio: ratio,
-    title: 'New Slide',
-    subtitle: 'Created with SlideGrid Studio',
-    backgroundColor: DEFAULT_THEME.colors.background,
-    accentColor: DEFAULT_THEME.colors.accent,
-    titleFont: DEFAULT_THEME.typography.headingFont,
-    bodyFont: DEFAULT_THEME.typography.bodyFont,
-    counterStyle: 'number',
-    visibility: { logo: true },
-    freeformItems: [],
-    freeformConfig: { gridSize: 20, snapToGrid: true, showGridOverlay: false, showAlignmentGuides: true }
-  };
-
-  // 合并模板级默认数据
-  if (templateConfig?.defaultData) {
-    Object.assign(base, templateConfig.defaultData);
-  }
-
-  // 合并字段级默认值
-  if (templateConfig?.fields) {
-    templateConfig.fields.forEach((field: any) => {
-      if (field.defaultValue !== undefined && base[field.key as keyof PageData] === undefined) {
-        (base as any)[field.key] = field.defaultValue;
-      }
-    });
-  }
-
-  return base;
 };
 
 const deepClone = <T>(obj: T): T => structuredClone(obj);
@@ -114,6 +80,9 @@ export const isEqualSnapshot = (a?: HistorySnapshot | null, b?: HistorySnapshot 
 /** 防抖输入期间尚未提交的历史基准快照 */
 let uncommittedBaseline: HistorySnapshot | null = null;
 
+/** 拖拽期间尚未提交的排序基准快照 */
+let reorderBaseline: HistorySnapshot | null = null;
+
 // 字体二进制的会话级缓存:family -> dataUrl
 // 快照只存元数据,恢复时用此映射 rehydrate,避免裸元数据覆写 state.customFonts
 const fontBinaryMap = new Map<string, string>();
@@ -172,7 +141,7 @@ interface ProjectState {
   future: HistorySnapshot[];
 
   createProject: (title: string, templateId?: string) => string;
-  loadProject: (idOrData: string | (Partial<ProjectData> & Record<string, any>), templateId?: string | null, filePath?: string | null) => Promise<void>;
+  loadProject: (idOrData: string | (Partial<ProjectData> & Record<string, unknown>), templateId?: string | null, filePath?: string | null) => Promise<void>;
   setPages: (pages: PageData[]) => void;
   setProjectTitle: (title: string) => void;
   setTheme: (themeUpdate: { colors?: Partial<ProjectTheme['colors']>; typography?: Partial<ProjectTheme['typography']> } & Omit<Partial<ProjectTheme>, 'colors' | 'typography'>, applyToAll?: boolean) => void;
@@ -189,7 +158,7 @@ interface ProjectState {
   updatePages: (updates: Partial<PageData>[], silent?: boolean) => void;
   addPage: (ratio: AspectRatioType, layoutId: string) => void;
   removePage: (id: string) => void;
-  reorderPages: (newPages: PageData[]) => void;
+  reorderPages: (newPages: PageData[], isCommit?: boolean) => void;
   undo: () => void;
   redo: () => void;
   pushHistory: (customSnapshot?: HistorySnapshot) => void;
@@ -224,7 +193,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     set({
       activeProjectId: id,
       projectTitle: title,
-      pages: [{ ...getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
+      pages: [{ ...createDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig), title: 'PLACEHOLDER_FOR_NEW_PROJECT' }],
       theme: DEFAULT_THEME,
       designSystem: DEFAULT_DESIGN_SYSTEM,
       currentPageIndex: 0,
@@ -245,15 +214,15 @@ export const useStore = create<ProjectState>((set, get) => ({
     const reqId = ++loadRequestId;
 
     try {
-      let projectData: any = null;
+      let projectData: ProjectData | null = null;
       let projectId: string | null = null;
 
       if (typeof idOrData === 'string') {
         projectId = idOrData;
         set({ isLoaded: false, activeProjectId: projectId, currentFilePath: filePath || null, hasUnsavedChanges: false });
-        projectData = await getProject(projectId);
+        projectData = (await getProject(projectId)) as ProjectData | null;
       } else {
-        projectData = idOrData;
+        projectData = idOrData as ProjectData;
         projectId = projectData.id || crypto.randomUUID();
         const targetPath = filePath || projectData.filePath || null;
         set({ isLoaded: false, activeProjectId: projectId, currentFilePath: targetPath, hasUnsavedChanges: false });
@@ -309,7 +278,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       } else {
         const templateConfig = getTemplateById(templateId || 'modern-feature');
         set({
-          pages: [getDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig)],
+          pages: [createDefaultPage(getRatioFromTemplate(templateId), templateId || 'modern-feature', templateConfig)],
           projectTitle: '',
           theme: DEFAULT_THEME,
           designSystem: DEFAULT_DESIGN_SYSTEM,
@@ -441,12 +410,12 @@ export const useStore = create<ProjectState>((set, get) => ({
     }
 
     // 预先计算需要同步的全局字段变更，避免在每页迭代中重复遍历 GLOBAL_FIELDS
-    const globalUpdates: Partial<PageData> = {};
+    const globalUpdates: Record<string, unknown> = {};
     if (original) {
       GLOBAL_FIELDS.forEach(f => {
-        const val = (updatedPage as any)[f];
-        if (val !== undefined && val !== (original as any)[f]) {
-          (globalUpdates as any)[f] = val;
+        const val = updatedPage[f];
+        if (val !== undefined && val !== original[f]) {
+          globalUpdates[f] = val;
         }
       });
     }
@@ -509,7 +478,9 @@ export const useStore = create<ProjectState>((set, get) => ({
     commitUncommittedBaseline(get());
     get().pushHistory();
     const { pages, theme, counterStyle } = get();
-    const defaultPage = getDefaultPage(ratio, layoutId);
+    // 新增页同样走模板默认值合并，修复此前 templateConfig 漏传导致模板 defaultData 不生效
+    const templateConfig = getTemplateById(layoutId);
+    const defaultPage = createDefaultPage(ratio, layoutId, templateConfig);
     // 继承当前全局样式到新页面
     const newPage: PageData = {
       ...defaultPage,
@@ -542,13 +513,36 @@ export const useStore = create<ProjectState>((set, get) => ({
     commitUncommittedBaseline(get());
     set({ pages });
   },
-  reorderPages: (newPages) => { 
-    logger.action('Store', 'ReorderPages', { count: newPages.length });
-    const { pages } = get();
-    if (deepEqual(pages, newPages)) return;
-    commitUncommittedBaseline(get());
-    get().pushHistory(); 
-    set({ pages: newPages, hasUnsavedChanges: true }); 
+  reorderPages: (newPages, isCommit = true) => {
+    logger.action('Store', 'ReorderPages', { count: newPages.length, isCommit });
+
+    if (!isCommit) {
+      // 拖拽中：首次进入时锁定拖拽前基准，仅做视觉更新
+      if (!reorderBaseline) {
+        reorderBaseline = buildSnapshot(get());
+      }
+      set({ pages: newPages, hasUnsavedChanges: true });
+      return;
+    }
+
+    // 落手：对比拖拽前基准与最终结果，实质变更才压栈一次
+    const baseline = reorderBaseline;
+    reorderBaseline = null;
+    const before = get().pages;
+    if (deepEqual(before, newPages) && !baseline) return;
+
+    if (baseline) {
+      const finalSnapshot: HistorySnapshot = { ...buildSnapshot(get()), pages: deepClone(newPages) };
+      if (!isEqualSnapshot(baseline, finalSnapshot)) {
+        get().pushHistory(baseline);
+      }
+    } else {
+      // 无拖拽基准（外部程序化调用，走 isCommit=true 默认路径）
+      commitUncommittedBaseline(get());
+      get().pushHistory();
+    }
+
+    set({ pages: newPages, hasUnsavedChanges: true });
   },
 
   setTheme: (update, applyToAll = false) => {
@@ -661,6 +655,6 @@ export const useStore = create<ProjectState>((set, get) => ({
 
 // 暴露 store 引用以支持端到端自动化测试与控制台调试
 if (typeof window !== 'undefined') {
-  (window as any).__SLIDEGRID_STORE__ = useStore;
+  (window as Window & { __SLIDEGRID_STORE__?: typeof useStore }).__SLIDEGRID_STORE__ = useStore;
 }
 

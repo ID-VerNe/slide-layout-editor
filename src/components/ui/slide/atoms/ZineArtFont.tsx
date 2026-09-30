@@ -21,9 +21,9 @@ interface ZineArtFontProps {
   opacity?: number;
   mixBlendMode?: React.CSSProperties['mixBlendMode'];
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
-  [key: string]: any;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
+  [key: string]: unknown;
 }
 
 /**
@@ -48,9 +48,13 @@ export const ZineArtFont: React.FC<ZineArtFontProps> = ({
   opacity = 1,
   mixBlendMode = 'normal',
   style: customStyle,
+  designSystem: ds,
+  theme,
   ...otherProps
 }) => {
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey,
     props: { color, opacity, mixBlendMode, ...otherProps },

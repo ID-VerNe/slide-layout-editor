@@ -17,27 +17,27 @@ interface ZineIconProps {
   weight?: number | string;
   strokeWidth?: number;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
-  [key: string]: any;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
+  [key: string]: unknown;
 }
 
 /**
  * ZineIcon - 图标原子组件
  * 严格支持 24 格网格物理隔离与三源（Lucide, Material, URL）自适应规整
  */
-export const ZineIcon: React.FC<ZineIconProps> = ({ 
-  name, 
+export const ZineIcon: React.FC<ZineIconProps> = ({
+  name,
   page,
   fieldKey,
-  size = 24, 
-  className = "", 
+  size = 24,
+  className = "",
   color,
   weight,
   strokeWidth = 2.5,
   style: customStyle,
-  designSystem: propsDs,
-  theme: propsTheme,
+  designSystem: ds,
+  theme,
   ...otherProps
 }) => {
   const resolvedSize = typeof size === 'number'
@@ -45,6 +45,8 @@ export const ZineIcon: React.FC<ZineIconProps> = ({
     : (resolveModularFontSize(size) || 24);
 
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey,
     props: { color, weight, ...otherProps },

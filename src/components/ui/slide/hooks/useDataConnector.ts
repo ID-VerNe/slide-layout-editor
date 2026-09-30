@@ -23,7 +23,7 @@ export function useDataConnector<T = any>(
     }
 
     const isVisible = fieldKey ? page.visibility?.[fieldKey] !== false : true;
-    const pageVal = fieldKey ? (page as any)[fieldKey] : undefined;
+    const pageVal = fieldKey ? page[fieldKey] : undefined;
     const content = pageVal !== undefined && pageVal !== null && pageVal !== '' ? pageVal : fallbackContent;
     const overrides = fieldKey ? (page.styleOverrides?.[fieldKey] || {}) : {};
 
@@ -35,7 +35,7 @@ export function useDataConnector<T = any>(
   }, [
     fieldKey,
     page,
-    fieldKey ? (page as any)?.[fieldKey] : undefined,
+    fieldKey ? page?.[fieldKey] : undefined,
     fieldKey ? page?.styleOverrides?.[fieldKey] : undefined,
     fieldKey ? page?.visibility?.[fieldKey] : undefined,
     fallbackContent

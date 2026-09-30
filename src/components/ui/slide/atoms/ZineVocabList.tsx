@@ -1,9 +1,9 @@
 import React from 'react';
 import { PageData, VocabItem, DesignSystem, ProjectTheme, TypographySettings } from '../../../../types';
-import { useStore } from '../../../../store/useStore';
 import { useModularStyle } from '../hooks/useModularStyle';
 import { resolveModularFontSize } from '../utils/typographyScale';
 import { useDataConnector } from '../hooks/useDataConnector';
+import { getPageField } from '../../../../utils/pageField';
 
 interface ZineVocabListProps {
   page: PageData;
@@ -14,10 +14,10 @@ interface ZineVocabListProps {
   size?: number | string;
   className?: string;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   typography?: TypographySettings;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -33,21 +33,18 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
   size = 2.25,
   className = '',
   style: customStyle,
-  designSystem: propsDs,
-  theme: propsTheme,
-  typography: propsTypography,
+  designSystem: ds,
+  theme,
+  typography: _typography,
   ...otherProps
 }) => {
-  const storeDs = useStore((s) => s.designSystem);
-  const storeTheme = useStore((s) => s.theme);
-  const ds = propsDs || storeDs;
-  const theme = propsTheme || storeTheme;
-
   // 1. 统一提取数据连接与可见性状态
-  const defaultFallback = directItems || (page as any)[fieldKey] || page.vocabItems || [];
+  const defaultFallback = directItems || getPageField<VocabItem[] | undefined>(page, fieldKey, undefined) || page.vocabItems || [];
   const { content: rawItems, isVisible } = useDataConnector<VocabItem[]>(fieldKey, page, defaultFallback);
 
   const { style: resolvedContainerStyle, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey,
     props: otherProps,
@@ -98,8 +95,8 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
               className="font-bold uppercase leading-tight tracking-[0.12em]"
               style={{
                 fontSize: `${wordPx}px`,
-                color: ds.tokens.colors.primary || theme.colors.primary,
-                fontFamily: theme.typography.headingFont,
+                color: ds?.tokens?.colors?.primary || theme?.colors?.primary,
+                fontFamily: theme?.typography?.headingFont,
               }}
             >
               {item.word}
@@ -109,8 +106,8 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
                 className="font-mono opacity-60 tracking-normal"
                 style={{
                   fontSize: `${phoneticPx}px`,
-                  color: ds.tokens.colors.secondary || theme.colors.secondary,
-                  fontFamily: theme.typography.captionFont,
+                  color: ds?.tokens?.colors?.secondary || theme?.colors?.secondary,
+                  fontFamily: theme?.typography?.captionFont,
                 }}
               >
                 /{item.phonetic.replace(/^\/+|\/+$/g, '')}/
@@ -121,8 +118,8 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
                 className="italic font-medium opacity-80"
                 style={{
                   fontSize: `${phoneticPx}px`,
-                  color: ds.tokens.colors.accent || theme.colors.accent,
-                  fontFamily: theme.typography.headingFont,
+                  color: ds?.tokens?.colors?.accent || theme?.colors?.accent,
+                  fontFamily: theme?.typography?.headingFont,
                 }}
               >
                 {item.pos}
@@ -135,8 +132,8 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
             className="leading-relaxed font-normal break-words"
             style={{
               fontSize: `${meaningPx}px`,
-              color: ds.tokens.colors.primary || theme.colors.primary,
-              fontFamily: theme.typography.headingFontZH || theme.typography.bodyFontZH,
+              color: ds?.tokens?.colors?.primary || theme?.colors?.primary,
+              fontFamily: theme?.typography?.headingFontZH || theme?.typography?.bodyFontZH,
             }}
           >
             {item.meaning}
@@ -147,15 +144,15 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
             <div
               className="border-l-2 pl-3 flex flex-col space-y-1 mt-1.5 pt-0.5"
               style={{
-                borderColor: ds.tokens.colors.secondary ? `${ds.tokens.colors.secondary}40` : '#cbd5e1',
+                borderColor: ds?.tokens?.colors?.secondary ? `${ds.tokens.colors.secondary}40` : '#cbd5e1',
               }}
             >
               <p
                 className="italic leading-relaxed opacity-85 break-words"
                 style={{
                   fontSize: `${examplePx}px`,
-                  color: ds.tokens.colors.secondary || theme.colors.secondary,
-                  fontFamily: theme.typography.bodyFont,
+                  color: ds?.tokens?.colors?.secondary || theme?.colors?.secondary,
+                  fontFamily: theme?.typography?.bodyFont,
                 }}
               >
                 &ldquo;{item.example}&rdquo;
@@ -165,8 +162,8 @@ export const ZineVocabList: React.FC<ZineVocabListProps> = ({
                   className="leading-relaxed opacity-75 break-words"
                   style={{
                     fontSize: `${exampleZHPx}px`,
-                    color: ds.tokens.colors.secondary || theme.colors.secondary,
-                    fontFamily: theme.typography.bodyFontZH,
+                    color: ds?.tokens?.colors?.secondary || theme?.colors?.secondary,
+                    fontFamily: theme?.typography?.bodyFontZH,
                   }}
                 >
                   {item.exampleZH}

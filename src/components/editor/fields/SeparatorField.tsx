@@ -18,7 +18,7 @@ export const SeparatorField: React.FC<FieldProps> = React.memo(({ page, onUpdate
     <FieldWrapper
       page={page}
       onUpdate={onUpdate}
-      fieldKey={fieldKey as keyof PageData}
+      fieldKey={fieldKey}
       label={label || 'Divider'}
       icon={Minus}
       showStyleConfig={true}

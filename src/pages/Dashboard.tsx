@@ -6,11 +6,12 @@ import { nativeFs } from '../utils/native-fs';
 import { deleteProject } from '../utils/storage/projectDb';
 import { openProjectFromFilePicker } from '../utils/dom/fileDownload';
 import { useUI } from '../context/UIContext';
-import { 
-  getRecentProjects, 
+import {
+  getRecentProjects,
   saveRecentProjects,
-  upsertRecentProject, 
-  removeRecentProject 
+  upsertRecentProject,
+  removeRecentProject,
+  type RecentProjectEntry
 } from '../services/recentProjects';
 
 export default function Dashboard() {
@@ -20,7 +21,7 @@ export default function Dashboard() {
   const loadProject = useStore(s => s.loadProject);
   const setCurrentFilePath = useStore(s => s.setCurrentFilePath);
   const [workspace, setWorkspace] = useState<string | null>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<RecentProjectEntry[]>([]);
 
   // 初始化默认 Workspace
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function Dashboard() {
       
       if (nativeFs.isElectron()) {
         const paths = await nativeFs.getAppPaths();
-        const defaultWs = (paths as any)?.defaultWorkspace || (paths as any)?.localWorkspace || (paths?.userData ? `${paths.userData}/Projects` : null);
+        const defaultWs = paths?.defaultWorkspace || paths?.localWorkspace || (paths?.userData ? `${paths.userData}/Projects` : null);
         if (!savedWorkspace || savedWorkspace.endsWith('/Projects') || savedWorkspace.endsWith('\\Projects')) {
           // 优先使用探测到的实际工作区路径（如 ./workspace）
           savedWorkspace = defaultWs;
@@ -76,7 +77,7 @@ export default function Dashboard() {
       }
     });
 
-    const mergedList = Array.from(uniqueMap.values()).sort((a: any, b: any) => (b.lastModified || 0) - (a.lastModified || 0));
+    const mergedList = Array.from(uniqueMap.values()).sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
     setProjects(mergedList);
 
     // 同步写回 LocalStorage 做持久化缓存备份
@@ -112,7 +113,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteProject = (e: React.MouseEvent, project: any) => {
+  const handleDeleteProject = (e: React.MouseEvent, project: RecentProjectEntry) => {
     e.stopPropagation();
     confirm('Delete Project', `Permanently delete "${project.title}"? This cannot be undone.`, () => {
       (async () => {
@@ -121,7 +122,7 @@ export default function Dashboard() {
             const result = await nativeFs.deleteProject(project.filePath);
             if (result.success) {
               removeRecentProject(project.id);
-              setProjects(prev => prev.filter((p: any) => p.id !== project.id));
+              setProjects(prev => prev.filter(p => p.id !== project.id));
               await refreshProjects();
             } else {
               alert('Delete Failed', `Failed to delete project: ${result.error}`);
@@ -129,7 +130,7 @@ export default function Dashboard() {
           } else {
             await deleteProject(project.id);
             removeRecentProject(project.id);
-            setProjects(prev => prev.filter((p: any) => p.id !== project.id));
+            setProjects(prev => prev.filter(p => p.id !== project.id));
           }
         } catch (error) {
           console.error('Failed to delete project:', error);
@@ -203,13 +204,13 @@ export default function Dashboard() {
           await loadProject(projectData);
           navigate(`/editor/${projectData.id}`);
         }
-      } catch (err: any) {
-        alert('Open Failed', err?.message || 'Failed to open project file.');
+      } catch (err: unknown) {
+        alert('Open Failed', err instanceof Error ? err.message : 'Failed to open project file.');
       }
     }
   };
 
-  const handleProjectClick = async (project: any) => {
+  const handleProjectClick = async (project: RecentProjectEntry) => {
     try {
       if (nativeFs.isElectron() && project.filePath) {
         const result = await nativeFs.readProject(project.filePath);

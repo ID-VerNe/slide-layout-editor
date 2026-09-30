@@ -2,6 +2,7 @@ import React from 'react';
 import { Type } from 'lucide-react';
 import Editor from '../Editor';
 import { PageData, CustomFont } from '../../types';
+import { EditorErrorBoundary } from './EditorErrorBoundary';
 
 interface EditorPanelProps {
   currentPage: PageData;
@@ -9,6 +10,7 @@ interface EditorPanelProps {
   onRemovePage: (id: string) => void;
   customFonts: CustomFont[];
   pages?: PageData[];
+  onOpenLayoutBrowser?: (mode: 'create' | 'change') => void;
 }
 
 const EditorPanel = React.memo(function EditorPanel({
@@ -16,6 +18,7 @@ const EditorPanel = React.memo(function EditorPanel({
   onUpdatePage,
   customFonts,
   pages,
+  onOpenLayoutBrowser,
 }: EditorPanelProps) {
 
   return (
@@ -32,12 +35,16 @@ const EditorPanel = React.memo(function EditorPanel({
       </div>
 
       <div id="editor-scroll-container" className="flex-1 overflow-y-auto p-8 space-y-12 no-scrollbar">
-        <Editor
-          page={currentPage}
-          onUpdate={onUpdatePage}
-          customFonts={customFonts}
-          pages={pages}
-        />
+        {/* 切页时通过 key 重置 Boundary 错误态,避免上一页的错误连累新页 */}
+        <EditorErrorBoundary key={currentPage.id}>
+          <Editor
+            page={currentPage}
+            onUpdate={onUpdatePage}
+            customFonts={customFonts}
+            pages={pages}
+            onOpenLayoutBrowser={onOpenLayoutBrowser}
+          />
+        </EditorErrorBoundary>
       </div>
     </div>
   );

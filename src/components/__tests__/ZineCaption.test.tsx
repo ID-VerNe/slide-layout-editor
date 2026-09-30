@@ -1,18 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ZineCaption } from '../ui/slide/atoms/ZineCaption';
 import { DEFAULT_DESIGN_SYSTEM, DEFAULT_THEME } from '../../constants/theme';
 import { PageData } from '../../types';
-
-vi.mock('../../store/useStore', () => ({
-  useStore: vi.fn((selector: any) => {
-    const mockState = {
-      designSystem: DEFAULT_DESIGN_SYSTEM,
-      theme: DEFAULT_THEME,
-    };
-    return selector(mockState);
-  }),
-}));
 
 const mockPage: PageData = {
   id: 'test-page',
@@ -29,18 +19,18 @@ const mockPage: PageData = {
 
 describe('ZineCaption', () => {
   it('使用 text prop 渲染内容', () => {
-    render(<ZineCaption page={mockPage} text="Hello Caption" />);
+    render(<ZineCaption page={mockPage} text="Hello Caption" designSystem={DEFAULT_DESIGN_SYSTEM} theme={DEFAULT_THEME} />);
     expect(screen.getByText('Hello Caption')).toBeInTheDocument();
   });
 
   it('使用 fieldKey 从 page 提取内容', () => {
-    render(<ZineCaption page={mockPage} fieldKey="footer" />);
+    render(<ZineCaption page={mockPage} fieldKey="footer" designSystem={DEFAULT_DESIGN_SYSTEM} theme={DEFAULT_THEME} />);
     expect(screen.getByText('Footer Text')).toBeInTheDocument();
   });
 
   it('fieldKey 对应字段为空时返回 null', () => {
     const { container } = render(
-      <ZineCaption page={mockPage} fieldKey="nonexistent" />
+      <ZineCaption page={mockPage} fieldKey="nonexistent" designSystem={DEFAULT_DESIGN_SYSTEM} theme={DEFAULT_THEME} />
     );
     expect(container.innerHTML).toBe('');
   });
@@ -51,13 +41,13 @@ describe('ZineCaption', () => {
       visibility: { imageLabel: false },
     };
     const { container } = render(
-      <ZineCaption page={page as any} fieldKey="imageLabel" />
+      <ZineCaption page={page as any} fieldKey="imageLabel" designSystem={DEFAULT_DESIGN_SYSTEM} theme={DEFAULT_THEME} />
     );
     expect(container.innerHTML).toBe('');
   });
 
   it('无 fieldKey 时默认可见', () => {
-    render(<ZineCaption page={mockPage} text="Always visible" />);
+    render(<ZineCaption page={mockPage} text="Always visible" designSystem={DEFAULT_DESIGN_SYSTEM} theme={DEFAULT_THEME} />);
     expect(screen.getByText('Always visible')).toBeInTheDocument();
   });
 });

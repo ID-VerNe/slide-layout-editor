@@ -19,33 +19,33 @@ interface ZineMediaProps {
   priority?: boolean;
   sizes?: string;
   rounded?: string | number;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   typography?: TypographySettings;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
  * ZineMedia - 媒体原子组件 (V3 Modular)
  * 与 imageGeometry 及 24 格物理硬约束彻底贯通
  */
-export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({ 
-  page, 
+export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
+  page,
   fieldKey = 'image',
   src: overrideSrc,
   config: overrideConfig,
-  className = "", 
+  className = "",
   imgClassName = "",
   style: customStyle,
   priority = false,
   sizes = "(max-width: 768px) 100vw, 50vw",
   rounded,
-  designSystem: propsDs,
-  theme: propsTheme,
-  typography: propsTypography,
+  designSystem: ds,
+  theme,
+  typography: _typography,
   ...otherProps
-}) => {
-  const resolvedFieldKey = otherProps.fieldKey || fieldKey || 'image';
+}: ZineMediaProps) => {
+  const resolvedFieldKey = fieldKey || 'image';
 
   // 1. 统一提取数据连接与可见性状态
   const { content: pageSrc, isVisible } = useDataConnector(resolvedFieldKey, page);
@@ -53,9 +53,11 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   // 2. 样式解析 (利用 useModularStyle 处理 Zine Mode 等)
   const { style, className: resolvedClassName } = useModularStyle({
-    page, 
+    designSystem: ds,
+    theme,
+    page,
     fieldKey: resolvedFieldKey,
-    props: { 
+    props: {
       backgroundColor: '#000000',
       ...otherProps
     },

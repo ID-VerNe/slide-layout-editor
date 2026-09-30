@@ -1,16 +1,18 @@
 import { useMemo } from 'react';
-import { useStore } from '../../../../store/useStore';
-import { PageData } from '../../../../types';
+import { DesignSystem, PageData, ProjectTheme } from '../../../../types';
 
 interface UseModularStyleProps {
+  // 由调用方从 props 透传,不再自行订阅 store;componentRenderer 始终注入
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   fieldKey?: string;
   overrides?: Record<string, any>;
   props?: Record<string, any>;
   variant?: 'display' | 'body' | 'caption' | 'h1' | 'h2';
-  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增方向支持
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate';
   customStyle?: React.CSSProperties;
   className?: string;
-  page?: PageData; // 传入 page 以自动获取 styleOverrides
+  page?: PageData;
 }
 
 import { resolveModularFontSize, resolveModularLineHeight } from '../utils/typographyScale';
@@ -24,6 +26,8 @@ const EMPTY_OBJECT = Object.freeze({});
  * 统一处理样式优先级与排版规范约束
  */
 export const useModularStyle = ({
+  designSystem: ds,
+  theme,
   fieldKey,
   overrides: directOverrides = EMPTY_OBJECT,
   props = EMPTY_OBJECT,
@@ -33,8 +37,6 @@ export const useModularStyle = ({
   className = '',
   page
 }: UseModularStyleProps) => {
-  const ds = useStore(s => s.designSystem);
-  const theme = useStore(s => s.theme);
 
   // 如果提供了 fieldKey 且有 page，自动提取 overrides
   const overrides = useMemo(() => {

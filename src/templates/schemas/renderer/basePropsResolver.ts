@@ -68,21 +68,22 @@ export function resolveBaseProps(
 
   // 3. Zine Mode 审美约束 (强制白名单过滤)
   // 核心规则：以 presetStyle 为基底，节点自定义 finalStyle 具有更高优先级进行覆盖
-  const filteredStyle: any = {};
+  const filteredStyle = {} as Record<string, unknown>;
+  const presetStyleRecord = presetStyle as Record<string, unknown>;
+  const finalStyleRecord = finalStyle as Record<string, unknown>;
   ALLOWED_CSS_PROPERTIES.forEach(p => {
-    if ((presetStyle as any)[p] !== undefined) filteredStyle[p] = (presetStyle as any)[p];
-    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p];
+    if (presetStyleRecord[p] !== undefined) filteredStyle[p] = presetStyleRecord[p];
+    if (finalStyleRecord[p] !== undefined) filteredStyle[p] = finalStyleRecord[p];
   });
 
-  finalStyle = filteredStyle;
+  finalStyle = filteredStyle as React.CSSProperties;
 
   // 4. ClassName 过滤剔除
   dynamicClassName = filterZineClassName(dynamicClassName);
 
   // 5. 处理 Z-Index 声明 (全局分层系统)
   if (resolveZIndex) {
-    const declaredZIndex = (node as any).zIndex;
-    finalStyle.zIndex = resolveZIndex(declaredZIndex);
+    finalStyle.zIndex = resolveZIndex(node.zIndex);
   }
 
   return {

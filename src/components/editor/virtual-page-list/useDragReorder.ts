@@ -3,7 +3,7 @@ import { PageData } from '../../../types';
 
 interface UseDragReorderProps {
   pages: PageData[];
-  onReorderPages: (newPages: PageData[]) => void;
+  onReorderPages: (newPages: PageData[], isCommit?: boolean) => void;
 }
 
 /**
@@ -14,6 +14,8 @@ export function useDragReorder({ pages, onReorderPages }: UseDragReorderProps) {
   const lastReorderRef = useRef(0);
   const lastDragOverIndexRef = useRef<number>(-1);
   const draggedPageIdRef = useRef<string | null>(null);
+  // 记录最后一次视觉更新的顺序，落手提交时读取，避免闭包过期
+  const lastNewPagesRef = useRef<PageData[] | null>(null);
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
@@ -36,7 +38,9 @@ export function useDragReorder({ pages, onReorderPages }: UseDragReorderProps) {
     const [draggedPage] = newPages.splice(currentDraggedIndex, 1);
     newPages.splice(targetIndex, 0, draggedPage);
 
-    onReorderPages(newPages);
+    lastNewPagesRef.current = newPages;
+    // 拖拽中：仅视觉更新，不压栈
+    onReorderPages(newPages, false);
     lastReorderRef.current = Date.now();
     lastDragOverIndexRef.current = targetIndex;
   };
@@ -57,6 +61,12 @@ export function useDragReorder({ pages, onReorderPages }: UseDragReorderProps) {
   };
 
   const handleDragEnd = () => {
+    // 落手：以最后一次视觉更新的顺序提交一次历史
+    const finalPages = lastNewPagesRef.current;
+    if (finalPages) {
+      onReorderPages(finalPages, true);
+    }
+    lastNewPagesRef.current = null;
     setDraggedIndex(null);
     draggedPageIdRef.current = null;
     lastDragOverIndexRef.current = -1;
