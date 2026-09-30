@@ -96,12 +96,11 @@ IndexedDB 的封装层 (原生 API，无第三方依赖)，数据库名 `slidegr
 
 ## 4. 高性能计算、格式化与 Worker
 
-### 4.1 `fontCalculator.ts` 与 `fontCalculatorManager.ts`
-位于 `src/workers/`，通过 Web Worker 异步计算标题最佳字号，彻底避免阻塞主线程。
+### 4.1 `knuthPlassWorker.ts`
+位于 `src/workers/`，基于 tex-linebreak 在 Web Worker 中异步求解文本换行与断行，避免阻塞主线程。
 
-- **算法**: **$O(1)$ 闭式代数公式 (Closed-Form Formula)**。基于字符单位权重推导（ASCII: 0.6，CJK: 1.0），由容器宽高与行数限制瞬间解出最大允许字号，淘汰二分搜索逼近。
-- **调度管理**: 由 `fontCalculatorManager.ts` 作为全局唯一单例管理 Worker 线程生命周期，通过自增序列 ID 支持高并发请求，内置 2000ms 超时降级兜底。
-- **用途**: `AutoFitHeadline` 组件的核心计算逻辑。
+- **算法**: **Knuth-Plass 动态规划**。基于 tex-linebreak 求解全局最优换行与断行，避免贪心启发式导致的参差右边界。
+- **用途**: 文本排版换行的核心计算逻辑。
 
 ### 4.2 `numberFormatters.ts`
 位于 `src/utils/numberFormatters.ts`，提供多语言与出版级格式化工具：

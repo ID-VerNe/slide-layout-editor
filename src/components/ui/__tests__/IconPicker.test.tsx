@@ -14,7 +14,7 @@ vi.mock('../../../hooks/useProject', () => ({
 }));
 
 // Mock compressImage from db utils
-vi.mock('../../../utils/db', () => ({
+vi.mock('../../../utils/media/canvasCompressor', () => ({
   compressImage: vi.fn((file) => Promise.resolve('data:image/png;base64,mocked')),
 }));
 

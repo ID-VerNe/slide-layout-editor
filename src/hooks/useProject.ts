@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { saveProject } from '../utils/db';
+import { saveProject } from '../utils/storage/projectDb';
 import { useStore } from '../store/useStore';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { updateRecentProjectThumbnail, upsertRecentProject } from '../services/recentProjects';

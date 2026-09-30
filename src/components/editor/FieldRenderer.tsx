@@ -1,15 +1,12 @@
 import React from 'react';
 import { PageData, CustomFont, FieldSchema } from '../../types';
+import { Type, Bookmark, Quote, Languages } from 'lucide-react';
 
-// 导入所有原子化字段组件
+// 导入保留的具名字段组件（非文本型字段与带差异化逻辑的文本型字段）
 import { LogoField } from './fields/LogoField';
 import { TitleField } from './fields/TitleField';
 import { SubtitleField } from './fields/SubtitleField';
-import { ActionTextField } from './fields/ActionTextField';
-import { ParagraphField } from './fields/ParagraphField';
 import { ImageField } from './fields/ImageField';
-import { ImageLabelField } from './fields/ImageLabelField';
-import { ImageSubLabelField } from './fields/ImageSubLabelField';
 import { FeaturesField } from './fields/FeaturesField';
 import { MosaicField } from './fields/MosaicField';
 import { MetricsField } from './fields/MetricsField';
@@ -30,26 +27,17 @@ import { TitleYField } from './fields/TitleYField';
 import { GenericNumberField } from './fields/GenericNumberField';
 import { SeparatorField } from './fields/SeparatorField';
 import { ArtFontField } from './fields/ArtFontField';
-import { ParagraphZHField } from './fields/ParagraphZHField';
-import { QuoteZHField } from './fields/QuoteZHField';
-import { SideHeaderField } from './fields/SideHeaderField';
 import { VocabItemsField } from './fields/VocabItemsField';
+import { GenericTextField, GenericTextFieldProps } from './fields/GenericTextField';
 
-// 1. 定义具名组件映射 - 移到组件外部以保持引用稳定
+// 具名组件映射：保留非文本型字段与带自定义逻辑的文本型字段
 const componentMap: Record<string, React.FC<any>> = {
   logo: LogoField,
   title: TitleField,
   subtitle: SubtitleField,
-  actionText: ActionTextField,
-  paragraph: ParagraphField,
-  paragraphZH: ParagraphZHField,
-  quoteZH: QuoteZHField,
-  sideHeader: SideHeaderField,
   vocabItems: VocabItemsField,
-  signature: ImageField,  // 签名现在使用 ImageField
+  signature: ImageField,
   image: ImageField,
-  imageLabel: ImageLabelField,
-  imageSubLabel: ImageSubLabelField,
   features: FeaturesField,
   mosaic: MosaicField,
   mosaicItems: MosaicField,
@@ -73,6 +61,54 @@ const componentMap: Record<string, React.FC<any>> = {
   artFont: ArtFontField,
 };
 
+// 文本型字段预设：未在 componentMap 注册的文本 key 走 GenericTextField + 预设元数据
+const textFieldPresets: Record<string, Omit<GenericTextFieldProps, 'page' | 'onUpdate' | 'fieldKey' | 'label' | 'customFonts'>> = {
+  actionText: {
+    icon: Type,
+    placeholder: 'e.g. SHOP NOW',
+    className: 'text-xs font-black uppercase tracking-widest border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors',
+    defaultFont: "'Inter', sans-serif",
+  },
+  imageLabel: {
+    icon: Type,
+    placeholder: 'e.g. FIG. 01 — THE MOUNTAIN',
+    className: 'text-xs font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors',
+    defaultFont: "'Inter', sans-serif",
+  },
+  imageSubLabel: {
+    icon: Type,
+    placeholder: 'e.g. VOL. 01',
+    className: 'text-xs font-medium border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors',
+  },
+  paragraph: {
+    icon: Type,
+    multiline: true,
+    rows: 5,
+    placeholder: 'Write something...',
+  },
+  paragraphZH: {
+    icon: Languages,
+    multiline: true,
+    rows: 4,
+    placeholder: '输入中文对照译文（思源宋体/弱对比灰）...',
+    defaultFont: "'Noto Serif SC', 'STFangsong', serif",
+    defaultColor: '#475569',
+  },
+  quoteZH: {
+    icon: Quote,
+    multiline: true,
+    rows: 2,
+    placeholder: '输入金句中文释义...',
+    defaultFont: "'Noto Serif SC', 'STFangsong', serif",
+    defaultColor: '#475569',
+  },
+  sideHeader: {
+    icon: Bookmark,
+    placeholder: 'e.g. VOL. 01 // THE ESSAY ARCHIVE',
+    className: 'text-xs uppercase tracking-widest border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors',
+  },
+};
+
 interface FieldRendererProps {
   schema: FieldSchema;
   page: PageData;
@@ -86,10 +122,8 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
 }) => {
   const { key, label, type, props = {} } = schema;
 
-  // 2. 匹配组件：优先找具名组件
   let Component = componentMap[key];
 
-  // 3. 兜底逻辑
   if (!Component && type === 'number') {
     return (
       <GenericNumberField
@@ -105,6 +139,22 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   // 分隔线类型的特殊处理
   if (!Component && type === 'separator') {
     Component = SeparatorField;
+  }
+
+  // 未注册为具名组件的文本型字段，统一走 GenericTextField + 预设元数据
+  if (!Component && textFieldPresets[key]) {
+    const preset = textFieldPresets[key];
+    return (
+      <GenericTextField
+        page={page}
+        onUpdate={onUpdate}
+        customFonts={customFonts}
+        fieldKey={key as keyof PageData & string}
+        label={label}
+        {...preset}
+        {...props}
+      />
+    );
   }
 
   if (!Component) return null;

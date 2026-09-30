@@ -6,7 +6,7 @@ import { FieldWrapper } from './FieldWrapper';
 import { Slider } from '../../ui/Base';
 import { useAssetUrl } from '../../../hooks/useAssetUrl';
 import { getContainerAspectRatioFromPage } from '../../../utils/imageGeometry';
-import { saveAsset } from '../../../utils/db';
+import { saveAsset } from '../../../utils/storage/assetStore';
 import { nativeFs } from '../../../utils/native-fs';
 import { logger } from '../../../utils/logger';
 

@@ -38,19 +38,7 @@ SlideGrid Studio 针对高精度排版与高性能预览，在 `src/utils/` 下�
   - 仅对 `http`/`https` 链接启用 `crossOrigin: 'anonymous'`；本地协议 (asset:/data:/blob:) 无需跨域。
 - `blurDataURL(dataUrl, _blurAmount=10)`: 占位函数（实际 blur 效果由 CSS `filter: blur()` 提供）。
 
-### 1.4 `imagePreloader.ts`
-`ImagePreloader` 单例类（导出 `imagePreloader` 实例），支持优先级调度的图片预加载管理器（最大并发：3）。
-
-**方法**:
-- `preload(url, priority?)`: 预加载单张图片。优先级 `'high'` 时插入队列头部，否则追加到尾部。已缓存的 URL 自动去重。
-- `preloadMultiple(urls, priority?)`: 批量预加载多张图片，返回 `Promise<void[]>`。
-- `clear()`: 取消所有进行中的加载并清空队列（清空源 `src`，解绑 `onload`/`onerror`）。
-- `clearUrls(urls)`: 仅取消指定 URL 的加载，保留其他任务。
-- **自动 crossOrigin**: 对外部 HTTP/HTTPS 图片自动设置 `crossOrigin = 'anonymous'`。
-- **去重**: 相同 URL 不会重复发起请求（内部通过 `loadingPromises` Map 跟踪）。
-- **调度**: 内部使用 `setTimeout(50ms)` 延迟批量处理，避免同步突发大量请求。
-
-### 1.5 `imageGeometry.ts`
+### 1.4 `imageGeometry.ts`
 负责计算图片在容器内 `object-fit: cover` 模式下的物理几何约束与平移安全边界。
 
 **核心接口与函数**:

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { PageData, AspectRatioType, ProjectTheme, PrintSettings, CustomFont, CounterStyle, DesignSystem, ProjectData } from '../types';
-import { getProject } from '../utils/db';
+import { getProject } from '../utils/storage/projectDb';
 import { nativeFs } from '../utils/native-fs';
 import { migrateToV3 } from '../utils/migrations/v2-to-v3';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';

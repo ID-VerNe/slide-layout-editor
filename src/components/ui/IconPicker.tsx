@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { HelpCircle, LUCIDE_ICON_MAP, Search, Trash2, History, LayoutGrid, Upload, ImageIcon } from '../../constants/icons';
 import Modal from '../Modal';
 import { CATEGORIZED_ICONS } from '../../constants/icons';
-import { compressImage } from '../../utils/db';
+import { compressImage } from '../../utils/media/canvasCompressor';
 import { isImageUrl } from '../../utils/imageUrl';
 import { useStore } from '../../store/useStore';
 import { PageData } from '../../types';

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { Plus, FolderOpen, Settings, Layout, ChevronRight, HardDrive, AlertCircle, Trash2, HelpCircle } from 'lucide-react';
 import { nativeFs } from '../utils/native-fs';
-import { deleteProject, openProjectFromFilePicker } from '../utils/db';
+import { deleteProject } from '../utils/storage/projectDb';
+import { openProjectFromFilePicker } from '../utils/dom/fileDownload';
 import { useUI } from '../context/UIContext';
 import { 
   getRecentProjects, 

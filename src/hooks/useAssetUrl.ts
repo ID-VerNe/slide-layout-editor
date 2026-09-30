@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { LRUCache } from '../utils/lruCache';
-import { getAsset } from '../utils/db';
+import { getAsset } from '../utils/storage/assetStore';
 import { nativeFs } from '../utils/native-fs';
 
 interface ImageDimensions { width: number; height: number; }
 
 const assetCache = new LRUCache<string, string>(100);
-const dimensionCache = new Map<string, ImageDimensions>();
+// 图片宽高缓存与 assetCache 同款 LRU,避免长会话下无界增长
+const dimensionCache = new LRUCache<string, ImageDimensions>(100);
 
 /**
  * useAssetUrl 4.0 - 直读式架构

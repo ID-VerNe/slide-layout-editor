@@ -21,7 +21,8 @@ import { TemplatePreview } from '../components/ui/TemplatePreview';
 import { OffscreenExportRenderer } from '../components/editor/OffscreenExportRenderer';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { upsertRecentProject } from '../services/recentProjects';
-import { exportProjectAsJson, exportPagesToZip, openProjectFromFilePicker } from '../utils/db';
+import { exportProjectAsJson, openProjectFromFilePicker } from '../utils/dom/fileDownload';
+import { exportPagesToZip } from '../utils/archive/zipArchive';
 import { getPrintGeometry } from '../utils/printGeometry';
 import { PageData } from '../types';
 

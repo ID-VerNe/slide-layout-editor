@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useResponsiveImage } from '../useResponsiveImage';
-import * as db from '../../utils/db';
+import * as db from '../../utils/storage/assetStore';
 import * as imageUtils from '../../utils/imageUtils';
 
-vi.mock('../../utils/db', () => ({
+vi.mock('../../utils/storage/assetStore', () => ({
   getAsset: vi.fn(),
 }));
 

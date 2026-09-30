@@ -304,7 +304,7 @@ pnpm test:ci
 - **Schema 验证**: 确保 `validator.ts` 正确解析新 Schema
 - **组件渲染**: 测试组件在不同 `layoutVariant` 下的视觉表现
 - **Store 逻辑**: 测试 undo/redo、全局同步等核心逻辑
-- **Hooks**: useAssetUrl、useImagePreload、usePreview、useProject、useResponsiveImage
+- **Hooks**: useAssetUrl、usePreview、useProject、useResponsiveImage
 - **工具函数**: db、lruCache、logger、native-fs、typeGuards、comparison
 - **编辑器 UI**: FieldRenderer、GlobalSettings、PreviewArea、TopNav、Dashboard
 
