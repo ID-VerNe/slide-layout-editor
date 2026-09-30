@@ -3,6 +3,7 @@ import { saveProject } from '../utils/storage/projectDb';
 import { useStore } from '../store/useStore';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { updateRecentProjectThumbnail, upsertRecentProject } from '../services/recentProjects';
+import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
 
 export function useProject(projectId: string | undefined, _templateId: string | null) {
   
@@ -22,6 +23,11 @@ export function useProject(projectId: string | undefined, _templateId: string | 
   const currentFilePath = useStore(s => s.currentFilePath);
   const designSystem = useStore(s => s.designSystem);
   const hasUnsavedChanges = useStore(s => s.hasUnsavedChanges);
+
+  // 字体 DOM 注册:从 store 副作用层移到订阅层,customFonts 变化即注册
+  useEffect(() => {
+    loadCustomFontsIntoDOM(customFonts);
+  }, [customFonts]);
 
   const loadProjectSync = useStore(s => s.loadProject);
   const loadProject = useCallback(async (idOrData: any, templateId?: string | null, filePath?: string | null) => {

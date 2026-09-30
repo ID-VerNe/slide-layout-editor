@@ -105,11 +105,8 @@ export default function EditorPage() {
     const fileName = currentFilePath ? currentFilePath.split(/[\\/]/).pop() : (projectTitle || fallbackTitle);
     const unsavedMark = hasUnsavedChanges ? '● ' : '';
     document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
-
-    if (isLoaded && projectId) {
-      nativeFs.setCurrentProject(projectId, projectTitle || fallbackTitle);
-    }
-  }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges, isLoaded, projectId]);
+    // IPC 同步由 loadProject 单点负责,此处不再二次写入
+  }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges]);
 
   // 自动保存:仅在存在未保存变更时启动 3s 防抖定时器
   useEffect(() => {
