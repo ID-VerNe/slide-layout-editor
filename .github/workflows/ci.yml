@@ -39,8 +39,14 @@ jobs:
         run: pnpm build
 
       - name: Run tests with coverage
-        # xvfb-run 为 Electron 提供虚拟显示,ubuntu-latest 无头环境无 X server
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080" pnpm test:ci
+        # 启动后台 Xvfb 并显式 export DISPLAY,供 Electron 的 ozone/x11 平台使用。
+        # 不用 xvfb-run 包裹:经 pnpm -> vitest -> playwright -> electron 多层 spawn 后
+        # 它设的 DISPLAY 在某些 ubuntu runner 上传不到 electron 子进程,导致
+        # 'Missing X server or $DISPLAY' + SIGSEGV。
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp -ac &
+          export DISPLAY=:99
+          pnpm test:ci
 
       - name: Upload coverage to Codecov (optional)
         if: always()
