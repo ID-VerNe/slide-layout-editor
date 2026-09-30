@@ -1,4 +1,5 @@
 import { parseProjectArchive } from '../archive/zipArchive';
+import type { ProjectData } from '../../types';
 
 /**
  * 触发浏览器文件下载
@@ -17,7 +18,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /**
  * 导出工程为 JSON 文件下载（Web 备份）
  */
-export function exportProjectAsJson(projectData: any, defaultName?: string): void {
+export function exportProjectAsJson(projectData: ProjectData, defaultName?: string): void {
   const safeName = (defaultName || projectData.title || projectData.projectTitle || 'SlideGrid_Project')
     .replace(/[<>:"/\\|?*]/g, '_')
     .replace(/\p{Cc}/gu, '_');
@@ -30,7 +31,7 @@ export function exportProjectAsJson(projectData: any, defaultName?: string): voi
 /**
  * 通过文件选择器读取本地工程 JSON 或 .slgrid 文件
  */
-export function openProjectFromFilePicker(): Promise<{ project: any; filename: string } | null> {
+export function openProjectFromFilePicker(): Promise<{ project: ProjectData; filename: string } | null> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';

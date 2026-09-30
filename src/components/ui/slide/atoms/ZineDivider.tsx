@@ -50,9 +50,9 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
   if (!isVisible) return null;
 
   // 2. 智能厚度计算：优先读取 styleOverrides.thickness
-  const overrideThickness = overrides?.thickness;
+  const overrideThickness = overrides?.thickness as number | string | undefined;
   const thicknessValue = overrideThickness || thickness;
-  const resolvedThickness = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
+  const resolvedThickness: string | number = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
 
   const finalStyle: React.CSSProperties = {
     minWidth: 0,
@@ -65,11 +65,11 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
 
     // 长度与厚度几何模型
     width: isHorizontal
-      ? (style.width || '100%')
+      ? ((style.width as string | number | undefined) || '100%')
       : resolvedThickness,
     height: isHorizontal
       ? resolvedThickness
-      : (style.height || '100%'),
+      : ((style.height as string | number | undefined) || '100%'),
 
     opacity: style.opacity ?? 1,
 

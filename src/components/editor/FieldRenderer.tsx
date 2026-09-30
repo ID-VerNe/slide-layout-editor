@@ -31,6 +31,8 @@ import { VocabItemsField } from './fields/VocabItemsField';
 import { GenericTextField, GenericTextFieldProps } from './fields/GenericTextField';
 
 // 具名组件映射：保留非文本型字段与带自定义逻辑的文本型字段
+// 各字段组件 props 形状各异,统一以 unknown 容器承载,渲染时按需断言
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const componentMap: Record<string, React.FC<any>> = {
   logo: LogoField,
   title: TitleField,

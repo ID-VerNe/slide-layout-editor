@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContainerNode, TemplateNode } from '../types';
+import { ContainerNode, TemplateNode, FlexLayoutProps, GridLayoutProps, AbsoluteLayoutProps, ModularLayoutProps } from '../types';
 import { DesignSystem, TypographySettings } from '../../../types';
 import { EvaluationContext } from '../expressionEvaluator';
 import { ZIndexResolverFn } from '../zIndexResolver';
@@ -48,7 +48,7 @@ export function renderContainer({
   let layoutStyle: React.CSSProperties = { ...baseStyle };
 
   if (layout === 'flex') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as FlexLayoutProps) || {};
     layoutStyle = {
       ...layoutStyle,
       display: 'flex',
@@ -62,7 +62,7 @@ export function renderContainer({
       height: layoutStyle.height || (node.modular ? '100%' : undefined),
     };
   } else if (layout === 'absolute') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as AbsoluteLayoutProps) || {};
     layoutStyle = {
       ...layoutStyle,
       position: 'absolute',
@@ -74,7 +74,7 @@ export function renderContainer({
       zIndex: props.zIndex,
     };
   } else if (layout === 'grid') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as GridLayoutProps) || {};
     layoutStyle = {
       ...layoutStyle,
       display: 'grid',
@@ -83,7 +83,7 @@ export function renderContainer({
       gap: resolveTokenValue(props.gap || '', ds) || props.gap,
     };
   } else if (layout === 'modular') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as ModularLayoutProps) || {};
     layoutStyle = {
       ...layoutStyle,
       display: 'grid',

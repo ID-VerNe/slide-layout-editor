@@ -51,7 +51,7 @@ export const PartnersTitleField: React.FC<FieldProps> = ({ page, onUpdate }) => 
       
       <div className={`relative ${!isVisible ? 'opacity-50 grayscale' : ''}`}>
         <PresetSelect
-          value={page.styleOverrides?.partnersTitle?.fontSize || 10}
+          value={Number(page.styleOverrides?.partnersTitle?.fontSize) || 10}
           options={FONT_SIZE_PRESETS}
           onChange={updateFontSize}
           label="Size"

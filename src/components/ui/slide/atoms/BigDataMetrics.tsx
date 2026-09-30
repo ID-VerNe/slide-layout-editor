@@ -34,18 +34,18 @@ export const BigDataMetrics: React.FC<BigDataMetricsProps> = ({
 }) => {
   const metrics = metricsProp || textProp || page?.metrics || [];
   
-  const config: any = page?.bigDataMetricsConfig || {};
+  const config = (page?.bigDataMetricsConfig || {}) as { rows?: number; cols?: number };
   const rows = rowsProp ?? config.rows ?? 3;
   const cols = colsProp ?? config.cols ?? 2;
-  
-  const styles: any = page?.styleOverrides?.bigDataMetrics || {};
+
+  const styles = (page?.styleOverrides?.bigDataMetrics || {}) as Record<string, Record<string, unknown>>;
   const valueStyle = styles.value || {};
   const labelStyle = styles.label || {};
   const unitStyle = styles.unit || {};
-  
-  const valueFontSize = (valueStyle.size || 3.5) * 8;
-  const labelFontSize = (labelStyle.size || 2.25) * 8;
-  const unitFontSize = (unitStyle.size || 1.5) * 8;
+
+  const valueFontSize = ((valueStyle.size as number | undefined) || 3.5) * 8;
+  const labelFontSize = ((labelStyle.size as number | undefined) || 2.25) * 8;
+  const unitFontSize = ((unitStyle.size as number | undefined) || 1.5) * 8;
 
   if (!Array.isArray(metrics) || metrics.length === 0) {
     return null;
@@ -94,7 +94,7 @@ export const BigDataMetrics: React.FC<BigDataMetricsProps> = ({
                         className="font-black tracking-tight leading-none"
                         style={{
                           fontSize: `${valueFontSize}px`,
-                          color: valueStyle.color || 'var(--zine-primary, #0F172A)'
+                          color: (valueStyle.color as string | undefined) || 'var(--zine-primary, #0F172A)'
                         }}
                       >
                         {metric.value}
@@ -104,7 +104,7 @@ export const BigDataMetrics: React.FC<BigDataMetricsProps> = ({
                           className="font-bold opacity-60"
                           style={{
                             fontSize: `${unitFontSize}px`,
-                            color: unitStyle.color || 'var(--zine-secondary, #64748B)'
+                            color: (unitStyle.color as string | undefined) || 'var(--zine-secondary, #64748B)'
                           }}
                         >
                           {metric.unit}
@@ -115,7 +115,7 @@ export const BigDataMetrics: React.FC<BigDataMetricsProps> = ({
                       className="font-black uppercase tracking-widest leading-tight"
                       style={{
                         fontSize: `${labelFontSize}px`,
-                        color: labelStyle.color || 'var(--zine-secondary, #64748B)'
+                        color: (labelStyle.color as string | undefined) || 'var(--zine-secondary, #64748B)'
                       }}
                     >
                       {metric.label}

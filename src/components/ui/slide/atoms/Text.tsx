@@ -65,7 +65,7 @@ export const Text: React.FC<TextProps> = ({
       wordBreak: 'break-word',
       overflowWrap: 'break-word',
       boxSizing: 'border-box',
-      textWrap: (style as any).textWrap || defaultWrap,
+      textWrap: ((style as Record<string, unknown>).textWrap as React.CSSProperties['textWrap'] | undefined) || defaultWrap,
       ...style,
     };
   }, [style, textContent]);

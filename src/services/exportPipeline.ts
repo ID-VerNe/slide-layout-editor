@@ -26,8 +26,8 @@ export interface ExportPipelineOptions {
 const buildToPngOptions = () => ({
   pixelRatio: 2,
   backgroundColor: '#ffffff',
-  filter: (n: any) =>
-    !(n.tagName === 'LINK' && n.rel === 'stylesheet' && n.href && !n.href.includes(window.location.origin)),
+  filter: (n: Element) =>
+    !(n.tagName === 'LINK' && (n as HTMLLinkElement).rel === 'stylesheet' && (n as HTMLLinkElement).href && !(n as HTMLLinkElement).href.includes(window.location.origin)),
 });
 
 // 提取简历模板超链接坐标并写入 PDF

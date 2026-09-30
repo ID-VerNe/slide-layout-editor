@@ -78,7 +78,10 @@ export async function getProjectThumbnail(projectId: string): Promise<string | n
   });
 }
 
+// E2E 夹具桥:暴露底层持久化方法供自动化测试精准验证
+const projectDbBridge = { initDB, saveProject, getProject, deleteProject, saveProjectThumbnail, getProjectThumbnail };
+
 // 供 E2E 自动化测试精准验证底层持久化与跨生命周期恢复
 if (typeof window !== 'undefined') {
-  (window as any).__SLIDEGRID_DB__ = { initDB, saveProject, getProject, deleteProject, saveProjectThumbnail, getProjectThumbnail };
+  (window as Window & { __SLIDEGRID_DB__?: typeof projectDbBridge }).__SLIDEGRID_DB__ = projectDbBridge;
 }

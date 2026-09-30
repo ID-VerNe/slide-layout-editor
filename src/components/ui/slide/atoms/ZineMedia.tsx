@@ -67,12 +67,12 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   // 3. 资源解析与占位降级
   const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//') 
-    ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1) 
+  const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//')
+    ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1)
     : `${baseUrl}/example_pic/example_pic_1.png`;
-    
-  const rawSrc = overrideSrc || pageSrc || placeholderSrc;
-  
+
+  const rawSrc = overrideSrc || (pageSrc as string) || placeholderSrc;
+
   const { url, isLoading } = useAssetUrl(rawSrc);
   const { srcSet, variants } = useResponsiveImage(rawSrc, { priority, sizes });
   const isAssetProtocol = rawSrc.startsWith('asset://');
@@ -98,7 +98,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   if (!isVisible) return null;
 
-  const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
+  const config: ImageConfig = overrideConfig || (pageConfig as ImageConfig) || { scale: 1, x: 0, y: 0 };
   
   // 检查是否有用户手动设置的对齐（通过 styleOverrides）
   const hasManualAlignment = resolvedFieldKey && page.styleOverrides?.[resolvedFieldKey] && 

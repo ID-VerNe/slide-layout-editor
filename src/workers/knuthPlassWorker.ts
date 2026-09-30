@@ -138,7 +138,7 @@ function attemptLayout(
       for (let j = 0; j < lineItems.length; j++) {
         const item = lineItems[j];
         if (item.type === 'box') {
-          lineText += (item as any).text || '';
+          lineText += (item as Box & { text?: string }).text || '';
           boxW += item.width;
         } else if (item.type === 'glue') {
           if (!isLast || j !== lineItems.length - 2) { 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RepeaterNode, TemplateNode } from '../types';
+import { RepeaterNode, TemplateNode, FlexLayoutProps, GridLayoutProps } from '../types';
 import { DesignSystem, TypographySettings } from '../../../types';
 import { evaluator, EvaluationContext } from '../expressionEvaluator';
 import { ZIndexResolverFn } from '../zIndexResolver';
@@ -13,7 +13,7 @@ interface RenderRepeaterProps {
   ds: DesignSystem;
   typography?: TypographySettings;
   resolveZIndex?: ZIndexResolverFn;
-  renderTemplate: (templateNode: TemplateNode, itemContext: EvaluationContext, key: any) => React.ReactNode;
+  renderTemplate: (templateNode: TemplateNode, itemContext: EvaluationContext, key: React.Key) => React.ReactNode;
 }
 
 /** Renders Repeater nodes by iterating over bound collection and injecting context */
@@ -42,7 +42,7 @@ export function renderRepeater({
   const { layout, layoutProps } = node;
 
   if (layout === 'flex') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as FlexLayoutProps) || {};
     finalStyle = {
       ...finalStyle,
       display: 'flex',
@@ -53,14 +53,14 @@ export function renderRepeater({
       flexWrap: props.wrap === 'wrap-reverse' ? 'wrap-reverse' : (props.wrap ? 'wrap' : 'nowrap'),
     };
   } else if (layout === 'grid') {
-    const props = (layoutProps as any) || {};
+    const props = (layoutProps as GridLayoutProps) || {};
     finalStyle = {
       ...finalStyle,
       display: 'grid',
       gridTemplateColumns: typeof props.columns === 'number' ? `repeat(${props.columns}, 1fr)` : props.columns,
       gridTemplateRows: typeof props.rows === 'number' ? `repeat(${props.rows}, 1fr)` : props.rows,
       gap: resolveTokenValue(props.gap || '', ds) || props.gap,
-      gridTemplateAreas: props.areas?.map((a: string) => `"${a}"`).join(' '),
+      gridTemplateAreas: props.areas?.map((a) => `"${a}"`).join(' '),
     };
   }
 

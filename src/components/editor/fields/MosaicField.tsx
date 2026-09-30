@@ -20,8 +20,8 @@ export const MosaicField: React.FC<FieldProps> = ({ page, onUpdate, pages }) => 
     });
   };
 
-  const handleChange = (field: keyof PageData, value: any) => {
-    onUpdate({ ...page, [field]: value });
+  const handleChange = (field: keyof PageData, value: unknown) => {
+    onUpdate({ ...page, [field]: value } as PageData);
   };
 
   // Helper to render cell preview in editor

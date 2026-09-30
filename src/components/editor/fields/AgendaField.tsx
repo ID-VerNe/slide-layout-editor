@@ -23,7 +23,7 @@ export const AgendaField: React.FC<FieldProps> = ({
   page, onUpdate, label, customFonts,
   titleLabel, subtitleLabel, timeLabel, locationLabel 
 }) => {
-  const handleAgendaChange = (index: number, field: keyof AgendaData, value: any) => {
+  const handleAgendaChange = (index: number, field: keyof AgendaData, value: string) => {
     const newAgenda = [...(page.agenda || [])];
     newAgenda[index] = { ...newAgenda[index], [field]: value };
     onUpdate({ ...page, agenda: newAgenda });

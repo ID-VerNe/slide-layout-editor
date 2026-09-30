@@ -11,7 +11,7 @@ export interface GenericTextFieldProps {
   fieldKey: keyof PageData & string;
   label?: string;
   placeholder?: string;
-  icon?: LucideIcon | React.ComponentType<any>;
+  icon?: LucideIcon | React.ComponentType<{ size?: number | string; strokeWidth?: number | string; className?: string }>;
   multiline?: boolean;
   rows?: number;
   customFonts?: CustomFont[];
@@ -46,7 +46,7 @@ export const GenericTextField: React.FC<GenericTextFieldProps> = React.memo(({
     onUpdate({ ...page, [fieldKey]: val }, true);
   };
 
-  const style = page.styleOverrides?.[fieldKey] || {};
+  const style = (page.styleOverrides?.[fieldKey] || {}) as Record<string, unknown>;
   const value = getPageField<string>(page, fieldKey, '');
 
   return (
@@ -70,8 +70,8 @@ export const GenericTextField: React.FC<GenericTextFieldProps> = React.memo(({
             placeholder={placeholder}
             className={className}
             style={{
-              fontFamily: style.fontFamily || page.bodyFont || defaultFont,
-              textAlign: style.align || style.textAlign,
+              fontFamily: style.fontFamily as string | undefined || page.bodyFont || defaultFont,
+              textAlign: (style.align || style.textAlign) as React.CSSProperties['textAlign'] | undefined,
               color: defaultColor,
             }}
           />
@@ -83,8 +83,8 @@ export const GenericTextField: React.FC<GenericTextFieldProps> = React.memo(({
             placeholder={placeholder}
             className={className}
             style={{
-              fontFamily: style.fontFamily || page.bodyFont || defaultFont,
-              textAlign: style.align || style.textAlign,
+              fontFamily: style.fontFamily as string | undefined || page.bodyFont || defaultFont,
+              textAlign: (style.align || style.textAlign) as React.CSSProperties['textAlign'] | undefined,
               color: defaultColor,
             }}
           />

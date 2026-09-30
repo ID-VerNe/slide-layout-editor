@@ -20,6 +20,8 @@ export interface IconPickerProps {
 
 const RECENT_STORAGE_KEY = 'slidegrid_editor_recent_assets';
 
+type IconType = 'material' | 'lucide';
+
 const collectProjectImages = (pages: PageData[]): { url: string; count: number }[] => {
   const imageMap = new Map<string, number>();
 
@@ -28,7 +30,7 @@ const collectProjectImages = (pages: PageData[]): { url: string; count: number }
       if (img && isImageUrl(img)) imageMap.set(img, (imageMap.get(img) || 0) + 1);
     });
 
-    (page.gallery || []).forEach((item: any) => {
+    (page.gallery || []).forEach((item: { url?: string }) => {
       if (item?.url && isImageUrl(item.url)) imageMap.set(item.url, (imageMap.get(item.url) || 0) + 1);
     });
 
@@ -95,7 +97,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
     setIsOpen(false);
   };
 
-  const renderIcon = (name: string, type: 'material' | 'lucide', size = 20) => {
+  const renderIcon = (name: string, type: IconType, size = 20) => {
     if (!name) return <HelpCircle size={size} className="opacity-20" />;
     if (type === 'material') return ( <span className="material-symbols-outlined shrink-0 notranslate select-none" style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, textTransform: 'none' }}>{name.toLowerCase()}</span> );
     const findLucide = (n: string) => LUCIDE_ICON_MAP[n] || LUCIDE_ICON_MAP[n.charAt(0).toUpperCase() + n.slice(1)];
@@ -162,7 +164,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                       <div className="grid grid-cols-4 sm:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3">
                         {cat.icons.map(icon => (
                           <button key={icon.name} onClick={() => handleSelect(icon.name)} className={`flex flex-col items-center p-4 rounded-2xl transition-all gap-2 border-2 ${value === icon.name ? 'bg-[#264376]/10 border-[#264376]' : 'bg-white border-transparent hover:bg-slate-50'}`}>
-                            <div className="h-8 w-8 flex items-center justify-center">{renderIcon(icon.name, icon.type as any, 32)}</div>
+                            <div className="h-8 w-8 flex items-center justify-center">{renderIcon(icon.name, icon.type, 32)}</div>
                             <span className="text-[7px] font-bold uppercase truncate w-full text-center opacity-60">{(icon.name || '').replace(/_/g, ' ')}</span>
                           </button>
                         ))}

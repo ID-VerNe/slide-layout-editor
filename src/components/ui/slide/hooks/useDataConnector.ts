@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { PageData } from '../../../../types';
 
-export interface DataConnectorResult<T = any> {
+export interface DataConnectorResult<T = unknown> {
   content: T;
-  overrides: Record<string, any>;
+  overrides: Record<string, unknown>;
   isVisible: boolean;
 }
 
 /** Extracts bound data, style overrides, and visibility status for a slide field */
-export function useDataConnector<T = any>(
+export function useDataConnector<T = unknown>(
   fieldKey?: string,
   page?: PageData,
   fallbackContent?: T

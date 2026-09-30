@@ -1,11 +1,14 @@
 import React from 'react';
 import { PageData, TestimonialData, CustomFont } from '../../../types';
-import { Eye, EyeOff, MessageSquare, Plus, X, User } from 'lucide-react';
+import { Eye, EyeOff, MessageSquare, Plus, X, User, type LucideIcon } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Label, Input, TextArea } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 import { PresetSelect } from '../../ui/PresetSelect';
 import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
+
+// styleOverrides 内每个条目是任意的 CSS 相关键值容器
+type StyleOverrideMap = Record<string, Record<string, unknown>>;
 
 interface FieldProps {
   page: PageData;
@@ -64,14 +67,14 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
     onUpdate({
       ...page,
       styleOverrides: {
-        ...(page.styleOverrides || {}),
+        ...((page.styleOverrides || {}) as StyleOverrideMap),
         [field]: {
-          ...(page.styleOverrides?.[field] || {}),
+          ...((page.styleOverrides?.[field] || {}) as Record<string, unknown>),
           // 这里借用这个字段存字体，虽然 type 里没定义，但在 JS 环境中可行，后续统一
           fontFamily: font
         }
       }
-    } as any);
+    } as PageData);
   };
 
   const renderCellPreview = (val?: string) => {
@@ -82,9 +85,10 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
     if (isMaterial) return <span className="material-symbols-outlined notranslate text-[18px]" style={{ textTransform: 'none' }}>{val.toLowerCase()}</span>;
     try {
       const PascalName = val.charAt(0).toUpperCase() + val.slice(1);
-      const Icon = (LucideIcons as any)[PascalName] || (LucideIcons as any)[val] || LucideIcons.User;
+      const icons = LucideIcons as unknown as Record<string, LucideIcon>;
+      const Icon = icons[PascalName] || icons[val] || LucideIcons.User;
       return <Icon size={18} strokeWidth={2.5} />;
-    } catch (e) {
+    } catch {
       return <LucideIcons.User size={18} />;
     }
   };
@@ -121,35 +125,35 @@ export const TestimonialsField: React.FC<FieldProps> = ({ page, onUpdate, custom
               {/* Name Field with Toolbar */}
               <div className="relative">
                 <PresetSelect
-                  value={page.styleOverrides?.testimonialName?.fontSize || 14}
+                  value={Number(page.styleOverrides?.testimonialName?.fontSize) || 14}
                   options={FONT_SIZE_PRESETS}
                   onChange={(val) => updateFontSize('testimonialName', val)}
                   label="Name Size"
                 />
-                <Input 
-                  placeholder="User Name" 
-                  value={t.name || ''} 
-                  onChange={(e) => handleTestimonialChange(idx, 'name', e.target.value)} 
-                  className="text-xs font-bold bg-white" 
-                  style={{ fontFamily: (page.styleOverrides as any)?.testimonialName?.fontFamily }}
+                <Input
+                  placeholder="User Name"
+                  value={t.name || ''}
+                  onChange={(e) => handleTestimonialChange(idx, 'name', e.target.value)}
+                  className="text-xs font-bold bg-white"
+                  style={{ fontFamily: (page.styleOverrides?.testimonialName as Record<string, unknown> | undefined)?.fontFamily as string | undefined }}
                 />
               </div>
 
               {/* Quote Field with Toolbar */}
               <div className="relative">
                 <PresetSelect
-                  value={page.styleOverrides?.testimonialQuote?.fontSize || 12}
+                  value={Number(page.styleOverrides?.testimonialQuote?.fontSize) || 12}
                   options={FONT_SIZE_PRESETS}
                   onChange={(val) => updateFontSize('testimonialQuote', val)}
                   label="Quote Size"
                 />
-                <TextArea 
-                  placeholder="Testimonial Quote" 
-                  value={t.quote || ''} 
-                  rows={3} 
-                  onChange={(e) => handleTestimonialChange(idx, 'quote', e.target.value)} 
-                  className="text-[11px] leading-relaxed bg-white" 
-                  style={{ fontFamily: (page.styleOverrides as any)?.testimonialQuote?.fontFamily }}
+                <TextArea
+                  placeholder="Testimonial Quote"
+                  value={t.quote || ''}
+                  rows={3}
+                  onChange={(e) => handleTestimonialChange(idx, 'quote', e.target.value)}
+                  className="text-[11px] leading-relaxed bg-white"
+                  style={{ fontFamily: (page.styleOverrides?.testimonialQuote as Record<string, unknown> | undefined)?.fontFamily as string | undefined }}
                 />
               </div>
             </div>

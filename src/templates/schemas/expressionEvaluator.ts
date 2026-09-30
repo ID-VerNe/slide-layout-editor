@@ -121,7 +121,7 @@ class Parser {
 
   constructor(private tokens: Token[], private context: EvaluationContext) {}
 
-  parseExpression(): any {
+  parseExpression(): EvaluationResult {
     this.depth++;
     if (this.depth > MAX_EXPRESSION_DEPTH) {
       this.depth--;
@@ -164,7 +164,7 @@ class Parser {
     return token ? values.includes(getTokenValue(token)) : false;
   }
 
-  private parseTernary(): any {
+  private parseTernary(): EvaluationResult {
     const condition = this.parseNullish();
     if (this.match('?')) {
       this.consume('?');
@@ -176,7 +176,7 @@ class Parser {
     return condition;
   }
 
-  private parseNullish(): any {
+  private parseNullish(): EvaluationResult {
     let left = this.parseOr();
     while (this.match('??')) {
       this.consume('??');
@@ -190,7 +190,7 @@ class Parser {
     return left;
   }
 
-  private parseOr(): any {
+  private parseOr(): EvaluationResult {
     let left = this.parseAnd();
     while (this.match('||')) {
       this.consume('||');
@@ -203,7 +203,7 @@ class Parser {
     return left;
   }
 
-  private parseAnd(): any {
+  private parseAnd(): EvaluationResult {
     let left = this.parseEquality();
     while (this.match('&&')) {
       this.consume('&&');
@@ -216,7 +216,7 @@ class Parser {
     return left;
   }
 
-  private parseEquality(): any {
+  private parseEquality(): EvaluationResult {
     let left = this.parseComparison();
     while (this.match('===', '==', '!==', '!=')) {
       const op = getTokenValue(this.consume());
@@ -229,20 +229,22 @@ class Parser {
     return left;
   }
 
-  private parseComparison(): any {
+  private parseComparison(): EvaluationResult {
     let left = this.parseAdditive();
     while (this.match('>', '<', '>=', '<=')) {
       const op = getTokenValue(this.consume());
       const right = this.parseAdditive();
-      if (op === '>') left = left > right;
-      else if (op === '<') left = left < right;
-      else if (op === '>=') left = left >= right;
-      else left = left <= right;
+      const l = Number(left);
+      const r = Number(right);
+      if (op === '>') left = l > r;
+      else if (op === '<') left = l < r;
+      else if (op === '>=') left = l >= r;
+      else left = l <= r;
     }
     return left;
   }
 
-  private parseAdditive(): any {
+  private parseAdditive(): EvaluationResult {
     let left = this.parseMultiplicative();
     while (this.match('+', '-')) {
       const op = getTokenValue(this.consume());
@@ -255,7 +257,7 @@ class Parser {
     return left;
   }
 
-  private parseMultiplicative(): any {
+  private parseMultiplicative(): EvaluationResult {
     let left = this.parseUnary();
     while (this.match('*', '/')) {
       const op = getTokenValue(this.consume());
@@ -276,7 +278,7 @@ class Parser {
     return left;
   }
 
-  private parseUnary(): any {
+  private parseUnary(): EvaluationResult {
     if (this.match('!')) {
       this.consume('!');
       return !this.parseUnary();
@@ -292,7 +294,7 @@ class Parser {
     return this.parsePrimary();
   }
 
-  private parsePrimary(): any {
+  private parsePrimary(): EvaluationResult {
     const token = this.peek();
     if (!token) {
       throw new SyntaxError('Unexpected end of expression');
@@ -320,7 +322,7 @@ class Parser {
     return undefined;
   }
 
-  private parseMember(current: any): any {
+  private parseMember(current: unknown): EvaluationResult {
     while (true) {
       if (this.match('.')) {
         this.consume('.');
@@ -332,7 +334,8 @@ class Parser {
         const prop = getTokenValue(token);
         if (FORBIDDEN_PROPERTIES.has(prop)) return undefined;
         if (current == null) return undefined;
-        current = current[prop];
+        if (typeof current !== 'object') return undefined;
+        current = (current as Record<string, unknown>)[prop];
       } else if (this.match('?.')) {
         this.consume('?.');
         const token = this.peek();
@@ -343,19 +346,26 @@ class Parser {
         const prop = getTokenValue(token);
         if (FORBIDDEN_PROPERTIES.has(prop)) return undefined;
         if (current == null) return undefined;
-        current = current[prop];
+        if (typeof current !== 'object') return undefined;
+        current = (current as Record<string, unknown>)[prop];
       } else if (this.match('[')) {
         this.consume('[');
         const index = this.parseExpression();
         this.consume(']');
         if (FORBIDDEN_PROPERTIES.has(String(index))) return undefined;
         if (current == null) return undefined;
-        current = current[index];
+        if (Array.isArray(current)) {
+          current = current[Number(index)];
+        } else if (typeof current === 'object') {
+          current = (current as Record<string, unknown>)[String(index)];
+        } else {
+          return undefined;
+        }
       } else {
         break;
       }
     }
-    return current;
+    return current as EvaluationResult;
   }
 }
 
@@ -372,7 +382,7 @@ export class ExpressionEvaluator {
   /**
    * 计算单个表达式的值
    */
-  evaluate(expr: string, context: EvaluationContext): any {
+  evaluate(expr: string, context: EvaluationContext): EvaluationResult {
     if (!expr) return undefined;
     if (typeof expr !== 'string') return expr;
 
@@ -392,8 +402,9 @@ export class ExpressionEvaluator {
         return undefined;
       }
       return result;
-    } catch (err: any) {
-      console.warn('[ExpressionEvaluator] Failed to evaluate:', expr, err?.message || err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn('[ExpressionEvaluator] Failed to evaluate:', expr, message);
       return undefined;
     }
   }
@@ -414,14 +425,14 @@ export class ExpressionEvaluator {
   /**
    * 判断一个值是否包含表达式
    */
-  hasExpression(value: any): boolean {
+  hasExpression(value: unknown): boolean {
     return typeof value === 'string' && /\{([^}]+)\}/.test(value);
   }
 
   /**
    * 递归处理对象中的所有表达式
    */
-  evaluateObject(obj: any, context: EvaluationContext, depth = 0): any {
+  evaluateObject(obj: unknown, context: EvaluationContext, depth = 0): unknown {
     if (depth > MAX_OBJECT_DEPTH) {
       console.warn(`Object evaluation depth exceeded (>${MAX_OBJECT_DEPTH}), returning as-is`);
       return obj;
@@ -434,9 +445,10 @@ export class ExpressionEvaluator {
     }
 
     if (typeof obj === 'object') {
-      const result: any = {};
-      for (const key in obj) {
-        result[key] = this.evaluateObject(obj[key], context, depth + 1);
+      const result: Record<string, unknown> = {};
+      const source = obj as Record<string, unknown>;
+      for (const key in source) {
+        result[key] = this.evaluateObject(source[key], context, depth + 1);
       }
       return result;
     }

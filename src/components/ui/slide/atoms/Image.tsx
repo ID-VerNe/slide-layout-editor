@@ -7,7 +7,10 @@ export type { ImageConfig };
 interface ImageProps {
   url?: string;
   srcSet?: string;
-  variants?: any;
+  variants?: {
+    webp?: { srcSet: string };
+    avif?: { srcSet: string };
+  };
   lqip?: string;
   config?: ImageConfig;
   isLoading?: boolean;
@@ -97,12 +100,12 @@ export const Image: React.FC<ImageProps> = ({
     }
   }, [onLoad, scheduleHideLqip]);
 
-  const { 
-    objectFit: styleObjectFit, 
-    objectPosition: styleObjectPosition, 
+  const {
+    objectFit: styleObjectFit,
+    objectPosition: styleObjectPosition,
     overflow: styleOverflow,
-    ...remainingStyle 
-  } = (style || {}) as any;
+    ...remainingStyle
+  } = (style || {}) as React.CSSProperties;
 
   const isContain = styleObjectFit === 'contain';
 

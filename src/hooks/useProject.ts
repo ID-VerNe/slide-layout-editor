@@ -3,6 +3,7 @@ import { saveProject } from '../utils/storage/projectDb';
 import { useStore } from '../store/useStore';
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { updateRecentProjectThumbnail, upsertRecentProject } from '../services/recentProjects';
+import { ProjectData } from '../types';
 import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
 
 export function useProject(projectId: string | undefined, _templateId: string | null) {
@@ -30,7 +31,7 @@ export function useProject(projectId: string | undefined, _templateId: string | 
   }, [customFonts]);
 
   const loadProjectSync = useStore(s => s.loadProject);
-  const loadProject = useCallback(async (idOrData: any, templateId?: string | null, filePath?: string | null) => {
+  const loadProject = useCallback(async (idOrData: string | (Partial<ProjectData> & Record<string, unknown>), templateId?: string | null, filePath?: string | null) => {
     await loadProjectSync(idOrData, templateId, filePath);
   }, [loadProjectSync]);
 

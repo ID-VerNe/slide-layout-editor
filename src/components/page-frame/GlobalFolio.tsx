@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageData, DesignSystem } from '../../types';
+import { PageData, DesignSystem, FieldSchema } from '../../types';
 import { getTemplateById } from '../../templates/registry';
 import { toRoman, toAlpha } from '../../utils/numberFormatters';
 import { DotsCounter } from './DotsCounter';
@@ -28,7 +28,7 @@ export const GlobalFolio: React.FC<GlobalFolioProps> = ({
 
   // 当模板未注册或注册字段中包含 footer 时，允许渲染页脚文字
   const templateConfig = getTemplateById(page.layoutId);
-  const hasFooterField = !templateConfig || templateConfig.fields?.some((f: any) => f.key === 'footer');
+  const hasFooterField = !templateConfig || templateConfig.fields?.some((f: FieldSchema) => f.key === 'footer');
 
   const renderCounter = () => {
     const style = counterStyle || page.counterStyle || 'number';

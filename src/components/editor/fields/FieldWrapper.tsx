@@ -10,7 +10,7 @@ interface FieldWrapperProps {
   manualVisibility?: boolean;
   onToggle?: (isVisible: boolean) => void;
   label: string;
-  icon?: LucideIcon | React.ComponentType<any>;
+  icon?: LucideIcon | React.ComponentType<{ size?: number | string; className?: string }>;
   children: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
@@ -65,7 +65,7 @@ export const FieldWrapper: React.FC<FieldWrapperProps> = ({
 
   const isVisible = manualVisibility !== undefined 
     ? manualVisibility 
-    : (fieldKey ? (page.visibility as any)?.[fieldKey] !== false : true);
+    : (fieldKey ? ((page.visibility as Record<string, unknown> | undefined)?.[fieldKey] !== false) : true);
 
   const toggle = () => {
     if (onToggle) {

@@ -1,6 +1,10 @@
 import React from 'react';
+import type { LucideIcon } from 'lucide-react';
 
-export const Label = ({ children, icon: Icon, className = "" }: { children: React.ReactNode, icon?: any, className?: string }) => (
+// 图标类型统一收窄为 LucideIcon,消除 any
+type IconType = LucideIcon | React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
+
+export const Label = ({ children, icon: Icon, className = "" }: { children: React.ReactNode, icon?: IconType, className?: string }) => (
   <label className={`block text-[10px] font-black text-slate-950 uppercase tracking-[0.2em] mb-4 flex items-center gap-3 ${className}`}>
     {Icon && <Icon size={12} strokeWidth={3} />}
     {children}

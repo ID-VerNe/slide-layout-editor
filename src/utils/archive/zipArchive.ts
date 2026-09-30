@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { downloadBlob } from '../dom/fileDownload';
+import type { ProjectData } from '../../types';
 
 /**
  * 将多张页面的 Data URL 打包为 ZIP 并在浏览器端自动下载
@@ -39,7 +40,7 @@ export async function exportPagesToZip(
  * 同时支持 .json（直接解析）与 .slgrid（JSZip 解压 project.json 后解析）
  * 非 plain object 在文件边界即抛友好错误
  */
-export async function parseProjectArchive(file: File): Promise<{ project: any; filename: string }> {
+export async function parseProjectArchive(file: File): Promise<{ project: ProjectData; filename: string }> {
   if (file.name.endsWith('.slgrid')) {
     const zip = new JSZip();
     const zipContent = await zip.loadAsync(file);

@@ -23,7 +23,7 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
     onUpdate({ ...page, subtitle: val }, true);
   };
 
-  const style = page.styleOverrides?.subtitle || {};
+  const style = (page.styleOverrides?.subtitle || {}) as Record<string, unknown>;
   
   return (
     <FieldWrapper
@@ -44,11 +44,11 @@ export const SubtitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate,
             onImmediateChange={handleImmediateChange}
             placeholder="Subtitle..." 
             className="text-xs font-medium border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
-            style={{ 
-              fontFamily: style.fontFamily || page.bodyFont,
-              textAlign: style.align || style.textAlign,
+            style={{
+              fontFamily: style.fontFamily as string | undefined || page.bodyFont,
+              textAlign: (style.align || style.textAlign) as React.CSSProperties['textAlign'] | undefined,
               color: '#0F172A'
-            }} 
+            }}
         />
       </div>
     </FieldWrapper>

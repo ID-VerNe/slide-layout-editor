@@ -164,7 +164,7 @@ const LayoutRendererInternal: React.FC<LayoutRendererInternalProps> = ({
           fontFamily={fontFamily}
           maxSize={maxSize as number}
           minSize={minSize as number}
-          align={align as any}
+          align={align as 'left' | 'center' | 'right' | 'justify' | undefined}
           maxLines={maxLines as number}
         />
       );

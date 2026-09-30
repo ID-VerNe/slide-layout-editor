@@ -91,10 +91,10 @@ export const ZineMetric: React.FC<ZineMetricProps> = ({
           className={`text-[10px] font-black uppercase tracking-widest ${labelClassName}`}
           style={{ color: labelColor }}
         />
-        {(data as any).subLabel && (
+        {(data as MetricData & { subLabel?: string }).subLabel && (
           <Text
             as="p"
-            content={(data as any).subLabel}
+            content={(data as MetricData & { subLabel?: string }).subLabel}
             className={`text-[9px] font-medium ${subLabelClassName}`}
             style={{ color: subLabelColor }}
           />

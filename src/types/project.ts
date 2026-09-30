@@ -37,6 +37,7 @@ export interface ProjectData {
   printSettings?: PrintSettings;
   filePath?: string;
   thumbnail?: string;
+  [key: string]: unknown;
 }
 
 export interface ProjectSaveData extends ProjectData {

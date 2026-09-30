@@ -19,9 +19,13 @@ export function resolveBaseProps(
   resolveZIndex?: ZIndexResolverFn
 ): ResolvedBaseProps {
   let dynamicClassName = evaluator.interpolate(node.className || '', context);
-  const dynamicStyle = evaluator.evaluateObject(node.style || {}, context);
+  const dynamicStyleRaw = evaluator.evaluateObject(node.style || {}, context);
+  // 求值器返回 unknown,在此收窄为 CSSProperties 容器
+  const dynamicStyle = (dynamicStyleRaw && typeof dynamicStyleRaw === 'object' && !Array.isArray(dynamicStyleRaw))
+    ? dynamicStyleRaw as Record<string, unknown>
+    : {};
 
-  let finalStyle: React.CSSProperties = { ...dynamicStyle };
+  let finalStyle: React.CSSProperties = { ...dynamicStyle } as React.CSSProperties;
 
   // 1. 处理 24x24 模块化网格定位与绝对物理边界隔离
   if (node.modular) {

@@ -180,7 +180,7 @@ export interface PageData extends Record<string, unknown> {
 
   visibility?: Record<string, boolean>;
   /** 样式覆盖映射，用于运行时动态调整 */
-  styleOverrides?: Record<string, any>;
+  styleOverrides?: Record<string, Record<string, unknown>>;
 
   backgroundColor?: string;
   counterColor?: string;
@@ -197,9 +197,9 @@ export interface PageData extends Record<string, unknown> {
   features?: FeatureData[];
   metrics?: MetricData[];
   /** 马赛克网格数据，每项为键值结构 */
-  mosaic?: Record<string, any>[];
+  mosaic?: Record<string, unknown>[];
   testimonials?: TestimonialData[];
-  gallery?: Record<string, any>[];
+  gallery?: Record<string, unknown>[];
   partners?: PartnerData[];
   signature?: string;
 

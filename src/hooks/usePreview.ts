@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AspectRatioType } from '../constants/layout';
-import { PrintSettings } from '../types';
+import { PageData, PrintSettings } from '../types';
 import { getPrintGeometry } from '../utils/printGeometry';
 
 interface UsePreviewOptions {
-  pages: any[];
+  pages: PageData[];
   currentPageIndex: number;
   printSettings: PrintSettings;
   isLoaded?: boolean; // 感知加载状态,未加载时不进行计算以防死循环
@@ -53,7 +53,7 @@ export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = 
   useEffect(() => {
     if (!previewContainerRef.current || !isLoaded) return;
 
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const observer = new ResizeObserver(() => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {

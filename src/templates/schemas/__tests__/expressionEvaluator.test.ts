@@ -153,7 +153,7 @@ describe('Expression Evaluator', () => {
         display: 'page.visibility.logo ? "block" : "none"',
       };
 
-      const result = evaluator.evaluateObject(input, contextWithCounter);
+      const result = evaluator.evaluateObject(input, contextWithCounter) as Record<string, unknown>;
 
       expect(result.color).toBe('#ffffff');
       expect(result.fontSize).toBe(42);
@@ -167,7 +167,7 @@ describe('Expression Evaluator', () => {
         visible: true,
       };
 
-      const result = evaluator.evaluateObject(input, mockContext);
+      const result = evaluator.evaluateObject(input, mockContext) as Record<string, unknown>;
 
       expect(result.width).toBe(100);
       expect(result.height).toBe(200);
@@ -184,7 +184,9 @@ describe('Expression Evaluator', () => {
         },
       };
 
-      const result = evaluator.evaluateObject(input, contextWithCounter);
+      const result = evaluator.evaluateObject(input, contextWithCounter) as {
+        style: Record<string, unknown>;
+      };
 
       expect(result.style.color).toBe('#ffffff');
       expect(result.style.fontSize).toBe(42);
@@ -287,7 +289,7 @@ describe('Expression Evaluator', () => {
     });
 
     it('evaluateObject 对纯字段路径字符串求值', () => {
-      const result = evaluator.evaluateObject({ color: 'page.backgroundColor' }, mockContext);
+      const result = evaluator.evaluateObject({ color: 'page.backgroundColor' }, mockContext) as Record<string, unknown>;
       expect(result.color).toBe('#ffffff');
     });
 
@@ -336,7 +338,7 @@ describe('Expression Evaluator', () => {
         containerClass: 'w-full h-full bg-slate-900',
         gap: 'spacing.none',
       };
-      const result = evaluator.evaluateObject(input, mockContext);
+      const result = evaluator.evaluateObject(input, mockContext) as Record<string, unknown>;
       expect(result.className).toBe('!italic !tracking-normal text-right');
       expect(result.containerClass).toBe('w-full h-full bg-slate-900');
       expect(result.gap).toBe('spacing.none');

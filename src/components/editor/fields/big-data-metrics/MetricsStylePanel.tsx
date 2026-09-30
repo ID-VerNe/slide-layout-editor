@@ -17,9 +17,9 @@ export const MetricsStylePanel: React.FC<MetricsStylePanelProps> = ({
   onUpdate,
   customFonts,
 }) => {
-  const styles = (page.styleOverrides?.bigDataMetrics || {}) as any;
+  const styles = (page.styleOverrides?.bigDataMetrics || {}) as Record<string, Record<string, unknown>>;
 
-  const updateStyle = (part: 'value' | 'label' | 'unit', key: string, value: any) => {
+  const updateStyle = (part: 'value' | 'label' | 'unit', key: string, value: string | number | boolean) => {
     onUpdate({
       ...page,
       styleOverrides: {
@@ -41,9 +41,9 @@ export const MetricsStylePanel: React.FC<MetricsStylePanelProps> = ({
     onUpdate({ ...page, styleOverrides: nextOverrides });
   };
 
-  const valueStyle = styles.value || {};
-  const labelStyle = styles.label || {};
-  const unitStyle = styles.unit || {};
+  const valueStyle = (styles.value || {}) as { size?: number; fontFamily?: string; bold?: boolean; italic?: boolean; color?: string };
+  const labelStyle = (styles.label || {}) as { size?: number; fontFamily?: string; bold?: boolean; italic?: boolean; color?: string };
+  const unitStyle = (styles.unit || {}) as { size?: number; fontFamily?: string; bold?: boolean; italic?: boolean; color?: string };
 
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4">
