@@ -34,8 +34,13 @@ jobs:
       - name: Comment style guard
         run: pnpm lint:comments
 
+      - name: Build app and Electron main process
+        # e2e 通过 electron.launch 启动真实 Electron,需要 dist-electron/main.js 与 dist/index.html
+        run: pnpm build
+
       - name: Run tests with coverage
-        run: pnpm test:ci
+        # xvfb-run 为 Electron 提供虚拟显示,ubuntu-latest 无头环境无 X server
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080" pnpm test:ci
 
       - name: Upload coverage to Codecov (optional)
         if: always()
