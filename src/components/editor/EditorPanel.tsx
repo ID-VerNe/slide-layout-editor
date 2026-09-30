@@ -5,7 +5,7 @@ import { PageData, CustomFont } from '../../types';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 
 interface EditorPanelProps {
-  currentPage: PageData;
+  currentPage?: PageData;
   onUpdatePage: (page: PageData, silent?: boolean) => void;
   onRemovePage: (id: string) => void;
   customFonts: CustomFont[];
@@ -35,15 +35,19 @@ const EditorPanel = React.memo(function EditorPanel({
       </div>
 
       <div id="editor-scroll-container" className="flex-1 overflow-y-auto p-8 space-y-12 no-scrollbar">
-        {/* 切页时通过 key 重置 Boundary 错误态,避免上一页的错误连累新页 */}
-        <EditorErrorBoundary key={currentPage.id}>
-          <Editor
-            page={currentPage}
-            onUpdate={onUpdatePage}
-            customFonts={customFonts}
-            pages={pages}
-            onOpenLayoutBrowser={onOpenLayoutBrowser}
-          />
+        {/* 切页时通过 key 重置 Boundary 错误态,避免上一页的错误连累新页。
+            currentPage 在 loadProject 异步恢复前可能为 undefined(reload 场景),
+            用可选链读取 id 避免 .id 抛错冒泡到顶层 ErrorBoundary 而中断恢复。 */}
+        <EditorErrorBoundary key={currentPage?.id}>
+          {currentPage ? (
+            <Editor
+              page={currentPage}
+              onUpdate={onUpdatePage}
+              customFonts={customFonts}
+              pages={pages}
+              onOpenLayoutBrowser={onOpenLayoutBrowser}
+            />
+          ) : null}
         </EditorErrorBoundary>
       </div>
     </div>
