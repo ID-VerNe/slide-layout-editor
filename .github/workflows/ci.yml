@@ -25,6 +25,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint (0 errors enforced)
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Comment style guard
+        run: pnpm lint:comments
+
       - name: Run tests with coverage
         run: pnpm test:ci
 

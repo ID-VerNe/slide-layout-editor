@@ -20,6 +20,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report playwright-report",
     "lint": "eslint src/",
+    "lint:comments": "node scripts/check-comment-mixed.mjs",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {

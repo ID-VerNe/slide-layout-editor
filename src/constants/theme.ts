@@ -60,7 +60,8 @@ export const DEFAULT_DESIGN_SYSTEM: DesignSystem = {
         letterSpacing: '0.2em', 
         textTransform: 'uppercase' 
       },
-      // 主标题：Playfair Display, 32pt-48pt, Tracking +150 to +250 (AllCaps)
+      // 主标题样式
+      // Playfair Display, 32pt-48pt, Tracking +150 to +250, AllCaps
       display: { 
         fontSize: '48pt', 
         lineHeight: '1.1', 

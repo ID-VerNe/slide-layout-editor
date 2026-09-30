@@ -139,7 +139,8 @@ export function getContainerAspectRatioFromPage(
     if (!modular) return null;
 
     const slideRatio = parseSlideAspectRatio(page.aspectRatio);
-    // 在 24x24 网格中：容器宽高比 = (colSpan / rowSpan) * 幻灯片宽高比
+    // 24x24 网格容器宽高比:colSpan/rowSpan 乘以幻灯片宽高比
+    // ratio = (colSpan / rowSpan) * slideAspectRatio
     return (modular.colSpan / modular.rowSpan) * slideRatio;
   } catch {
     return null;

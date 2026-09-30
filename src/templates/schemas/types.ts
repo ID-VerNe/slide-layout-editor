@@ -18,8 +18,8 @@ export interface BaseNode {
     colSpan?: number;  // 1-24
     rowStart?: number; // 1-24
     rowSpan?: number;  // 1-24
-    align?: 'start' | 'center' | 'end' | 'stretch';   // 垂直对齐 (align-self)
-    justify?: 'start' | 'center' | 'end' | 'stretch'; // 水平对齐 (justify-self)
+    align?: 'start' | 'center' | 'end' | 'stretch';   // 直对齐,映射到 align-self
+    justify?: 'start' | 'center' | 'end' | 'stretch'; // 水平对齐,映射到 justify-self
   };
   
   presetKey?: string;  // 引用 DesignSystem 中的预设样式 (e.g., "safe-area", "glass-card")

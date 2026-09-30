@@ -82,7 +82,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
     );
   };
 
-  // 模式启发式推导 (Fallback)
+  // 模式启发式推导:未显式传入 mode 时按 fieldKey 关键字猜测
   const isDivider =
     mode === 'divider' ||
     (!mode &&

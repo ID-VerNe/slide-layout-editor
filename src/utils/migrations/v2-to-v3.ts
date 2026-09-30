@@ -45,7 +45,8 @@ function migrateFields(obj: any): any {
         continue;
       }
       
-      // 布局 ID 映射：仅当属于页面级布局时将 layout -> layoutId，保留容器节点的 layout (grid/flex/modular/absolute)
+      // 页面级布局映射:layout -> layoutId,容器节点保留 layout 值
+      // container layout 保留: flex/grid/modular/absolute
       if (key === 'layout' && typeof value === 'string') {
         const isContainerLayout = value === 'flex' || value === 'grid' || value === 'modular' || value === 'absolute' || obj.type === 'container' || Array.isArray(obj.children);
         if (!isContainerLayout) {

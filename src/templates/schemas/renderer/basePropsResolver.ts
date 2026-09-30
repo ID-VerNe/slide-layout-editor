@@ -38,7 +38,7 @@ export function resolveBaseProps(
     finalStyle.maxHeight = '100%';
     finalStyle.boxSizing = 'border-box';
 
-    // 9宫格对齐逻辑 (Self Alignment)
+    // 9宫格对齐逻辑:由 modular.align/justify 映射到 alignSelf/justifySelf
     if (align) finalStyle.alignSelf = align;
     if (justify) finalStyle.justifySelf = justify;
   }
