@@ -146,7 +146,9 @@ export function getDefaultColorForField(page: PageData, key: string, ds: any): s
       const defaultColor = findColorInNode(tpl.schema.root || tpl.schema);
       if (defaultColor) return defaultColor;
     }
-  } catch {}
+  } catch {
+    // Schema 查找失败时降级到主题主色
+  }
   return ds.tokens.colors.primary;
 }
 
@@ -175,6 +177,8 @@ export function getDefaultThicknessForField(page: PageData, key: string): number
       const defaultThickness = findThicknessInNode(tpl.schema.root || tpl.schema);
       if (defaultThickness !== undefined) return defaultThickness;
     }
-  } catch {}
+  } catch {
+    // Schema 查找失败时降级到默认粗细
+  }
   return 1;
 }

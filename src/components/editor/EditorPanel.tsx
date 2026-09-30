@@ -11,16 +11,16 @@ interface EditorPanelProps {
   pages?: PageData[];
 }
 
-const EditorPanel: React.FC<EditorPanelProps> = ({
+const EditorPanel = React.memo(function EditorPanel({
   currentPage,
   onUpdatePage,
   customFonts,
   pages,
-}) => {
+}: EditorPanelProps) {
 
   return (
     /*
-      移除内部 motion 逻辑，转为固定宽度的 flex 容器
+      移除内部 motion 逻辑,转为固定宽度的 flex 容器
       确保内容在父级容器宽度变化时不会变形
     */
     <div className="w-[400px] h-full bg-white flex flex-col border-l border-slate-950">
@@ -41,6 +41,6 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default EditorPanel;

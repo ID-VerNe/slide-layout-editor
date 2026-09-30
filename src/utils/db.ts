@@ -229,7 +229,8 @@ export function downloadBlob(blob: Blob, filename: string): void {
  */
 export function exportProjectAsJson(projectData: any, defaultName?: string): void {
   const safeName = (defaultName || projectData.title || projectData.projectTitle || 'SlideGrid_Project')
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_');
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/\p{Cc}/gu, '_');
   const fileName = `${safeName}.json`;
   const jsonStr = JSON.stringify(projectData, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
@@ -263,10 +264,17 @@ export function openProjectFromFilePicker(): Promise<{ project: any; filename: s
           }
           const text = await projectJsonFile.async('text');
           const data = JSON.parse(text);
+          // 前置守卫:必须是 plain object,非对象在文件边界即抛友好错误
+          if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new Error('Invalid project file: expected a JSON object');
+          }
           resolve({ project: data, filename: file.name });
         } else {
           const text = await file.text();
           const data = JSON.parse(text);
+          if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new Error('Invalid project file: expected a JSON object');
+          }
           resolve({ project: data, filename: file.name });
         }
       } catch (err) {

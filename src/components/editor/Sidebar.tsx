@@ -29,7 +29,7 @@ interface SidebarProps {
 
 const VIRTUAL_SCROLL_THRESHOLD = 30;
 
-const Sidebar: React.FC<SidebarProps> = (props) => {
+const Sidebar = React.memo(function Sidebar(props: SidebarProps) {
   const {
     pages,
     currentPageIndex,
@@ -161,6 +161,6 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
       </div>
     </motion.div>
   );
-};
+});
 
 export default Sidebar;

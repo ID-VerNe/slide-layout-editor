@@ -9,6 +9,7 @@ import { TEMPLATES, getTemplateById } from '../templates/registry';
 import { logger } from '../utils/logger';
 import { loadCustomFontsIntoDOM } from '../utils/fontLoader';
 import { deepEqual } from '../utils/comparison';
+import { validateProject } from '../utils/validation/projectSchema';
 
 /** 根据模板 ID 从注册表获取正确的宽高比，回退到 16:9 */
 const getRatioFromTemplate = (templateId?: string | null): AspectRatioType => {
@@ -77,7 +78,7 @@ const buildSnapshot = (state: ProjectState): HistorySnapshot => ({
   minimalCounter: state.minimalCounter,
   counterStyle: state.counterStyle,
   imageQuality: state.imageQuality,
-  customFonts: deepClone(state.customFonts),
+  customFonts: state.customFonts.map(f => ({ name: f.name, family: f.family })),
   currentPageIndex: state.currentPageIndex,
   currentFilePath: state.currentFilePath,
 });
@@ -112,6 +113,32 @@ export const isEqualSnapshot = (a?: HistorySnapshot | null, b?: HistorySnapshot 
 
 /** 防抖输入期间尚未提交的历史基准快照 */
 let uncommittedBaseline: HistorySnapshot | null = null;
+
+// 字体二进制的会话级缓存:family -> dataUrl
+// 快照只存元数据,恢复时用此映射 rehydrate,避免裸元数据覆写 state.customFonts
+const fontBinaryMap = new Map<string, string>();
+
+/** 将字体列表中的二进制登记进会话缓存 */
+const cacheFontBinaries = (fonts: CustomFont[] = []) => {
+  for (const f of fonts) {
+    if (f.family && f.dataUrl) {
+      fontBinaryMap.set(f.family, f.dataUrl);
+    }
+  }
+};
+
+/** 用会话缓存补全快照字体的二进制,缺二进制的条目直接丢弃 */
+const rehydrateFonts = (metadata: CustomFont[] = []): CustomFont[] => {
+  const result: CustomFont[] = [];
+  for (const m of metadata) {
+    if (!m.family) continue;
+    const dataUrl = fontBinaryMap.get(m.family);
+    // 防御:缺二进制不写入 state,避免自动保存洗库
+    if (!dataUrl) continue;
+    result.push({ name: m.name, family: m.family, dataUrl });
+  }
+  return result;
+};
 
 /**
  * 提交尚未落盘的历史基准快照
@@ -213,6 +240,8 @@ export const useStore = create<ProjectState>((set, get) => ({
   // @lat: [[store#Project Loading]]
   loadProject: async (idOrData, templateId, filePath) => {
     uncommittedBaseline = null;
+    // 切工程前清空字体二进制缓存,避免跨工程串味
+    fontBinaryMap.clear();
     const reqId = ++loadRequestId;
 
     try {
@@ -237,13 +266,24 @@ export const useStore = create<ProjectState>((set, get) => ({
         // 执行 V3 迁移
         const migratedData = migrateToV3(projectData);
 
+        // 迁移后做结构校验:失败不阻断,回退迁移数据并留痕
+        const parsed = validateProject(migratedData);
+        if (!parsed.success) {
+          logger.warn(
+            'Project validation failed, falling back to migrated data',
+            parsed.error.issues
+          );
+        }
+        const validatedPages = parsed.success ? parsed.data.pages : migratedData.pages;
+        const safePages: PageData[] = Array.isArray(validatedPages) ? validatedPages as PageData[] : [];
+
         if (nativeFs.isElectron()) {
           const title = migratedData.title || migratedData.projectTitle || 'Untitled Project';
           nativeFs.setCurrentProject(projectId!, title);
         }
 
         set((state) => ({
-          pages: migratedData.pages || [],
+          pages: safePages,
           projectTitle: migratedData.title || migratedData.projectTitle || '',
           theme: migratedData.theme || DEFAULT_THEME,
           designSystem: migratedData.designSystem || DEFAULT_DESIGN_SYSTEM,
@@ -258,6 +298,9 @@ export const useStore = create<ProjectState>((set, get) => ({
           past: [],
           future: []
         }));
+
+        // 登记字体二进制进会话缓存,供 undo/redo rehydrate
+        cacheFontBinaries(migratedData.customFonts || []);
 
         // 自动将工程中的自定义字体注册载入 document.fonts
         if (migratedData.customFonts && migratedData.customFonts.length > 0) {
@@ -334,7 +377,11 @@ export const useStore = create<ProjectState>((set, get) => ({
     }));
   },
 
-  setCurrentPageIndex: (index) => set({ currentPageIndex: index }),
+  setCurrentPageIndex: (index) => {
+    // 切页前结算正在进行的静默输入基准,避免旧页基准污染新页历史栈
+    commitUncommittedBaseline(get());
+    set({ currentPageIndex: index });
+  },
   setProjectTitle: (projectTitle) => {
     if (projectTitle === get().projectTitle) return;
     commitUncommittedBaseline(get());
@@ -353,6 +400,7 @@ export const useStore = create<ProjectState>((set, get) => ({
     set({ counterStyle, pages: updatedPages, hasUnsavedChanges: true });
   },
   setCustomFonts: (customFonts) => {
+    cacheFontBinaries(customFonts);
     loadCustomFontsIntoDOM(customFonts);
     set({ customFonts, hasUnsavedChanges: true });
   },
@@ -489,7 +537,11 @@ export const useStore = create<ProjectState>((set, get) => ({
     set({ pages: newPages, currentPageIndex: nextIdx, hasUnsavedChanges: true });
   },
 
-  setPages: (pages) => set({ pages }),
+  setPages: (pages) => {
+    // 外部整体替换页数组前结算基准,避免替换后旧基准与新页面错位
+    commitUncommittedBaseline(get());
+    set({ pages });
+  },
   reorderPages: (newPages) => { 
     logger.action('Store', 'ReorderPages', { count: newPages.length });
     const { pages } = get();
@@ -548,7 +600,7 @@ export const useStore = create<ProjectState>((set, get) => ({
           minimalCounter: baseline.minimalCounter ?? false,
           counterStyle: baseline.counterStyle || 'number',
           imageQuality: baseline.imageQuality ?? 0.95,
-          customFonts: deepClone(baseline.customFonts || []),
+          customFonts: rehydrateFonts(baseline.customFonts || []),
           currentFilePath: baseline.currentFilePath !== undefined ? baseline.currentFilePath : get().currentFilePath,
           future: [currentSnapshot, ...get().future],
           currentPageIndex: restoredIndex,
@@ -572,7 +624,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       minimalCounter: prev.minimalCounter ?? false,
       counterStyle: prev.counterStyle || 'number',
       imageQuality: prev.imageQuality ?? 0.95,
-      customFonts: deepClone(prev.customFonts || []),
+      customFonts: rehydrateFonts(prev.customFonts || []),
       currentFilePath: prev.currentFilePath !== undefined ? prev.currentFilePath : get().currentFilePath,
       past: past.slice(0, -1),
       future: [currentSnapshot, ...future],
@@ -597,7 +649,7 @@ export const useStore = create<ProjectState>((set, get) => ({
       minimalCounter: next.minimalCounter ?? false,
       counterStyle: next.counterStyle || 'number',
       imageQuality: next.imageQuality ?? 0.95,
-      customFonts: deepClone(next.customFonts || []),
+      customFonts: rehydrateFonts(next.customFonts || []),
       currentFilePath: next.currentFilePath !== undefined ? next.currentFilePath : get().currentFilePath,
       past: [...past, currentSnapshot],
       future: future.slice(1),

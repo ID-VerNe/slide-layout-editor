@@ -1,11 +1,11 @@
 import React from 'react';
 import { PageData, PrintSettings, TypographySettings } from '../types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LAYOUT_CONFIG } from '../constants/layout';
-// 引入标准模板矩阵 - 已迁移至 JSON Schema，此处仅保留必要的特殊逻辑（如有）
+// 引入标准模板矩阵 - 已迁移至 JSON Schema,此处仅保留必要的特殊逻辑(如有)
 import { JsonTemplateRenderer } from './JsonTemplateRenderer';
 import { getTemplateById } from '../templates/registry';
 import { PageFrame } from './PageFrame';
+import { getPrintGeometry } from '../utils/printGeometry';
 
 interface PreviewProps {
   page: PageData;
@@ -42,25 +42,13 @@ const Preview: React.FC<PreviewProps> = React.memo(({ page, pageIndex, totalPage
     );
   };
 
-  const designDims = LAYOUT_CONFIG[page.aspectRatio || '16:9'];
   const isPrintEnabled = printSettings?.enabled;
-  const orientation = designDims.orientation;
-  const config = (printSettings?.configs && (printSettings.configs[orientation] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
-  
-  const widthMm = printSettings?.widthMm || 100;
-  const heightMm = printSettings?.heightMm || 145;
-  const gutterMm = printSettings?.gutterMm || 10;
-
-  const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
-  const availWidthMm = isHorizontalBinding ? (widthMm - gutterMm) : widthMm;
-  const availHeightMm = !isHorizontalBinding ? (heightMm - gutterMm) : heightMm;
-  const scaleW = availWidthMm / widthMm;
-  const scaleH = availHeightMm / heightMm;
-  const scaleFactor = isPrintEnabled ? Math.min(scaleW, scaleH) : 1;
-  const canvasWidth = designDims.width;
-  const canvasHeight = isPrintEnabled ? designDims.width * (heightMm / widthMm) : designDims.height;
-  const ppi = canvasWidth / widthMm;
-  const gutterPx = gutterMm * ppi;
+  const { canvasPx, content, binding: config, isHorizontalBinding } = getPrintGeometry(
+    page.aspectRatio || '16:9',
+    printSettings
+  );
+  const { width: canvasWidth, height: canvasHeight } = canvasPx;
+  const { scaleFactor, gutterPx } = content;
 
   const getOriginX = () => { if (config.bindingSide === 'left') return 'right'; if (config.bindingSide === 'right') return 'left'; if (config.trimSide === 'left') return 'right'; if (config.trimSide === 'right') return 'left'; return 'center'; };
   const getOriginY = () => { if (config.bindingSide === 'top') return 'bottom'; if (config.bindingSide === 'bottom') return 'top'; if (config.trimSide === 'top') return 'bottom'; if (config.trimSide === 'bottom') return 'top'; return 'center'; };

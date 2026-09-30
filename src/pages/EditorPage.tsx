@@ -22,6 +22,7 @@ import { OffscreenExportRenderer } from '../components/editor/OffscreenExportRen
 import { capturePageThumbnail } from '../utils/thumbnailCapture';
 import { upsertRecentProject } from '../services/recentProjects';
 import { exportProjectAsJson, exportPagesToZip, openProjectFromFilePicker } from '../utils/db';
+import { getPrintGeometry } from '../utils/printGeometry';
 import { PageData } from '../types';
 
 export default function EditorPage() {
@@ -295,19 +296,8 @@ export default function EditorPage() {
   };
 
   const getExportDimensions = useCallback((page: PageData) => {
-    const designDims = LAYOUT_CONFIG[(page.aspectRatio || '16:9') as AspectRatioType];
-    if (printSettings?.enabled) {
-      const orientation = designDims.orientation;
-      const config = (printSettings?.configs && (printSettings.configs[orientation as keyof typeof printSettings.configs] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
-      const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
-      const netWidthMm = isHorizontalBinding ? (printSettings.widthMm - printSettings.gutterMm) : printSettings.widthMm;
-      const ppi = designDims.width / Math.max(1, netWidthMm);
-      return {
-        width: Math.round(printSettings.widthMm * ppi),
-        height: Math.round(printSettings.heightMm * ppi)
-      };
-    }
-    return { width: designDims.width, height: designDims.height };
+    const { rasterPx } = getPrintGeometry((page.aspectRatio || '16:9') as AspectRatioType, printSettings);
+    return { width: Math.round(rasterPx.width), height: Math.round(rasterPx.height) };
   }, [printSettings]);
 
   const handleExport = useCallback(async (format: 'png' | 'pdf') => {
@@ -422,8 +412,7 @@ export default function EditorPage() {
     else { const firstRatio = Object.keys(LAYOUT_CONFIG).find(k => LAYOUT_CONFIG[k as AspectRatioType].orientation === ori) as AspectRatioType; setSelectedRatio(firstRatio || '16:9'); setCreationStage('ratio'); }
   };
 
-  const handleOpenAddPageModal = useCallback(() => {
-    setModalMode('create');
+  const handleOpenAddPageModal = useCallback(() => {    setModalMode('create');
     setCreationStage('orientation');
     setShowLayoutModal(true);
   }, []);
@@ -432,13 +421,37 @@ export default function EditorPage() {
     setShowExportModal(true);
   }, []);
 
+  // 稳定化高频子组件的内联回调,避免穿透 React.memo
+  const handleClearAll = useCallback(() => {
+    if (projectId) useStore.getState().loadProject(projectId, null);
+  }, [projectId]);
+
+  const handleImport = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleToggleFontManager = useCallback(() => {
+    setShowSettings(prev => !prev);
+  }, []);
+
+  const handleNavigateHome = useCallback(() => navigate('/'), [navigate]);
+
+  const handleExportPng = useCallback((all: boolean) => {
+    setExportScope(all ? 'all' : 'current');
+    setShowExportModal(true);
+  }, []);
+
+  const handleToggleEditor = useCallback(() => {
+    setShowEditor(prev => !prev);
+  }, []);
+
   return (
     <div className="flex h-screen bg-neutral-100 overflow-hidden font-sans">
-      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={handleOpenAddPageModal} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={() => useStore.getState().loadProject(projectId!, null)} onImport={() => fileInputRef.current?.click()} onExport={handleOpenExportModal} onToggleFontManager={() => setShowSettings(!showSettings)} showFontManager={showSettings} onNavigateHome={() => navigate('/')} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
+      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={handleOpenAddPageModal} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={handleClearAll} onImport={handleImport} onExport={handleOpenExportModal} onToggleFontManager={handleToggleFontManager} showFontManager={showSettings} onNavigateHome={handleNavigateHome} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
       <AnimatePresence>{isExporting && exportProgress > 0 && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-[#264376]/90 backdrop-blur-xl flex flex-col items-center justify-center text-white p-10"><div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-6"><motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: `${exportProgress}%` }} /></div><p className="text-[10px] font-black uppercase tracking-[0.4em]">Exporting Archive {exportProgress}%</p></motion.div>)}</AnimatePresence>
       <div className="flex-1 flex overflow-hidden">
         <motion.div initial={false} animate={{ flex: 1 }} className="bg-neutral-200/50 flex flex-col overflow-hidden relative">
-          <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={(all) => { setExportScope(all?'all':'current'); setShowExportModal(true); }} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={() => setShowEditor(!showEditor)} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
+          <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={handleExportPng} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={handleToggleEditor} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
           <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} disableAnimation={isExporting} />
         </motion.div>
         <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} /></motion.div>
