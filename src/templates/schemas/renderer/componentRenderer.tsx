@@ -30,12 +30,17 @@ export function renderComponent({
   }
 
   const staticProps = node.props || {};
-  const dynamicProps = evaluator.evaluateObject(staticProps, context);
+  const dynamicPropsRaw = evaluator.evaluateObject(staticProps, context);
+  // 求值器返回 unknown,在此收窄为组件 props 容器
+  const dynamicProps: Record<string, unknown> =
+    (dynamicPropsRaw && typeof dynamicPropsRaw === 'object' && !Array.isArray(dynamicPropsRaw))
+      ? dynamicPropsRaw as Record<string, unknown>
+      : {};
 
   // 1. 合并 node.style 与 props.style，统一经过白名单过滤
   const mergedStyle: React.CSSProperties = {
     ...(node.style || {}),
-    ...((dynamicProps.style || {}) as React.CSSProperties),
+    ...((dynamicProps.style as React.CSSProperties) || {}),
   };
 
   // 2. 优先使用显式指定的 fieldKey，否则尝试从 bind 字段推断
@@ -65,9 +70,10 @@ export function renderComponent({
   const finalClassName = [baseClassName, dynamicClassName].filter(Boolean).join(' ');
 
   // 5. 已在 mergedStyle 中消费，从 remainingProps 中移除 style/className，避免重复
-  const { style: _unusedStyle, className: _unusedClassName, ...remainingProps } = dynamicProps;
+  const { style: _style, className: _className, ...remainingProps } = dynamicProps;
+  void _style; void _className;
 
-  const baseProps: any = {
+  const baseProps: Record<string, unknown> = {
     page: context.page,
     theme: context.theme,
     designSystem: ds,

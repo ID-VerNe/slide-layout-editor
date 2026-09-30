@@ -3,14 +3,20 @@ import React from 'react';
 /** Resolves 9-point docking and self alignment across CSS Grid and Flexbox layouts */
 export function resolveDockingStyle(
   style: React.CSSProperties,
-  overrides?: Record<string, any>
+  overrides?: Record<string, unknown>
 ): React.CSSProperties {
   const finalStyle: React.CSSProperties = { ...style };
-  
-  const hasManualAlignment = Boolean(
-    overrides && 
-    (overrides.alignSelf !== undefined || overrides.justifySelf !== undefined)
-  );
+
+  // 9 点对齐的合法值集合,用于读取 overrides 中的 alignSelf/justifySelf
+  type AlignValue = 'start' | 'end' | 'center' | 'stretch' | 'flex-start' | 'flex-end';
+  const readAlign = (v: unknown): AlignValue | undefined =>
+    (v === 'start' || v === 'end' || v === 'center' || v === 'stretch' || v === 'flex-start' || v === 'flex-end')
+      ? (v as AlignValue)
+      : undefined;
+  const alignSelf = overrides ? readAlign(overrides.alignSelf) : undefined;
+  const justifySelf = overrides ? readAlign(overrides.justifySelf) : undefined;
+
+  const hasManualAlignment = Boolean(alignSelf !== undefined || justifySelf !== undefined);
 
   // 判断是否为 CSS Grid 直接子节点（具有网格行列声明）
   const isGridItem = Boolean(
@@ -23,38 +29,38 @@ export function resolveDockingStyle(
   if (hasManualAlignment && overrides) {
     if (isGridItem) {
       // CSS Grid 规范：alignSelf 为垂直轴，justifySelf 为水平轴
-      if (overrides.alignSelf !== undefined) {
-        finalStyle.alignSelf = overrides.alignSelf;
+      if (alignSelf !== undefined) {
+        finalStyle.alignSelf = alignSelf;
       }
-      if (overrides.justifySelf !== undefined) {
-        finalStyle.justifySelf = overrides.justifySelf;
+      if (justifySelf !== undefined) {
+        finalStyle.justifySelf = justifySelf;
       }
-      if (overrides.justifySelf && overrides.justifySelf !== 'stretch') {
+      if (justifySelf && justifySelf !== 'stretch') {
         finalStyle.width = style.width || undefined;
       } else {
         finalStyle.width = style.width || '100%';
       }
     } else {
       // Flexbox column 规范：交叉轴为水平方向，主轴通过外边距控制
-      if (overrides.justifySelf !== undefined) {
-        const hVal = overrides.justifySelf;
+      if (justifySelf !== undefined) {
+        const hVal = justifySelf;
         finalStyle.alignSelf = hVal === 'start' ? 'flex-start' : hVal === 'end' ? 'flex-end' : hVal;
       }
 
-      if (overrides.alignSelf === 'start') {
+      if (alignSelf === 'start') {
         finalStyle.marginTop = '0';
         finalStyle.marginBottom = 'auto';
-      } else if (overrides.alignSelf === 'end') {
+      } else if (alignSelf === 'end') {
         finalStyle.marginTop = 'auto';
         finalStyle.marginBottom = '0';
-      } else if (overrides.alignSelf === 'center') {
+      } else if (alignSelf === 'center') {
         finalStyle.marginTop = 'auto';
         finalStyle.marginBottom = 'auto';
       }
 
       delete finalStyle.justifySelf;
 
-      if (overrides.justifySelf && overrides.justifySelf !== 'stretch') {
+      if (justifySelf && justifySelf !== 'stretch') {
         finalStyle.width = style.width || undefined;
       } else {
         finalStyle.width = style.width || '100%';

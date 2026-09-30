@@ -14,7 +14,7 @@ interface FieldProps {
  * 作用于 styleOverrides.title.translateY
  */
 export const TitleYField: React.FC<FieldProps> = ({ page, onUpdate, label }) => {
-  const currentY = page.styleOverrides?.title?.translateY || 0;
+  const currentY = (page.styleOverrides?.title?.translateY as number | undefined) || 0;
 
   const handleChange = (val: number) => {
     onUpdate({

@@ -12,12 +12,13 @@ import {
   Shield, Lock, Settings, Zap, Bell, Check, PlusCircle, Info, ShieldAlert, Key,
   Fingerprint, Wrench, Menu
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 /**
  * LUCIDE_ICON_MAP - 显式图标映射表
  * 确保 Key 字符串与 Lucide 官方 PascalCase 名称完全一致
  */
-export const LUCIDE_ICON_MAP: Record<string, any> = {
+export const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
   Cpu, Rocket, BarChart3, Globe, ShieldCheck, HelpCircle,
   Search, X, LayoutGrid, Upload, 
   Image: ImageIcon, // 显式映射 Image 到导入的 ImageIcon
@@ -39,7 +40,20 @@ export {
   Search, X, LayoutGrid, Upload, ImageIcon, History, Trash2, GlobeIcon
 };
 
-export const CATEGORIZED_ICONS = [
+export type IconType = 'material' | 'lucide';
+
+export interface CategorizedIconEntry {
+  name: string;
+  type: IconType;
+}
+
+export interface CategorizedIconGroup {
+  category: string;
+  icon: typeof Cpu;
+  icons: CategorizedIconEntry[];
+}
+
+export const CATEGORIZED_ICONS: CategorizedIconGroup[] = [
   {
     category: 'Technology & Infrastructure',
     icon: Cpu,

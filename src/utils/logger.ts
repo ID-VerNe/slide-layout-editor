@@ -28,31 +28,31 @@ class Logger {
     return `[${new Date().toLocaleTimeString()}] [${level}] ${message}`;
   }
 
-  debug(message: string, ...args: any[]) {
+  debug(message: string, ...args: unknown[]) {
     if (this.level <= LogLevel.DEBUG) {
       console.debug(this.formatMessage('DEBUG', message), ...args);
     }
   }
 
-  info(message: string, ...args: any[]) {
+  info(message: string, ...args: unknown[]) {
     if (this.level <= LogLevel.INFO) {
       console.info(this.formatMessage('INFO', message), ...args);
     }
   }
 
-  warn(message: string, ...args: any[]) {
+  warn(message: string, ...args: unknown[]) {
     if (this.level <= LogLevel.WARN) {
       console.warn(this.formatMessage('WARN', message), ...args);
     }
   }
 
-  error(message: string, ...args: any[]) {
+  error(message: string, ...args: unknown[]) {
     if (this.level <= LogLevel.ERROR) {
       console.error(this.formatMessage('ERROR', message), ...args);
     }
   }
 
-  action(module: string, action: string, details?: any) {
+  action(module: string, action: string, details?: unknown) {
     const message = `[ACTION][${module}] ${action}`;
     if (details !== undefined) {
       this.info(message, details);
@@ -66,7 +66,7 @@ export const logger = new Logger();
 
 // 暴露给全局以便在控制台动态调试
 if (typeof window !== 'undefined') {
-  (window as any).__LOGGER__ = logger;
+  (window as Window & { __LOGGER__?: typeof logger }).__LOGGER__ = logger;
 }
 
 /**
@@ -86,16 +86,16 @@ export function applyProdOverrides() {
   console.log = () => {};
   console.debug = () => {};
   console.info = () => {};
-  
+
   // 警告和错误仅在非敏感信息时输出
-  console.warn = (...args: any[]) => {
+  console.warn = (...args: unknown[]) => {
     const message = String(args[0] || '');
     if (!message.includes('AutoSave') && !message.includes('Thumbnail')) {
       originalConsole.warn(...args);
     }
   };
 
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     originalConsole.error(...args);
   };
 
@@ -123,7 +123,7 @@ export async function handleAsync<T>(
   try {
     const data = await promise;
     return [data, null];
-  } catch (err: any) {
+  } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
     logger.error(`Error in ${context}:`, error);
     return [null, error];

@@ -308,7 +308,6 @@ const [value, setValue, flush] = useDebouncedValue<T>(
 | Hook | 文件 | 说明 |
 | :--- | :--- | :--- |
 | `useResponsiveImage` | [hooks/useResponsiveImage.ts](src/hooks/useResponsiveImage.ts) | 处理 `srcset` 与多尺寸图片的按需加载 |
-| `useImagePreload` | [hooks/useImagePreload.ts](src/hooks/useImagePreload.ts) | 针对模板预览图的批量预加载 |
 
 ---
 

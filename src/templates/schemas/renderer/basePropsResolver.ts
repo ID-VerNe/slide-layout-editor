@@ -19,9 +19,13 @@ export function resolveBaseProps(
   resolveZIndex?: ZIndexResolverFn
 ): ResolvedBaseProps {
   let dynamicClassName = evaluator.interpolate(node.className || '', context);
-  const dynamicStyle = evaluator.evaluateObject(node.style || {}, context);
+  const dynamicStyleRaw = evaluator.evaluateObject(node.style || {}, context);
+  // 求值器返回 unknown,在此收窄为 CSSProperties 容器
+  const dynamicStyle = (dynamicStyleRaw && typeof dynamicStyleRaw === 'object' && !Array.isArray(dynamicStyleRaw))
+    ? dynamicStyleRaw as Record<string, unknown>
+    : {};
 
-  let finalStyle: React.CSSProperties = { ...dynamicStyle };
+  let finalStyle: React.CSSProperties = { ...dynamicStyle } as React.CSSProperties;
 
   // 1. 处理 24x24 模块化网格定位与绝对物理边界隔离
   if (node.modular) {
@@ -38,7 +42,7 @@ export function resolveBaseProps(
     finalStyle.maxHeight = '100%';
     finalStyle.boxSizing = 'border-box';
 
-    // 9宫格对齐逻辑 (Self Alignment)
+    // 9宫格对齐逻辑:由 modular.align/justify 映射到 alignSelf/justifySelf
     if (align) finalStyle.alignSelf = align;
     if (justify) finalStyle.justifySelf = justify;
   }
@@ -68,21 +72,22 @@ export function resolveBaseProps(
 
   // 3. Zine Mode 审美约束 (强制白名单过滤)
   // 核心规则：以 presetStyle 为基底，节点自定义 finalStyle 具有更高优先级进行覆盖
-  const filteredStyle: any = {};
+  const filteredStyle = {} as Record<string, unknown>;
+  const presetStyleRecord = presetStyle as Record<string, unknown>;
+  const finalStyleRecord = finalStyle as Record<string, unknown>;
   ALLOWED_CSS_PROPERTIES.forEach(p => {
-    if ((presetStyle as any)[p] !== undefined) filteredStyle[p] = (presetStyle as any)[p];
-    if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p];
+    if (presetStyleRecord[p] !== undefined) filteredStyle[p] = presetStyleRecord[p];
+    if (finalStyleRecord[p] !== undefined) filteredStyle[p] = finalStyleRecord[p];
   });
 
-  finalStyle = filteredStyle;
+  finalStyle = filteredStyle as React.CSSProperties;
 
   // 4. ClassName 过滤剔除
   dynamicClassName = filterZineClassName(dynamicClassName);
 
   // 5. 处理 Z-Index 声明 (全局分层系统)
   if (resolveZIndex) {
-    const declaredZIndex = (node as any).zIndex;
-    finalStyle.zIndex = resolveZIndex(declaredZIndex);
+    finalStyle.zIndex = resolveZIndex(node.zIndex);
   }
 
   return {

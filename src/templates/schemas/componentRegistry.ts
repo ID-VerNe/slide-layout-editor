@@ -1,4 +1,5 @@
 // Zine 原子组件 (V3 Modular)
+import React from 'react';
 import { ZineDisplay } from '../../components/ui/slide/atoms/ZineDisplay';
 import { ZineBody } from '../../components/ui/slide/atoms/ZineBody';
 import { ZineCaption } from '../../components/ui/slide/atoms/ZineCaption';
@@ -15,9 +16,11 @@ import { ZineVocabList } from '../../components/ui/slide/atoms/ZineVocabList';
 /**
  * Zine V3 组件注册表
  * 仅保留全新的原子化组件，彻底移除旧版 Slide* 组件。
+ * 各原子 props 形状各异,注册表统一承载异构组件类型,渲染时由 componentRenderer 拼装具体 props
  */
 // @lat: [[templates-schemas#Component Registry]]
-export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   ZineDisplay,
   ZineBody,
   ZineCaption,
@@ -45,6 +48,7 @@ export const COMPONENT_REGISTRY: Record<string, React.FC<any>> = {
 
 export type RegisteredComponentType = keyof typeof COMPONENT_REGISTRY;
 
-export function getComponent(type: string): React.FC<any> | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getComponent(type: string): React.ComponentType<any> | null {
   return COMPONENT_REGISTRY[type] || null;
 }

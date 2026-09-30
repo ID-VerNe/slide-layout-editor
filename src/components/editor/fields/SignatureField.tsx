@@ -103,13 +103,13 @@ export const SignatureField: React.FC<FieldProps> = React.memo(({ page, onUpdate
               </button>
             </div>
             
-            <Slider 
-              label="Signature Height" 
-              value={page.styleOverrides?.signature?.fontSize || 80} 
-              min={20} 
-              max={300} 
-              step={2} 
-              onChange={handleSizeChange} 
+            <Slider
+              label="Signature Height"
+              value={Number(page.styleOverrides?.signature?.fontSize) || 80}
+              min={20}
+              max={300}
+              step={2}
+              onChange={handleSizeChange}
             />
           </div>
         )}

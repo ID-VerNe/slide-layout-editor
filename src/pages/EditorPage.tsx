@@ -1,28 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
-import { Monitor, Smartphone, Square, FileUser } from 'lucide-react';
+import { Monitor } from 'lucide-react';
 
 import { useProject } from '../hooks/useProject';
 import { usePreview } from '../hooks/usePreview';
+import { useProjectPersistence, useCustomFontsDom } from '../hooks/useProjectPersistence';
+import { useExportPipeline } from '../hooks/useExportPipeline';
+import { useEditorShortcuts } from '../hooks/useEditorShortcuts';
+import { useLayoutCreationWizard } from '../hooks/useLayoutCreationWizard';
 import Sidebar from '../components/editor/Sidebar';
 import TopNav from '../components/editor/TopNav';
 import PreviewArea from '../components/editor/PreviewArea';
 import EditorPanel from '../components/editor/EditorPanel';
 import GlobalSettings from '../components/editor/GlobalSettings';
 import Modal from '../components/Modal';
-import { LAYOUT, LAYOUT_CONFIG, AspectRatioType, OrientationType } from '../constants/layout';
-import { TEMPLATES, getTemplateById } from '../templates/registry';
-import { nativeFs } from '../utils/native-fs';
-import { useStore } from '../store/useStore';
-import { TemplatePreview } from '../components/ui/TemplatePreview';
+import { LayoutBrowserModal } from '../components/editor/modals/LayoutBrowserModal';
+import { ExportModal } from '../components/editor/modals/ExportModal';
 import { OffscreenExportRenderer } from '../components/editor/OffscreenExportRenderer';
-import { capturePageThumbnail } from '../utils/thumbnailCapture';
-import { upsertRecentProject } from '../services/recentProjects';
-import { exportProjectAsJson, exportPagesToZip, openProjectFromFilePicker } from '../utils/db';
-import { PageData } from '../types';
+import { LAYOUT } from '../constants/layout';
+import { useStore } from '../store/useStore';
 
 export default function EditorPage() {
   const navigate = useNavigate();
@@ -32,15 +29,16 @@ export default function EditorPage() {
   const templateId = searchParams.get('template');
 
   const {
-    pages, projectTitle, setProjectTitle, theme, setTheme,
+    pages, projectTitle, setProjectTitle, theme,
     currentPageIndex, setCurrentPageIndex, currentPage,
-    isLoaded, updatePage, addPage, removePage, reorderPages, 
-    handleExportProject, loadProject,
-    saveToDB, undo, redo, canUndo, canRedo,
-    printSettings, setPrintSettings, imageQuality, setImageQuality,
-    minimalCounter, setMinimalCounter, counterStyle, setCounterStyle, customFonts, setCustomFonts,
-    currentFilePath, setCurrentFilePath, hasUnsavedChanges, markAsSaved
+    isLoaded, updatePage, addPage, removePage, reorderPages,
+    loadProject, saveToDB, undo, redo, canUndo, canRedo,
+    printSettings, imageQuality, minimalCounter, counterStyle, customFonts,
+    currentFilePath, setCurrentFilePath, hasUnsavedChanges, markAsSaved,
   } = useProject(projectId, templateId);
+
+  // 字体 DOM 注册副作用:customFonts 变化即注册到 document.fonts
+  useCustomFontsDom(customFonts);
 
   const activeProjectId = useStore(s => s.activeProjectId);
 
@@ -52,478 +50,131 @@ export default function EditorPage() {
 
   const { previewZoom, setPreviewZoom, isAutoFit, setIsAutoFit, previewRef, previewContainerRef, handleManualZoom, toggleFit, handleOverflowChange } = usePreview({ pages, currentPageIndex, printSettings, minimalCounter, isLoaded });
 
+  const fallbackTitle = pages[0]?.title || 'Untitled Project';
+
+  const { handleSmartSave, handleSaveAs, handleNativeOpen } = useProjectPersistence({
+    isLoaded, projectId, pages, projectTitle, fallbackTitle, theme,
+    minimalCounter, counterStyle, customFonts, imageQuality, printSettings,
+    currentFilePath, previewRef, saveToDB, loadProject,
+    markAsSaved, setCurrentFilePath, hasUnsavedChanges,
+  });
+
+  const exportPipeline = useExportPipeline();
+
+  const wizard = useLayoutCreationWizard({ pages, currentPage, modalMode: 'create' });
+
+  // 文档标题 effect:IPC 同步由 loadProject 单点负责,此处只维护标题
+  useEffect(() => {
+    const fileName = currentFilePath ? currentFilePath.split(/[\\/]/).pop() : (projectTitle || fallbackTitle);
+    const unsavedMark = hasUnsavedChanges ? '● ' : '';
+    document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
+  }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges]);
+
+  // 新工程占位:URL 带 new=true 且首页仍是占位标题时,弹出 3 步创建向导
+  useEffect(() => {
+    if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
+      wizard.openForCreate();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('new');
+      setSearchParams(nextParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNewProject, isLoaded, pages]);
+
+  // 键盘快捷键:Ctrl+S 保存、Ctrl+Shift+S 另存为、Ctrl+Z/Y 撤销重做
+  useEditorShortcuts({
+    onSave: handleSmartSave,
+    onSaveAs: handleSaveAs,
+    onUndo: undo,
+    onRedo: redo,
+  });
+
   const [showSettings, setShowSettings] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportScope, setExportScope] = useState<'current' | 'all'>('current');
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
-  
-  const [showLayoutModal, setShowLayoutModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'change'>('create');
-  const [creationStage, setCreationStage] = useState<'orientation' | 'ratio' | 'template'>('orientation');
-  const [selectedOrientation, setSelectedOrientation] = useState<OrientationType>('landscape');
-  const [selectedRatio, setSelectedRatio] = useState<AspectRatioType>('16:9');
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const exportCancelledRef = useRef(false);
 
-  const [offscreenTarget, setOffscreenTarget] = useState<{ page: PageData; index: number } | null>(null);
-  const offscreenResolveRef = useRef<((el: HTMLElement) => void) | null>(null);
-
-  const waitForOffscreenRender = useCallback((targetPage: PageData, targetIndex: number) => {
-    return new Promise<HTMLElement>((resolve, reject) => {
-      offscreenResolveRef.current = resolve;
-      setOffscreenTarget({ page: targetPage, index: targetIndex });
-      const timer = setTimeout(() => {
-        if (offscreenResolveRef.current === resolve) {
-          offscreenResolveRef.current = null;
-          reject(new Error(`Offscreen render timeout for page ${targetIndex + 1}`));
-        }
-      }, 15000);
-    });
-  }, []);
-
-  const handleOffscreenReady = useCallback((element: HTMLElement) => {
-    if (offscreenResolveRef.current) {
-      const fn = offscreenResolveRef.current;
-      offscreenResolveRef.current = null;
-      fn(element);
-    }
-  }, []);
-
-  const fallbackTitle = pages[0]?.title || 'Untitled Project';
-
-  useEffect(() => {
-    const fileName = currentFilePath ? currentFilePath.split(/[\\/]/).pop() : (projectTitle || fallbackTitle);
-    const unsavedMark = hasUnsavedChanges ? '● ' : '';
-    document.title = `${unsavedMark}${fileName} | SlideGrid Studio`;
-
-    if (isLoaded && projectId) {
-      nativeFs.setCurrentProject(projectId, projectTitle || fallbackTitle);
-    }
-  }, [projectTitle, fallbackTitle, currentFilePath, hasUnsavedChanges, isLoaded, projectId]);
-
-  // 自动保存：仅在存在未保存变更时启动 3s 防抖定时器
-  useEffect(() => {
-    if (!isLoaded || !projectId || !hasUnsavedChanges) return;
-
-    const autoSaveTimer = setTimeout(() => {
-      saveToDB(previewRef, false).catch((err) => {
-        console.warn('[AutoSave] Background save failed:', err);
-      });
-    }, 3000);
-
-    return () => clearTimeout(autoSaveTimer);
-  }, [isLoaded, projectId, hasUnsavedChanges, pages, projectTitle, theme, saveToDB]);
-
-  // 迁移遗留的 localStorage 键名
-  useEffect(() => {
-    const oldKey = 'magazine_recent_projects';
-    const newKey = 'slidegrid_recent_projects';
-    try {
-      const oldData = localStorage.getItem(oldKey);
-      if (oldData !== null) {
-        const newData = localStorage.getItem(newKey);
-        if (newData === null) {
-          localStorage.setItem(newKey, oldData);
-        }
-        localStorage.removeItem(oldKey);
-      }
-    } catch {
-      // storage unavailable or quota exceeded -- skip migration silently
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isNewProject && isLoaded && pages.length === 1 && pages[0].title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
-      setModalMode('create');
-      setCreationStage('orientation');
-      setShowLayoutModal(true);
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete('new');
-      setSearchParams(nextParams, { replace: true });
-    }
-  }, [isNewProject, isLoaded, pages]);
-
-  useEffect(() => {
-    const handleOpenBrowser = (e: any) => {
-      setModalMode(e.detail?.mode || 'change');
-      if (currentPage) {
-        const currentConfig = LAYOUT_CONFIG[currentPage.aspectRatio || '16:9'];
-        setSelectedOrientation(currentConfig.orientation);
-        setSelectedRatio(currentPage.aspectRatio || '16:9');
-      }
-      setShowLayoutModal(true);
-    };
-    
-    const handleShowExportModal = () => {
-      setShowExportModal(true);
-    };
-    
-    const handleTriggerImport = () => {
-      fileInputRef.current?.click();
-    };
-    
-    window.addEventListener('open-layout-browser', handleOpenBrowser);
-    window.addEventListener('show-export-modal', handleShowExportModal);
-    window.addEventListener('trigger-import', handleTriggerImport);
-    
-    return () => {
-      window.removeEventListener('open-layout-browser', handleOpenBrowser);
-      window.removeEventListener('show-export-modal', handleShowExportModal);
-      window.removeEventListener('trigger-import', handleTriggerImport);
-    };
-  }, [currentPage]);
-
-  const generateThumb = useCallback(async () => {
-    if (!previewRef.current || !projectId) return null;
-    return capturePageThumbnail(previewRef.current, projectId, { pixelRatio: 0.2, quality: 0.5 });
-  }, [projectId]);
-
-  const updateIndex = useCallback((thumb: any, path: string | null) => {
-    if (!projectId) return;
-    upsertRecentProject({
-      id: projectId,
-      title: projectTitle || fallbackTitle,
-      date: new Date().toLocaleDateString(),
-      lastModified: Date.now(),
-      type: pages[0]?.layoutId,
-      aspectRatio: pages[0]?.aspectRatio,
-      thumbnail: thumb,
-      filePath: path
-    });
-  }, [projectId, projectTitle, fallbackTitle, pages]);
-
-  const handleSmartSave = useCallback(async () => {
-    if (!isLoaded || !projectId) return;
-    try {
-      const thumb = await generateThumb();
-      const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb || undefined, filePath: currentFilePath || undefined };
-      if (nativeFs.isElectron()) {
-        const result = await nativeFs.saveProject(content, currentFilePath || undefined, projectTitle || fallbackTitle);
-        if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
-      } else {
-        markAsSaved();
-      }
-      updateIndex(thumb, currentFilePath);
-      saveToDB(previewRef, true);
-    } catch (e) {
-      console.error('[Save] Smart save failed:', e);
-    }
-  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, currentFilePath, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex, saveToDB]);
-
-  const handleSaveAs = useCallback(async () => {
-    if (!isLoaded || !projectId) return;
-    try {
-      const thumb = await generateThumb();
-      const content = { id: projectId, version: "3.0", title: projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, thumbnail: thumb || undefined, filePath: undefined };
-      if (nativeFs.isElectron()) {
-        const result = await nativeFs.saveProject(content, undefined, `${projectTitle || fallbackTitle}_Copy`);
-        if (result.success && result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); updateIndex(thumb, result.filePath); }
-      } else {
-        // Web 模式：下载完整的工程备份 JSON
-        exportProjectAsJson(content, `${projectTitle || fallbackTitle}_Backup`);
-        markAsSaved();
-        updateIndex(thumb, currentFilePath);
-      }
-    } catch (e) {
-      console.error('[Save] Save As failed:', e);
-    }
-  }, [isLoaded, projectId, generateThumb, projectTitle, pages, theme, minimalCounter, counterStyle, customFonts, imageQuality, printSettings, fallbackTitle, markAsSaved, setCurrentFilePath, updateIndex, currentFilePath]);
-
-  const handleNativeOpen = async () => {
-    if (nativeFs.isElectron()) {
-      const result = await nativeFs.openProject();
-      if (result.success && result.content) {
-        try {
-          const project = JSON.parse(result.content);
-          await loadProject(project, null, result.filePath);
-          if (result.filePath) { setCurrentFilePath(result.filePath); markAsSaved(); }
-        } catch (e) { alert('Invalid file'); }
-      }
-    } else {
-      try {
-        const picked = await openProjectFromFilePicker();
-        if (picked && picked.project) {
-          await loadProject(picked.project, null, null);
-          markAsSaved();
-        }
-      } catch (e) {
-        alert('Invalid file format');
-      }
-    }
-  };
-
-  const handleFinalAction = (layoutId: string) => {
-    const templateConfig = getTemplateById(layoutId);
-    const mergeDefaults = (target: PageData): PageData => {
-      const merged: PageData = {
-        ...target,
-        layoutId: layoutId as any,
-        aspectRatio: selectedRatio
-      };
-      if (templateConfig?.defaultData) {
-        for (const [k, v] of Object.entries(templateConfig.defaultData)) {
-          if ((merged as any)[k] === undefined || (merged as any)[k] === null) {
-            (merged as any)[k] = v;
-          }
-        }
-      }
-      if (templateConfig?.fields) {
-        templateConfig.fields.forEach((field: any) => {
-          if (field.defaultValue !== undefined && (merged as any)[field.key] === undefined) {
-            (merged as any)[field.key] = field.defaultValue;
-          }
-        });
-      }
-      return merged;
-    };
-
-    if (modalMode === 'create' && pages[0]?.title === 'PLACEHOLDER_FOR_NEW_PROJECT') {
-      updatePage(mergeDefaults({ ...pages[0], title: 'New Slide' }));
-    } else {
-      if (modalMode === 'create') {
-        addPage(selectedRatio, layoutId);
-      } else {
-        updatePage(mergeDefaults(currentPage));
-      }
-    }
-    setShowLayoutModal(false);
-  };
-
-  const getExportDimensions = useCallback((page: PageData) => {
-    const designDims = LAYOUT_CONFIG[(page.aspectRatio || '16:9') as AspectRatioType];
-    if (printSettings?.enabled) {
-      const orientation = designDims.orientation;
-      const config = (printSettings?.configs && (printSettings.configs[orientation as keyof typeof printSettings.configs] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
-      const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
-      const netWidthMm = isHorizontalBinding ? (printSettings.widthMm - printSettings.gutterMm) : printSettings.widthMm;
-      const ppi = designDims.width / Math.max(1, netWidthMm);
-      return {
-        width: Math.round(printSettings.widthMm * ppi),
-        height: Math.round(printSettings.heightMm * ppi)
-      };
-    }
-    return { width: designDims.width, height: designDims.height };
-  }, [printSettings]);
+  // Editor "Change Layout" 按钮通过 callback prop 触发,替代原 window CustomEvent 通道
+  const handleOpenLayoutBrowser = useCallback((mode: 'create' | 'change') => {
+    if (mode === 'create') wizard.openForCreate();
+    else wizard.openForChange();
+  }, [wizard]);
 
   const handleExport = useCallback(async (format: 'png' | 'pdf') => {
-    exportCancelledRef.current = false;
-    setIsExporting(true); setShowExportModal(false); setExportProgress(0);
-    try {
-      await document.fonts.ready;
-      if (exportCancelledRef.current) return;
-      const exportIndices = exportScope === 'all' ? pages.map((_, i) => i) : [currentPageIndex];
-      const opt = { pixelRatio: 2, backgroundColor: '#ffffff', filter: (n: any) => !(n.tagName === 'LINK' && n.rel === 'stylesheet' && n.href && !n.href.includes(window.location.origin)) };
+    await exportPipeline.handleExport(
+      format, exportScope, pages, currentPageIndex, projectTitle, fallbackTitle, printSettings,
+    );
+  }, [exportPipeline, exportScope, pages, currentPageIndex, projectTitle, fallbackTitle, printSettings]);
 
-      if (nativeFs.isElectron() && format === 'png' && exportScope === 'all') {
-        const dirResult = await nativeFs.selectDirectory();
-        if (exportCancelledRef.current) return;
-        if (dirResult.canceled) { setIsExporting(false); return; }
-        for (let i = 0; i < exportIndices.length; i++) {
-          if (exportCancelledRef.current) return;
-          const idx = exportIndices[i];
-          const el = await waitForOffscreenRender(pages[idx], idx);
-          if (exportCancelledRef.current) return;
-          const dataUrl = await toPng(el, opt);
-          if (exportCancelledRef.current) return;
-          const fileName = `${projectTitle || 'Export'}_Page_${String(idx + 1).padStart(2, '0')}.png`;
-          await nativeFs.saveFileBuffer(`${dirResult.path}/${fileName}`, dataUrl);
-          setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
-        }
-      } else if (format === 'pdf') {
-        const firstDims = getExportDimensions(pages[exportIndices[0]]);
-        const doc = new jsPDF({ unit: 'px', format: [firstDims.width, firstDims.height], hotfixes: ["px_scaling"] });
-        for (let i = 0; i < exportIndices.length; i++) {
-          if (exportCancelledRef.current) return;
-          const idx = exportIndices[i];
-          const el = await waitForOffscreenRender(pages[idx], idx);
-          if (exportCancelledRef.current) return;
-          const dataUrl = await toPng(el, opt);
-          if (exportCancelledRef.current) return;
-          const currentDims = getExportDimensions(pages[idx]);
-          if (i > 0) doc.addPage([currentDims.width, currentDims.height]);
-          doc.addImage(dataUrl, 'PNG', 0, 0, currentDims.width, currentDims.height);
-          const pageRect = el.getBoundingClientRect();
-          el.querySelectorAll('.resume-link').forEach((linkEl: any) => { const rect = linkEl.getBoundingClientRect(); const url = linkEl.getAttribute('data-url'); if (url) doc.link(rect.left - pageRect.left, rect.top - pageRect.top, rect.width, rect.height, { url }); });
-          setExportProgress(Math.round(((i + 1) / exportIndices.length) * 100));
-        }
-        if (!exportCancelledRef.current) doc.save(`${projectTitle || fallbackTitle}.pdf`);
-      } else {
-        if (exportIndices.length > 1) {
-          // 多页导出：在浏览器中收集所有图片 Data URL 并打包为 ZIP 一键下载
-          const renderedSlides: { dataUrl: string; filename: string }[] = [];
-          for (let i = 0; i < exportIndices.length; i++) {
-            const idx = exportIndices[i];
-            if (exportCancelledRef.current) return;
-            const el = await waitForOffscreenRender(pages[idx], idx);
-            if (exportCancelledRef.current) return;
-            const dataUrl = await toPng(el, opt);
-            if (exportCancelledRef.current) return;
-            const fileName = `${projectTitle || fallbackTitle}_Page_${String(idx + 1).padStart(2, '0')}.png`;
-            renderedSlides.push({ dataUrl, filename: fileName });
-            setExportProgress(Math.round(((i + 1) / (exportIndices.length + 1)) * 100));
-          }
-          if (exportCancelledRef.current) return;
-          await exportPagesToZip(renderedSlides, `${projectTitle || fallbackTitle}_Slides`, (p) => setExportProgress(p));
-        } else {
-          // 单页导出：直接触发单张 PNG 下载
-          const idx = exportIndices[0];
-          const el = await waitForOffscreenRender(pages[idx], idx);
-          if (exportCancelledRef.current) return;
-          const dataUrl = await toPng(el, opt);
-          if (exportCancelledRef.current) return;
-          const link = document.createElement('a');
-          link.download = `${projectTitle || fallbackTitle}_${idx + 1}.png`;
-          link.href = dataUrl;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setExportProgress(100);
-        }
-      }
-    } catch (exportErr) {
-      console.error('[Export] Export failed:', exportErr);
-    } finally {
-      setOffscreenTarget(null);
-      offscreenResolveRef.current = null;
-      if (!exportCancelledRef.current) {
-        setIsExporting(false); setExportProgress(0);
-      }
-    }
-  }, [exportScope, pages, currentPageIndex, projectTitle, fallbackTitle, getExportDimensions, waitForOffscreenRender]);
+  // 稳定化高频子组件的内联回调,避免穿透 React.memo
+  const handleClearAll = useCallback(() => {
+    if (projectId) useStore.getState().loadProject(projectId, null);
+  }, [projectId]);
 
-  useEffect(() => {
-    return () => { exportCancelledRef.current = true; };
+  const handleImport = useCallback(() => {
+    fileInputRef.current?.click();
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        if (e.shiftKey) handleSaveAs();
-        else handleSmartSave();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, pages, projectTitle, currentFilePath, theme, isLoaded, projectId, handleSmartSave, handleSaveAs]);
-
-  const handleSelectOrientation = (ori: OrientationType) => {
-    setSelectedOrientation(ori);
-    if (ori === 'resume') { setSelectedRatio('A4'); setCreationStage('template'); }
-    else { const firstRatio = Object.keys(LAYOUT_CONFIG).find(k => LAYOUT_CONFIG[k as AspectRatioType].orientation === ori) as AspectRatioType; setSelectedRatio(firstRatio || '16:9'); setCreationStage('ratio'); }
-  };
-
-  const handleOpenAddPageModal = useCallback(() => {
-    setModalMode('create');
-    setCreationStage('orientation');
-    setShowLayoutModal(true);
+  const handleToggleFontManager = useCallback(() => {
+    setShowSettings(prev => !prev);
   }, []);
 
-  const handleOpenExportModal = useCallback(() => {
+  const handleNavigateHome = useCallback(() => navigate('/'), [navigate]);
+
+  const handleExportPng = useCallback((all: boolean) => {
+    setExportScope(all ? 'all' : 'current');
     setShowExportModal(true);
+  }, []);
+
+  const handleToggleEditor = useCallback(() => {
+    setShowEditor(prev => !prev);
   }, []);
 
   return (
     <div className="flex h-screen bg-neutral-100 overflow-hidden font-sans">
-      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={handleOpenAddPageModal} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={() => useStore.getState().loadProject(projectId!, null)} onImport={() => fileInputRef.current?.click()} onExport={handleOpenExportModal} onToggleFontManager={() => setShowSettings(!showSettings)} showFontManager={showSettings} onNavigateHome={() => navigate('/')} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
-      <AnimatePresence>{isExporting && exportProgress > 0 && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-[#264376]/90 backdrop-blur-xl flex flex-col items-center justify-center text-white p-10"><div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-6"><motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: `${exportProgress}%` }} /></div><p className="text-[10px] font-black uppercase tracking-[0.4em]">Exporting Archive {exportProgress}%</p></motion.div>)}</AnimatePresence>
+      <Sidebar pages={pages} currentPageIndex={currentPageIndex} onPageSelect={setCurrentPageIndex} onAddPage={() => handleOpenLayoutBrowser('create')} onRemovePage={removePage} onReorderPages={reorderPages} onClearAll={handleClearAll} onImport={handleImport} onExport={() => setShowExportModal(true)} onToggleFontManager={handleToggleFontManager} showFontManager={showSettings} onNavigateHome={handleNavigateHome} onNativeSave={handleSmartSave} onNativeSaveAs={handleSaveAs} onNativeOpen={handleNativeOpen} />
+      <AnimatePresence>{exportPipeline.isExporting && exportPipeline.exportProgress > 0 && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-[#264376]/90 backdrop-blur-xl flex flex-col items-center justify-center text-white p-10"><div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-6"><motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: `${exportPipeline.exportProgress}%` }} /></div><p className="text-[10px] font-black uppercase tracking-[0.4em]">Exporting Archive {exportPipeline.exportProgress}%</p></motion.div>)}</AnimatePresence>
       <div className="flex-1 flex overflow-hidden">
         <motion.div initial={false} animate={{ flex: 1 }} className="bg-neutral-200/50 flex flex-col overflow-hidden relative">
-          <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={(all) => { setExportScope(all?'all':'current'); setShowExportModal(true); }} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={() => setShowEditor(!showEditor)} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
-          <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} disableAnimation={isExporting} />
+          <TopNav projectTitle={projectTitle} setProjectTitle={setProjectTitle} fallbackTitle={fallbackTitle} currentPageIndex={currentPageIndex} totalPages={pages.length} onPageChange={setCurrentPageIndex} previewZoom={previewZoom} onZoomChange={handleManualZoom} isAutoFit={isAutoFit} onToggleAutoFit={toggleFit} onExportPng={handleExportPng} onSave={handleSmartSave} onSaveAs={handleSaveAs} isExporting={exportPipeline.isExporting} showExportMenu={showExportMenu} setShowExportMenu={setShowExportMenu} exportMenuRef={exportMenuRef} showEditor={showEditor} onToggleEditor={handleToggleEditor} canUndo={canUndo} canRedo={canRedo} onUndo={undo} onRedo={redo} />
+          <PreviewArea pages={pages} currentPageIndex={currentPageIndex} previewZoom={previewZoom} previewRef={previewRef} previewContainerRef={previewContainerRef} enforceA4={false} isAutoFit={isAutoFit} setIsAutoFit={setIsAutoFit} printSettings={printSettings} minimalCounter={minimalCounter} onOverflowChange={handleOverflowChange} onUpdatePage={updatePage} handleManualZoom={handleManualZoom} toggleFit={toggleFit} disableAnimation={exportPipeline.isExporting} />
         </motion.div>
-        <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} /></motion.div>
+        <motion.div initial={false} animate={{ width: showEditor ? LAYOUT.EDITOR_PANEL_WIDTH : 0, opacity: showEditor ? 1 : 0 }} className="overflow-hidden z-20"><EditorPanel currentPage={currentPage} onUpdatePage={updatePage} onRemovePage={removePage} customFonts={customFonts} pages={pages} onOpenLayoutBrowser={handleOpenLayoutBrowser} /></motion.div>
       </div>
       <Modal isOpen={showSettings} onClose={() => setShowSettings(false)} title="Global Settings" type="custom" maxWidth="max-w-2xl">
-        <GlobalSettings 
-          page={currentPage || pages[0]} 
-          onUpdate={updatePage} 
-          customFonts={customFonts} 
-          setCustomFonts={setCustomFonts} 
-          theme={theme} 
-          setTheme={setTheme} 
-          imageQuality={imageQuality} 
-          setImageQuality={setImageQuality} 
-          minimalCounter={minimalCounter || false} 
-          setMinimalCounter={setMinimalCounter} 
-          counterStyle={counterStyle} 
-          setCounterStyle={setCounterStyle} 
-          counterColor={currentPage?.counterColor || ''}
-          setCounterColor={(value) => currentPage && updatePage({ ...currentPage, counterColor: value })} 
-          printSettings={printSettings} 
-          setPrintSettings={setPrintSettings} 
-        />
+        <GlobalSettings />
       </Modal>
-      
-      <Modal isOpen={showLayoutModal} onClose={() => setShowLayoutModal(false)} title={modalMode === 'create' ? "Add New Slide" : "Change Layout"} type="custom" maxWidth="max-w-6xl">
-        <div className="min-h-[70vh] flex flex-col p-6">
-          {creationStage === 'orientation' && (<div className="flex-1 flex flex-col items-center justify-center space-y-12 animate-in fade-in"><div className="text-center space-y-2"><h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">Step 1: Canvas Orientation</h3></div><div className="flex gap-8"><OrientationCard id="landscape" icon={Monitor} label="Landscape" desc="Slides" onClick={() => handleSelectOrientation('landscape')} /><OrientationCard id="portrait" icon={Smartphone} label="Portrait" desc="Magazine" onClick={() => handleSelectOrientation('portrait')} /><OrientationCard id="square" icon={Square} label="Square" desc="Posts" onClick={() => handleSelectOrientation('square')} /><OrientationCard id="resume" icon={FileUser} label="Resume" desc="Career Docs" onClick={() => handleSelectOrientation('resume')} /></div></div>)}
-          {creationStage === 'ratio' && (<div className="flex-1 flex flex-col items-center justify-center space-y-12 animate-in fade-in slide-in-from-right-4"><div className="w-full flex items-center justify-between border-b pb-6"><button onClick={() => setCreationStage('orientation')} className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-900">← Orientation</button><div className="text-center"><h3 className="text-xl font-black uppercase text-slate-900">Step 2: Specific Ratio</h3></div><div className="w-24"/></div><div className="flex gap-6 flex-wrap justify-center">{Object.entries(LAYOUT_CONFIG).filter(([_, cfg]) => cfg.orientation === selectedOrientation).map(([key, cfg]) => (<button key={key} onClick={() => { setSelectedRatio(key as any); setCreationStage('template'); }} className={`group relative flex flex-col items-center gap-3 p-8 rounded-[2.5rem] border-2 transition-all ${selectedRatio === key ? 'border-[#2a4a82] bg-[#2a4a82]/5 shadow-lg' : 'border-slate-100 hover:border-[#2a4a82]/30'}`}><div className={`bg-white rounded shadow-md border ${cfg.width > cfg.height ? 'w-24 h-14' : cfg.width === cfg.height ? 'w-16 h-16' : key === '3:4' ? 'w-15 h-20' : 'w-14 h-21'}`} /><div className="text-center"><span className="block text-sm font-black uppercase text-slate-900">{key}</span><span className="block text-[10px] font-bold text-slate-400">{cfg.label}</span></div></button>))}</div></div>)}
-          
-          {creationStage === 'template' && (
-            <div className="flex-1 flex flex-col space-y-8 animate-in fade-in slide-in-from-right-4 overflow-hidden">
-              <div className="flex items-center justify-between border-b pb-6">
-                <button onClick={() => selectedOrientation === 'resume' ? setCreationStage('orientation') : setCreationStage('ratio')} className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-900">← Back</button>
-                <div className="text-center"><h3 className="text-xl font-black uppercase text-slate-900">Step 3: Select Template</h3></div>
-                <div className="w-24"/>
-              </div>
-              
-              <div className="space-y-12 max-h-[60vh] overflow-y-auto no-scrollbar pr-2 pb-10">
-                {Array.from(new Set(TEMPLATES.filter(t => t.supportedRatios.includes(selectedRatio)).map(t => t.category))).map(cat => (
-                  <div key={cat} className="space-y-8">
-                    <div className="flex items-center gap-3 px-1 border-b pb-4">
-                      <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900">{cat}</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-                      {TEMPLATES.filter(t => t.category === cat && t.supportedRatios.includes(selectedRatio))
-                        .sort((a, b) => a.name.localeCompare(b.name)) // 按字母升序排列
-                        .map(t => (
-                        <button 
-                          key={t.id} 
-                          onClick={() => handleFinalAction(t.id)} 
-                          className="flex flex-col gap-4 group"
-                        >
-                          {/* 核心升级：抽象预览组件 */}
-                          <TemplatePreview layoutId={t.id} aspectRatio={selectedRatio} />
-                          
-                          <div className="text-left space-y-1 px-1">
-                            <span className="text-[11px] font-black uppercase tracking-tight text-slate-900 group-hover:text-[#2a4a82] transition-colors">{t.name}</span>
-                            <p className="text-[9px] text-slate-400 leading-tight line-clamp-2 opacity-0 group-hover:opacity-100 transition-all">{t.desc}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </Modal>
-      <Modal isOpen={showExportModal} onClose={() => setShowExportModal(false)} title="Export" type="custom"><div className="grid grid-cols-2 gap-4 p-4"><button onClick={() => handleExport('png')} className="p-8 border-2 rounded-2xl flex flex-col items-center gap-2 hover:border-[#264376] transition-all"><span className="text-xs font-black uppercase">Export PNG</span></button><button onClick={() => handleExport('pdf')} className="p-8 border-2 rounded-2xl flex flex-col items-center gap-2 hover:border-[#264376] transition-all"><span className="text-xs font-black uppercase">Export PDF</span></button></div></Modal>
-      {offscreenTarget && (
+
+      <LayoutBrowserModal
+        isOpen={wizard.isOpen}
+        onClose={wizard.close}
+        modalMode={wizard.modalMode}
+        creationStage={wizard.creationStage}
+        selectedOrientation={wizard.selectedOrientation}
+        selectedRatio={wizard.selectedRatio}
+        onSelectOrientation={wizard.selectOrientation}
+        onSelectRatio={wizard.selectRatio}
+        onBackToOrientation={wizard.backToOrientation}
+        onBackToRatio={wizard.backToRatio}
+        onFinalize={(layoutId) => wizard.finalize(layoutId, { updatePage, addPage })}
+      />
+
+      <ExportModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} onExport={handleExport} />
+
+      {exportPipeline.offscreenTarget && (
         <OffscreenExportRenderer
-          page={offscreenTarget.page}
-          pageIndex={offscreenTarget.index}
+          page={exportPipeline.offscreenTarget.page}
+          pageIndex={exportPipeline.offscreenTarget.index}
           totalPages={pages.length}
           printSettings={printSettings}
           minimalCounter={minimalCounter}
-          onReady={handleOffscreenReady}
+          onReady={exportPipeline.handleOffscreenReady}
         />
       )}
     </div>
   );
 }
-
-const OrientationCard = ({ icon: Icon, label, desc, onClick }: any) => (
-  <button onClick={onClick} className="group flex flex-col items-center gap-6 p-10 rounded-[3rem] border-2 border-slate-100 hover:border-[#264376] hover:bg-slate-50 transition-all shadow-sm hover:shadow-2xl"><div className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center border border-slate-100 group-hover:bg-[#264376] transition-all"><Icon size={40} className="text-[#264376] group-hover:text-white transition-colors" /></div><div className="text-center"><span className="block text-lg font-black uppercase text-slate-900 mb-1">{label}</span><span className="text-xs font-bold text-slate-400">{desc}</span></div></button>
-);

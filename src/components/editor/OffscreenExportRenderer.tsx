@@ -58,7 +58,7 @@ export const OffscreenExportRenderer: React.FC<OffscreenExportRendererProps> = (
           if (!loader && containerRef.current?.querySelector('.magazine-page')) {
             return true;
           }
-          await new Promise(resolve => schedule(resolve as any, 100));
+          await new Promise<void>(resolve => schedule(() => resolve(), 100));
         }
         console.warn('[OffscreenExport] Template load timeout, continuing anyway');
         return !!containerRef.current?.querySelector('.magazine-page');

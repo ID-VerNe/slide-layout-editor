@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useProject } from '../useProject';
 import { useStore } from '../../store/useStore';
-import * as db from '../../utils/db';
+import * as db from '../../utils/storage/projectDb';
 import { nativeFs } from '../../utils/native-fs';
 import { toPng } from 'html-to-image';
 
@@ -13,7 +13,7 @@ vi.mock('../../context/UIContext', () => ({
   useUI: () => ({ alert: alertMock, confirm: confirmMock }),
 }));
 
-vi.mock('../../utils/db', () => ({
+vi.mock('../../utils/storage/projectDb', () => ({
   saveProject: vi.fn(),
 }));
 

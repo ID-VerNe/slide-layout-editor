@@ -12,22 +12,22 @@ interface EditorProps {
   onUpdate: (page: PageData, silent?: boolean) => void;
   customFonts: CustomFont[];
   pages?: PageData[];
+  // 由祖先提供,点击 "Change Layout" 时回调
+  onOpenLayoutBrowser?: (mode: 'create' | 'change') => void;
 }
 
 /**
  * Editor 核心组件 (Schema 驱动虚拟化版)
  */
-const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts, pages }) => {
+const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts, pages, onOpenLayoutBrowser }) => {
   const layoutId = page?.layoutId;
   const template = useMemo(() => layoutId ? getTemplateById(layoutId) : undefined, [layoutId]);
   const fields = template?.fields || [];
   const parentRef = useRef<HTMLDivElement>(null);
 
   const handleOpenBrowser = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('open-layout-browser', { 
-      detail: { mode: 'change' } 
-    }));
-  }, []);
+    onOpenLayoutBrowser?.('change');
+  }, [onOpenLayoutBrowser]);
 
   // 虚拟化列表项：0 是顶部设置，1+ 是各个字段
   const rowVirtualizer = useVirtualizer({
@@ -101,7 +101,8 @@ const Editor: React.FC<EditorProps> = React.memo(({ page, onUpdate, customFonts,
   const onUpdateEqual = prevProps.onUpdate === nextProps.onUpdate;
   const fontsEqual = shallowEqual(prevProps.customFonts, nextProps.customFonts);
   const pagesEqual = shallowEqual(prevProps.pages, nextProps.pages);
-  return pageEqual && onUpdateEqual && fontsEqual && pagesEqual;
+  const browserEqual = prevProps.onOpenLayoutBrowser === nextProps.onOpenLayoutBrowser;
+  return pageEqual && onUpdateEqual && fontsEqual && pagesEqual && browserEqual;
 });
 
 export default Editor;

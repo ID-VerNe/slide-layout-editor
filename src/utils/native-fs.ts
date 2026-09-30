@@ -24,7 +24,7 @@ export interface NativeProjectSummary {
 }
 
 interface ElectronAPI {
-  getAppPaths: () => Promise<{ userData: string; thumbnails: string }>;
+  getAppPaths: () => Promise<{ userData: string; thumbnails: string; defaultWorkspace?: string; localWorkspace?: string }>;
   captureThumbnail: (projectId: string, rect: { x: number; y: number; width: number; height: number }) => Promise<string | null>;
   saveProject: (content: ProjectSaveData, filePath?: string, defaultName?: string) => Promise<NativeResponse>;
   openProject: () => Promise<NativeResponse>;
@@ -38,7 +38,7 @@ interface ElectronAPI {
   setCurrentProject: (id: string, name: string) => Promise<void>;
   deleteProject: (projectPath: string) => Promise<NativeResponse>;
   readAssetFile: (filename: string) => Promise<string | null>;
-  processResponsiveImages: (input: string | Buffer, formats: string[]) => Promise<any>;
+  processResponsiveImages: (input: string | Buffer, formats: string[]) => Promise<unknown>;
 }
 
 declare global {
@@ -57,7 +57,7 @@ export const nativeFs = {
     return Boolean(getElectronAPI());
   },
 
-  async getAppPaths(): Promise<{ userData: string; thumbnails: string }> {
+  async getAppPaths(): Promise<{ userData: string; thumbnails: string; defaultWorkspace?: string; localWorkspace?: string }> {
     const api = getElectronAPI();
     if (!api) return { userData: '', thumbnails: '' };
     return await api.getAppPaths();
@@ -75,7 +75,7 @@ export const nativeFs = {
     return await api.readAssetFile(filename);
   },
 
-  async processResponsiveImages(input: string | Buffer, formats: string[]): Promise<any> {
+  async processResponsiveImages(input: string | Buffer, formats: string[]): Promise<unknown> {
     const api = getElectronAPI();
     if (!api) return [];
     return await api.processResponsiveImages(input, formats);

@@ -18,7 +18,7 @@ export const SeparatorField: React.FC<FieldProps> = React.memo(({ page, onUpdate
     <FieldWrapper
       page={page}
       onUpdate={onUpdate}
-      fieldKey={fieldKey as keyof PageData}
+      fieldKey={fieldKey}
       label={label || 'Divider'}
       icon={Minus}
       showStyleConfig={true}
@@ -28,8 +28,8 @@ export const SeparatorField: React.FC<FieldProps> = React.memo(({ page, onUpdate
         <div 
           className="w-2/3 h-px bg-slate-300 group-hover:bg-zine-accent transition-colors"
           style={{
-            backgroundColor: page.styleOverrides?.[fieldKey!]?.color,
-            height: page.styleOverrides?.[fieldKey!]?.height || page.styleOverrides?.[fieldKey!]?.thickness || '1px'
+            backgroundColor: page.styleOverrides?.[fieldKey!]?.color as string | undefined,
+            height: (page.styleOverrides?.[fieldKey!]?.height || page.styleOverrides?.[fieldKey!]?.thickness) as string | number | undefined
           }}
         />
       </div>

@@ -1,77 +1,73 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { LAYOUT_CONFIG, AspectRatioType } from '../constants/layout';
-import { PrintSettings } from '../types';
+import { AspectRatioType } from '../constants/layout';
+import { PageData, PrintSettings } from '../types';
+import { getPrintGeometry } from '../utils/printGeometry';
 
 interface UsePreviewOptions {
-  pages: any[];
+  pages: PageData[];
   currentPageIndex: number;
   printSettings: PrintSettings;
-  isLoaded?: boolean; // 新增：感知加载状态
-  minimalCounter?: boolean; // 新增
+  isLoaded?: boolean; // 感知加载状态,未加载时不进行计算以防死循环
+  minimalCounter?: boolean;
 }
 
 export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = true }: UsePreviewOptions) {
   const [previewZoom, setPreviewZoom] = useState(0.5);
   const [isAutoFit, setIsAutoFit] = useState(true);
   const [pagesOverflow, setPagesOverflow] = useState<Record<string, boolean>>({});
-  
+
   const previewRef = useRef<HTMLDivElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
+  // 仅依赖当前页宽高比标量与打印设置,避免每次击键因 pages 引用变化重建回调
+  const currentRatio = (pages[currentPageIndex]?.aspectRatio || '16:9') as AspectRatioType;
+
   const calculateFitZoom = useCallback(() => {
-    // 关键加固：如果项目没加载完，或者 DOM 没准备好，不进行任何计算，防止死循环
+    // 项目未加载或 DOM 未就绪时不计算,防止死循环
     if (!isLoaded || !previewContainerRef.current || !pages[currentPageIndex]) return 0.5;
-    
+
     const rect = previewContainerRef.current.getBoundingClientRect();
     if (rect.height <= 0 || rect.width <= 0) return 0.5;
 
-    const padding = 120; 
+    const padding = 120;
     const availableWidth = rect.width - padding;
     const availableHeight = rect.height - padding;
 
-    const currentPage = pages[currentPageIndex];
-    const designDims = LAYOUT_CONFIG[(currentPage.aspectRatio || '16:9') as AspectRatioType];
-    
-    let targetWidth, targetHeight;
-
-    if (printSettings?.enabled) {
-      const orientation = designDims.orientation;
-      const config = (printSettings?.configs && (printSettings.configs[orientation as keyof typeof printSettings.configs] || printSettings.configs['resume'])) || { bindingSide: 'left', trimSide: 'bottom' };
-      const isHorizontalBinding = config.bindingSide === 'left' || config.bindingSide === 'right';
-      const netWidthMm = isHorizontalBinding ? (printSettings.widthMm - printSettings.gutterMm) : printSettings.widthMm;
-      const ppi = designDims.width / Math.max(1, netWidthMm);
-      targetWidth = printSettings.widthMm * ppi;
-      targetHeight = printSettings.heightMm * ppi;
-    } else {
-      targetWidth = designDims.width;
-      targetHeight = designDims.height;
-    }
+    const { rasterPx } = getPrintGeometry(currentRatio, printSettings);
+    const targetWidth = rasterPx.width;
+    const targetHeight = rasterPx.height;
 
     const scaleX = availableWidth / targetWidth;
     const scaleY = availableHeight / targetHeight;
 
     return Math.min(Math.max(0.1, Math.min(scaleX, scaleY)), 1.5);
-  }, [pages, currentPageIndex, printSettings, isLoaded]);
+  }, [currentRatio, printSettings, isLoaded, pages, currentPageIndex]);
 
-  // 1. 响应窗口变化，但增加防抖
+  // observer effect 仅依赖 isLoaded,经 ref 调最新计算函数与自动适配状态,
+  // 避免击键时 calculateFitZoom 引用变化导致 ResizeObserver 反复 disconnect/rebuild
+  const fitZoomRef = useRef(calculateFitZoom);
+  const autoFitRef = useRef(isAutoFit);
+  fitZoomRef.current = calculateFitZoom;
+  autoFitRef.current = isAutoFit;
+
   useEffect(() => {
     if (!previewContainerRef.current || !isLoaded) return;
 
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const observer = new ResizeObserver(() => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        if (isAutoFit) {
-          setPreviewZoom(calculateFitZoom());
+        if (autoFitRef.current) {
+          setPreviewZoom(fitZoomRef.current());
         }
-      }, 100); // 100ms 防抖，防止与子组件的布局计算竞争
+      }, 100); // 100ms 防抖,防止与子组件的布局计算竞争
     });
 
     observer.observe(previewContainerRef.current);
-    
+
     // 初次挂载延时执行
     const initTimer = setTimeout(() => {
-      if (isAutoFit) setPreviewZoom(calculateFitZoom());
+      if (autoFitRef.current) setPreviewZoom(fitZoomRef.current());
     }, 200);
 
     return () => {
@@ -79,14 +75,14 @@ export function usePreview({ pages, currentPageIndex, printSettings, isLoaded = 
       clearTimeout(timeoutId);
       clearTimeout(initTimer);
     };
-  }, [isAutoFit, calculateFitZoom, isLoaded]);
+  }, [isLoaded]);
 
-  // 2. 响应页面切换
+  // 2. 响应页面切换与打印设置变化时重算
   useEffect(() => {
     if (isAutoFit && isLoaded) {
       setPreviewZoom(calculateFitZoom());
     }
-  }, [currentPageIndex, isAutoFit, isLoaded, calculateFitZoom]);
+  }, [currentRatio, currentPageIndex, printSettings, isAutoFit, isLoaded, calculateFitZoom]);
 
   const handleManualZoom = (value: number) => {
     setIsAutoFit(false);

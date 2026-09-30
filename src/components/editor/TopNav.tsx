@@ -29,7 +29,7 @@ interface TopNavProps {
   onRedo?: () => void;
 }
 
-const TopNav: React.FC<TopNavProps> = ({
+const TopNav = React.memo(function TopNav({
   projectTitle, setProjectTitle, fallbackTitle,
   currentPageIndex, totalPages, onPageChange,
   previewZoom, onZoomChange,
@@ -38,7 +38,7 @@ const TopNav: React.FC<TopNavProps> = ({
   showExportMenu, setShowExportMenu, exportMenuRef,
   showEditor, onToggleEditor,
   canUndo, canRedo, onUndo, onRedo
-}) => {
+}: TopNavProps) {
   const [showSaveMenu, setShowSaveMenu] = React.useState(false);
   const saveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +114,6 @@ const TopNav: React.FC<TopNavProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default TopNav;

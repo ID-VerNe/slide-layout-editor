@@ -15,7 +15,7 @@ interface SidebarProps {
   onPageSelect: (index: number) => void;
   onAddPage: () => void;
   onRemovePage: (id: string) => void;
-  onReorderPages: (newPages: PageData[]) => void; 
+  onReorderPages: (newPages: PageData[], isCommit?: boolean) => void;
   onClearAll: () => void;
   onImport?: () => void;
   onExport?: () => void;
@@ -29,7 +29,7 @@ interface SidebarProps {
 
 const VIRTUAL_SCROLL_THRESHOLD = 30;
 
-const Sidebar: React.FC<SidebarProps> = (props) => {
+const Sidebar = React.memo(function Sidebar(props: SidebarProps) {
   const {
     pages,
     currentPageIndex,
@@ -45,6 +45,8 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
 
   const scrollRef = useRef<HTMLUListElement>(null);
   const activeBtnRef = useRef<HTMLButtonElement>(null);
+  // 记录最后一次 framer-motion 视觉更新的顺序，落手提交时读取，避免闭包过期
+  const lastReorderedPagesRef = useRef<PageData[] | null>(null);
 
   const { confirm } = useUI();
 
@@ -94,10 +96,22 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
         </button>
       </div>
       
-      <Reorder.Group 
-        axis="y" 
-        values={pages} 
-        onReorder={onReorderPages}
+      <Reorder.Group
+        axis="y"
+        values={pages}
+        onReorder={(newPages) => {
+          lastReorderedPagesRef.current = newPages;
+          // 拖拽中：仅视觉更新，不压栈
+          onReorderPages(newPages, false);
+        }}
+        onDragEnd={() => {
+          // 落手：以最后一次视觉更新的顺序提交一次历史
+          const finalPages = lastReorderedPagesRef.current;
+          if (finalPages) {
+            onReorderPages(finalPages, true);
+            lastReorderedPagesRef.current = null;
+          }
+        }}
         className="flex-1 w-full flex flex-col items-center gap-0 overflow-y-auto no-scrollbar"
         ref={scrollRef}
       >
@@ -161,6 +175,6 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
       </div>
     </motion.div>
   );
-};
+});
 
 export default Sidebar;

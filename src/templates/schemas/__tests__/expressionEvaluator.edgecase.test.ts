@@ -26,7 +26,7 @@ describe('expressionEvaluator Edge Cases (Natural Text vs Real Expressions)', ()
       kebabText: 'page-header text-slate-800',
     };
 
-    const result = evaluator.evaluateObject(input, mockContext);
+    const result = evaluator.evaluateObject(input, mockContext) as Record<string, unknown>;
 
     // 严防 "page 1" 被篡改为 [object Object]，或 "page-header" 被篡改为 NaN
     expect(result.pageText).toBe('page 1 of 10');
@@ -43,7 +43,7 @@ describe('expressionEvaluator Edge Cases (Natural Text vs Real Expressions)', ()
       calc: 'page.counter + 5',
     };
 
-    const result = evaluator.evaluateObject(input, mockContext);
+    const result = evaluator.evaluateObject(input, mockContext) as Record<string, unknown>;
 
     expect(result.title).toBe('Annual Review');
     expect(result.accent).toBe('#264376');

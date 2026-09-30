@@ -24,7 +24,7 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, l
     onUpdate({ ...page, footer: val }, true);
   };
 
-  const style = page.styleOverrides?.footer || {};
+  const style = (page.styleOverrides?.footer || {}) as Record<string, unknown>;
 
   // 如果页码被禁用，footer 也不会显示，因此隐藏编辑器
   if (page.pageNumber === false) {
@@ -49,11 +49,11 @@ export const FooterField: React.FC<FieldProps> = React.memo(({ page, onUpdate, l
             onImmediateChange={handleImmediateChange}
             placeholder="e.g. All Rights Reserved // 2026" 
             className="text-[10px] font-black uppercase tracking-widest border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
-            style={{ 
-              fontFamily: style.fontFamily || page.bodyFont || "'Inter', sans-serif",
-              textAlign: style.align || style.textAlign,
+            style={{
+              fontFamily: style.fontFamily as string | undefined || page.bodyFont || "'Inter', sans-serif",
+              textAlign: (style.align || style.textAlign) as React.CSSProperties['textAlign'] | undefined,
               color: '#0F172A'
-            }} 
+            }}
         />
       </div>
     </FieldWrapper>

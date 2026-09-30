@@ -8,6 +8,9 @@ import { PresetSelect } from '../../ui/PresetSelect';
 import { FONT_SIZE_PRESETS } from '../../../constants/editorPresets';
 import { isImageUrl, generateId } from '../../../utils/imageUrl';
 
+// styleOverrides 内每个条目是任意的 CSS 相关键值容器
+type StyleOverrideMap = Record<string, Record<string, unknown>>;
+
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData, silent?: boolean) => void;
@@ -26,7 +29,7 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     });
   };
 
-  const handleFeatureChange = (index: number, field: keyof FeatureData, value: any) => {
+  const handleFeatureChange = (index: number, field: keyof FeatureData, value: unknown) => {
     const newFeatures = [...(page.features || [])];
     newFeatures[index] = { ...newFeatures[index], [field]: value };
     onUpdate({ ...page, features: newFeatures });
@@ -47,11 +50,11 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     if (currentFeatures.length >= 8) return;
     onUpdate({
       ...page,
-      features: [...currentFeatures, { 
+      features: [...currentFeatures, {
         id: generateId("feat"),
-        title: 'New Feature', 
-        description: 'Feature description goes here.', 
-        icon: 'Globe' 
+        title: 'New Feature',
+        description: 'Feature description goes here.',
+        icon: 'Globe'
       }]
     });
   };
@@ -68,26 +71,26 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
     onUpdate({
       ...page,
       styleOverrides: {
-        ...(page.styleOverrides || {}),
+        ...((page.styleOverrides || {}) as StyleOverrideMap),
         [field]: {
-          ...(page.styleOverrides?.[field] || {}),
+          ...((page.styleOverrides?.[field] || {}) as Record<string, unknown>),
           fontSize: value
         }
       }
-    });
+    } as PageData);
   };
 
   const handleFontChange = (field: 'featureTitle' | 'featureDesc', font: string) => {
     onUpdate({
       ...page,
       styleOverrides: {
-        ...(page.styleOverrides || {}),
+        ...((page.styleOverrides || {}) as StyleOverrideMap),
         [field]: {
-          ...(page.styleOverrides?.[field] || {}),
+          ...((page.styleOverrides?.[field] || {}) as Record<string, unknown>),
           fontFamily: font
         }
       }
-    } as any);
+    } as PageData);
   };
 
   const renderCellPreview = (val: string) => {
@@ -176,34 +179,34 @@ export const FeaturesField: React.FC<FieldProps> = ({ page, onUpdate, customFont
               <div className="space-y-3">
                 <div className="space-y-2">
                   <PresetSelect
-                    value={page.styleOverrides?.featureTitle?.fontSize || 14}
+                    value={Number(page.styleOverrides?.featureTitle?.fontSize) || 14}
                     options={FONT_SIZE_PRESETS}
                     onChange={(val) => updateFontSize('featureTitle', val)}
                     label="Title Size"
                   />
-                  <Input 
-                    placeholder="Feature Title" 
-                    value={f.title || ''} 
+                  <Input
+                    placeholder="Feature Title"
+                    value={f.title || ''}
                     onChange={(e) => handleFeatureChange(idx, 'title', e.target.value)}
                     className="text-xs font-bold bg-white"
-                    style={{ fontFamily: (page.styleOverrides as any)?.featureTitle?.fontFamily }}
+                    style={{ fontFamily: (page.styleOverrides?.featureTitle as Record<string, unknown> | undefined)?.fontFamily as string | undefined }}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <PresetSelect
-                    value={page.styleOverrides?.featureDesc?.fontSize || 11}
+                    value={Number(page.styleOverrides?.featureDesc?.fontSize) || 11}
                     options={FONT_SIZE_PRESETS}
                     onChange={(val) => updateFontSize('featureDesc', val)}
                     label="Desc Size"
                   />
-                  <TextArea 
-                    placeholder="Description text..." 
-                    value={f.description || f.desc || ''} 
+                  <TextArea
+                    placeholder="Description text..."
+                    value={f.description || f.desc || ''}
                     rows={2}
                     onChange={(e) => handleFeatureChange(idx, 'description', e.target.value)}
                     className="text-[11px] bg-white leading-relaxed"
-                    style={{ fontFamily: (page.styleOverrides as any)?.featureDesc?.fontFamily }}
+                    style={{ fontFamily: (page.styleOverrides?.featureDesc as Record<string, unknown> | undefined)?.fontFamily as string | undefined }}
                   />
                 </div>
               </div>

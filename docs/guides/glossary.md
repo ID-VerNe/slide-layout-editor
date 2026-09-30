@@ -98,8 +98,8 @@ Electron 的前端环境（React + Vite）。负责 UI 交互、模板 Schema �
 ### OffscreenExportRenderer (离屏无感导出器)
 位于 [src/pages/EditorPage.tsx](src/pages/EditorPage.tsx)。在用户视口不可见区域渲染目标页面，等待字体与高保真资产就绪后直接截取，杜绝导出时用户编辑视口剧烈翻页、闪烁及入场动画半透明问题。
 
-### FontCalculatorManager (字体计算单例管理器)
-位于 [src/workers/fontCalculatorManager.ts](src/workers/fontCalculatorManager.ts)。集中调度闭式代数 $O(1)$ 计算 Web Worker 线程，杜绝多实例创建造成的句柄泄漏与卡顿。
+### KnuthPlassWorker (文本排版 Worker)
+位于 [src/workers/knuthPlassWorker.ts](src/workers/knuthPlassWorker.ts)。基于 tex-linebreak 的 Knuth-Plass 动态规划算法在独立线程中求解文本换行与断行，避免主线程阻塞。
 
 ### Component Registry (组件注册表)
 [componentRegistry.ts](src/templates/schemas/componentRegistry.ts) 中的 `COMPONENT_REGISTRY` 对象。将组件名字符串映射到 React 组件，是 Schema `Component` 节点到实际 React 视图的桥梁。

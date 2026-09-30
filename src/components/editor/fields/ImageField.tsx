@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { PageData } from '../../../types';
+import { PageData, ImageConfig } from '../../../types';
 import { Image as ImageIcon, SlidersHorizontal, Plus, Trash2 } from 'lucide-react';
 import IconPicker from '../../ui/IconPicker';
 import { FieldWrapper } from './FieldWrapper';
 import { Slider } from '../../ui/Base';
 import { useAssetUrl } from '../../../hooks/useAssetUrl';
 import { getContainerAspectRatioFromPage } from '../../../utils/imageGeometry';
-import { saveAsset } from '../../../utils/db';
+import { saveAsset } from '../../../utils/storage/assetStore';
 import { nativeFs } from '../../../utils/native-fs';
 import { logger } from '../../../utils/logger';
+import { getPageField } from '../../../utils/pageField';
 
 interface FieldProps {
   page: PageData;
@@ -33,10 +34,12 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
   const isVisible = page.visibility?.[fieldKey] !== false;
   const displayLabel = (label === 'Visual Asset' && fieldKey === 'signature') ? 'Artist Signature' : label;
 
-  const { dimensions } = useAssetUrl((page as any)[fieldKey]);
+  const assetSource = getPageField<string | undefined>(page, fieldKey, undefined);
+  const imageConfig = getPageField<ImageConfig | undefined>(page, configKey, undefined);
+  const { dimensions } = useAssetUrl(assetSource);
   const containerRatio = getContainerAspectRatioFromPage(page, fieldKey) || 1;
   const imageRatio = (dimensions.width && dimensions.height) ? (dimensions.width / dimensions.height) : null;
-  const currentScale = (page as any)[configKey]?.scale !== undefined ? (page as any)[configKey].scale : 1;
+  const currentScale = imageConfig?.scale ?? 1;
 
   // 判断是否允许平移：若无多余裁切余量，则锁死（Ban）该方向
   const canMoveHoriz = currentScale > 1 || (imageRatio !== null && imageRatio > containerRatio + 0.02);
@@ -48,7 +51,7 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
     if (val.startsWith('data:')) {
       if (nativeFs.isElectron()) {
         try {
-          const filename = `asset_upload_${Date.now()}.png`; 
+          const filename = `asset_upload_${Date.now()}.png`;
           const result = await nativeFs.uploadAsset(filename, val);
           if (result.success && result.url) {
             onUpdate({ ...page, [fieldKey]: result.url, [configKey]: resetConfig });
@@ -65,7 +68,7 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
 
   const handleConfigChange = (key: string, val: number, silent: boolean = true) => {
     logger.action('ImageField', 'ChangeConfig', { fieldKey, [key]: val, silent });
-    const currentConfig = (page as any)[configKey] || { scale: 1, x: 0, y: 0 };
+    const currentConfig = getPageField<ImageConfig>(page, configKey, { scale: 1, x: 0, y: 0 });
     onUpdate({
       ...page,
       [configKey]: { ...currentConfig, [key]: val }
@@ -95,7 +98,7 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
       <div className="space-y-3">
         <div className="flex gap-2">
           <IconPicker
-            value={(page as any)[fieldKey] || ''}
+            value={assetSource || ''}
             onChange={handleImageSelect}
             allowedTabs={['upload', 'icons', 'map', 'history']}
             className="flex-1"
@@ -103,10 +106,10 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
             trigger={
               <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-xl hover:border-[#264376] transition-all shadow-sm group">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <AssetPreviewSmall source={(page as any)[fieldKey]} />
+                  <AssetPreviewSmall source={assetSource} />
                   <div className="text-left min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected Asset</p>
-                    <p className="text-xs font-bold text-slate-700 truncate">{(page as any)[fieldKey] ? 'Change Source' : 'Browse Library'}</p>
+                    <p className="text-xs font-bold text-slate-700 truncate">{assetSource ? 'Change Source' : 'Browse Library'}</p>
                   </div>
                 </div>
                 <div className="p-1.5 rounded-lg bg-slate-50 text-slate-400 group-hover:text-[#264376] transition-colors">
@@ -115,9 +118,9 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
               </button>
             }
           />
-          
-          {(page as any)[fieldKey] && (
-            <button 
+
+          {assetSource && (
+            <button
               onClick={() => setShowAdjust(!showAdjust)}
               className={`p-3 rounded-xl border transition-all ${showAdjust ? 'bg-[#264376] border-[#264376] text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
               title="Adjust Image"
@@ -127,11 +130,11 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
           )}
         </div>
 
-        {showAdjust && (page as any)[fieldKey] && (
+        {showAdjust && assetSource && (
           <div className="p-4 bg-slate-50 rounded-2xl space-y-5 border border-slate-100 animate-in fade-in slide-in-from-top-2">
             <div className="flex gap-2">
-              <button 
-                onClick={handleFit} 
+              <button
+                onClick={handleFit}
                 className="flex-1 py-2.5 flex items-center justify-center gap-2 text-[#264376] hover:bg-blue-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-blue-200"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -141,34 +144,34 @@ export const ImageField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pa
                 Fit to Container
               </button>
             </div>
-            <Slider 
-              label="Scale" 
-              value={(page as any)[configKey]?.scale !== undefined ? (page as any)[configKey].scale : 1} 
-              min={1} 
-              max={3} 
-              step={0.05} 
-              onChange={(v) => handleConfigChange('scale', v, true)} 
-              onChangeEnd={(v) => handleConfigChange('scale', v, false)} 
+            <Slider
+              label="Scale"
+              value={imageConfig?.scale ?? 1}
+              min={1}
+              max={3}
+              step={0.05}
+              onChange={(v) => handleConfigChange('scale', v, true)}
+              onChangeEnd={(v) => handleConfigChange('scale', v, false)}
             />
-            <Slider 
-              label={canMoveHoriz ? "Move Horiz." : "Move Horiz. (Locked)"} 
-              value={canMoveHoriz ? ((page as any)[configKey]?.x || 0) : 0} 
-              min={-100} 
-              max={100} 
-              step={1} 
-              disabled={!canMoveHoriz} 
-              onChange={(v) => handleConfigChange('x', v, true)} 
-              onChangeEnd={(v) => handleConfigChange('x', v, false)} 
+            <Slider
+              label={canMoveHoriz ? "Move Horiz." : "Move Horiz. (Locked)"}
+              value={canMoveHoriz ? (imageConfig?.x || 0) : 0}
+              min={-100}
+              max={100}
+              step={1}
+              disabled={!canMoveHoriz}
+              onChange={(v) => handleConfigChange('x', v, true)}
+              onChangeEnd={(v) => handleConfigChange('x', v, false)}
             />
-            <Slider 
-              label={canMoveVert ? "Move Vert." : "Move Vert. (Locked)"} 
-              value={canMoveVert ? ((page as any)[configKey]?.y || 0) : 0} 
-              min={-100} 
-              max={100} 
-              step={1} 
-              disabled={!canMoveVert} 
-              onChange={(v) => handleConfigChange('y', v, true)} 
-              onChangeEnd={(v) => handleConfigChange('y', v, false)} 
+            <Slider
+              label={canMoveVert ? "Move Vert." : "Move Vert. (Locked)"}
+              value={canMoveVert ? (imageConfig?.y || 0) : 0}
+              min={-100}
+              max={100}
+              step={1}
+              disabled={!canMoveVert}
+              onChange={(v) => handleConfigChange('y', v, true)}
+              onChangeEnd={(v) => handleConfigChange('y', v, false)}
             />
             <button onClick={handleRemove} className="w-full py-2.5 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest border border-red-100 mt-2">
               <Trash2 size={14} /> Remove Asset

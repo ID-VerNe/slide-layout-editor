@@ -19,33 +19,33 @@ interface ZineMediaProps {
   priority?: boolean;
   sizes?: string;
   rounded?: string | number;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   typography?: TypographySettings;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
  * ZineMedia - 媒体原子组件 (V3 Modular)
  * 与 imageGeometry 及 24 格物理硬约束彻底贯通
  */
-export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({ 
-  page, 
+export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
+  page,
   fieldKey = 'image',
   src: overrideSrc,
   config: overrideConfig,
-  className = "", 
+  className = "",
   imgClassName = "",
   style: customStyle,
   priority = false,
   sizes = "(max-width: 768px) 100vw, 50vw",
   rounded,
-  designSystem: propsDs,
-  theme: propsTheme,
-  typography: propsTypography,
+  designSystem: ds,
+  theme,
+  typography: _typography,
   ...otherProps
-}) => {
-  const resolvedFieldKey = otherProps.fieldKey || fieldKey || 'image';
+}: ZineMediaProps) => {
+  const resolvedFieldKey = fieldKey || 'image';
 
   // 1. 统一提取数据连接与可见性状态
   const { content: pageSrc, isVisible } = useDataConnector(resolvedFieldKey, page);
@@ -53,9 +53,11 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   // 2. 样式解析 (利用 useModularStyle 处理 Zine Mode 等)
   const { style, className: resolvedClassName } = useModularStyle({
-    page, 
+    designSystem: ds,
+    theme,
+    page,
     fieldKey: resolvedFieldKey,
-    props: { 
+    props: {
       backgroundColor: '#000000',
       ...otherProps
     },
@@ -65,12 +67,12 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   // 3. 资源解析与占位降级
   const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//') 
-    ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1) 
+  const placeholderSrc = `${baseUrl}/example_pic/example_pic_1.png`.startsWith('//')
+    ? `${baseUrl}/example_pic/example_pic_1.png`.substring(1)
     : `${baseUrl}/example_pic/example_pic_1.png`;
-    
-  const rawSrc = overrideSrc || pageSrc || placeholderSrc;
-  
+
+  const rawSrc = overrideSrc || (pageSrc as string) || placeholderSrc;
+
   const { url, isLoading } = useAssetUrl(rawSrc);
   const { srcSet, variants } = useResponsiveImage(rawSrc, { priority, sizes });
   const isAssetProtocol = rawSrc.startsWith('asset://');
@@ -96,7 +98,7 @@ export const ZineMedia: React.FC<ZineMediaProps> = React.memo(({
 
   if (!isVisible) return null;
 
-  const config = overrideConfig || pageConfig || { scale: 1, x: 0, y: 0 };
+  const config: ImageConfig = overrideConfig || (pageConfig as ImageConfig) || { scale: 1, x: 0, y: 0 };
   
   // 检查是否有用户手动设置的对齐（通过 styleOverrides）
   const hasManualAlignment = resolvedFieldKey && page.styleOverrides?.[resolvedFieldKey] && 

@@ -35,7 +35,7 @@ export function createZIndexResolver(root: TemplateNode): ZIndexResolverFn {
 
   function walk(node: TemplateNode): void {
     if (node.id) {
-      idMap.set(node.id, (node as any).zIndex);
+      idMap.set(node.id, node.zIndex);
     }
     if (node.type === 'Container') {
       node.children.forEach(walk);
@@ -186,7 +186,7 @@ export function resolveZIndex(nodes: TemplateNode[]): Record<string, number> {
   // 遍历所有节点，解析其 zIndex
   function walk(node: TemplateNode): void {
     if (node.id) {
-      result[node.id] = resolver((node as any).zIndex);
+      result[node.id] = resolver(node.zIndex);
     }
     if (node.type === 'Container') {
       node.children.forEach(walk);

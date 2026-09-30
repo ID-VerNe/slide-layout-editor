@@ -53,7 +53,7 @@ const ModularLayoutPropsSchema = z.object({
 });
 
 // 使用 z.lazy 处理递归结构
-export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
+export const TemplateNodeSchema: z.ZodType<unknown> = z.lazy(() =>
   z.discriminatedUnion('type', [
     BaseNodeSchema.extend({
       type: z.literal('Container'),
@@ -71,7 +71,7 @@ export const TemplateNodeSchema: z.ZodType<any> = z.lazy(() =>
       componentType: z.string(),
       bind: z.string().optional(),
       fieldKey: z.string().optional(),
-      props: z.record(z.string(), z.any()).optional(),
+      props: z.record(z.string(), z.unknown()).optional(),
     }),
     BaseNodeSchema.extend({
       type: z.literal('Conditional'),
@@ -105,14 +105,14 @@ export const TemplateSchemaValidator = z.object({
   category: z.string(),
   supportedRatios: z.array(z.string()).min(1, "supportedRatios 不能为空"),
   root: TemplateNodeSchema,
-  defaults: z.record(z.string(), z.any()).optional(),
+  defaults: z.record(z.string(), z.unknown()).optional(),
   meta: z.object({
     version: z.string(),
     author: z.string().optional(),
   }).optional(),
 });
 
-export function validateTemplate(data: any) {
+export function validateTemplate(data: unknown) {
   return TemplateSchemaValidator.safeParse(data);
 }
 

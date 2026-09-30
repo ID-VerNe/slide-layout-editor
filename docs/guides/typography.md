@@ -155,7 +155,7 @@
 - **双重注入**: 优先调用标准 `new FontFace()` 注册至 `document.fonts`；失败时优雅降级为动态注入 `@font-face` `<style>` 标签。
 - **生命周期保全**: 支持按字族名精确清理与批量载入，防止多次切换工程导致的字体污染。
 
-### 2. 闭式字号计算引擎 (`src/workers/fontCalculatorManager.ts`)
-- **$O(1)$ 闭式代数公式**: 彻底淘汰低效的二分逼近循环，基于字符单位权重推导（ASCII: 0.6，CJK: 1.0），瞬间计算出不超过容器宽度与行数限制的最大允许字号。
-- **全局共享 Worker 单例**: 通过 `fontCalculatorManager` 集中调度 Web Worker 线程，杜绝多实例创建造成的线程爆炸，带有 2000ms 超时安全保护。
+### 2. 文本排版引擎 (`src/workers/knuthPlassWorker.ts`)
+- **Knuth-Plass 动态规划**: 基于 tex-linebreak 在 Web Worker 中求解全局最优换行与断行，避免贪心启发式导致的参差右边界。
+- **Worker 异步计算**: 文本排版在独立线程执行，主线程仅接收排版结果，不阻塞交互。
 

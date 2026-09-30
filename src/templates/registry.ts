@@ -21,7 +21,8 @@ export interface TemplateConfig {
   category: TemplateDefinition['category'];
   desc: string;
   tags: string[];
-  component: React.FC<{ page: any; typography?: any }>;
+  // 历史遗留的死字段: component 实际渲染 null,真实渲染走 LayoutRenderer 的 schema.root
+  component: React.FC<{ page?: PageData; typography?: unknown }>;
   schema?: TemplateSchema;
   fields: FieldSchema[];
   supportedRatios: AspectRatioType[];
@@ -42,7 +43,7 @@ const templateModules = import.meta.glob<{ default: TemplateDefinition }>(
 
 // @lat: [[templates-registry]]
 export const TEMPLATES: TemplateConfig[] = Object.values(templateModules).map((mod) => {
-  const def = (mod as any).default || mod;
+  const def = (mod as { default: TemplateDefinition }).default;
   return {
     id: def.id,
     name: def.name,

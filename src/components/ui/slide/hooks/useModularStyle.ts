@@ -1,16 +1,19 @@
 import { useMemo } from 'react';
-import { useStore } from '../../../../store/useStore';
-import { PageData } from '../../../../types';
+import { DesignSystem, PageData, ProjectTheme } from '../../../../types';
+import { TypographyToken } from '../../../../types/tokens';
 
 interface UseModularStyleProps {
+  // 由调用方从 props 透传,不再自行订阅 store;componentRenderer 始终注入
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   fieldKey?: string;
-  overrides?: Record<string, any>;
-  props?: Record<string, any>;
+  overrides?: Record<string, unknown>;
+  props?: Record<string, unknown>;
   variant?: 'display' | 'body' | 'caption' | 'h1' | 'h2';
-  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate'; // 新增方向支持
+  orientation?: 'horizontal' | 'vertical-stack' | 'vertical-rotate';
   customStyle?: React.CSSProperties;
   className?: string;
-  page?: PageData; // 传入 page 以自动获取 styleOverrides
+  page?: PageData;
 }
 
 import { resolveModularFontSize, resolveModularLineHeight } from '../utils/typographyScale';
@@ -24,6 +27,8 @@ const EMPTY_OBJECT = Object.freeze({});
  * 统一处理样式优先级与排版规范约束
  */
 export const useModularStyle = ({
+  designSystem: ds,
+  theme,
   fieldKey,
   overrides: directOverrides = EMPTY_OBJECT,
   props = EMPTY_OBJECT,
@@ -33,13 +38,13 @@ export const useModularStyle = ({
   className = '',
   page
 }: UseModularStyleProps) => {
-  const ds = useStore(s => s.designSystem);
-  const theme = useStore(s => s.theme);
 
   // 如果提供了 fieldKey 且有 page，自动提取 overrides
+  // styleOverrides 条目是 CSS 键值容器,窄化为可索引的 record 后与 directOverrides 合并
   const overrides = useMemo(() => {
     if (fieldKey && page?.styleOverrides?.[fieldKey]) {
-      return { ...page.styleOverrides[fieldKey], ...directOverrides };
+      const src = page.styleOverrides[fieldKey] as Record<string, unknown>;
+      return { ...src, ...directOverrides };
     }
     return directOverrides;
   }, [fieldKey, page?.styleOverrides, directOverrides]);
@@ -49,16 +54,16 @@ export const useModularStyle = ({
 
     // 1. 获取基础排版样式
     const variantKey = (variant === 'h1' || variant === 'h2') ? 'display' : variant;
-    if (variantKey && (ds?.tokens?.typography as any)?.[variantKey]) {
-      const token = (ds.tokens.typography as any)[variantKey];
+    if (variantKey && ds?.tokens?.typography?.[variantKey as 'body' | 'caption' | 'display']) {
+      const token: TypographyToken = ds.tokens.typography[variantKey as 'body' | 'caption' | 'display'];
       finalStyle.fontSize = token.fontSize;
-      
+
       // 基线吸附逻辑
       if (token.lineHeight && !isNaN(Number(token.lineHeight))) {
         const fontSizeVal = parseFloat(token.fontSize);
         const unit = token.fontSize.includes('pt') ? 'pt' : 'px';
         const rawLineHeight = fontSizeVal * parseFloat(token.lineHeight);
-        
+
         if (unit === 'px' && variant !== 'body') {
           finalStyle.lineHeight = `${Math.ceil(rawLineHeight / 8) * 8}px`;
         } else {
@@ -67,11 +72,11 @@ export const useModularStyle = ({
       } else {
         finalStyle.lineHeight = token.lineHeight;
       }
-      
+
       finalStyle.letterSpacing = token.letterSpacing;
-      finalStyle.fontWeight = token.fontWeight;
-      finalStyle.textTransform = token.textTransform as any;
-      if (token.fontStyle) finalStyle.fontStyle = token.fontStyle;
+      finalStyle.fontWeight = token.fontWeight as React.CSSProperties['fontWeight'];
+      if (token.textTransform) finalStyle.textTransform = token.textTransform as React.CSSProperties['textTransform'];
+      if (token.fontStyle) finalStyle.fontStyle = token.fontStyle as React.CSSProperties['fontStyle'];
     }
 
     // 2. 处理排版方向逻辑
@@ -93,23 +98,24 @@ export const useModularStyle = ({
 
     // 3. 处理语义化排版属性
     const finalProps = { ...props, ...overrides };
-    const { 
+    const {
       size, serif, sans, caption, zh, align, textAlign, bold, italic, leading, tracking,
-      color, weight, ...otherProps 
+      color, weight, ...otherProps
     } = finalProps;
 
     // A. 字号与行高
-    const fontSizePx = resolveModularFontSize(size);
+    // size/leading 来自未知形状的 props 合并,统一经 Number 窄化后参与算术
+    const fontSizePx = resolveModularFontSize(size as string | number | undefined);
     if (fontSizePx !== undefined) {
       finalStyle.fontSize = `${fontSizePx}px`;
-      
+
       // 如果手动指定了 size，默认行高也按 8px 基线自动对齐
-      const baseLeading = leading !== undefined ? leading : 1.2;
+      const baseLeading = leading !== undefined ? Number(leading) : 1.2;
       finalStyle.lineHeight = `${Math.ceil((fontSizePx * baseLeading) / 8) * 8}px`;
     } else if (leading !== undefined) {
       // 仅指定了行高倍数
-      const currentFontSize = parseFloat(finalStyle.fontSize as string || '16');
-      finalStyle.lineHeight = `${Math.ceil((currentFontSize * leading) / 8) * 8}px`;
+      const currentFontSize = parseFloat((finalStyle.fontSize as string) || '16');
+      finalStyle.lineHeight = `${Math.ceil((currentFontSize * Number(leading)) / 8) * 8}px`;
     }
 
     // B. 字体族解析
@@ -117,9 +123,9 @@ export const useModularStyle = ({
     const isZH = zh || props.lang === 'zh';
     
     if (overrides.fontFamily) {
-      finalStyle.fontFamily = overrides.fontFamily;
+      finalStyle.fontFamily = overrides.fontFamily as React.CSSProperties['fontFamily'];
     } else if (props.fontFamily) {
-      finalStyle.fontFamily = props.fontFamily;
+      finalStyle.fontFamily = props.fontFamily as React.CSSProperties['fontFamily'];
     } else if (serif) {
       finalStyle.fontFamily = isZH ? theme.typography.headingFontZH : theme.typography.headingFont;
     } else if (sans) {
@@ -147,17 +153,18 @@ export const useModularStyle = ({
     }
 
     // C. 核心视觉属性
-    const resolvedAlign = overrides.align || overrides.textAlign || align || textAlign;
+    // align/textAlign/tracking/color/weight 来自合并后的未知形状 props,按 CSS 属性类型窄化后赋值
+    const resolvedAlign = (overrides.align || overrides.textAlign || align || textAlign) as React.CSSProperties['textAlign'] | undefined;
     if (resolvedAlign) finalStyle.textAlign = resolvedAlign;
     if (bold) finalStyle.fontWeight = 'bold';
     if (italic) finalStyle.fontStyle = 'italic';
-    if (tracking !== undefined) finalStyle.letterSpacing = typeof tracking === 'number' ? `${tracking}em` : tracking;
-    if (color) finalStyle.color = color;
-    if (weight) finalStyle.fontWeight = weight;
+    if (tracking !== undefined) finalStyle.letterSpacing = typeof tracking === 'number' ? `${tracking}em` : (tracking as string);
+    if (color) finalStyle.color = color as React.CSSProperties['color'];
+    if (weight) finalStyle.fontWeight = weight as React.CSSProperties['fontWeight'];
 
     // 4. 合并直接 CSS Overrides (从 overrides 或 otherProps.style)
     // 优先级：overrides (直传 CSS) > otherProps.style
-    const directCssStyles = { ...(otherProps.style || {}), ...overrides };
+    const directCssStyles = { ...((otherProps.style as Record<string, unknown>) || {}), ...overrides } as Record<string, unknown>;
 
     Object.keys(directCssStyles).forEach(key => {
       // 排除掉已经处理过的语义化属性和特殊属性
@@ -173,7 +180,7 @@ export const useModularStyle = ({
       if (['fontSize', 'width', 'height', 'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight', 'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'top', 'left', 'right', 'bottom', 'borderRadius'].includes(key)) {
         if (typeof val === 'number') val = `${val}px`;
       }
-      (finalStyle as any)[key] = val;
+      (finalStyle as Record<string, unknown>)[key] = val;
     });
 
     // 特殊处理 translateY -> transform
@@ -209,11 +216,12 @@ export const useModularStyle = ({
       'objectFit', 'objectPosition', 'wordBreak', 'overflowWrap'
     ];
     
-    const filteredStyle: any = {};
-    ALLOWED_PROPS.forEach(p => { 
-      if ((finalStyle as any)[p] !== undefined) filteredStyle[p] = (finalStyle as any)[p]; 
+    const filteredStyle: Record<string, unknown> = {};
+    const finalRecord = finalStyle as Record<string, unknown>;
+    ALLOWED_PROPS.forEach(p => {
+      if (finalRecord[p] !== undefined) filteredStyle[p] = finalRecord[p];
     });
-    finalStyle = filteredStyle;
+    finalStyle = filteredStyle as React.CSSProperties;
 
     return finalStyle;
   }, [ds, theme, variant, overrides, props, customStyle]);

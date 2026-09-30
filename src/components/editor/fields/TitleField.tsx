@@ -23,7 +23,7 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, la
     onUpdate({ ...page, title: val }, true);
   };
 
-  const style = page.styleOverrides?.title || {};
+  const style = (page.styleOverrides?.title || {}) as Record<string, unknown>;
   
   return (
     <FieldWrapper
@@ -44,15 +44,15 @@ export const TitleField: React.FC<FieldProps> = React.memo(({ page, onUpdate, la
             onImmediateChange={handleImmediateChange}
             placeholder="Headline..." 
             className="text-sm font-bold border-slate-100 hover:border-zine-accent focus:border-zine-accent transition-colors" 
-            style={{ 
-              fontFamily: style.fontFamily || page.titleFont,
-              textAlign: style.align || style.textAlign,
+            style={{
+              fontFamily: style.fontFamily as string | undefined || page.titleFont,
+              textAlign: (style.align || style.textAlign) as React.CSSProperties['textAlign'] | undefined,
               color: '#0F172A' // 锁定为深色以保证编辑器可见性
-            }} 
+            }}
         />
         <div className="absolute left-3 bottom-2 flex items-center gap-1 opacity-20 pointer-events-none">
           <span className="text-[8px] font-black uppercase tracking-widest">
-            {style.presetKey || 'CUSTOM'}
+            {String(style.presetKey || 'CUSTOM')}
           </span>
         </div>
       </div>

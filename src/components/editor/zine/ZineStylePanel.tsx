@@ -36,9 +36,9 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
 }) => {
   const ds = useStore((s) => s.designSystem);
   const theme = useStore((s) => s.theme);
-  const overrides = page.styleOverrides?.[fieldKey] || {};
+  const overrides = (page.styleOverrides?.[fieldKey] || {}) as Record<string, unknown>;
 
-  const updateOverride = (key: string, value: any) => {
+  const updateOverride = (key: string, value: unknown) => {
     onUpdate(
       {
         ...page,
@@ -54,7 +54,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
     );
   };
 
-  const updateOverrides = (updates: Record<string, any>) => {
+  const updateOverrides = (updates: Record<string, unknown>) => {
     onUpdate(
       {
         ...page,
@@ -82,7 +82,7 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
     );
   };
 
-  // 模式启发式推导 (Fallback)
+  // 模式启发式推导:未显式传入 mode 时按 fieldKey 关键字猜测
   const isDivider =
     mode === 'divider' ||
     (!mode &&
@@ -99,15 +99,15 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
       !fieldKey.toLowerCase().includes('text'));
   const isText = mode === 'text' || (!isDivider && !isImage);
 
-  const currentSize = overrides.size !== undefined ? overrides.size : getDefaultSizeForField(page, fieldKey);
-  const currentThickness = overrides.thickness !== undefined ? overrides.thickness : getDefaultThicknessForField(page, fieldKey);
-  const currentLength = overrides.width || '100%';
-  const currentColor = overrides.color || getDefaultColorForField(page, fieldKey, ds);
-  const currentRounded = overrides.borderRadius || (isImage ? '0px' : undefined);
-  const currentFontFamily = overrides.fontFamily || getDefaultFontFamilyForField(page, fieldKey, theme);
-  const currentAlign = overrides.alignSelf;
-  const currentJustify = overrides.justifySelf;
-  const currentTextAlign = overrides.align || overrides.textAlign || getDefaultAlignForField(page, fieldKey);
+  const currentSize = overrides.size !== undefined ? (overrides.size as number) : getDefaultSizeForField(page, fieldKey);
+  const currentThickness = overrides.thickness !== undefined ? (overrides.thickness as number) : getDefaultThicknessForField(page, fieldKey);
+  const currentLength = (overrides.width as string | undefined) || '100%';
+  const currentColor = (overrides.color as string | undefined) || getDefaultColorForField(page, fieldKey, ds);
+  const currentRounded = (overrides.borderRadius as string | undefined) || (isImage ? '0px' : undefined);
+  const currentFontFamily = (overrides.fontFamily as string | undefined) || getDefaultFontFamilyForField(page, fieldKey, theme);
+  const currentAlign = overrides.alignSelf as string | undefined;
+  const currentJustify = overrides.justifySelf as string | undefined;
+  const currentTextAlign = ((overrides.align as string | undefined) || (overrides.textAlign as string | undefined) || getDefaultAlignForField(page, fieldKey));
 
   const hasOverrides = Object.keys(overrides).length > 0;
 
@@ -141,9 +141,9 @@ export const ZineStylePanel: React.FC<ZineStylePanelProps> = ({
           onSizeChange={(s) => updateOverride('size', s)}
           currentTextAlign={currentTextAlign}
           onTextAlignChange={(val) => updateOverrides({ align: val, textAlign: val })}
-          bold={overrides.bold}
+          bold={overrides.bold as boolean | undefined}
           onBoldToggle={() => updateOverride('bold', !overrides.bold)}
-          italic={overrides.italic}
+          italic={overrides.italic as boolean | undefined}
           onItalicToggle={() => updateOverride('italic', !overrides.italic)}
         />
       )}

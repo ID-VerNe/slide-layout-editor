@@ -18,8 +18,8 @@ export interface BaseNode {
     colSpan?: number;  // 1-24
     rowStart?: number; // 1-24
     rowSpan?: number;  // 1-24
-    align?: 'start' | 'center' | 'end' | 'stretch';   // 垂直对齐 (align-self)
-    justify?: 'start' | 'center' | 'end' | 'stretch'; // 水平对齐 (justify-self)
+    align?: 'start' | 'center' | 'end' | 'stretch';   // 直对齐,映射到 align-self
+    justify?: 'start' | 'center' | 'end' | 'stretch'; // 水平对齐,映射到 justify-self
   };
   
   presetKey?: string;  // 引用 DesignSystem 中的预设样式 (e.g., "safe-area", "glass-card")
@@ -78,7 +78,7 @@ export interface ComponentNode extends BaseNode {
   componentType: string;                 // e.g., "ZineDisplay", "ZineMedia"
   bind?: string;                         // e.g., "page.title"
   fieldKey?: string;                     // 显式绑定 PageData 中的字段键 (用于 styleOverrides)
-  props?: Record<string, any>;           // 传递给组件的静态 props
+  props?: Record<string, unknown>;           // 传递给组件的静态 props
 }
 
 export interface ConditionalNode extends BaseNode {
@@ -101,7 +101,7 @@ export interface TemplateSchema {
   category: string;
   supportedRatios: AspectRatioType[];
   root: TemplateNode;
-  defaults?: Record<string, any>;
+  defaults?: Record<string, unknown>;
   meta?: {
     version: string;
     author?: string;

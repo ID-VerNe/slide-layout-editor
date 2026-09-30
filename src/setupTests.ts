@@ -21,4 +21,4 @@ const indexedDB = {
   })
 };
 
-(global as any).indexedDB = indexedDB;
+(globalThis as unknown as { indexedDB: typeof indexedDB }).indexedDB = indexedDB;

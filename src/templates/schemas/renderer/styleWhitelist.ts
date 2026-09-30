@@ -23,7 +23,7 @@ export const ALLOWED_CSS_PROPERTIES = [
 ] as const;
 
 /** Filters out soft aesthetic utility classes (blur, shadow, bounce) */
-export function filterZineClassName(className: any): string {
+export function filterZineClassName(className: unknown): string {
   if (!className || typeof className !== 'string') return '';
 
   const forbiddenPrefixes = [

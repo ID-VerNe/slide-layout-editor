@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { PageData } from '../../../../types';
 
-export interface DataConnectorResult<T = any> {
+export interface DataConnectorResult<T = unknown> {
   content: T;
-  overrides: Record<string, any>;
+  overrides: Record<string, unknown>;
   isVisible: boolean;
 }
 
 /** Extracts bound data, style overrides, and visibility status for a slide field */
-export function useDataConnector<T = any>(
+export function useDataConnector<T = unknown>(
   fieldKey?: string,
   page?: PageData,
   fallbackContent?: T
@@ -23,7 +23,7 @@ export function useDataConnector<T = any>(
     }
 
     const isVisible = fieldKey ? page.visibility?.[fieldKey] !== false : true;
-    const pageVal = fieldKey ? (page as any)[fieldKey] : undefined;
+    const pageVal = fieldKey ? page[fieldKey] : undefined;
     const content = pageVal !== undefined && pageVal !== null && pageVal !== '' ? pageVal : fallbackContent;
     const overrides = fieldKey ? (page.styleOverrides?.[fieldKey] || {}) : {};
 
@@ -35,7 +35,7 @@ export function useDataConnector<T = any>(
   }, [
     fieldKey,
     page,
-    fieldKey ? (page as any)?.[fieldKey] : undefined,
+    fieldKey ? page?.[fieldKey] : undefined,
     fieldKey ? page?.styleOverrides?.[fieldKey] : undefined,
     fieldKey ? page?.visibility?.[fieldKey] : undefined,
     fallbackContent

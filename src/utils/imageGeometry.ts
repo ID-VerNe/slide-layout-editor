@@ -116,7 +116,15 @@ export function getContainerAspectRatioFromPage(
     const tpl = getTemplateById(page.layoutId);
     if (!tpl?.schema?.root) return null;
 
-    const findModular = (node: any): { colSpan: number; rowSpan: number } | null => {
+    // 模板节点形状在递归遍历中按 Container/Component 最小结构访问,避免 any
+    interface TreeNode {
+      type?: string;
+      fieldKey?: string;
+      bind?: string;
+      modular?: { colSpan?: number; rowSpan?: number };
+      children?: TreeNode[];
+    }
+    const findModular = (node: TreeNode | null | undefined): { colSpan: number; rowSpan: number } | null => {
       if (!node) return null;
       if (node.type === 'Component' && (node.fieldKey === fieldKey || node.bind === `page.${fieldKey}`)) {
         if (node.modular) {
@@ -135,11 +143,12 @@ export function getContainerAspectRatioFromPage(
       return null;
     };
 
-    const modular = findModular(tpl.schema.root);
+    const modular = findModular(tpl.schema.root as TreeNode);
     if (!modular) return null;
 
     const slideRatio = parseSlideAspectRatio(page.aspectRatio);
-    // 在 24x24 网格中：容器宽高比 = (colSpan / rowSpan) * 幻灯片宽高比
+    // 24x24 网格容器宽高比:colSpan/rowSpan 乘以幻灯片宽高比
+    // ratio = (colSpan / rowSpan) * slideAspectRatio
     return (modular.colSpan / modular.rowSpan) * slideRatio;
   } catch {
     return null;

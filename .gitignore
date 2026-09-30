@@ -39,6 +39,7 @@ stats.html
 
 # Agent directories
 .claude/
+.agents/
 lat.md/
 
 .glue/

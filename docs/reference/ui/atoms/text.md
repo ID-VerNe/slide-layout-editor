@@ -118,7 +118,7 @@
 基于全局单例 Web Worker 与闭式代数公式的动态字号自适应组件，使大标题在限定容器内瞬间计算出完美贴合尺寸。
 
 - **文件**: [src/components/AutoFitHeadline.tsx](src/components/AutoFitHeadline.tsx)
-- **底层调度**: [src/workers/fontCalculatorManager.ts](src/workers/fontCalculatorManager.ts)
+- **底层调度**: [src/workers/knuthPlassWorker.ts](src/workers/knuthPlassWorker.ts)
 
 **特性**:
 - **$O(1)$ 闭式代数公式 (Closed-Form Calculation)**:

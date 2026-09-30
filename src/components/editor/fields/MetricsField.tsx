@@ -51,7 +51,7 @@ export const MetricsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
         {/* 全局控制 metrics 大小 */}
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
            <PresetSelect
-             value={page.styleOverrides?.metrics?.fontSize || 72}
+             value={Number(page.styleOverrides?.metrics?.fontSize) || 72}
              options={FONT_SIZE_PRESETS}
              onChange={updateFontSize}
              label="Global Metrics Size"

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageData } from '../../../types';
 import { Slider } from '../../ui/Base';
 import { Settings2 } from 'lucide-react';
+import { getPageField } from '../../../utils/pageField';
 
 interface Props {
   page: PageData;
@@ -13,15 +14,14 @@ interface Props {
   step?: number;
 }
 
-export const GenericNumberField: React.FC<Props> = ({ 
-  page, onUpdate, label, fieldKey, min = 0, max = 100, step = 1 
+export const GenericNumberField: React.FC<Props> = ({
+  page, onUpdate, label, fieldKey, min = 0, max = 100, step = 1
 }) => {
   // 同步本地状态
-  const [localValue, setLocalValue] = useState<number>((page as any)[fieldKey] ?? 50);
+  const [localValue, setLocalValue] = useState<number>(getPageField<number>(page, fieldKey, 50));
 
   useEffect(() => {
-    const val = (page as any)[fieldKey] ?? 50;
-    setLocalValue(val);
+    setLocalValue(getPageField<number>(page, fieldKey, 50));
   }, [page, fieldKey]);
 
   const handleChange = (val: number) => {

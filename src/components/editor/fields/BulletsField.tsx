@@ -56,19 +56,19 @@ export const BulletsField: React.FC<FieldProps> = React.memo(({ page, onUpdate }
     >
       <div className="space-y-2 mt-1">
         <PresetSelect
-          value={page.styleOverrides?.bullets?.fontSize || 10}
+          value={Number(page.styleOverrides?.bullets?.fontSize) || 10}
           options={FONT_SIZE_PRESETS}
           onChange={updateFontSize}
           label="Size"
         />
         {bullets.map((bullet, idx) => (
           <div key={idx} className="relative group/field flex items-center gap-2">
-            <DebouncedInput 
-              value={bullet} 
-              onChange={(val) => handleBulletChange(idx, val)} 
+            <DebouncedInput
+              value={bullet}
+              onChange={(val) => handleBulletChange(idx, val)}
               placeholder="Item text..."
               className="text-[10px] bg-slate-50 border-transparent hover:border-slate-200 focus:bg-white"
-              style={{ fontFamily: page.styleOverrides?.bullets?.fontFamily || page.bodyFont }}
+              style={{ fontFamily: page.styleOverrides?.bullets?.fontFamily as string | undefined || page.bodyFont }}
             />
             <button 
               onClick={() => removeBullet(idx)} 

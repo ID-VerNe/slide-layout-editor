@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { PageData, CustomFont, CounterStyle, PrintSettings, ProjectTheme } from '../../types';
+import React, { useState, useCallback } from 'react';
+import { CustomFont, CounterStyle, PrintSettings } from '../../types';
 import { ImageIcon, Settings, Hash, AlignLeft, Type, CircleDot, Image as ImageControl, Eye, EyeOff, Printer, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Monitor, Smartphone, Square, Palette, RefreshCcw, Type as TypeIcon, UploadCloud } from 'lucide-react';
 import { Label, Input, Slider, Section } from '../ui/Base';
 import { FontSelect } from '../ui/FontSelect';
@@ -7,50 +7,32 @@ import FontManager from '../FontManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 
-interface GlobalSettingsProps {
-  page: PageData;
-  onUpdate: (page: PageData) => void;
-  customFonts: CustomFont[];
-  setCustomFonts: (fonts: CustomFont[]) => void;
-  theme: ProjectTheme;
-  setTheme: (t: Partial<ProjectTheme>, applyToAll?: boolean) => void;
-  imageQuality: number;
-  setImageQuality: (q: number) => void;
-  minimalCounter: boolean;
-  setMinimalCounter: (m: boolean) => void;
-  counterStyle: CounterStyle;
-  setCounterStyle: (s: CounterStyle) => void;
-  counterColor: string;
-  setCounterColor: (c: string) => void;
-  printSettings: PrintSettings;
-  setPrintSettings: (s: PrintSettings) => void;
-}
-
-const ColorToken = ({ label, value, field, theme, onThemeChange }: { label: string, value: string, field: keyof ProjectTheme['colors'], theme: ProjectTheme, onThemeChange: (t: Partial<ProjectTheme>) => void }) => (
-  <div className="flex flex-col gap-2">
-    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em] ml-1">{label}</span>
-    <div className="flex gap-0 items-center bg-white border border-slate-950">
-      <div className="relative w-8 h-8 shrink-0 border-r border-slate-950 overflow-hidden">
-        <input type="color" className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer p-0 border-0" value={value || '#000000'} onInput={(e) => onThemeChange({ colors: { ...theme.colors, [field]: (e.target as HTMLInputElement).value } })} />
-      </div>
-      <Input className="flex-1 !border-none !ring-0 !text-[10px] font-mono uppercase !py-1 !px-2" value={value || ''} onChange={(e) => onThemeChange({ colors: { ...theme.colors, [field]: e.target.value } })} />
-    </div>
-  </div>
-);
-
 type SettingsTab = 'general' | 'print' | 'assets';
 
-const GlobalSettings: React.FC<GlobalSettingsProps> = ({ 
-  page, onUpdate, customFonts, setCustomFonts,
-  imageQuality, setImageQuality, minimalCounter, setMinimalCounter,
-  counterStyle, setCounterStyle,
-  printSettings, setPrintSettings
-}) => {
+const GlobalSettings: React.FC = () => {
+  // 直连 store,EditorPage 不再代持弹窗状态
+  const currentPageIndex = useStore(s => s.currentPageIndex);
+  const pages = useStore(s => s.pages);
+  const page = pages[currentPageIndex] || pages[0];
+  const customFonts = useStore(s => s.customFonts);
+  const setCustomFonts = useStore(s => s.setCustomFonts);
+  const imageQuality = useStore(s => s.imageQuality);
+  const setImageQuality = useStore(s => s.setImageQuality);
+  const minimalCounter = useStore(s => s.minimalCounter);
+  const setMinimalCounter = useStore(s => s.setMinimalCounter);
+  const counterStyle = useStore(s => s.counterStyle);
+  const setCounterStyle = useStore(s => s.setCounterStyle);
+  const printSettings = useStore(s => s.printSettings);
+  const setPrintSettings = useStore(s => s.setPrintSettings);
+  const updatePage = useStore(s => s.updatePage);
+
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
-  const handleChange = (field: keyof PageData, value: any) => onUpdate({ ...page, [field]: value });
-  
-  const updatePrintField = (field: keyof PrintSettings, value: any) => {
+  const onUpdate = useCallback((next: typeof page) => updatePage(next), [updatePage]);
+
+  const handleChange = (field: keyof typeof page, value: unknown) => onUpdate({ ...page, [field]: value });
+
+  const updatePrintField = (field: keyof PrintSettings, value: unknown) => {
     if (!printSettings) return;
     setPrintSettings({ ...printSettings, [field]: value });
   };
@@ -74,7 +56,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
       <div className="flex-1 overflow-y-auto no-scrollbar pr-4">
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
-            
+
             {activeTab === 'general' && (
               <div className="space-y-16">
                 <Section>
@@ -91,8 +73,8 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                       <div className="space-y-4"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Counter Style</span><div className="flex border border-slate-200 p-1 gap-1">{[ { id: 'number', icon: Hash }, { id: 'alpha', icon: AlignLeft }, { id: 'roman', icon: TypeIcon }, { id: 'dots', icon: CircleDot } ].map(s => (<button key={s.id} onClick={() => setCounterStyle(s.id as CounterStyle)} className={`flex-1 p-3 flex items-center justify-center transition-all ${(counterStyle || 'number') === s.id ? 'bg-slate-950 text-white' : 'text-slate-300 hover:text-slate-900'}`}><s.icon size={16} strokeWidth={3} /></button>))}</div></div>
                       <div className="space-y-4">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Editor Mode</span>
-                        <button 
-                          onClick={() => setMinimalCounter(!minimalCounter)} 
+                        <button
+                          onClick={() => setMinimalCounter(!minimalCounter)}
                           className={`w-full py-4 border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${minimalCounter ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 text-slate-300 hover:border-slate-950 bg-white'}`}
                         >
                           {minimalCounter ? <EyeOff size={16} strokeWidth={3} /> : <Eye size={16} strokeWidth={3} />}
@@ -122,15 +104,15 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                       <div className="space-y-2"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Height (mm)</span><Input type="number" value={printSettings?.heightMm || 145} onChange={(e) => updatePrintField('heightMm', parseFloat(e.target.value))} className="font-mono text-xs !py-3" /></div>
                       <div className="space-y-2"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Gutter (mm)</span><Input type="number" value={printSettings?.gutterMm || 10} onChange={(e) => updatePrintField('gutterMm', parseFloat(e.target.value))} className="font-mono text-xs text-slate-950 font-black !py-3" /></div>
                     </div>
-                    
+
                     <div className="space-y-8">
                       <p className="text-[11px] font-black text-slate-950 uppercase tracking-[0.2em] border-b border-slate-950 pb-2">Strategies</p>
                       <div className="grid grid-cols-1 gap-6">
-                        {[ { id: 'landscape', label: 'Landscape', icon: Monitor }, { id: 'portrait', label: 'Portrait', icon: Smartphone } ].map(ori => { 
-                          const config = printSettings?.configs?.[ori.id as 'landscape' | 'portrait'] || { bindingSide: 'left', trimSide: 'bottom' }; 
-                          const SideBtn = ({ side, type, icon: Icon }: any) => (
+                        {[ { id: 'landscape', label: 'Landscape', icon: Monitor }, { id: 'portrait', label: 'Portrait', icon: Smartphone } ].map(ori => {
+                          const config = printSettings?.configs?.[ori.id as 'landscape' | 'portrait'] || { bindingSide: 'left', trimSide: 'bottom' };
+                          const SideBtn = ({ side, type, icon: Icon }: { side: string, type: string, icon: typeof ArrowLeft }) => (
                             <button onClick={() => { if (!printSettings) return; const nc = { ...printSettings.configs }; nc[ori.id as 'landscape' | 'portrait'] = { ...nc[ori.id as 'landscape' | 'portrait'], [type]: side }; updatePrintField('configs', nc); }} className={`p-3 border transition-all ${config[type as 'bindingSide' | 'trimSide'] === side ? 'bg-slate-950 text-white border-slate-950' : 'bg-white border-slate-200 text-slate-300 hover:border-slate-950 hover:text-slate-950'}`}><Icon size={14} strokeWidth={3} /></button>
-                          ); 
+                          );
                           return (
                             <div key={ori.id} className="bg-white p-8 border border-slate-200 flex items-center justify-between">
                               <div className="flex flex-col gap-2"><div className="flex items-center gap-3"><ori.icon size={16} strokeWidth={3} className="text-slate-950" /><span className="text-[11px] font-black uppercase text-slate-950 tracking-[0.1em]">{ori.label}</span></div></div>
@@ -139,7 +121,7 @@ const GlobalSettings: React.FC<GlobalSettingsProps> = ({
                                 <div className="space-y-3 text-center"><span className="text-[8px] font-black uppercase text-slate-400 block tracking-[0.3em]">Cut</span><div className="flex gap-1"><SideBtn side="left" type="trimSide" icon={ArrowLeft} /><SideBtn side="right" type="trimSide" icon={ArrowRight} /><SideBtn side="top" type="trimSide" icon={ArrowUp} /><SideBtn side="bottom" type="trimSide" icon={ArrowDown} /></div></div>
                               </div>
                             </div>
-                          ); 
+                          );
                         })}
                       </div>
                     </div>

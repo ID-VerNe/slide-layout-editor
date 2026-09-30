@@ -20,7 +20,7 @@ interface PreviewAreaProps {
   disableAnimation?: boolean;
 }
 
-const PreviewArea: React.FC<PreviewAreaProps> = ({
+const PreviewArea = React.memo(function PreviewArea({
   pages,
   currentPageIndex,
   previewZoom,
@@ -34,7 +34,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
   handleManualZoom,
   toggleFit,
   disableAnimation
-}) => {
+}: PreviewAreaProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const lastPosRef = useRef({ x: 0, y: 0 });
@@ -145,6 +145,6 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default PreviewArea;

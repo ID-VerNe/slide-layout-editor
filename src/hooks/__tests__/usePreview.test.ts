@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePreview } from '../usePreview';
+import type { PageData } from '../../types';
 
-const samplePages = [
-  { id: 'p1', aspectRatio: '16:9' },
-  { id: 'p2', aspectRatio: '2:3' },
+const samplePages: PageData[] = [
+  { id: 'p1', type: 'slide', layoutId: 'modern-feature', aspectRatio: '16:9', title: 't1' } as PageData,
+  { id: 'p2', type: 'slide', layoutId: 'modern-feature', aspectRatio: '2:3', title: 't2' } as PageData,
 ];
 
 function createContainer(rect: Partial<DOMRect>) {
@@ -95,7 +96,7 @@ describe('usePreview', () => {
     const { result, rerender } = renderHook(
       ({ isLoaded }) =>
         usePreview({
-          pages: [{ id: 'p1', aspectRatio: '16:9' }],
+          pages: [{ id: 'p1', type: 'slide', layoutId: 'modern-feature', aspectRatio: '16:9', title: 't1' } as PageData],
           currentPageIndex: 0,
           printSettings: { enabled: true, widthMm: 210, heightMm: 297, gutterMm: 0 } as any,
           isLoaded,

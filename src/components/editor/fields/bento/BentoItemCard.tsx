@@ -42,18 +42,18 @@ export const BentoItemCard: React.FC<BentoItemCardProps> = ({
           #{idx + 1}
         </span>
         <div className="flex bg-slate-100 p-0.5 rounded-lg gap-0.5">
-          {[
+          {([
             { id: 'metric', icon: Hash },
             { id: 'image', icon: ImageIcon },
             { id: 'icon-text', icon: Smile },
             { id: 'feature-list', icon: ListOrdered },
-          ].map((type) => {
+          ] as { id: BentoItem['type']; icon: typeof Hash }[]).map((type) => {
             const Icon = type.icon;
             return (
               <button
                 key={type.id}
                 type="button"
-                onClick={() => onUpdate({ type: type.id as any })}
+                onClick={() => onUpdate({ type: type.id })}
                 className={`p-1 rounded-md transition-all ${
                   item.type === type.id
                     ? 'bg-white text-[#264376] shadow-xs'

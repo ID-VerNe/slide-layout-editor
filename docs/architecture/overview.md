@@ -15,7 +15,7 @@ SlideGrid Studio 并非一个传统的浏览器应用，而是一个深度融合
 ### 1.2 渲染进程 (Renderer Process - Chromium 环境)
 渲染进程是“表演者”，专注于高频率的 UI 渲染与数据流驱动：
 - **解耦渲染管线**: 由 `LayoutRenderer` 作为调度中心，下设 `basePropsResolver`（网格与属性归一化）、`containerRenderer`（Flex/Grid/Modular 容器）、`componentRenderer`（原子组件桥接与 ErrorBoundary）、`repeaterRenderer`（数据驱动循环）以及 `styleWhitelist`（安全样式过滤）。
-- **计算引擎**: 负责 24x24 网格的样式计算与表达式解析（防原型链污染）；文本自适应字号通过 `fontCalculatorManager` 全局 Worker 单例以 $O(1)$ 闭式代数公式异步计算，避免线程激增。
+- **计算引擎**: 负责 24x24 网格的样式计算与表达式解析（防原型链污染）；文本排版通过 Knuth-Plass 算法在 Web Worker 中异步求解，避免线程激增。
 - **状态树**: Zustand 维护着完整的项目快照，包括 50 步深度快照隔离的 undo/redo 栈。
 - **持久化中枢**: `services/recentProjects.ts` 统一管理近期工程列表，具备 LocalStorage 超额分级裁剪与降级保全能力。
 - **隔离沙盒**: 为了安全，禁用了 Node.js 集成，所有原生请求必须通过 `ContextBridge` 转发。
@@ -66,6 +66,6 @@ SlideGrid Studio 解决了“Web 应用数据易失”与“传统桌面应用�
 
 - **分包加载**: `vite.config.ts` 中手动定义了 `manualChunks`，将 `react`/`react-dom`/`react-router-dom`（`vendor-react`）、`framer-motion`（`vendor-motion`）、`zustand`/`lucide-react`（`vendor-utils`）、`katex`（`vendor-katex`）等分离为独立 chunk，利用浏览器缓存。
 - **离屏无感导出 (OffscreenExportRenderer)**: 多页导出时，应用在离屏专用 DOM 节点中挂载待导出的目标页面，静默等待字体与图片加载就绪后调用 `toPng` 捕获，彻底避免了导出过程中用户可视画面的剧烈翻页、闪烁以及 Framer Motion 淡入动画半透明问题。
-- **闭式字号计算**: Web Worker 字体自适应从传统的二分查找循环重构为 $O(1)$ 闭式代数公式推导，且通过 `fontCalculatorManager` 实现全局共享 Worker 实例，消除每个组件实例重复创建 Worker 导致的内存与句柄暴涨。
+- **Knuth-Plass 文本排版**: 文本换行与断行从贪心启发式重构为 Knuth-Plass 动态规划求解，在 Web Worker 中异步计算，避免阻塞主线程。
 - **GPU 加速**: 全面开启硬件加速，确保数百层 Framer Motion 动画在 4K 屏幕下依然丝滑。
 - **零拷贝资产协议**: `asset://` 协议直接从磁盘读取 Buffer 流入渲染进程，避免了 Base64 带来的 33% 内存额外开销。

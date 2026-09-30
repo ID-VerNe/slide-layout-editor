@@ -5,6 +5,13 @@ import { Slider } from '../../ui/Base';
 import IconPicker from '../../ui/IconPicker';
 import { FieldWrapper } from './FieldWrapper';
 
+// gallery 条目结构:自由图片资产,带裁剪配置
+interface GalleryItem {
+  id?: string;
+  url?: string;
+  config?: { scale?: number; x?: number; y?: number };
+}
+
 interface FieldProps {
   page: PageData;
   onUpdate: (page: PageData) => void;
@@ -18,10 +25,10 @@ interface FieldProps {
  */
 export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate, pages }) => {
   const [activeAdjustIdx, setActiveAdjustIdx] = useState<number | null>(null);
-  const gallery = page.gallery || [];
+  const gallery = (page.gallery as GalleryItem[] | undefined) || [];
 
-  const updateGallery = (newGallery: any[]) => {
-    onUpdate({ ...page, gallery: newGallery });
+  const updateGallery = (newGallery: GalleryItem[]) => {
+    onUpdate({ ...page, gallery: newGallery } as PageData);
   };
 
   const addImage = () => {
@@ -97,7 +104,7 @@ export const GalleryField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
 
             <div className="w-full">
               <IconPicker
-                value={item.url}
+                value={item.url || ''}
                 onChange={(url) => handleImageChange(idx, url)}
                 allowedTabs={['upload', 'history']}
                 className="w-full"

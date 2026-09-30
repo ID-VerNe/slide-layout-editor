@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAssetUrl } from '../useAssetUrl';
-import * as db from '../../utils/db';
+import * as db from '../../utils/storage/assetStore';
 
-vi.mock('../../utils/db', () => ({
+vi.mock('../../utils/storage/assetStore', () => ({
   getAsset: vi.fn()
 }));
 

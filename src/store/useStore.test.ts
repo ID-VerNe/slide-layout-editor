@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi, MockedFunction } from 'vitest';
 import { useStore, isEqualSnapshot } from '../store/useStore';
 import { DEFAULT_THEME, DEFAULT_DESIGN_SYSTEM, DEFAULT_PRINT_SETTINGS } from '../constants/theme';
-import * as dbModule from '../utils/db';
+import * as dbModule from '../utils/storage/projectDb';
 import { nativeFs } from '../utils/native-fs';
 import { act } from '@testing-library/react';
 
 // Mock persistence utilities to keep store tests fast and deterministic
-vi.mock('../utils/db', async () => {
-  const actual = await vi.importActual<typeof import('../utils/db')>('../utils/db');
+vi.mock('../utils/storage/projectDb', async () => {
+  const actual = await vi.importActual<typeof import('../utils/storage/projectDb')>('../utils/storage/projectDb');
   return {
     ...actual,
     getProject: vi.fn(),

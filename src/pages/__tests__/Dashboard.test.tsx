@@ -51,7 +51,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   };
 });
 
-vi.mock('../../utils/db', () => ({
+vi.mock('../../utils/storage/projectDb', () => ({
   deleteProject: vi.fn(async () => {}),
 }));
 

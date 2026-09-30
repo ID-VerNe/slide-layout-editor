@@ -22,17 +22,18 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({ layoutId, aspe
   // 2. 构造 Mock 数据，确保组件渲染“饱满”
   const mockPage = useMemo(() => ({
     id: 'mock',
+    type: 'slide' as const,
     layoutId,
     aspectRatio,
     title: 'LOREM IPSUM HEADLINE',
     subtitle: 'Dolor sit amet consectetur',
     paragraph: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.',
     image: 'mock',
-    gallery: ['mock', 'mock', 'mock'],
+    gallery: [{ id: 'g1', src: 'mock' }, { id: 'g2', src: 'mock' }, { id: 'g3', src: 'mock' }],
     bullets: ['Feature Point One', 'Feature Point Two', 'Feature Point Three'],
-    features: [{ title: 'F1', desc: 'Desc' }, { title: 'F2', desc: 'Desc' }],
-    metrics: [{ label: 'Metric', value: '100%' }],
-    mosaic: [{ icon: 'Box' }, { icon: 'Box' }],
+    features: [{ id: 'f1', title: 'F1', desc: 'Desc' }, { id: 'f2', title: 'F2', desc: 'Desc' }],
+    metrics: [{ id: 'm1', label: 'Metric', value: '100%' }],
+    mosaic: [{ id: 'b1', icon: 'Box' }, { id: 'b2', icon: 'Box' }],
     backgroundColor: '#ffffff',
     accentColor: '#2a4a82',
     visibility: { logo: true },
@@ -46,8 +47,8 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({ layoutId, aspe
     ],
     // 简历专用 Mock
     resumeSections: [
-      { title: 'EXPERIENCE', items: [{ title: 'Job', subtitle: 'Company', date: '2020', description: 'desc' }] },
-      { title: 'EDUCATION', items: [{ title: 'Degree', subtitle: 'Uni', date: '2018', description: 'desc' }] }
+      { id: 'exp', title: 'EXPERIENCE', items: [{ id: 'job', title: 'Job', subtitle: 'Company', date: '2020', description: 'desc' }] },
+      { id: 'edu', title: 'EDUCATION', items: [{ id: 'deg', title: 'Degree', subtitle: 'Uni', date: '2018', description: 'desc' }] }
     ]
   }), [layoutId, aspectRatio]);
 
@@ -70,11 +71,7 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({ layoutId, aspe
         }}
         className="wireframe-mode shadow-sm"
       >
-        {template.schema ? (
-          <JsonTemplateRenderer schema={template.schema} page={mockPage as any} />
-        ) : (
-          <template.component page={mockPage} />
-        )}
+        <JsonTemplateRenderer schema={template.schema!} page={mockPage} />
       </div>
 
       {/* 遮罩层：防止预览图内部产生滚动或点击交互 */}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { DesignSystem, PageData, ProjectTheme, TypographySettings } from '../../../../types';
-import { useStore } from '../../../../store/useStore';
 import { useModularStyle } from '../hooks/useModularStyle';
 import { useDataConnector } from '../hooks/useDataConnector';
 
@@ -12,8 +11,8 @@ interface ZineDividerProps {
   color?: keyof DesignSystem['tokens']['colors'] | string;
   className?: string;
   style?: React.CSSProperties;
-  designSystem?: DesignSystem;
-  theme?: ProjectTheme;
+  designSystem: DesignSystem;
+  theme: ProjectTheme;
   typography?: TypographySettings;
 }
 
@@ -29,22 +28,21 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
   color = 'accent',
   className = '',
   style: customStyle = {},
-  designSystem: propsDs,
-  theme: propsTheme,
-  typography: propsTypography,
+  designSystem: ds,
+  theme,
+  typography: _typography,
 }) => {
-  const storeDs = useStore(s => s.designSystem);
-  const ds = propsDs || storeDs;
-  
   const isHorizontal = orientation === 'horizontal';
 
   // 1. 统一提取数据连接与可见性状态
   const { isVisible, overrides } = useDataConnector(fieldKey, page);
-  
+
   const { style, className: resolvedClassName } = useModularStyle({
+    designSystem: ds,
+    theme,
     page,
     fieldKey,
-    props: { color: (ds.tokens.colors as any)[color] || color },
+    props: { color: (ds?.tokens?.colors as Record<string, string> | undefined)?.[color as string] || color },
     customStyle,
     className
   });
@@ -52,9 +50,9 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
   if (!isVisible) return null;
 
   // 2. 智能厚度计算：优先读取 styleOverrides.thickness
-  const overrideThickness = overrides?.thickness;
+  const overrideThickness = overrides?.thickness as number | string | undefined;
   const thicknessValue = overrideThickness || thickness;
-  const resolvedThickness = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
+  const resolvedThickness: string | number = typeof thicknessValue === 'number' ? `${thicknessValue}px` : thicknessValue;
 
   const finalStyle: React.CSSProperties = {
     minWidth: 0,
@@ -63,22 +61,22 @@ export const ZineDivider: React.FC<ZineDividerProps> = ({
     maxHeight: '100%',
     boxSizing: 'border-box',
     ...style,
-    backgroundColor: style.color || (ds.tokens.colors as any)[color] || color,
-    
+    backgroundColor: style.color || (ds?.tokens?.colors as Record<string, string> | undefined)?.[color as string] || color,
+
     // 长度与厚度几何模型
-    width: isHorizontal 
-      ? (style.width || '100%') 
+    width: isHorizontal
+      ? ((style.width as string | number | undefined) || '100%')
       : resolvedThickness,
-    height: isHorizontal 
-      ? resolvedThickness 
-      : (style.height || '100%'),
-      
+    height: isHorizontal
+      ? resolvedThickness
+      : ((style.height as string | number | undefined) || '100%'),
+
     opacity: style.opacity ?? 1,
-    
+
     // 对齐方式 (由 LayoutRenderer 或 styleOverrides 传入)
     alignSelf: style.alignSelf || (isHorizontal ? 'center' : 'stretch'),
     justifySelf: style.justifySelf || (isHorizontal ? 'stretch' : 'center'),
-    
+
     zIndex: style.zIndex || 1,
   };
 

@@ -5,6 +5,7 @@ import { Input } from '../../ui/Base';
 import { FieldWrapper } from './FieldWrapper';
 import { PresetSelect } from '../../ui/PresetSelect';
 import { FONT_SIZE_PRESETS, LETTER_SPACING_PRESETS } from '../../../constants/editorPresets';
+import { getPageField } from '../../../utils/pageField';
 
 interface FieldProps {
   page: PageData;
@@ -14,10 +15,11 @@ interface FieldProps {
 }
 
 export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, label, fieldKey = 'artFont' }) => {
-  const value = (page as any)[fieldKey] || '';
-  const style = page.styleOverrides?.[fieldKey] || {};
+  const value = getPageField<string>(page, fieldKey, '');
+  // styleOverrides 条目为 CSS 键值容器,在此窄化为可索引的 record
+  const style = (page.styleOverrides?.[fieldKey] || {}) as Record<string, unknown>;
 
-  const updateStyle = (updates: any) => {
+  const updateStyle = (updates: Record<string, unknown>) => {
     onUpdate({
       ...page,
       styleOverrides: {
@@ -31,11 +33,11 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
   };
 
   return (
-    <FieldWrapper 
-      page={page} 
-      onUpdate={onUpdate} 
-      fieldKey={fieldKey as any} 
-      label={label || "Art Typography"} 
+    <FieldWrapper
+      page={page}
+      onUpdate={onUpdate}
+      fieldKey={fieldKey}
+      label={label || "Art Typography"}
       icon={Type}
     >
       <div className="space-y-4">
@@ -53,7 +55,7 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
         <div className="grid grid-cols-2 gap-2">
            {/* 字号控制 */}
            <PresetSelect
-             value={style.fontSize || 120}
+             value={Number(style.fontSize) || 120}
              options={FONT_SIZE_PRESETS}
              onChange={(val) => updateStyle({ fontSize: val })}
              label="Size"
@@ -66,16 +68,16 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
               </div>
               <div className="flex gap-1">
                 <button
-                  onClick={() => updateStyle({ strokeWidth: Math.max(0.5, (style.strokeWidth || 2) - 0.5) })}
+                  onClick={() => updateStyle({ strokeWidth: Math.max(0.5, (Number(style.strokeWidth) || 2) - 0.5) })}
                   className="flex-1 py-2 bg-white border border-slate-200 hover:border-slate-950 text-slate-950 text-xs font-black transition-all"
                 >
                   −
                 </button>
                 <div className="flex-1 py-2 bg-white border border-slate-200 text-center text-xs font-black text-slate-950">
-                  {(style.strokeWidth || 2).toFixed(1)}
+                  {(Number(style.strokeWidth) || 2).toFixed(1)}
                 </div>
                 <button
-                  onClick={() => updateStyle({ strokeWidth: (style.strokeWidth || 2) + 0.5 })}
+                  onClick={() => updateStyle({ strokeWidth: (Number(style.strokeWidth) || 2) + 0.5 })}
                   className="flex-1 py-2 bg-white border border-slate-200 hover:border-slate-950 text-slate-950 text-xs font-black transition-all"
                 >
                   +
@@ -86,7 +88,7 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
 
         {/* 模式与透明度 */}
         <div className="flex gap-2">
-           <button 
+           <button
              onClick={() => updateStyle({ mode: style.mode === 'solid' ? 'outline' : 'solid' })}
              className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase border transition-all ${
                style.mode === 'solid' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-200'
@@ -94,13 +96,13 @@ export const ArtFontField: React.FC<FieldProps> = React.memo(({ page, onUpdate, 
            >
              {style.mode === 'solid' ? 'Solid Fill' : 'Outline Only'}
            </button>
-           
+
            <div className="flex-1 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between px-3">
               <Ghost size={12} className="text-slate-400" />
-              <input 
-                type="range" 
-                min="0.1" max="1" step="0.1" 
-                value={style.opacity || 1} 
+              <input
+                type="range"
+                min="0.1" max="1" step="0.1"
+                value={Number(style.opacity) || 1}
                 onChange={(e) => updateStyle({ opacity: parseFloat(e.target.value) })}
                 className="w-16 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
               />

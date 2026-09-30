@@ -140,8 +140,7 @@ src/
 │       ├── expressionEvaluator.ts # 表达式求值器（防原型链污染）
 │       └── componentRegistry.ts  # 组件名 → React 组件映射
 ├── workers/
-│   ├── fontCalculatorManager.ts # 全局 Worker 单例并发管理器
-│   └── fontCalculator.ts        # O(1) 闭式字号计算 Worker 线程
+│   └── knuthPlassWorker.ts   # Knuth-Plass 文本排版 Worker 线程
 ├── constants/           # Design Tokens、布局画幅、图标库
 ├── utils/
 │   ├── fontLoader.ts    # DOM 自定义字体加载与注册

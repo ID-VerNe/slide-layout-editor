@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAsset } from '../utils/db';
+import { getAsset } from '../utils/storage/assetStore';
 import { generateResponsiveImages, generateSrcSet } from '../utils/imageUtils';
 
 interface UseResponsiveImageOptions {

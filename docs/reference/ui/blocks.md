@@ -28,7 +28,7 @@
 - **文件**: [AutoFitHeadline.tsx](src/components/AutoFitHeadline.tsx)
 - **算法**: 基于字符权重的二分查找
 - **精度**: 0.5px
-- **Worker**: 通过 Web Worker ([fontCalculator.ts](src/workers/fontCalculator.ts)) 进行异步计算，避免阻塞主线程
+- **Worker**: 文本排版通过 Web Worker ([knuthPlassWorker.ts](src/workers/knuthPlassWorker.ts)) 异步计算，避免阻塞主线程
 - **在 `Text` 原子组件中集成**: 当 `autoFit={true}` 时启用
 
 ### 2.2 `LayoutRenderer`
